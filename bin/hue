@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+SCRIPTDIR="$(dirname "${BASH_SOURCE[0]}")"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : hue
+# @Created     : Mon, Dec 31, 2019, 00:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : home automation - philips hue script
+# @Help        : http://hkionline.net/posts/using-phillips-hue-from-the-command-line
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
+
+__help() {
+  printf_green "\t\tUsage: hue hostname command\n"
+  printf_green "\t\tIE: hue hostname on / off\n"
+  printf_green "\t\tSee http://hkionline.net/posts/using-phillips-hue-from-the-command-line for a full list of commands"
+  return 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# variables
+
+unset hue_api_key hue_device hue_option
+
+[ "$1" != "--help" ] || __help
+
+DEVICE="$(hostname2ip ${HUE_HUB_DEVICE:-$2})"
+hue_api_key="${HUE_API_KEY}"
+hue_device="${DEVICE:-$2}"
+hue_option="$1"
+
+[ "$hue_api_key" = "" ] && printf_green "\t\tPlease set your hue api key\n"
+[ "$hue_device" = "" ] && printf_red "\t\tPlease enter the hostname of your hue hub\n" && exit 1
+[ "$hue_option" = "" ] && printf_red "\t\tPlease enter the the command you want to send to your hue\n" && exit 1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$hue_option" in
+on | true | 0)
+  printf_green "\t\t Sending command $hue_option to $hue_device\n"
+  devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}'
+  ;;
+off | false | 1)
+  printf_green "\t\t Sending command $hue_option to $hue_device\n"
+  devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":false}'
+  ;;
+*)
+  printf_green "\t\t Sending command $hue_option to $hue_device\n"
+  devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}'
+  ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

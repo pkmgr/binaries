@@ -1,0 +1,182 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : gen-apache
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Generate an apache host
+# @Source      :
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_help "Usage: $APPNAME DOMAIN FOLDER"
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help" ] && __help
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [[ $(id -u) -ne 0 ]]; then
+  printf_exit "Please re-run this as root"
+  exit
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__apache_confdir() {
+  if [ -d /etc/apache2/sites-enabled ]; then
+    apacheconfdir="/etc/apache2/sites-enabled"
+  elif [ -d "/etc/httpd/conf/vhosts.d" ]; then
+    apacheconfdir="/etc/httpd/conf/vhosts.d"
+  else
+    printf_custom_question "Where are your apache server files located? "
+    read -r apacheconfdir && echo
+    if [[ ! -d "$apacheconfdir" ]]; then
+      printf_exit "$apacheconfdir is an invalid directory"
+      exit 1
+    fi
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__apache_dom() {
+  printf_custom_question "What is your domain name? "
+  read -r APACHEDOMAIN && echo
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__apache_www() {
+  printf_custom_question "What is your DocumentRoot? "
+  read -r APACHEDOCROOT && echo
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__apache_conf() {
+  if [ -d /etc/letsencrypt/live/domain ] || [ -d /etc/letsencrypt/live/$(hostname -f) ]; then
+    cat <<EOF >$apacheconfdir/$APACHEDOMAIN.conf
+# VirtualHost for $APACHEDOMAIN
+
+<IfModule mod_ssl.c>
+<VirtualHost _default_:8443>
+ServerName $APACHEDOMAIN
+ServerAdmin webmaster@$APACHEDOMAIN
+DocumentRoot "$APACHEDOCROOT"
+
+#Rewrites
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
+
+##LE Certs
+SSLEngine on
+SSLCertificateFile /etc/letsencrypt/live/domain/cert.pem
+SSLCertificateKeyFile /etc/letsencrypt/live/domain/privkey.pem
+SSLCertificateChainFile /etc/letsencrypt/live/domain/fullchain.pem
+
+#Headers
+#Header always set Strict-Transport-Security "max-age=31536000; preload"
+#RequestHeader set Connection ""
+#RequestHeader set Upgrade $http_upgrade;
+#RequestHeader set Connection "upgrade"
+#RequestHeader set X-Forwarded-Proto "https"
+</VirtualHost>
+</IfModule>
+EOF
+  else
+    cat <<EOF >$apacheconfdir/$APACHEDOMAIN.conf
+# VirtualHost for $APACHEDOMAIN
+
+<IfModule mod_ssl.c>
+<VirtualHost _default_:8443>
+ServerName $APACHEDOMAIN
+ServerAdmin webmaster@$APACHEDOMAIN
+DocumentRoot "$APACHEDOCROOT"
+
+#Rewrites
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
+
+SSLEngine on
+SSLCertificateFile /etc/ssl/CA/CasjaysDev/certs/localhost.crt
+SSLCertificateKeyFile /etc/ssl/CA/CasjaysDev/private/localhost.key
+#SSLCertificateChainFile /etc/ssl/CA/CasjaysDev/certs/localhost.crt
+
+#Headers
+#Header always set Strict-Transport-Security "max-age=31536000; preload"
+#RequestHeader set Connection ""
+#RequestHeader set Upgrade $http_upgrade;
+#RequestHeader set Connection "upgrade"
+#RequestHeader set X-Forwarded-Proto "https"
+</VirtualHost>
+</IfModule>
+EOF
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+APACHEDOMAIN="${APACHEDOMAIN:-$1}"
+APACHEDOCROOT="${APACHEDOCROOT:-$2}"
+
+if [ -z "$apacheconfdir" ]; then
+  __apache_confdir
+fi
+
+if [ -z "$APACHEDOMAIN" ]; then
+  __apache_dom
+fi
+
+if [ -z "$APACHEDOCROOT" ]; then
+  __apache_www
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+mkdir -p "$APACHEDOCROOT"
+
+if [ -n "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
+  echo "127.0.0.1      $APACHEDOMAIN" >>/etc/hosts
+fi
+
+__apache_conf
+
+printf_green "Setting up $APACHEDOMAIN in $APACHEDOCROOT"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+#End

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# _castero completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for castero
+
+_castero_completions() {
+  local cur prev words cword
+  ARRAY="-h --help --import --export -v --version"
+  _init_completion || return
+
+  case $prev in
+  --import)
+    _filedir
+      return
+  ;;
+  --export)
+      _filedir
+      return
+  ;;
+  esac
+
+  # relevant options completion
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# enable completions
+complete -F _castero_completions -o default castero

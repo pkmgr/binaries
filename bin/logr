@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+set -o pipefail # trace ERR through pipes
+shopt -s extglob
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : radioreference
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : play radioreference/broadcastify stream
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
+printf_green() { printf_color "$1" 2; }
+printf_red() { printf_color "$1" 1; }
+
+help() {
+  printf_green "
+\t\tA simple logging utility
+\t\tUsage       : log mycommand
+\t\t--clean     : remove old logs
+\t\t--show      : will show all output
+\t\t--silent    : now output
+\t\t--err       : show only error
+\t\t--noerr     : hide error mesaages
+\t\t--list      : list all logs
+\t\t--open      : open a log file
+\n"
+  return 1
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ -z "$1" ] && help
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+logdir="${LOGDIR:-$HOME/.local/log}"
+date=$(date +'%m%d%Y%H%M')
+stdout="$1-$date.log"
+stderr="$1-$date.err"
+mkdir -p "$logdir"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+--help | -h)
+  help
+  ;;
+--list | -l)
+  ls "$logdir"
+  ;;
+--open | -o)
+  vifm "$logdir"
+  ;;
+--clean | -c)
+  rm -Rf "$logdir"
+  rm -Rf "$HOME/.log" "$HOME/.err"
+  mkdir -p "$logdir"
+  ;;
+-show | -sh)
+  shift 1
+  "$@"
+  ;;
+--silent | -si)
+  shift 1
+  "$@" >$logdir/$stdout 2>/$logdir/$stderr
+  ;;
+--err | -e)
+  shift 1
+  "$@" >$logdir/$stdout
+  ;;
+--noerr | -noe)
+  shift 1
+  "$@" 2>/$logdir/$stderr
+  ;;
+*)
+  shift 0
+  "$@" >$logdir/$1-$date.log 2>/$logdir/$1-$date.err
+  ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

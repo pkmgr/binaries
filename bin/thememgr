@@ -1,0 +1,245 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : thememgr
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Theme manager for linux
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+thememgr_install
+
+ARGS="$*"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ARRAY="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/array)"
+LIST="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/list)"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+generate_theme_index() { true; }
+generate_icon_index() { true; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+mkd "$HOMEDIR"
+mkd "$THEMEDIR"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_help "\n
+\t\tA Package Manager for all systems   |   Usage: sudo thememgr command
+\t\tthememgr makecache            - update theme cache              | IE: thememgr makecache
+\t\tthememgr list                 - list all installable themes     | IE: thememgr list
+\t\tthememgr list-installed       - list installed themes           | IE: thememgr list-installed
+\t\tthememgr search               - find theme                      | IE: thememgr search theme
+\t\tthememgr search-installed     - search installed themes         | IE: thememgr search-installed theme
+\t\tthememgr install              - install a theme                 | IE: thememgr install theme
+\t\tthememgr remove               - remove a theme                  | IE: thememgr remove theme
+\t\tthememgr update               - update the themes               | IE: thememgr update
+"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+removetheme() {
+  devnull sudo rm -Rf "$HOMEDIR/$1"
+  devnull sudo unlink "$THEMEDIR/$rmf"
+  devnull generate_theme_index "$THEMEDIR"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__listthemes() {
+  printf_green "All Themes"
+  printf_green "$LIST"
+}
+
+__themedir() {
+  [ -d /usr/share/theme ] && themedir="/usr/share/themes "
+  [ -d /usr/local/share/theme ] && themedir+="/usr/local/share/themes "
+  ls "$themedir"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+help | h | --h*)
+  __help
+  ;;
+
+makecache)
+  fc-cache -f
+  ;;
+
+list)
+  __listthemes
+  ;;
+
+search)
+  shift 1
+  THEME="$1"
+  echo $LIST | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$THEME" || printf_exit "That theme does not exist"
+  ;;
+
+list-installed)
+  shift 1
+  THEME="$1"
+  __themedir || printf_exit "Something went wrong 😕"
+  ;;
+
+search-installed)
+  shift 1
+  THEME="$1"
+  __themedir | grep --color=auto -Fi "$THEME" || printf_exit "That theme does not exist"
+  ;;
+
+remove)
+  shift 1
+  printf_green "Removing $ARGS from $HOMEDIR"
+  declare -a LISTARRAY="$*"
+  for rmf in ${LISTARRAY[*]}; do
+    printf_yellow "Removing $rmf theme from your system"
+    removetheme "$rmf"
+    getexitcode "$rmf has been removed"
+    echo ""
+  done
+  ;;
+
+update)
+  shift 1
+  if [ -z "$1" ]; then
+    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR)" ]]; then
+      printf_green "Updating the themes in $HOMEDIR"
+      for upd in $(ls $USRUPDATEDIR); do
+        if urlcheck $REPO/$upd/raw/master/install.sh; then
+          printf_yellow "Initializing the installer from"
+          printf_purple "$REPO/$upd"
+          bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)"
+          getexitcode "$upd has been installed"
+        else
+          urlinvalid $REPO/$upd/raw/master/install.sh
+        fi
+        echo ""
+      done
+    fi
+
+    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
+      printf_green "Updating the themes in $HOMEDIR"
+      for updadmin in $(ls $SYSUPDATEDIR); do
+        if urlcheck $REPO/$updadmin/raw/master/install.sh; then
+          printf_yellow "Initializing the installer from"
+          printf_purple "$REPO/$updadmin"
+          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)"
+          getexitcode "$updadmin has been installed"
+        else
+          urlinvalid $REPO/$updadmin/raw/master/install.sh
+        fi
+        echo ""
+      done
+    fi
+
+  else
+    thememgr install "$@"
+  fi
+  ;;
+
+install)
+  shift 1
+  printf_green "Installing $ARGS to $THEMEDIR"
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
+    declare -a LISTARRAY="$*"
+  for ins in ${LISTARRAY[*]}; do
+    if urlcheck $REPO/$ins/raw/master/install.sh; then
+      printf_yellow "Initializing the installer from"
+      printf_purple "$REPO/$ins"
+      bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      getexitcode "$ins has been installed"
+    else
+      urlinvalid $REPO/$ins/raw/master/install.sh
+    fi
+    echo ""
+  done
+  ;;
+
+cron)
+  shift 1
+  if [[ $USER != "root" ]]; then
+    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR)" ]]; then
+      file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
+      if [ -f "$file" ]; then
+        $file --cron
+      fi
+    fi
+  else
+    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
+      file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
+      if [ -f "$file" ]; then
+        sudo $file --cron
+      fi
+    fi
+  fi
+  ;;
+
+version)
+  shift 1
+  ANAME="$1"
+  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1 2>/dev/null)" ]; then
+    file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
+    if [ -f "$file" ]; then
+      printf_green "Information about $1: \n$(bash -c "$file --version")"
+    fi
+  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
+    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
+  else
+    printf_exit "File was not found is it installed?"
+  fi
+  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
+  exit
+  ;;
+
+*)
+  __help
+  ;;
+
+esac
+
+generate_theme_index "$THEMEDIR"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

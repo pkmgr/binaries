@@ -1,0 +1,42 @@
+###############################################
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : .editorconfig
+# @Created     : 15/12/2019
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description :
+###############################################
+
+# For more information about the configurations used
+# in this file, please see the EditorConfig documentation.
+#
+# https://editorconfig.org
+
+root = false
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[*]
+
+charset = utf-8
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[*.md]
+
+# Markdown uses the trailing whitespaces.
+# https://daringfireball.net/projects/markdown/syntax#block
+
+trim_trailing_whitespace = false
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[.travis.yml]
+
+indent_size = 2
+indent_style = space

@@ -1,0 +1,321 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : jason@casjaysdev.com
+# @File        : dotfiles
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : dotfiles installer script
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ARGS="$*"
+ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/array)"
+LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/list)"
+ADMIN="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/admin)"
+DFMGRREPO="${DFMGRREPO:-https://github.com/dfmgr}"
+SYSTEMMGRREPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}"
+USRUPDATEDIR="$SHARE/CasjaysDev/apps"
+SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps"
+MESS="Installing $1"
+HELP="See $DFMGRREPO for available dotfiles\n"
+HELP+="\t\trun dotfiles update to get the latest release!\n"
+HELP+="\t\tavailable options are as follows:\n"
+HELP+="\t\t$APPNAME admin --all $ADMIN\n"
+HELP+="\t\t$APPNAME install $LIST\n"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+printf_red "This will become obsolete in the next stable release"
+printf_green "Use dfmgr to update your dotfiles and systemmgr to update system configs"
+#printf_exit  "The stow option is now handled by config or dfmgr stow"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+df_update() {
+  declare -a LISTARRAY=$(ls -A $HOME/.local/share/CasjaysDev/apps/dfmgr)
+  for ins_upd in ${LISTARRAY[*]}; do
+    if [ -f "$HOME/.local/share/CasjaysDev/apps/dotfiles/$ins_upd" ]; then
+      mkdir -p "$HOME/.local/share/CasjaysDev/apps/dfmgr"
+      mv_f "$HOME/.local/share/CasjaysDev/apps/dotfiles/$ins_upd" "$HOME/.local/share/CasjaysDev/apps/dfmgr/$ins_upd"
+    fi
+    if [ ! "$(ls -A $HOME/.local/share/CasjaysDev/apps/dotfiles)" ]; then
+      rm_rf "$HOME/.local/share/CasjaysDev/apps/dotfiles"
+    fi
+  done
+  dfmgr update $LISTARRAY $ && return 0 || return 1
+
+  if [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]] && [[ -d /usr/local/share/CasjaysDev/apps/dotfiles ]]; then
+    sudo bash -c "declare -a LISTARRAY=$(ls -A /usr/local/share/CasjaysDev/apps/dotfiles)
+  for ins_upd in ${LISTARRAY[*]}; do
+    if [ -f /usr/local/share/CasjaysDev/apps/dotfiles/$ins_upd ]; then
+      mv_f /usr/local/share/CasjaysDev/apps/dotfiles/$ins_upd /usr/local/share/CasjaysDev/apps/systemmgr/$ins_upd
+    fi
+    if [ ! $(ls -A /usr/local/share/CasjaysDev/apps/dotfiles) ]; then
+      rm_rf $SHARE/CasjaysDev/apps/dotfiles
+    fi
+    systemmgr install $ins_upd && return 0 || return 1
+  done"
+  fi
+}
+
+git_stow() {
+  if [ -f "$(command -v config)" ]; then
+    declare -a args="$*"
+    config add $args
+  else
+    printf_help "The config command is not installed"
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ -z "$1" ] && dotfiles help && exit 1
+
+mkdir -p "$BIN" "$CONF" "$SHARE" "$LOGDIR"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+help | h | --h*)
+  printf_help "$HELP"
+  ;;
+
+describe)
+  shift 1
+  get_app_info "$@"
+  exit "$?"
+  ;;
+
+stow)
+  shift 1
+  if [ ! -d "$HOME/.local/dotfiles/system" ] && [ ! -f "$HOME/.local/dotfiles/system/config" ]; then
+    config init
+  fi
+  git_stow "$@"
+  ;;
+
+admin)
+  shift 1
+  [ -z "$1" ] && echo "$ADMIN" && exit 1
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$ADMIN" ||
+    declare -a LISTARRAY="$*"
+  for ins in ${LISTARRAY[*]}; do
+    sudo systemmgr install "$ins"
+  done
+  ;;
+
+install)
+  shift 1
+  [ -z "$1" ] && echo "$LIST" && exit 1
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
+    declare -a LISTARRAY="$*"
+  for ins in ${LISTARRAY[*]}; do
+    dfmgr install "$ins"
+  done
+  ;;
+
+version)
+  shift 1
+  ANAME="$1"
+  if [ -d "$USRUPDATEDIR/dotfiles" ] && [ -n "$(ls -A $USRUPDATEDIR/dotfiles/$1 2>/dev/null)" ]; then
+    file="$(ls -A $USRUPDATEDIR/dotfiles/$1 2>/dev/null)"
+    if [ -f "$file" ]; then
+      printf_green "Information about $1: \n$(bash -c "$file --version")"
+    fi
+
+  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
+    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
+
+  else
+    printf_exit "File was not found is it installed?"
+  fi
+  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
+  exit
+
+  ;;
+
+cron)
+  shift 1
+  if [[ $USER != "root" ]]; then
+    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR/dotfiles)" ]]; then
+      file="$(ls -A $USRUPDATEDIR/dotfiles/$1 2>/dev/null)"
+      if [ -f "$file" ]; then
+        $file --cron
+      fi
+    fi
+  else
+    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR/dotfiles)" ]]; then
+      file="$(ls -A $SYSUPDATEDIR/dotfiles/$1 2>/dev/null)"
+      if [ -f "$file" ]; then
+        sudo $file --cron
+      fi
+    fi
+  fi
+  ;;
+
+update)
+  shift 1
+  df_update
+  ;;
+
+reset)
+  shift 1
+  printf_red "Resetting your home [This will delete everything]"
+  printf_yellow "sleeping for 5 seconds [ctrl-c cancel]" && sleep 5
+  if [ -d "$HOME/.local/dotfiles" ]; then
+    mv_f "$HOME/.local/dotfiles" /tmp/tmp-personal
+  fi
+  rm_rf "$HOME"/.*
+  rm_rf "$HOME"/*
+  cp -Rfa /etc/skel/. "$HOME/"
+  if [ -d /tmp/tmp-personal ]; then
+    mkdir -p $HOME/.local
+    mv_f /tmp/tmp-personal "$HOME/.local/dotfiles"
+  fi
+  getexitcode "Reset Complete"
+  ;;
+
+personal)
+  shift 1
+  dir="$HOME/.local/dotfiles/personal"
+  if [ -f $dir/install.sh ]; then
+    bash -c $dir/install.sh
+    getexitcode "Personal dotfiles has been updated"
+  elif [ -d $dir/.git ]; then
+    printf_purple "Updating your personal files"
+    git -C $dir pull -q &&
+      cp -Rfa "$dir"/etc/skel/. ~/ &&
+      gpg --import "$dir"/tmp/*.gpg 2>/dev/null
+    gpg --import "$dir"/tmp/*.sec 2>/dev/null &&
+      gpg --import-ownertrust "$dir"/tmp/*.trust 2>/dev/null
+    getexitcode "Personal dotfiles has been updated"
+  else
+    printf_red "Can't install your personal dotfiles"
+  fi
+  ;;
+
+custom)
+  shift 1
+  dir="$2"
+  if [ -z "$1" ] || [ -z "$2" ]; then
+    printf_red "command takes argument of gitrepo local directory"
+    printf_red "IE: dotfiles custom mygitrepo $HOME/.config/folder"
+    exit 1
+  else
+    if urlcheck "$1"; then
+      printf_green "Installing $1 to $2"
+      rm_rf "$2" &&
+        git_clone -q "$1" "$2"
+      getexitcode "$1 has been installed successfully to $2"
+    else
+      urlinvalid "$1"
+    fi
+  fi
+  ;;
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+config)
+  shift 1
+
+  case "$1" in
+  dircolors)
+    shift 1
+    s="$1"
+    f="$HOME/.dircolors"
+    d="$HOME/.config/dircolors/$s"
+    if [ -f "$d" ]; then
+      ln_sf "$d" "$f"
+      test -r $f && eval "$(dircolors $f)"
+      printf_green "new color scheme is $s"
+    else
+      printf_red "$d does not exist"
+    fi
+    ;;
+
+  help | -h* | --h*)
+    shift 0
+    printf_help "Usage: config confname"
+    printf_help "IE: config dircolors dark"
+    ;;
+
+  *)
+    shift 0
+    printf_help "Usage: config confname"
+    printf_help "IE: config dircolors dark"
+    ;;
+
+  esac
+  ;;
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+desktops)
+  printf_exit "Temporarily Disabled"
+  #   shift 1
+  #   printf_yellow "Initializing the installer from"
+  #   printf_purple "$DFMGRREPO/$ARGS"
+  #   bash -c "$(curl -LsS $REPO/desktops/raw/install.sh)"
+  #   getexitcode "$ARGS has been installed"
+  ;;
+
+minimal)
+  printf_exit "Temporarily Disabled"
+  #   shift 1
+  #   printf_yellow "Initializing the installer from"
+  #   printf_purple "$DFMGRREPO/$ARGS"
+  #   bash -c "$(curl -LsS $REPO/minimal/raw/install.sh)"
+  #   getexitcode "$ARGS has been installed"
+  ;;
+
+server)
+  printf_exit "Temporarily Disabled"
+  #   shift 1
+  #   printf_yellow "Initializing the installer from"
+  #   printf_purple "$DFMGRREPO/$ARGS"
+  #   bash -c "$(curl -LsS $REPO/server/raw/install.sh)"
+  #   getexitcode "$ARGS has been installed"
+  ;;
+
+*)
+  shift 0
+  printf_help "$HELP"
+  ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Ensure exit
+if [ ! -z "$EXIT" ]; then exit "$EXIT"; fi
+
+# end

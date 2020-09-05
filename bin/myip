@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : myip
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : get ip address
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if cmd_exists ifconfig; then
+  NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
+  myip-local4() { sudo ifconfig $NETDEV | grep -E "venet|inet" | grep -Ev "docker|127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s#addr:##g | head -n1; }
+  myip-local6() { sudo ifconfig $NETDEV | grep -E "venet|inet" | grep -v "docker" | grep 'inet6' | grep -i global | awk '{print $2}' | head -n1; }
+  myip-public4() { timeout 1 curl -I4qs ifconfig.co/ip 2>/dev/null | head -1 | grep 404 >/dev/null && if [ $? == 0 ]; then curl --config /dev/null -4qs ifconfig.co/ip 2>/dev/null; fi; }
+  myip-public6() { timeout 1 curl -I6qs ifconfig.co/ip 2>/dev/null | head -1 | grep 404 >/dev/null && if [ $? == 0 ]; then curl --config /dev/null -6qs ifconfig.co/ip 2>/dev/null; fi; }
+  myip4() { echo -e "$(myip-local4 2>/dev/null)" && echo -e "$(myip-public4 2>/dev/null)"; }
+  myip6() { echo -e "$(myip-local6 2>/dev/null)" && echo -e "$(myip-public6 2>/dev/null)"; }
+  export CURRIP4="$(myip-local4)"
+  export CURRIP6="$(myip-local6)"
+  export CURRIP4WAN="$(myip-public4)"
+  export CURRIP6WAN="$(myip-public6)"
+else
+  printf_red "The command ifconfig was not found"
+  printf_red "try re-running this script with sudo or try installing"
+  printf_red "ifconfig can be installed with pkmgr install net-tools"
+fi
+
+#---------------------------------------------------------------------------------------
+
+case $1 in
+help)
+  printf_green "Usage:"
+  printf_green "myip              |   print current ip addresses"
+  printf_green "myip local        |   print current local ip address"
+  printf_green "myip public       |   print current public ip address"
+  printf_green "myip local 4      |   print current local ip 4 address"
+  printf_green "myip local 6      |   print current local ip 6 address"
+  printf_green "myip public 4     |   print current public ip 4 address"
+  printf_green "myip public 4     |   print current public ip 4 address"
+  ;;
+local)
+  case $2 in
+  4)
+    myip-local4
+    ;;
+  6)
+    myip-local6
+    ;;
+  *)
+    myip-local4
+    myip-local6
+    ;;
+  esac
+  ;;
+public)
+  case $2 in
+  4)
+    myip-public4
+    ;;
+  6)
+    myip-public6
+    ;;
+  *)
+    myip-public4
+    myip-public6
+    ;;
+  esac
+  ;;
+4)
+  myip-local4
+  myip-public4
+  ;;
+6)
+  myip-local6
+  myip-public6
+  ;;
+*)
+  [ -z "$CURRIP4" ] || echo $CURRIP4
+  [ -z "$CURRIP6" ] || echo $CURRIP6
+  [ -z "$CURRIP4WAN" ] || echo $CURRIP4WAN
+  [ -z "$CURRIP6WAN" ] || echo $CURRIP6WAN
+  ;;
+esac
+
+#---------------------------------------------------------------------------------------
+
+# end

@@ -1,0 +1,743 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+shopt -s extglob
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : install
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : push/clone/pull from github
+# @TODO        : Organize this a lot better
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# defaults
+
+USERNAME="$2"
+TOKEN="$GITHUB_ACCESS_TOKEN"
+REPO_URL="https://github.com/$USERNAME"
+PROJECT_DIR="${GITHUB_PROJECT_DIR:-$HOME/Projects/github}"
+TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
+WTFLICENSE="${MYLICENSE:-https://github.com/casjay/resources/raw/master/license/wtfpl.md}"
+unset PREVREPO
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# cd into directory
+cd_into() {
+  cd "$1" && printf_green "Changing the directory to $1" &&
+    printf_green "Type exit to return to your previous directory" &&
+    exec bash || exit 1
+}
+
+export -f cd_into
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Creates a README.md file if one doesn't exist
+
+create_new_readme_template() {
+  local BaseDir="$(git rev-parse --show-toplevel 2>/dev/null || echo $PWD)"
+  cat $SCRIPTSFUNCTDIR/templates/readmes/project.md |
+    sed "s#ProjectName#${BaseDir##*/}#g" |
+    sed "s#AuthorName#${USER}#g" >README.md
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Creates a WTFPL license if a LICENSE.md file doesn't exist
+
+create_new_wtfpl() {
+  curl -LSsq "$WTFLICENSE" >LICENSE.md
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# The template to create a new private github repo
+
+create_new_private_repo_template() {
+  read -r -d '' JSON_TEMPLATE <<EOF
+{
+  "name" : "%s",
+  "description" : "%s",
+  "homepage" : "%s",
+  "visibility" : "private",
+  "private" : true,
+  "has_issues" : false,
+  "has_downloads" : false,
+  "has_wiki" : false,
+  "has_projects" : false
+}
+EOF
+  JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "http://$DOMAIN")
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# The template to create a new public github repo
+
+create_new_repo_template() {
+  read -r -d '' JSON_TEMPLATE <<EOF
+{
+  "name" : "%s",
+  "description" : "%s",
+  "homepage" : "%s",
+  "visibility" : "public",
+  "private" : false,
+  "has_issues" : false,
+  "has_downloads" : false,
+  "has_wiki" : false,
+  "has_projects" : false
+}
+EOF
+  JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "http://$DOMAIN")
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check if input is a url
+
+do_not_add_a_url() {
+  regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  string="$1"
+  if [[ "$string" =~ $regex ]]; then
+    printf_red "Do not provide the full url"
+    printf_red "only provide the username/repo"
+    exit 1
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# The initialize git function
+
+run_git_init() {
+  if [ ! -z "$repo" ]; then
+    git remote add origin $repo
+    printf_green "$repo has been added"
+    printf_question "Should I push to the new repo" [Y/n]
+    read -r -n 1 push && echo
+    if [[ $push == "y" || $push == "Y" ]]; then
+      printf_question "This will overwrite the repo if it exists. Continue" [Y/n]
+      read -r -n 1 confirm_repo && echo
+      if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
+        if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
+        git push -q --set-upstream origin master -f >/dev/null 2>&1 &&
+          git push -q -f >/dev/null 2>&1 &&
+          printf_green "Successfully pushed to $repo" ||
+          printf_red "Push to $repo has failed"
+      else
+        printf_info "Not pushing due to user canceling"
+      fi
+    else
+      printf_info "Not pushing due to user canceling"
+    fi
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup a new git repo
+
+run_git_setup() {
+  if [ -d ./.git ]; then
+    PREVREPO="$(git remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
+    printf_error "This project already has git setup"
+    if [ ! -z "$PREVREPO" ]; then
+      printf_info "Repo is: $PREVREPO"
+    fi
+    printf_question "Should I continue to reset this repo"
+    read -n 1 continue && echo ""
+    if [[ $continue == "y" || $continue == "Y" ]]; then
+      rm -Rf ./.git
+    else
+      printf_red "Initialization has failed due to user"
+      exit 1
+    fi
+  fi
+
+  date +"%m%d%Y%H%M-git" >version.txt
+  ls README* 1>/dev/null 2>&1 || create_new_readme_template
+  ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
+  git init . >/dev/null 2>&1 &&
+    git add . >/dev/null 2>&1 &&
+    git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
+    printf_green "Success: Repo has been initialized"
+
+  if [ ! -z "$PREVREPO" ]; then
+    printf_question "Should I reuse the remote repo" [Y/n]
+    read -r -n 1 reuse && echo
+  else
+    PREVREPO=""
+    repo=""
+  fi
+  if [[ $reuse == "y" || $reuse == "Y" ]]; then
+    remote="y"
+    repo="$PREVREPO"
+    run_git_init
+  else
+    printf_question "Should I add a remote repo" [Y/n]
+    read -r -n 1 remote && echo
+    if [[ $remote == "y" || $remote == "Y" ]]; then
+      printf_custom_question "3" "Enter remote repo: "
+      read -r repo
+      run_git_init
+    else
+      printf_info "You have decided not to add a remote repository"
+    fi
+  fi
+  if [ $? -eq 0 ]; then
+    exit 0
+  else
+    printf_red "Initialization has failed"
+    exit 1
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Run git setup with no interactions
+
+run_git_setup_automated() {
+  PREVREPO="$(git remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
+  if [ ! -d ./.git ]; then
+    printf_red "This does not seem to be a git repo"
+    exit 1
+  fi
+  if [ -z "$PREVREPO" ]; then
+    printf_red "Can not run in automated mode due to there not being a repo setup"
+    exit 1
+  fi
+  printf_red "Setting up the repo as requested" && sleep 5
+  rm -Rf .git
+  date +"%m%d%Y%H%M-git" >version.txt
+  ls README* 1>/dev/null 2>&1 || create_new_readme_template
+  ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
+  git init >/dev/null 2>&1 &&
+    git remote add origin $PREVREPO &&
+    if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi &&
+    git add . >/dev/null 2>&1 &&
+    git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
+    git push -q --set-upstream origin master -f >/dev/null 2>&1 &&
+    git push -q -f >/dev/null 2>&1 &&
+    printf_green "Successfully pushed to: $PREVREPO" ||
+    printf_red "Push to $PREVREPO has failed"
+  echo ""
+  exit $?
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Makes a new jeckyll site
+
+make_newsite() {
+  git clone https://github.com/casjay-templates/domain-template $HOME/Public/sites/$1 &&
+    rm -Rf $HOME/Public/sites/new/.git && cd $HOME/Public/sites/$1 && $EDITOR _config.yml || return 1
+  git setup
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Gets the organizations from the user
+
+git_all_orgs() {
+  ORGAPI="https://api.github.com/user/orgs?per_page=1000"
+  for org in $GITHUB_USERNAME $(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}'); do
+    gitadmin --clone $org
+  done
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Initializes a repo with default options
+
+repos_init() {
+  date +"%m%d%Y%H%M-git" >version.txt
+  git add .
+  if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
+  git commit -m " 🦈🏠🐜 Initial Commit 🐜🦈🏠 "
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Initializes a repo for github
+
+git_init() {
+  [ "$1" = "" ] && printf_red "Usage: userName repoName\n" && return 1
+  [ "$2" = "" ] && printf_red "Usage: userName repoName\n" && return 1
+  git_setup
+  date +"%m%d%Y%H%M-git" >version.txt
+  git add .
+  if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
+  git commit -m " 🦈🏠🐜 Initial Commit 🐜🦈🏠 "
+  git remote add origin "https://github.com/$1/$2"
+  git push -u origin master
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Creates a new gist
+
+ghgist() {
+  [ "$1" = "--help" ] && printf_green "Usage: --gist name description text\n" && return 1
+  [ "$1" = "" ] && printf_red "Usage: --gist name description text\n" && return 1
+  [ "$2" = "" ] && printf_red "Usage: --gist name description text\n" && return 1
+  local TITLE="$1"
+  local DESCR="$2"
+  local SUCCESS="Success"
+  local ERROR="Failed"
+  local CONTENT="$(printf "%s\r" "{\"description\": \"$DESCR\",\"public\": true,\"files\": {\"$TITLE\": {\"content\": \"$3\"}}}" | tee >/tmp/gist_url-data.txt)"
+  printf_green "Creating $TITLE - $DESCR"
+  curl -X POST -LSsi -H "Content-Type: application/json" -H "Authorization: token $TOKEN" --data @/tmp/gist_url-data.txt https://api.github.com/gists |
+    grep -w "html_url" | grep "gist" | awk '{print $2}' | sed 's/\,//' >"/tmp/gist_url" 2>&1 && SUCCES="$(cat /tmp/gist_url)" &&
+    devnull rm -Rf "/tmp/gist_url" "/tmp/gist_url-data.txt"
+  getexitcode "$SUCCES" "$ERROR"
+  return $EXIT
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Deletes a github repo
+
+ghdelete() {
+  [ "$1" = "--help" ] && printf_green "Usage: --delete userName repoName\n" && return 1
+  [ "$1" = "" ] && printf_red "Usage: --delete userName repoName\n" && return 1
+  local USERNAME="$1"
+  local REPONAME="$2"
+  local ERROR="Deletion of $REPONAME failed"
+  local SUCCES="Deletion of $REPONAME successfull"
+  printf_green "Deleting $REPONAME for user $USERNAME\n"
+  devnull curl -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
+  sleep 3
+  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true \
+    ghdelete-user
+  getexitcode "$SUCCES" "$ERROR"
+  return $EXIT
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Reusable function for delete
+
+ghdelete-user() {
+  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Creates a new repo on github
+
+ghcreate() {
+  [ "$TOKEN" = "" ] && printf_red "No auth token set - GITHUB_ACCESS_TOKEN\n" && return 1
+  [ "$1" = "--help" ] && printf_green "Usage: --create userName repoName Description\n" && return 1
+  [ "$1" = "" ] && printf_red "Usage: --create userName repoName Description\n" && return 1
+  local REPONAME="$2"
+  local DESCR="$3"
+  local ERROR="Creation of $REPONAME failed"
+  local SUCCES="Creation of $REPONAME successfull"
+  printf_green "Creating $REPONAME for user $USERNAME"
+  devnull curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?access_token=$TOKEN" -d "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}"
+  sleep 1
+  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -i $REPONAME | grep -q "html_url" >/dev/null && true ||
+    ghcreate-user
+  getexitcode "$SUCCES" "$ERROR"
+  return $EXIT
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# clone a single repo from user
+
+ghsinglerepo() {
+  [ "$1" = "" ] && printf_red "Usage: --single userName repoName" && return 1
+  [ "$2" = "" ] && printf_red "Usage: --create userName repoName Description" && return 1
+  git clone -q https://github.com/$1/$2
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Reusable function for create
+
+ghcreate-user() {
+  devnull curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
+  sleep 1
+  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i $REPONAME | grep -q "html_url" >/dev/null 2>&1 && true
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Help
+
+help() {
+  printf_red "The Default action is to clone/pull\n"
+  printf_red "Usage:"
+  printf_red "--single username reponame"
+  printf_red "--org username"
+  printf_red "--user usename"
+  printf_red "--push to push the repos or"
+  printf_red "--clone to clone/update local repos"
+  printf_red "--help --org --user --push"
+  printf_red "--clone --pull --create"
+  printf_red "--delete --gist"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# main program
+
+main() {
+  sleep 3
+  for i in $(cat $TMPFILE); do
+    if [ -d "$PROJECT_DIR/$USERNAME/$i" ]; then
+      ERROR="Git pull $USERNAME/$i failed"
+      SUCCES="Git pull $USERNAME/$i completed"
+      printf_purple "Now running git pull $USERNAME/$i"
+      cd "$PROJECT_DIR/$USERNAME/$i" || exit 1
+      if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
+      devnull git pull --recurse-submodules
+      getexitcode "$SUCCES" "$ERROR"
+    else
+      ERROR="Git clone $USERNAME/$i failed"
+      SUCCES="Git clone $USERNAME/$i completed"
+      printf_purple "Now running git clone $USERNAME/$i"
+      devnull git clone --recurse-submodules "$REPO_URL/$i" "$PROJECT_DIR/$USERNAME/$i"
+      getexitcode "$SUCCES" "$ERROR"
+    fi
+  done
+  rm -Rf "/tmp/github-casjaysdev-*"
+  exit $EXIT
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+--help)
+  help
+  exit
+  ;;
+
+--all-orgs)
+  shift 1
+  git_all_orgs
+  ;;
+
+--single)
+  shift 1
+  ghsinglerepo $@
+  ;;
+
+--org)
+  shift 1
+  USERNAME="$1"
+  if [ ! -z "$TOKEN" ]; then
+    GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+  else
+    GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME"
+  fi
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  COUNT="$(cat $TMPFILE | wc -l)"
+  printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
+  main
+  ;;
+
+--user)
+  shift 1
+  USERNAME="$1"
+  if [ ! -z "$TOKEN" ]; then
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+  else
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME"
+  fi
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  COUNT="$(cat $TMPFILE | wc -l)"
+  printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
+  main
+  ;;
+
+--push)
+  shift 1
+  USERNAME="$1"
+  if [ ! -z "$TOKEN" ]; then
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+  else
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME"
+  fi
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  COUNT="$(cat $TMPFILE | wc -l)"
+  printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
+  for i in $(cat $TMPFILE); do
+    if [ -d "$PROJECT_DIR/$USERNAME/$i" ]; then
+      printf_purple "Now running git push $1/$i"
+      ERROR="git push failed for $USERNAME/$i"
+      SUCCES="git push completed for $USERNAME/$i"
+      cd "$PROJECT_DIR/$USERNAME/$i" || exit 1
+      if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
+      if (git status | grep "working tree clean") >/dev/null 2>&1; then
+        getexitcode
+      else
+        date +"%m%d%Y%H%M-git" >version.txt
+        devnull git add . &&
+          devnull git commit -a -m " ❇🦈🏠❗ General Fixes ❗🏠🦈❇ " &&
+          devnull git push -q
+        getexitcode
+      fi
+    fi
+  done
+  rm -Rf "$TMPFILE"
+  unset ERROR SUCCES
+  exit $EXIT
+  ;;
+
+--clone)
+  shift 1
+  USERNAME="$1"
+  if [ ! -z "$TOKEN" ]; then
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+  else
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME"
+  fi
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  COUNT="$(cat $TMPFILE | wc -l)"
+  printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
+  main
+  ;;
+
+--pull)
+  shift 1
+  USERNAME="$1"
+  if [ ! -z "$TOKEN" ]; then
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+  else
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME"
+  fi
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  COUNT="$(cat $TMPFILE | wc -l)"
+  printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
+  main
+  ;;
+
+--create)
+  shift 1
+  USERNAME="$1" REPONAME="$2"
+  ghcreate "$@"
+  exit $EXIT
+  ;;
+
+--delete)
+  shift 1
+  USERNAME="$1"
+  ghdelete "$@"
+  exit $EXIT
+  ;;
+
+--gist)
+  shift 1
+  USERNAME="$1"
+  ghgist "$@"
+  exit $EXIT
+  ;;
+
+init)
+  shift 1
+  git_init "$@"
+  ;;
+
+github) # github repo
+  case $2 in
+  init) # init a github repo
+    shift 2
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin github init RepoName"; fi
+    if [[ "$1" = "--help" ]]; then printf_exit "Create a new github project\n\t\tUsage: gitadmin github init RepoName"; fi
+    homerepo="$(echo "$HOME/Projects/github/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    mkdir -p "$HOME/Projects/github/$1"
+    cd_into "$homerepo"
+    repos_init
+    exit "$?"
+    ;;
+
+  clone) # Clone repo from github
+    shift 2
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin github clone username/projectname"; fi
+    if [ "$1" = "--help" ]; then printf_exit "Clone a github project\n\t\tUsage: gitadmin github clone username/projectname"; fi
+    homerepo="$(echo "$HOME/Projects/github/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    if [ -d "$homerepo" ]; then
+      printf_green "The repo already exists so attempting update"
+      git -C "$homerepo" pull -q
+    else
+      printf_green "Cloning the repo from github.com/$1"
+      git clone -q "https://github.com/$1.git" "$homerepo"
+    fi
+    cd_into "$homerepo"
+    exit "$?"
+    ;;
+
+  remote) # add github to remote
+    shift 1
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 2 ]; then printf_exit "Usage: gitadmin github remote username/projectname"; fi
+    [ "$1" = "--help" ] && printf_exit "Add a github project to remote\n\t\tUsage: gitadmin github remote username/projectname"
+    git remote add "$1" "https://github.com/$2.git"
+    exit "$?"
+    ;;
+  esac
+  ;;
+
+gitlab)
+  case $2 in
+  init) # init a gitlab repo
+    shift 2
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin gitlab init RepoName"; fi
+    if [[ "$1" = "--help" ]]; then printf_exit "Create a new gitlab project\n\t\tUsage: gitadmin gitlab init RepoName"; fi
+    homerepo="$(echo "$HOME/Projects/gitlab/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    mkdir -p "$HOME/Projects/gitlab/$1"
+    cd_into "$homerepo"
+    repos_init
+    exit "$?"
+    ;;
+
+  clone) # Clone repo from gitlab
+    shift 2
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin gitlab clone username/projectname"; fi
+    if [ "$1" = "--help" ]; then printf_exit "Clone a gitlab project\n\t\tUsage: gitadmin gitlab clone username/projectname"; fi
+    homerepo="$(echo "$HOME/Projects/gitlab/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    if [ -d "$homerepo" ]; then
+      printf_green "The repo already exists so attempting update"
+      git -C "$homerepo" pull -q
+    else
+      printf_green "Cloning the repo from gitlab.com/$1"
+      git clone -q "https://gitlab.com/$1.git" "$homerepo"
+    fi
+    cd_into "$homerepo"
+    exit "$?"
+    ;;
+
+  remote) # add gitlab to remote
+    shift 1
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 2 ]; then printf_exit "Usage: gitadmin gitlab remote username/projectname"; fi
+    [ "$1" = "--help" ] && printf_exit "Add a gitlab project to remote\n\t\tUsage: gitadmin gitlab remote username/projectname"
+    git remote add "$1" https://gitlab.com/$2.git
+    exit "$?"
+    ;;
+  esac
+  ;;
+
+private)
+  if [ -z "$PERSONAL_GIT_HOST" ]; then printf_exit "You dont have the env variable PERSONAL_GIT_HOST set"; fi
+  [ "$1" = "--help" ] && printf_green "Useful if you have a private server such as gitea" && exit 0
+  case $2 in
+  init) # init a private repo
+    shift 2
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin private init RepoName"; fi
+    if [[ "$1" = "--help" ]]; then printf_exit "Create a new private project\n\t\tUsage: gitadmin private init RepoName"; fi
+    homerepo="$(echo "$HOME/Projects/private/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    mkdir -p "$HOME/Projects/private/$1"
+    cd_into "$homerepo"
+    repos_init
+    exit "$?"
+    ;;
+
+  clone) # Clone repo from private
+    shift 2
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin private clone username/projectname"; fi
+    if [ "$1" = "--help" ]; then printf_exit "Clone a private project\n\t\tUsage: gitadmin private clone username/projectname"; fi
+    homerepo="$(echo "$HOME/Projects/private/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    if [ -d "$homerepo" ]; then
+      printf_green "The repo already exists so attempting update"
+      git -C "$homerepo" pull -q
+    else
+      printf_green "Cloning the repo from $PERSONAL_GIT_HOST/$1"
+      git clone -q "$PERSONAL_GIT_HOST/$1.git" "$homerepo"
+    fi
+    cd_into "$homerepo"
+    exit "$?"
+    ;;
+
+  remote) # add private to remote
+    shift 1
+    do_not_add_a_url "$1"
+    if [ "$#" -ne 2 ]; then printf_exit "Usage: gitadmin private remote username/projectname"; fi
+    [ "$1" = "--help" ] && printf_exit "Add a private project to remote\n\t\tUsage: gitadmin private remote username/projectname"
+    git remote add "$1" "$PERSONAL_GIT_HOST/$2.git"
+    exit "$?"
+    ;;
+  esac
+  ;;
+
+newsite)
+  shift 1
+  newsite "$@"
+  ;;
+
+setup)
+  shift 1
+  if [ "$1" = "--automate" ] || [ "$1" = "--automated" ]; then
+    shift 1
+    run_git_setup_automated "$@"
+  else
+    run_git_setup "$@"
+  fi
+  ;;
+
+stow)
+  shift 1
+  dotfiles stow "$@"
+  ;;
+
+*)
+  shift 0
+  if [ -z "$1" ]; then
+    help
+    exit
+  fi
+  USERNAME="$1"
+  TOKEN="${GITHUB_ACCESS_TOKEN:-$2}"
+  REPO_URL="https://github.com/$USERNAME"
+  if [ ! -z "$TOKEN" ]; then
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+  else
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
+    MESSAGE="Getting the repos for $USERNAME"
+  fi
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  COUNT="$(cat $TMPFILE | wc -l)"
+  printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
+  main
+  ;;
+
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+rm -Rf "/tmp/github-casjaysdev-*"
+
+exit $EXIT
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

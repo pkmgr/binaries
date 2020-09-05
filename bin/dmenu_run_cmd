@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author          : Jason
+# @Contact         : jason@casjaysdev.com
+# @File            : dmenu_run_cmd
+# @Created         : Wed, Aug 09, 2020, 02:00 EST
+# @License         : WTFPL
+# @Copyright       : Copyright (c) CasjaysDev
+# @Description     : dmenu menu system
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-app-installer.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+printf_exit "This script is a work in progress"
+
+editConfig=$(echo -e "${options[@]}" | dmenu -i -p 'Edit config file: ')
+
+case "$editConfig" in
+quit)
+  echo "Program terminated." && exit 1
+  ;;
+alacritty)
+  editConfig="$HOME/.config/alacritty/alacritty.yml"
+  ;;
+awesome)
+  editConfig="$HOME/.config/awesome/rc.lua"
+  ;;
+bash)
+  editConfig="$HOME/.bashrc"
+  ;;
+bspwm)
+  editConfig="$HOME/.config/bspwm/bspwmrc"
+  ;;
+doom.d/config.el)
+  editConfig="$HOME/.doom.d/config.el"
+  ;;
+doom.d/init.el)
+  editConfig="$HOME/.doom.d/init.el"
+  ;;
+dunst)
+  editConfig="$HOME/.config/dunst/dunstrc"
+  ;;
+dwm)
+  editConfig="$HOME/dwm-distrotube/config.h"
+  ;;
+emacs.d/init.el)
+  editConfig="$HOME/.emacs.d/init.el"
+  ;;
+i3)
+  editConfig="$HOME/.i3/config"
+  ;;
+neovim)
+  editConfig="$HOME/.config/nvim/init.vim"
+  ;;
+picom)
+  editConfig="$HOME/.config/picom/picom.conf"
+  ;;
+polybar)
+  editConfig="$HOME/.config/polybar/config"
+  ;;
+qtile)
+  editConfig="$HOME/.config/qtile/config.py"
+  ;;
+sxhkd)
+  editConfig="$HOME/.config/sxhkd/sxhkdrc"
+  ;;
+termite)
+  editConfig="$HOME/.config/termite/config"
+  ;;
+vifm)
+  editConfig="$HOME/.config/vifm/vifmrc"
+  ;;
+vim)
+  editConfig="$HOME/.vimrc"
+  ;;
+vimb)
+  editConfig="$HOME/.config/vimb/config"
+  ;;
+xmobar)
+  editConfig="$HOME/.config/xmobar/xmobarrc"
+  ;;
+xmonad)
+  editConfig="$HOME/.xmonad/xmonad.hs"
+  ;;
+xresources)
+  editConfig="$HOME/.Xresources"
+  ;;
+zsh)
+  editConfig="$HOME/.zshrc"
+  ;;
+*)
+  exit 1
+  ;;
+esac
+
+myterminal -e myeditor "$editConfig"

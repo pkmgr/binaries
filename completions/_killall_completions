@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# bash completion for killall
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for killall
+
+[[ $OSTYPE == *@(linux|freebsd|darwin)* ]] || return 1
+
+_killall_completions() {
+  local cur prev words cword split
+  _init_completion -s || return
+
+  case $prev in
+  --context | --older-than | --younger-than | --version | -!(-*)@([Zoy]|V*))
+    return
+    ;;
+
+  --signal | -!(-*)s)
+    _signals
+    return
+    ;;
+
+  --user | -!(-*)u)
+    _allowed_users
+    return
+    ;;
+
+  esac
+
+  $split && return
+
+  if [[ $cur == -* ]]; then
+    COMPREPLY=($(compgen -W '$(_parse_help "$1")' -- "$cur"))
+    [[ $cword -eq 1 ]] && _signals -
+    return
+  fi
+
+  _pnames
+} &&
+  complete -F _killall_completions killall
+complete -F _killall_completions killproc

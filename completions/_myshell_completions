@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# myshell_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for myshell
+
+
+
+myshell_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY=$(for line in $(cat /etc/shells | grep -v "#") ; do basename $line | tr '\n' ' '; done && echo)
+
+  _init_completion || return
+
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# enable completions
+complete -F myshell_completions -o default myshell
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

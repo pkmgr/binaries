@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# _emojify_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for emojify
+
+_emojify_completions() {
+  local cur prev words cword
+  local ARRAY="-h --help -l --list"
+  _init_completion || return
+
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _emojify_completions -o default emojify
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

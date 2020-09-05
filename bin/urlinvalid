@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author          : Jason
+# @Contact         : casjaysdev@casjay.net
+# @File            : urlcheck
+# @Created         : Wed, Aug 18, 2020, 02:48 EST
+# @License         : WTFPL
+# @Copyright       : Copyright (c) CasjaysDev
+# @Description     : Check if an URL is valid
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Setup the help function
+
+__help() {
+  printf_green "Usage: urlinvalid URLtoCheck"
+  exit
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set options
+
+[ ! "$1" = "--version" ] || get_app_info "$APPNAME"
+
+[ ! "$1" = "--help" ] || __help
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# main program
+
+if [ -z "$1" ]; then printf_red "Invalid URL"; else printf_red "Can't find $1"; fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute function
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

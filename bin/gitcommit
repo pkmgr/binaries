@@ -1,0 +1,255 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : gitcommit
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : commit changes to current git repo
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_red "Usage:"
+  printf_green "init: Default init message"
+  printf_green "alot: I'm to lazy to say"
+  printf_green "docker, node, ruby, php, perl, python, bug, fixes"
+  printf_green "Also -m --message or custom to say your own messsage"
+  exit
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ ! -z "$1" ] || __help
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# check for needed applications
+
+check_app git
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main application
+
+if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--message" ]; then
+  MESSAGE="$1"
+  if [ -n "$2" ]; then
+    newmess="$2"
+  fi
+else
+  MESSAGE="$1"
+fi
+
+case "$MESSAGE" in
+
+added)
+  shift 1
+  ARGS="$*"
+  mess=" 📦➕ Added: $ARGS 📦➕ "
+  ;;
+
+new)
+  shift 1
+  ARGS="$*"
+  mess=" 🆕📦 NEW: $ARGS 📦🆕 "
+  ;;
+
+improve)
+  shift 1
+  ARGS="$*"
+  mess=" 👌 IMPROVE: $ARGS 👌 "
+  ;;
+
+fixed)
+  shift 1
+  ARGS="$*"
+  mess=" 🐛 FIXED: $ARGS 🐛 "
+  ;;
+
+release)
+  shift 1
+  ARGS="$*"
+  mess=" 🚀 RELEASE: $ARGS 🚀 "
+  ;;
+
+docs)
+  shift 1
+  ARGS="$*"
+  mess=" 📖 DOCS: $ARGS 📖 "
+  ;;
+
+test)
+  shift 1
+  ARGS="$*"
+  mess=" 🤖 TEST: $ARGS 🤖 "
+  ;;
+
+breaking)
+  shift 1
+  ARGS="$*"
+  mess=" ⚒️ BREAKING: $ARGS ⚒️ "
+  ;;
+
+refactor)
+  shift 1
+  mess=" ✔️ 〰️ Refactor Code 〰️ ✔️  "
+  ;;
+
+fixes)
+  shift 1
+  mess=" 🏠🐜❗ Minor Fixes ❗🐜🏠 "
+  ;;
+
+permission | permissions)
+  shift 1
+  mess=" 🏠🔥❗ Permission Fixes ❗🔥🏠 "
+  ;;
+
+bug)
+  shift 1
+  mess=" 🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
+  ;;
+
+alot)
+  shift 1
+  mess=" 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 "
+  ;;
+
+docker)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Added Docker Workflow ❗🏠🦈❇🐜 "
+  ;;
+
+node)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Added nodejs Workflow ❗🏠🦈❇🐜 "
+  ;;
+
+ruby)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Added ruby Workflow ❗🏠🦈❇🐜 "
+  ;;
+
+php)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Added php Workflow ❗🏠🦈❇🐜 "
+  ;;
+
+perl)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Added perl Workflow ❗🏠🦈❇🐜 "
+  ;;
+
+python)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Added python Workflow ❗🏠🦈❇🐜 "
+  ;;
+
+init)
+  shift 1
+  mess=" 🦈🏠🐜❗ Initial Commit📍 🐜🦈🏠 "
+  ;;
+
+random)
+  shift 1
+  mess=" 🦈🏠🐜 $(curl -s http://whatthecommit.com/index.txt) 🐜🦈🏠 "
+  ;;
+
+custom)
+  shift 1
+  if [ -n "$1" ]; then
+    mess="$1"
+  else
+    printf_yellow "You must specify your commit message"
+  fi
+  ;;
+
+*)
+  if [ -n "$1" ]; then
+    mess="$newmess"
+  else
+    shift 1
+    mess=" 🦈🏠❗ Major Fixes ❗🏠🦈 "
+  fi
+  ;;
+
+esac
+
+oldpwd="$(pwd)"
+gitdir="$(echo $(git rev-parse --git-dir 2>/dev/null)/..)"
+repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null)"
+[ ! -z "$repo" ] || repo="localdir"
+
+if [ ! -d "$gitdir" ]; then
+  printf_exit "Not a git repo"
+  exit 1
+else
+  cd $gitdir
+fi
+
+printf_info "Commiting Changes with message: $mess"
+
+date +"%m%d%Y%H%M-git" >version.txt
+if [ -f gitmasterconfig ] && [ -d .git ]; then
+  cp -Rf gitmasterconfig .git/config
+fi
+
+git add .
+
+if [ -z "$mess" ]; then
+  git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
+else
+  git commit -q -S -m "$mess" 2>/dev/null
+fi
+getexitcode "Successfully committed the changes"
+
+if [ "$repo" != "localdir" ]; then
+  if [[ "$*" =~ --automated ]]; then
+    printf_green "Pushing the changes to $repo"
+    git push -q
+    getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
+  else
+    printf_question "Should I push to $repo" [Y/n]
+    read -r -n 1 -s push && echo
+    if [[ $push == "y" || $push == "Y" ]]; then
+      printf_green "Pushing the changes to $repo"
+      git push -q
+      getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
+    fi
+  fi
+fi
+
+cd "$oldpwd" || exit 1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# _pkmgr_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for dotfiles
+
+_pkmgr_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/pkmgr/array)"
+  local dotfiles="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/list)"
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  dotfiles)
+    COMPREPLY=($(compgen -W '${dotfiles}' -- "$cur"))
+    return
+    ;;
+
+  script)
+    COMPREPLY=($(compgen -W '--verbose --script' -- "$cur"))
+    return
+    ;;
+
+  *)
+    COMPREPLY=($(compgen -W '$LIST' -- "$cur"))
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _pkmgr_completions -o default pkmgr
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

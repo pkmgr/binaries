@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# _gitcommit_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for gitcommit
+
+_gitcommit_completions() {
+  local cur prev words cword
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitcommit/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitcommit/list)"
+  _init_completion || return
+
+  if [[ $cur == -* ]]; then
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    return
+  fi
+
+  case $prev in
+  new)
+    _filedir
+    return
+    ;;
+
+  improve)
+    _filedir
+    return
+    ;;
+
+  fix)
+    _filedir
+    return
+    ;;
+
+  release)
+    _filedir
+    return
+    ;;
+
+  docs)
+    _filedir
+    return
+    ;;
+
+  test)
+    _filedir
+    return
+    ;;
+
+  breaking)
+    _filedir
+    return
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _gitcommit_completions -o default gitcommit
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

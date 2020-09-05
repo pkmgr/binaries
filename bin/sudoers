@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : sudoers
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : add and remove users from sudo
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_help "
+\t\tUsage:
+\t\tsudoers insults        |   Create insults file
+\t\tsudoers adduser user   |   add user to sudo
+\t\tsudoers remuser user   |   remove user from sudo
+\t\tsudoers remove         |   remove yourself from sudo
+\t\tsudoers pass           |   require password for sudo
+\t\tsudoers nopass         |   don't require a password for sudo
+\t\tsudoers                |   this message
+"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+MYUSER="${SUDO_USER:-$(whoami)}"
+
+if [ ! -z "$2" ]; then
+  MYUSER=""
+  MYUSER="$2"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if can_i_sudo; then
+
+  sudo chmod 750 /etc/sudoers.d >/dev/null 2>&1
+
+  case "$1" in
+
+  remove)
+    shift 1
+    printf_green "New password prompt"
+    sudo passwd "$MYUSER" || exit 1
+    printf_green "Removing $MYUSER sudoers file"
+    sudo rm -Rf "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    ;;
+
+  pass)
+    shift 1
+    printf_green "New password prompt"
+    sudo passwd "$MYUSER" || exit 1
+    printf_green "Removing $MYUSER from sudoers - password now required"
+    sudo rm -Rf "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    ;;
+
+  remuser)
+    shift 1
+    printf_green "New password prompt"
+    sudoo passwd "$MYUSER" || exit 1
+    printf_green "Removing $MYUSER from sudoers"
+    if sudo grep -q -E "^sudo:" /etc/group; then
+      sudo deluser "$MYUSER" sudo >/dev/null 2>&1
+    else
+      sudo deluser "$MYUSER" wheel >/dev/null 2>&1
+    fi
+    sudo rm -Rf "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    ;;
+
+  adduser)
+    shift 1
+    printf_green "Adding $MYUSER to sudoers"
+    if sudo grep -q -E "^sudo:" /etc/group; then
+      sudo usermod -aG sudo "$MYUSER" >/dev/null 2>&1
+    else
+      sudo usermod -aG wheel "$MYUSER" >/dev/null 2>&1
+    fi
+    echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    sudo chown -f root:root "/etc/sudoers.d/$1" >/dev/null 2>&1
+    sudo chmod -f 440 "/etc/sudoers.d/$1" >/dev/null 2>&1
+    ;;
+
+  nopass)
+    shift 1
+    printf_green "Adding $MYUSER to sudoers"
+    echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    sudo chown -f root:root "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    sudo chmod -f 440 "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    ;;
+
+  insults)
+    shift 1
+    printf_green "Adding insults"
+    if sudo bash -c '[ ! -f "/etc/sudoers.d/insults" ]'; then
+      echo "Defaults    insults" | sudo tee "/etc/sudoers.d/insults" >/dev/null 2>&1
+      sudo chown -f root:root "/etc/sudoers.d/insults" >/dev/null 2>&1
+    fi
+    ;;
+
+  *)
+    shift 0
+    __help
+    ;;
+
+  esac
+else
+  printf_red "You dont have access to sudo"
+  printf_red "Please contact the syadmin for access"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# _music_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for music
+
+_music_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/music/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/music/list)"
+
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _music_completions -o default music
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

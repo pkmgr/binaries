@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author        : Jason
+# @Contact       : jason@casjaysdev.com
+# @File          : myshell
+# @Created       : Monday Aug 24, 2020 03:14:35 EDT
+# @License       : WTFPL
+# @Copyright     : Copyright (c) Casjays Developments
+# @Description   : Change my shell
+# @Other         :
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/casjay-dotfiles/scripts/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p $HOME/.local/share/CasjaysDev/functions
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ -f /etc/shells ] || exit 1
+
+
+__help() {
+  printf_green "Usage: myshell ShellName    |   IE: myshell fish"
+  exit
+}
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ ! -z "$1" ] || __help
+[ "$1" = "--help" ] && __help
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# check for needed applications
+
+check_app chsh
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main application
+
+
+chsh -s "$(command -v $1)" "${USER}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end
+

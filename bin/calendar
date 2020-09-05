@@ -1,0 +1,422 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : calendar
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : A calendar written in bash
+# @Source      : https://github.com/coreymwamba/estonta
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help " ] && printf_exit "A calendar written in bash"
+
+CAL_CONFIG="$HOME/.config/local/calendar.local"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$HOME/.config/local/calendar.local" ]; then
+  source "$HOME/.config/local/calendar.local"
+else
+  echo '#Calendar Configuration
+# directory for storing the events. Make sure this path exists
+eventpath="$HOME/.local/share/ics"
+# alter these to your most common location
+HOMETOWN="${MYLOCATIONCITY:-Albany}"
+HOMECOUNTRY="${MYLOCATIONCOUNTRY:-USA}"
+# sets $startdate below; "man 1 date" for details on modification
+DATEFORMAT="%a %e %b, %-l:%M%P"
+# categories - no spaces in tags
+TAGS=(work meeting study party)
+TERSE="$startdate - $title"
+#FULL="$startdate - $title\n$desc\n$location ($category)"
+' >"$CAL_CONFIG"
+  source "$HOME/.config/local/calendar.local"
+fi
+
+# estonta - function file
+LERTA=$(mktemp)
+
+# better parsing of the iCal file thanks to http://stackoverflow.com/a/8574392
+containsElement() {
+  local e
+  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
+}
+
+initialise() {
+  if [[ ! -s "$eventpath" ]]; then
+    mkdir -p "$eventpath" 2>/dev/null
+    echo "New directory created at $eventpath."
+  fi
+}
+
+generate_fields() {
+  icalarray=("DTSTART" "SUMMARY" "LOCATION" "DESCRIPTION" "CATEGORIES")
+  while read line; do
+    IFS=':' read -r calname string <<<"$line"
+    containsElement "${calname}" "${icalarray[@]}"
+    [[ $? -eq 0 ]] && printf -v "${calname}" "$string"
+  done <$LERTA
+  #iCalendar date format -> something that `date` can read. Sure there is an easier way, but I don't know it
+  DTSTART="$(echo ${DTSTART%Z} | sed -e 's/.\{4\}/&-/' | sed -e 's/.\{7\}/&-/' | sed -e 's/.\{13\}/&:/' | sed -e 's/.\{16\}/&:/' 2>/dev/null)"
+  THEDATE="$(date -d $DTSTART +"$DATEFORMAT")"
+  #possibly inefficient, but bulletproof
+  desc="$(cat $LERTA | grep -v "DTSTART" | grep -v "CATEGORIES" | grep -v "SUMMARY" | grep -v "END" | grep -v "LOCATION" | grep -v "DTEND" | sed -r 's/\\n/\n/g' | sed -r 's/(\\)//g' 2>/dev/null)"
+  desc="${desc/DESCRIPTION:/}"
+  startdate="$THEDATE"
+  title="$SUMMARY"
+  location="$LOCATION"
+  category="$CATEGORIES"
+  source "$CAL_CONFIG"
+}
+
+find_appointments() {
+  [[ ! -z "$(ls -A $eventpath)" ]] || {
+    printf_red "No events found"
+    exit 1
+  }
+  needle="$(date -I -d "$DATEFILE")"
+  for found in $(grep -lr --include '*.ics' $needle $eventpath); do
+    list_appointment
+  done
+}
+
+date_range() {
+  # SO - http://stackoverflow.com/questions/28226229/bash-looping-through-dates
+  sdr="$(date -I -d "$sdr")" || exit 1
+  edr="$(date -I -d "$edr")" || exit 1
+  DATEFILE="$sdr"
+  while [ "$(date -d "$DATEFILE" +%Y%m%d)" -le "$(date -d "$edr" +%Y%m%d)" ]; do
+    find_appointments
+    DATEFILE=$(date -I -d "$DATEFILE + 1 day")
+  done
+}
+
+list_appointment() {
+  [[ ! -z "$(ls -A $eventpath)" ]] || {
+    printf_red "No events found"
+    exit 1
+  }
+  tail -n +7 "$found" >"$LERTA"
+  generate_fields
+  if [[ -n "${FULL+set}" ]]; then
+    echo -e "$FULL"
+  else
+    echo -e "$TERSE"
+  fi
+}
+
+list_all() {
+  initialise
+  [[ ! -z "$(ls -A $eventpath)" ]] || {
+    printf_red "No events found"
+    exit 1
+  }
+  for file in $eventpath/*.ics; do
+    tail -n +7 $file >$LERTA
+    generate_fields
+    echo -e "$TERSE"
+  done
+}
+
+tagordo() {
+  [[ ! -z "$(ls -A $eventpath)" ]] || {
+    printf_red "No events found"
+    return 1
+  }
+  for file in $eventpath/*.ics; do
+    tail -n +7 $file >$LERTA
+    generate_fields
+    echo "$(date -d $DTSTART +"%Y-%m-%d") $SUMMARY ($(date -d $DTSTART +"%-l:%M%P"))"
+  done
+}
+
+list_by_cat() {
+  [[ ! -z "$(ls -A $eventpath)" ]] || {
+    printf_red "No events found"
+    exit 1
+  }
+  for file in $eventpath/*.ics; do
+    tail -n +7 $file >$LERTA
+    generate_fields
+    if [ $CATEGORIES == $FILTER ]; then
+      echo "$TERSE"
+    fi
+  done
+
+}
+
+list_by_text() {
+  [[ ! -z "$(ls -A $eventpath)" ]] || {
+    printf_red "No events found"
+    exit 1
+  }
+  for file in $eventpath/*.ics; do
+    tail -n +5 $file >$LERTA
+    generate_fields
+    [[ $SUMMARY =~ ${FILTER} ]] && echo "$TERSE"
+  done
+}
+
+join_strings() {
+  local d=$1
+  shift
+  echo -n "$1"
+  shift
+  printf "%s" "${@/#/$d}"
+}
+
+shell_generate_ical() {
+  newfile="$eventpath/$(date -Iminutes -d "$sdt" | tr -d ':').ics"
+  # simple anti-clash mechanism
+  if [ -f $newfile ]; then
+    printf_red "You have something on this day at that time already..."
+    estonta
+    exit 1
+  fi
+  touch $newfile
+}
+yad_generate_ical() {
+  newfile="$eventpath/$(date -Iminutes -d "$sdt" | tr -d ':').ics"
+  # simple anti-clash mechanism
+  if [ -f $newfile ]; then
+    uhoh=$(yad --text="You have something on this day at that time already...")
+    exit 1
+  fi
+  touch $newfile
+}
+
+populate_ical() {
+  vcst="BEGIN:VCALENDAR"
+  vcv="VERSION:2.0"
+  vcp="PRODID:-//Estonta/ical//NONSGML v1.0//EN"
+  vcuid="UID:$(date -Iminutes -d "$sdt" | tr -d ':')@$(hostname)"
+  dtstamp="DTSTAMP:$(date +"%Y%m%dT%H%M%SZ")"
+  vevst="BEGIN:VEVENT"
+  veven="END:VEVENT"
+  echo $vcst >>$newfile
+  echo $vcv >>$newfile
+  echo $vcp >>$newfile
+  echo $vevst >>$newfile
+  echo $vcuid >>$newfile
+  echo $dtstamp >>$newfile
+  echo "DTSTART:$dtstart" >>$newfile
+  [[ -n "$location" ]] && echo "LOCATION:${location}" >>$newfile
+  [[ -n "$summary" ]] && echo "SUMMARY:$summary" >>$newfile
+  [[ -n "$category" ]] && echo "CATEGORIES:$category" >>$newfile
+  [[ -n "$desc" ]] && echo "DESCRIPTION:$desc" | tr '\n' '\t' | awk '{gsub(/\,/,"\\,",$0)} {gsub(/\;/, "\\;",$0)} {gsub(/\t/,"\\n",$0) } {print $0}' | fold -b -s -w 75 >>$newfile 2>/dev/null
+  echo -e $veven >>$newfile
+  echo "END:VCALENDAR" >>$newfile
+}
+
+gui_add_event() {
+  [[ ! -s $eventpath ]] && {
+    mkdir -p "$eventpath" 2>/dev/null
+    yad --text="Events directory created at $eventpath" 2>/dev/null
+  }
+  tmpfile=$(mktemp)
+  tagordo >$tmpfile
+  dtd=$(yad --title="start date" --text="When is it?" --calendar --date-format="%Y-%m-%d" --details=$tmpfile) || exit 1
+  [[ -z "$dtd" ]] && exit 0
+  dtt=$(yad --title="start time" --text="enter the start time" --entry) || exit 1
+  sdt="$dtd $dtt"
+  dtstart=$(date -d "$sdt" +"%Y%m%dT%H%M%SZ")
+  loc=$(yad --title="location" --text="where is it?" --form --field="Name" --field="Address" --field="City" --field="Postcode" --field="Country") || exit 1
+  loc_array=()
+  place=$(echo $loc | awk -F '|' '{print $1}' 2>/dev/null)
+  [[ -n "$place" ]] && loc_array+=("$place")
+  street=$(echo $loc | awk -F '|' '{print $2}' 2>/dev/null)
+  [[ -n "$street" ]] && loc_array+=("$street")
+  city=$(echo $loc | awk -F '|' '{print $3}' 2>/dev/null)
+  [[ -z "$city" ]] && city=$HOMETOWN
+  [[ -n "$city" ]] && loc_array+=("$city")
+  postc=$(echo $loc | awk -F '|' '{print $4}' 2>/dev/null)
+  [[ -n "$postc" ]] && loc_array+=("$postc")
+  country=$(echo $loc | awk -F '|' '{print $5}' 2>/dev/null)
+  [[ -z "$country" ]] && country=$HOMECOUNTRY
+  [[ -n "$country" ]] && loc_array+=("$country")
+  location=$(printf "%s\, " "${loc_array[@]}" | sed -e 's/\(.*\)\\,/\1/' 2>/dev/null)
+  group="--field tag?:CBE"
+  title="--field title"
+  gp=$(join_strings '!' "${TAGS[@]}")
+  main=$(yad --form $group $title $gp) || exit 1
+  summary=$(echo $main | awk -F '|' '{print $2}' 2>/dev/null)
+  category=$(echo $main | awk -F '|' '{print $1}' 2>/dev/null)
+  desc=$(yad --text="Write a description or more information" --text-info --editable --wrap) || exit 1
+  yad_generate_ical
+  populate_ical
+  thanks=$(yad --text="Event saved")
+}
+
+text_add_event() {
+  initialise
+  printf_custom_question "4" "[Format: YYYYMMDD] What date is the event: "
+  read -r dat
+  dtd=$(date -d "$dat" +"%Y-%m-%d") && test "$dtd" >/dev/null 2>&1 || exit 1
+  printf_custom_question "4" "[Format: HHMM] Enter the start time: "
+  read dtt
+  sdt="$dtd $dtt" && test "$sdt" >/dev/null 2>&1 || exit 1
+  dtstart=$(date -d "$sdt" +"%Y%m%dT%H%M%SZ")
+  printf_custom_question "4" "Where is it (press Enter to skip)? "
+  read location
+  location=${location//,/\,}
+  printf_custom_question "4" "Please give the event a title (press Enter to skip): "
+  read summary
+  printf_custom_question "4" "any tags (press Enter to skip)? "
+  read category
+  tags=${category//,/\,}
+  printf_custom_question "4" "Write a short description (press Enter to skip): "
+  read desc
+  shell_generate_ical
+  populate_ical
+  printf_green "Event saved."
+}
+
+show_help() {
+  # add: -ag for gui, -a for console
+  # list: -lg for calendar, -l (or empty) for text, -d for date, -r for range, -s for summary search
+  printf_red "calendar script."
+  printf_info "Edit ~/.config/local/calendar.local to change the directory."
+  printf_info "DATE_STRING is a any value accepted by date(1) function."
+  printf_green "-a  Add event in console."
+  printf_green "-ag	Add event using a graphical dialog interface."
+  printf_green "-g  Graphical calendar display of events (can also add events)."
+  printf_green "-c --category=TEXT List all saved events filtered by category."
+  printf_green "-s --summary=TEXT	List all saved events filtered by summary."
+  printf_green "-d,--date=DATE_STRING Find events matching the date string."
+  printf_green "-r START_DATE_STRING END_DATE_STRING	Find events within a date range."
+  printf_green " -h,-?,--help Show this help."
+}
+
+case $1 in
+-h | -\? | --help)
+  show_help
+  exit 0
+  ;;
+
+-a)
+  text_add_event 2>/dev/null
+  exit 0
+  ;;
+
+-ag)
+  gui_add_event 2>/dev/null
+  ;;
+
+-c)
+  if [ -n "$2" ]; then
+    FILTER=$2
+    shift
+    list_by_cat 2>/dev/null
+    exit 0
+  else
+    printf_red 'ERROR: you need to enter a category.\n' >&2
+    exit 1
+  fi
+  ;;
+--category=?*)
+  FILTER=${1#*=}
+  if [ -n "$FILTER" ]; then
+    list_by_cat 2>/dev/null
+    exit 0
+  else
+    printf_red 'ERROR:  you need to enter a category.\n' >&2
+    exit 1
+  fi
+  ;;
+-s)
+  if [ -n "$2" ]; then
+    FILTER=$2
+    shift
+    list_by_text 2>/dev/null
+    exit 0
+  else
+    printf_red 'ERROR: no text entered.\n' >&2
+    exit 1
+  fi
+  ;;
+--summary=?*)
+  FILTER=${1#*=}
+  if [ -n "$FILTER" ]; then
+    list_by_text 2>/dev/null
+    exit 0
+  else
+    printf_red 'ERROR: no text entered.\n' >&2
+    exit 1
+  fi
+  ;;
+-d)
+  if [ -n "$2" ]; then
+    DATEFILE=$2
+    shift
+    find_appointments 2>/dev/null
+    exit 0
+  else
+    printf_red 'ERROR: you need to enter a date string.\n' >&2
+    exit 1
+  fi
+  ;;
+
+--date=?*)
+  DATEFILE=${1#*=}
+  if [ -n "$DATEFILE" ]; then
+    find_appointments 2>/dev/null
+    exit 0
+  else
+    printf_red 'ERROR: you need to enter a date string.\n' >&2
+    exit 1
+  fi
+  ;;
+
+-r)
+  shift
+  sdr=$1
+  edr=$2
+  date_range 2>/dev/null
+  exit 0
+  ;;
+
+-g)
+  tmpfile=$(mktemp)
+  tagordo >$tmpfile
+  gui_add_event 2>/dev/null
+  ;;
+
+*)
+  list_all
+  exit 0
+  ;;
+esac
+unset
+rm $LERTA
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

@@ -1,0 +1,294 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : eslint-config
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Setup eslint for current project
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Package Manager Prompt
+printf_blue
+printf_blue "Which package manager are you using? "
+select package_command_choices in "Yarn" "npm" "Cancel"; do
+  case $package_command_choices in
+  Yarn)
+    pkg_cmd='yarn add'
+    break
+    ;;
+  npm)
+    pkg_cmd='npm install'
+    break
+    ;;
+  Cancel) exit ;;
+  esac
+done
+printf_blue
+
+# File Format Prompt
+printf_blue "Which ESLint and Prettier configuration format do you prefer? "
+select config_extension in ".js" ".json" "Cancel"; do
+  case $config_extension in
+  .js)
+    config_opening='module.exports = {'
+    break
+    ;;
+  .json)
+    config_opening='{'
+    break
+    ;;
+  Cancel) exit ;;
+  esac
+done
+printf_blue
+
+# Checks for existing eslintrc files
+if [ -f ".eslintrc.js" -o -f ".eslintrc.yaml" -o -f ".eslintrc.yml" -o -f ".eslintrc.json" -o -f ".eslintrc" ]; then
+  printf_red "Existing ESLint config file(s) found: "
+  ls -a .eslint* | xargs -n 1 basename
+  printf_blue
+  printf_red "CAUTION: there is loading priority when more than one config file is present: https://eslint.org/docs/user-guide/configuring#configuration-file-formats"
+  printf_blue
+  read -p "Write .eslintrc${config_extension} (Y/n)? "
+  if [[ $REPLY =~ ^[Nn]$ ]]; then
+    printf_yellow ">>>>> Skipping ESLint config"
+    skip_eslint_setup="true"
+  fi
+fi
+finished=false
+
+# Max Line Length Prompt
+while ! $finished; do
+  read -p "What max line length do you want to set for ESLint and Prettier? (Recommendation: 80) "
+  if [[ $REPLY =~ ^[0-9]{2,3}$ ]]; then
+    max_len_val=$REPLY
+    finished=true
+    printf_blue
+  else
+    printf_yellow "Please choose a max length of two or three digits, e.g. 80 or 100 or 120 "
+  fi
+done
+
+# Trailing Commas Prompt
+printf_blue "What style of trailing commas do you want to enforce with Prettier? "
+printf_yellow ">>>>> See https://prettier.io/docs/en/options.html#trailing-commas for more details."
+select trailing_comma_pref in "none" "es5" "all"; do
+  case $trailing_comma_pref in
+  none) break ;;
+  es5) break ;;
+  all) break ;;
+  esac
+done
+echo
+
+# Checks for existing prettierrc files
+if [ -f ".prettierrc.js" -o -f "prettier.config.js" -o -f ".prettierrc.yaml" -o -f ".prettierrc.yml" -o -f ".prettierrc.json" -o -f ".prettierrc.toml" -o -f ".prettierrc" ]; then
+  printf_red "Existing Prettier config file(s) found "
+  ls -a | grep "prettier*" | xargs -n 1 basename
+
+  printf_red "CAUTION: The configuration file will be resolved starting from the location of the file being formatted, and searching up the file tree until a config file is (or isn't) found. https://prettier.io/docs/en/configuration.html"
+
+  read -p "Write .prettierrc${config_extension} (Y/n)? "
+  if [[ $REPLY =~ ^[Nn]$ ]]; then
+    printf_yellow ">>>>> Skipping Prettier config"
+    skip_prettier_setup="true"
+  fi
+fi
+
+# ----------------------
+# Perform Configuration
+# ----------------------
+printf_green "Configuring your development environment... "
+
+printf_cyan "1/5 ESLint & Prettier Installation... "
+
+$pkg_cmd -D eslint prettier eslint-plugin-react-hooks
+
+printf_yellow "2/5 $Conforming to Airbnb's JavaScript Style Guide... "
+
+$pkg_cmd -D eslint-config-airbnb eslint-plugin-jsx-a11y eslint-plugin-import eslint-plugin-react babel-eslint
+
+printf_cyan "3/5 Making ESlint and Prettier play nice with each other... "
+printf_blue "See https://github.com/prettier/eslint-config-prettier for more details."
+
+$pkg_cmd -D eslint-config-prettier eslint-plugin-prettier
+
+if [ "$skip_eslint_setup" == "true" ]; then
+  exit
+else
+
+  printf_yellow "4/5 Building your .eslintrc${config_extension} file..."
+  >".eslintrc${config_extension}" # truncates existing file (or creates empty)
+
+  echo ${config_opening}'
+  "extends": [
+    "airbnb",
+    "prettier",
+    "prettier/react",
+    "plugin:jsx-a11y/recommended"
+  ],
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true,
+      "impliedStrict": true,
+      "classes": true
+    }
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "jquery": true,
+    "jest": true
+  },
+  "rules": {
+    "react/prop-types": 0,
+    "react-hooks/rules-of-hooks": "error",
+    "no-debugger": 0,
+    "no-alert": 0,
+    "no-unused-vars": 1,
+    "prefer-const": [
+      "error",
+      {
+        "destructuring": "all"
+      }
+    ],
+    "arrow-body-style": [
+      2,
+      "as-needed"
+    ],
+    "no-unused-expressions": [
+      2,
+      {
+        "allowTaggedTemplates": true
+      }
+    ],
+    "no-param-reassign": [
+      2,
+      {
+        "props": false
+      }
+    ],
+    "no-console": 0,
+    "import/prefer-default-export": 0,
+    "import": 0,
+    "func-names": 0,
+    "space-before-function-paren": 0,
+    "comma-dangle": 0,
+    "class-methods-use-this": 0,
+    "max-len": 0,
+    "import/extensions": 0,
+    "no-underscore-dangle": 0,
+    "consistent-return": 0,
+    "react/display-name": 1,
+    "react/no-array-index-key": 0,
+    "react/react-in-jsx-scope": 0,
+    "react/prefer-stateless-function": 0,
+    "react/forbid-prop-types": 0,
+    "react/jsx-props-no-spreading": 0,
+    "react/no-unescaped-entities": 0,
+    "jsx-a11y/accessible-emoji": 0,
+    "react/require-default-props": 0,
+    "react/jsx-filename-extension": [
+      1,
+      {
+        "extensions": [
+          ".js",
+          ".jsx"
+        ]
+      }
+    ],
+    "radix": 0,
+    "no-shadow": [
+      2,
+      {
+        "hoist": "all",
+        "allow": [
+          "resolve",
+          "reject",
+          "done",
+          "next",
+          "err",
+          "error"
+        ]
+      }
+    ],
+    "quotes": [
+      2,
+      "single",
+      {
+        "avoidEscape": true,
+        "allowTemplateLiterals": true
+      }
+    ],
+    "prettier/prettier": [
+      "error",
+      {
+        "trailingComma": "es5",
+        "singleQuote": true,
+        "printWidth": 80
+      }
+    ],
+    "jsx-a11y/href-no-hash": "off",
+    "jsx-a11y/anchor-is-valid": [
+      "warn",
+      {
+        "aspects": [
+          "invalidHref"
+        ]
+      }
+    ]
+  },
+  "plugins": [
+    "prettier",
+    "react",
+    "react-hooks"
+  ]
+}' >>.eslintrc${config_extension}
+fi
+
+if [ "$skip_prettier_setup" == "true" ]; then
+  break
+else
+  printf_yellow "5/5 Building your .prettierrc${config_extension} file... "
+  >.prettierrc${config_extension} # truncates existing file (or creates empty)
+
+  echo ${config_opening}'
+  "printWidth": '${max_len_val}',
+  "singleQuote": true,
+  "trailingComma": "'${trailing_comma_pref}'"
+}' >>.prettierrc${config_extension}
+fi
+
+printf_green "Finished setting up!"

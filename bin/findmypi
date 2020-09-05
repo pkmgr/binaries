@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : findmypi
+# @Created     : Wed, Aug 23, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : script to find a raspberry pi on your network
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_green "Find a raspberry pi on your network"
+  printf_green "Usage: findmypi iprange netmask   |  IE findmypi 192.168.1.0 24"
+  exit 0
+}
+
+__gethostname() {
+  rasppi="$(echo $device)"
+  cmd_exists nslookup && sethost="$(getent hosts $rasppi 2>/dev/null | head -n 1 | awk '{print $2}')"
+  echo "$rasppi    $sethost" >>"$HOME/Documents/raspis.txt" 2>/dev/null
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--help" ] && __help
+
+[ -z "$1" ] && ip="10.0.0.0" || ip="$1"
+[ -z "$2" ] && nm="16" || nm="$2"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# we need sudo
+requiresudo
+
+check_app nmap
+[ -f /tmp/raspi.search.txt ] && sudo rm -Rf /tmp/raspi.search.txt
+
+printf_green "Searching the $ip/$nm network for your Raspberry PI"
+printf_green "Depending on your network range this may take some time\n" &&
+  sudo nmap -sP "$ip"/"$nm" 2>/dev/null | awk '/^Nmap/{ip=$NF}/Raspberry Pi/{print ip}' | sed 's#(##g' | sed 's#)##g' >/tmp/raspi.search.txt 2>/dev/null
+
+if [ -s /tmp/raspi.search.txt ]; then
+  while IFS="" read -r device || [ -n "$device" ]; do
+    printf_cyan "I have found the following device: $device"
+    __gethostname
+  done </tmp/raspi.search.txt
+  echo "" && printf_blue "Saved the list to $HOME/Documents/raspis.txt"
+else
+  printf_red "I didn't find a Raspberry PI on your network"
+fi
+
+sudo rm -Rf /tmp/raspi.search.txt
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : install_tizonia
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Cloud music from the Linux terminal
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set options
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# main program
+
+if [ -f "$(command -v tizonia 2>/dev/null)" ]; then
+  tizonia "$@" 2>/dev/null
+else
+  if [ "$(uname -m)" != aarch64 ]; then
+    if [ -f "$(command -v apt-get 2>/dev/null)" ]; then
+      printf_green "Please wait installing via apt"
+      curl -kLSs https://goo.gl/Vu8qGR | bash -s -- --safe >/dev/null 2>&1
+    elif [ -f "$(command -v yay 2>/dev/null)" ]; then
+      printf_green "Please wait installing via yay"
+      yay -S --noconfirm tizonia-all >/dev/null 2>&1
+    elif [ -f "$(command -v trizen 2>/dev/null)" ]; then
+      printf_green "Please wait installing via trizen"
+      trizen -S --noconfirm tizonia-all >/dev/null 2>&1
+    elif [ ! -z "$(command -v snap 2>/dev/null)" ]; then
+      printf_green "Please wait installing via snap"
+      sudo snap install tizonia >/dev/null 2>&1
+      if [ -d "$HOME/snap/tizonia/current/.config/tizonia" ] && [ -d "$HOME/.config/tizonia" ]; then
+        ln -sf "$HOME/.config/tizonia" "$HOME/snap/tizonia/current/.config/tizonia"
+      fi
+    elif [ ! -z "$(command -v docker 2>/dev/null)" ]; then
+      printf_green "Please wait installing via docker"
+      sudo curl -LSs "https://is.gd/9zbF55" -o /usr/local/bin/tizonia
+      sudo chmod -Rf 755 /usr/local/bin/tizonia && sudo /usr/local/bin/tizonia >/dev/null 2>&1
+      mkdir -p chmod a+wrx "$HOME/.config/tizonia"
+    fi
+  else
+    printf_red "Tizonia was not installed Unsupported platform"
+    printf_red "for binaries - attempting to build from source"
+    mkdir -p /tmp/tizonia
+    export TIZONIA_REPO_DIR=/tmp/tizonia
+    export TIZONIA_INSTALL_DIR=/usr
+    export PATH=$TIZONIA_REPO_DIR/tools:$PATH
+    sudo -H pip3 install --upgrade --prefix /usr/local gmusicapi soundcloud youtube-dl pafy pycountry titlecase pychromecast plexapi fuzzywuzzy eventlet >/dev/null 2>&1 || exit 1
+    sudo -H pip3 install --upgrade --prefix /usr/local git+https://github.com/plamere/spotipy.git >/dev/null 2>&1 || exit 1
+    git clone -q /tmp/tizonia >/dev/null 2>&1 && cd /tmp/tizonia || exit 1
+    autoreconf -ifs >/dev/null 2>&1 || exit 1
+    ./configure --prefix=/usr >/dev/null 2>&1 || exit 1
+    make >/dev/null 2>&1 || exit 1
+    sudo make install >/dev/null 2>&1 || exit 1
+  fi
+fi
+
+exit $?
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

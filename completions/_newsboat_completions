@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# bash completion for newsboat
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for newsboat
+
+_newsboat_completions() {
+  local cur prev words cword
+  local ARRAY="-e --export-to-opml -r --refresh-on-start -i --import-from-opml -u --url-file "
+  local ARRAY+="-c --cache-file -C --config-file -X  --vacuum -x --execute -q --quiet  -v --version "
+  local ARRAY+="-l --log-level -d --log-file -E --export-to-file -I --import-from-file -h --help "
+
+  _init_completion || return
+
+  case $prev in
+  -f)
+    COMPREPLY=($(compgen -W \
+      '$(newsboat -l 2>/dev/null | tail -n +2)' -- "$cur"))
+    return
+    ;;
+  esac
+
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _newsboat_completions -o default newsboat

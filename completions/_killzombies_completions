@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# bash completion for killzombies
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for killzombies
+
+_killzombies_completions() {
+  local cur prev words cword
+  _init_completion || return
+
+  COMPREPLY=($(compgen -W '--cron --admin --help' -- "$cur"))
+
+  _pnames
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _killzombies_completions -o default killzombies

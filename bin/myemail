@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : myemail
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : setup email client
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+create_link() {
+  case "$1" in
+  *)
+    if [ ! -z "$2" ]; then
+      shift 1
+      if cmd_exists "$1"; then
+        printf_green "Linking $HOME/.local/bin/myemail to $1"
+        ln_sf "$(command -v $1)" "$HOME/.local/bin/myemail"
+        exit 0
+      else
+        printf_green "Linking $HOME/.local/bin/myemail to $EMAIL"
+        ln_sf "$EMAIL" "$HOME/.local/bin/myemail"
+        exit 0
+      fi
+    fi
+    ;;
+  esac
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -z "$EMAIL" ]; then
+  if [ -n "$(command -v thunderbird 2>/dev/null)" ]; then
+    EMAIL="thunderbird"
+  elif [ -n "$(command -v evolution 2>/dev/null)" ]; then
+    EMAIL="evolution"
+  elif [ -n "$(command -v clawsmail 2>/dev/null)" ]; then
+    EMAIL="clawsmail"
+  elif [ -n "$(command -v geary 2>/dev/null)" ]; then
+    EMAIL="geary"
+  elif [ -n "$(command -v neomutt 2>/dev/null)" ]; then
+    EMAIL="myterminal -e neomutt"
+  elif [ -n "$(command -v mutt 2>/dev/null)" ]; then
+    EMAIL="myterminal -e mutt"
+  elif [ -n "$(command -v kmail 2>/dev/null)" ]; then
+    EMAIL="kmail"
+  elif [ -n "$(command -v emacs 2>/dev/null)" ]; then
+    EMAIL="emacs"
+  elif [ -n "$(command -v gmail 2>/dev/null)" ]; then
+    EMAIL="mybrowser https://gmail.com"
+  elif [ -n "$(command -v sylpheed 2>/dev/null)" ]; then
+    EMAIL="sylpheed"
+  fi
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ ! -z "$EMAIL" ] || printf_help "No email clients are installed"
+[ "$1" = "--help" ] && printf_help "Usage: myemail   |   myemail --create"
+[ "$1" = "--create" ] && create_link "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$HOME/.local/bin/myemail" ]; then
+  "$HOME/.local/bin/myemail" "$@" 2>/dev/null
+else
+  $EMAIL "$@" 2>/dev/null
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

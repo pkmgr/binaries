@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# _devenv_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for devenv
+
+_devenv_completions() {
+  local cur prev words cword
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/devenv/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/devenv/list)"
+  local START="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/devenv/start)"
+  _init_completion || return
+
+  case $prev in
+  --start)
+    COMPREPLY=($(compgen -W '${START}' -- "$cur"))
+    return
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '${ARRAY} ${LIST}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _devenv_completions -o default emj
+complete -F _devenv_completions -o default devenv
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

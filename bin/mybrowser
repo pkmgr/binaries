@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : mybrowser
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : setup browser
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+create_link() {
+  case "$1" in
+  *)
+    if [ ! -z "$2" ]; then
+      shift 1
+      if cmd_exists "$1"; then
+        printf_green "Linking $HOME/.local/bin/mybrowser to $1"
+        ln_sf "$(command -v $1)" "$HOME/.local/bin/mybrowser"
+        exit 0
+      else
+        printf_green "Linking $HOME/.local/bin/mybrowser to $BROWSER"
+        ln_sf "$BROWSER" "$HOME/.local/bin/mybrowser"
+        exit 0
+      fi
+    fi
+    ;;
+  esac
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -z "$BROWSER" ]; then
+  if [ -n "$(command -v garcon-url-handler 2>/dev/null)" ]; then
+    export BROWSER="garcon-url-handler --url"
+  elif [ -n "$(command -v firefox 2>/dev/null)" ]; then
+    export BROWSER="firefox"
+  elif [ -n "$(command -v chromium 2>/dev/null)" ]; then
+    export BROWSER="chromium"
+  elif [ -n "$(command -v google-chrome 2>/dev/null)" ]; then
+    export BROWSER="google-chrome"
+  elif [ -n "$(command -v opera 2>/dev/null)" ]; then
+    export BROWSER="opera"
+  elif [ -n "$(command -v epiphany-browser 2>/dev/null)" ]; then
+    export BROWSER="epiphany-browser"
+  elif [ -n "$(command -v falkon 2>/dev/null)" ]; then
+    export BROWSER="falkon"
+  elif [ -n "$(command -v midori 2>/dev/null)" ]; then
+    export BROWSER="midori"
+  elif [ -n "$(command -v netsurf 2>/dev/null)" ]; then
+    export BROWSER="netsurf"
+  elif [ -n "$(command -v surf 2>/dev/null)" ]; then
+    export BROWSER="surf"
+  elif [ -n "$(command -v arora 2>/dev/null)" ]; then
+    export BROWSER="arora"
+  elif [ -f "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
+    export BROWSER="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  elif [ -f "/Applications/Firefox.app/Contents/MacOS/firefox-bin" ]; then
+    export BROWSER="/Applications/Firefox.app/Contents/MacOS/firefox-bin"
+  elif [ -n "$(command -v lynx 2>/dev/null)" ]; then
+    export BROWSER="lynx"
+  elif [ -n "$(command -v links 2>/dev/null)" ]; then
+    export BROWSER="links"
+  fi
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ ! -z "$BROWSER" ] || printf_help "No browsers are installed"
+[ "$1" = "--help" ] && printf_help "Usage: mybrowser website    |   mybrowser --create"
+[ "$1" = "--create" ] && create_link "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$HOME/.local/bin/mybrowser" ]; then
+  $HOME/.local/bin/mybrowser "$@" >/dev/null 2>&1 &
+else
+  $BROWSER "$@" >/dev/null 2>&1 &
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

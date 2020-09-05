@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : blog
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : blogging script using github pages
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+_blog_init() { devnull git pull -q; }
+_blog_publish() {
+  devnull git add .
+  devnull git commit -m "New Blog Post"
+  devnull git push -q
+}
+_blog_site() { git remote show origin | grep Push | awk '{print $3}'; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+_blog_post_header() {
+  cat "$SCRIPTSFUNCTDIR/templates/blog/post.md" |
+    sed "s#AuthorName#${USER}#g" |
+    sed "s#DATE#$(date +"%Y-%m-%d %H:%M")#g" |
+    sed "s#TITLE#${TITLE}#g"
+
+}
+
+_blog_page_header() {
+  cat "$SCRIPTSFUNCTDIR/templates/blog/page.md" |
+    sed "s#AuthorName#${USER}#g" |
+    sed "s#TITLE#${TITLE}#g"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+_blog_dir() {
+  find . -type d -name _posts | grep -q "." &&
+    find . -type d -name _posts | grep "." ||
+    return 1
+}
+
+_newpost_template() {
+  if devnull _blog_dir; then
+    local date="$(date +"%Y-%m-%d")"
+    local edit="$(echo $date-$title | sed 's# #_#g')"
+    local file="$(_blog_dir)/$edit.md"
+    _blog_post_header >"$file"
+    vim -c ":setlocal ft=notes syntax=markdown" "$file"
+  else
+    printf_red "There is no blog directory"
+  fi
+}
+
+_newpage_template() {
+  local edit="$(echo $1 | sed 's# #_#g')"
+  local file="$edit"
+  if [ ! -f "$file" ]; then
+    _blog_page_header >"$file"
+  fi
+  vim -c ":setlocal ft=notes syntax=markdown" "$file"
+}
+
+__help() {
+  printf_green '
+  \t\tUsage:
+  \t\tblog page "path_to_page" "title_of_page"
+  \t\tblog post "title_of_post"
+  '
+  return 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+
+page)
+  shift 1
+  [ -z "$1" ] && printf_red "Please the full path of the file" && exit 1
+  [ -z "$2" ] && printf_red "Please enter a title" && exit 1
+  [ "$2" ] && title="$2" || title="TITLE"
+  _blog_init
+  _newpage_template "$@"
+  _blog_publish
+  ;;
+
+post)
+  shift 1
+  [ -z "$1" ] && printf_red "Please enter a title" && exit 1
+  [ "$1" ] && title="$1" || title="TITLE"
+  _blog_init
+  _newpost_template "$@"
+  _blog_publish
+  ;;
+
+edit)
+  shift 1
+  [ -z "$1" ] && printf_red "Please the full path of the file" && exit 1
+  edit="$1"
+  file="$edit"
+  _blog_init
+  _vim "$file"
+  _blog_publish
+  ;;
+
+* | --help)
+  shift 1
+  __help
+  ;;
+
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

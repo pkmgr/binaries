@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# _config_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for config
+
+_config_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  add)
+    COMPREPLY=($(compgen -W '$(_filedir)' -- "$cur"))
+    return
+    ;;
+
+  commit)
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" commit)' -- "$cur"))
+    return
+    ;;
+
+  pull)
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" pull)' -- "$cur"))
+    return
+    ;;
+
+  set)
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" config)' -- "$cur"))
+    return
+    ;;
+
+  status)
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" status)' -- "$cur"))
+    return
+    ;;
+
+  push)
+    COMPREPLY=($(compgen -W '--set-upstream origin master -f' -- "$cur"))
+    return
+    ;;
+
+  log)
+    return
+    ;;
+
+  init)
+    return
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _config_completions -o default config
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

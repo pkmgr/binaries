@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# _sudoers_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for sudoers
+
+_sudoers_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/sudoers/array)"
+
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  adduser | remuser)
+    COMPREPLY=($(compgen -u -- "$cur"))
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _sudoers_completions -o default sudoer
+complete -F _sudoers_completions -o default sudoers
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

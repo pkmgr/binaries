@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# _thememgr_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for fontmgr
+
+_thememgr_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/thememgr/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/thememgr/list)"
+
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  install | update | remove)
+    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+    ;;
+
+  *)
+    COMPREPLY=($(compgen -W '$LIST' -- "$cur"))
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _thememgr_completions -o default thememgr

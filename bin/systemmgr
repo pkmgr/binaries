@@ -1,0 +1,211 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : systemmgr
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : System Management script
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+systemmgr_install
+
+#---------------------------------------------------------------------------------------
+
+ARGS="$*"
+USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
+SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
+
+#---------------------------------------------------------------------------------------
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_green "
+\t\tA Package Manager for all systems   |   Usage: sudo systemmgr command
+\t\tsystemmgr version              - show the version info      | IE: systemmgr version tor
+\t\tsystemmgr list                 - list installed packages    | IE: systemmgr list 
+\t\tsystemmgr search               - search for a package       | IE: systemmgr search postfix
+\t\tsystemmgr install              - install a package          | IE: systemmgr install cron
+\t\tsystemmgr remove               - remove a package           | IE: systemmgr remove tor
+\t\tsystemmgr update               - update a package           | IE: systemmgr update
+"
+  return
+}
+
+#---------------------------------------------------------------------------------------
+
+systemmgr_list() {
+  if [ -n "$1" ]; then
+    if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A "$SYSUPDATEDIR/$1" 2>/dev/null)" ]; then
+      file="$(ls -A "$SYSUPDATEDIR/$1" 2>/dev/null)"
+      if [ -f "$file" ]; then
+        printf_green "Information about $1: \n$(bash -c "$file --version")"
+      else
+        printf_exit "File was not found is it installed?"
+        exit
+      fi
+    fi
+  else
+    declare -a LSINST="$(ls "$SYSUPDATEDIR/" 2>/dev/null)"
+    if [ -z "$LSINST" ]; then
+      printf_red "No packages are installed"
+      exit
+    else
+      for df in ${LSINST[*]}; do
+        printf_green $df
+      done
+    fi
+  fi
+  exit
+}
+
+#---------------------------------------------------------------------------------------
+
+systemmgr_search() {
+  declare -a LISTARRAY=$*
+  for df in ${LISTARRAY[*]}; do
+    echo $LIST | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$df" || printf_exit "That package does not exist"
+  done
+  exit
+}
+
+#---------------------------------------------------------------------------------------
+
+removepkg() {
+  devnull sudo rm -Rf "$HOMEDIR/$1"
+}
+
+#---------------------------------------------------------------------------------------
+
+case "$1" in
+help | h | --h*)
+  __help
+  ;;
+
+list)
+  shift 1
+  systemmgr_list "$@"
+  ;;
+
+search)
+  shift 1
+  systemmgr_search "$@"
+  ;;
+
+remove)
+  shift 1
+  printf_green "Removing $ARGS from $HOMEDIR"
+  declare -a LISTARRAY="$ARGS"
+  for rmf in ${LISTARRAY[*]}; do
+    printf_yellow "Removing $rmf from your system"
+    removepkg "$HOMEDIR/$rmf"
+    getexitcode "$rmf has been removed"
+    echo ""
+  done
+  ;;
+
+update)
+  shift 1
+  if [ -z "$1" ]; then
+    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
+      for updadmin in $(ls $SYSUPDATEDIR); do
+        if urlcheck $REPO/$updadmin/raw/master/install.sh; then
+          printf_yellow "Initializing the installer from"
+          printf_purple "$REPO/$updadmin"
+          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)"
+          getexitcode "$updadmin has been installed"
+        else
+          urlinvalid $REPO/$updadmin/raw/master/install.sh
+        fi
+        echo ""
+      done
+    fi
+
+  else
+    sudo systemmgr install "$@"
+  fi
+  ;;
+
+install)
+  shift 1
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
+    declare -a LISTARRAY="$*"
+  for ins in ${LISTARRAY[*]}; do
+    if urlcheck $REPO/$ins/raw/master/install.sh; then
+      printf_yellow "Initializing the installer from"
+      printf_purple "$REPO/$ins"
+      sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      getexitcode "$ins has been installed"
+    else
+      urlinvalid $REPO/$ins/raw/master/install.sh
+    fi
+    echo ""
+  done
+  ;;
+
+cron)
+  shift 1
+  if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
+    file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
+    if [ -f "$file" ]; then
+      sudo $file --cron
+    fi
+  fi
+  ;;
+
+version)
+  shift 1
+  ANAME="$1"
+  if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)" ]; then
+    file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
+    if [ -f "$file" ]; then
+      printf_green "Information about $1: \n$(bash -c "$file --version")"
+    fi
+  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
+    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
+  else
+    printf_exit "File was not found is it installed?"
+  fi
+  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
+  exit
+  ;;
+
+*)
+  __help
+  ;;
+
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

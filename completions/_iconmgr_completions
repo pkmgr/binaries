@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# _iconmgr_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for iconmgr
+
+_iconmgr_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/iconmgr/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/iconmgr/list)"
+
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  install)
+    COMPREPLY=($(compgen -W '--all ${LIST}' -- "$cur"))
+    return
+    ;;
+
+  *)
+    COMPREPLY=($(compgen -W '$LIST' -- "$cur"))
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _iconmgr_completions -o default iconmgr

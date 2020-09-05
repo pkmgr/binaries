@@ -1,0 +1,269 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : config
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : add config files to git repo - https://www.atlassian.com/git/tutorials/dotfiles
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
+LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
+HELP="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/help)"
+
+if [[ $EUID -eq 0 ]]; then
+  printf_head "You are running as root as such this will allow full system access"
+  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles/system}"
+  backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
+  logdir="${LOGDIR:-$HOME/.local/log}"
+  HOME="/"
+else
+  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles/system}"
+  backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
+  logdir="${LOGDIR:-$HOME/.local/log}"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+mkdir -p "$logdir"
+echo "#################################" >>"$logdir/config.log"
+echo "$(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/config.log"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_help "Add your dotfiles to your local git repo"
+  printf_help "Usage: $ARRAY"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+_git() {
+  command -p git "$@"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+_stow() {
+  _git --git-dir="$gitdir/" --work-tree="$HOME" "$@"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+_backup() {
+  mkdir -p "$backupdir"
+  _stow checkout 2>&1 | egrep "^\s+" | awk {'print $1'} |
+    rsync -a --remove-source-files --files-from="-" ~/ "$backupdir/"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+_checkout() { devnull _stow checkout "$@" || devnull _backup; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git_remote() {
+  if [ -z "$1" ]; then
+    printf_read "Enter the url to your git repo: "
+    read url
+    _stow remote add origin "$url"
+  else
+    _stow remote "$@"
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git_init() {
+  if [ ! -f .gitignore ]; then
+    echo "$gitdir" >.gitignore
+  else
+    grep -q "$gitdir" .gitignore 2>/dev/null && echo "$gitdir" >>.gitignore
+  fi
+  printf_question "Do you already have a dotfiles repo" [y/N]
+  read -n 1 -s choice
+  echo ""
+  if [[ $choice == "y" || $choice == "Y" ]]; then
+    printf_read "What is the repo url: "
+    read url
+    _git clone --bare "$url" "$gitdir" >/dev/null 2>&1
+    _checkout
+    _stow config --local status.showUntrackedFiles no >/dev/null 2>&1
+  else
+    mkdir -p "$gitdir"
+    _git init --bare "$gitdir" >/dev/null 2>&1
+    _stow config --local status.showUntrackedFiles no >/dev/null 2>&1
+    _stow config --local commit.gpgSign false >/dev/null 2>&1
+    printf_question "Would you like to add a remote git repo" [y/N]
+    read -n 1 -s choice
+    echo ""
+    if [[ $choice == "y" || $choice == "Y" ]]; then
+      printf_read "Enter the url to your git repo: "
+      read url
+      _stow remote add origin "$url"
+    else
+      printf_green "You did not add a remote git repo"
+    fi
+    printf_read "Enter your name: "
+    read name
+    printf_read "Enter email address: "
+    read email
+    _stow config user.name "$name"
+    _stow config user.email "$email"
+    _stow add .gitignore >/dev/null 2>&1
+    _stow commit -m "Added .gitignore" >/dev/null 2>&1
+  fi
+  exit "$?"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+--system)
+  shift 1
+  if [ "$1" = "--help" ]; then
+    printf_custom "41" "Allows you to keep your system settings in a git repo"
+    printf_green "Usage: config --system commands"
+    printf_exit "See config help for commands"
+    __help
+    exit
+  fi
+  requiresudo
+  gitdir="/root/.local/dotfiles/$(hostname -s)"
+  ;;
+--custom)
+  shift 1
+  if [ -z "${CONFIG_CUSTOM_REPO:-$1}" ] || [ -z "${CONFIG_CUSTOM_HOME:-$2}" ] || [ -z "$3" ]; then
+    printf_custom "41" "This allows the use of a custom git dir and home dir"
+    printf_green "Usage: config --custom gitdir homedir commands"
+    printf_exit "See config help for commands"
+    exit 1
+  fi
+  gitdir="${CONFIG_CUSTOM_REPO:-$1}"
+  shift
+  HOME="${CONFIG_CUSTOM_HOME:-$1}"
+  shift 1
+  ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ ! -d "$gitdir" ] && [ ! -f "$gitdir/config" ]; then git_init; fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+
+init)
+  shift 1
+  git_init
+  ;;
+
+restore)
+  shift 1
+  git_init
+  ;;
+
+add | stow)
+  shift 1
+  declare -a args="$@"
+  for f in $args; do
+    if [ -L "$f" ]; then
+      [ ! -L "$(ls -ltra $f | grep '\->' | sed "s#.*-.##g" | sed "s#$HOME/##g" | sed "s# ##g")" ] &&
+        [ -e "$(ls -ltra $f | grep '\->' | sed "s#.*-.##g" | sed "s#$HOME/##g" | sed "s# ##g")" ] &&
+        _stow add "$f" &&
+        _stow add "$(ls -ltra $f | grep '\->' | sed "s#.*-.##g" | sed "s#$HOME/##g" | sed "s# ##g")"
+    else
+      _stow add "$f"
+    fi
+  done
+  _stow commit -m "Added $args"
+  ;;
+
+commit)
+  shift 1
+  _stow commit "$@"
+  ;;
+
+checkout)
+  shift 1
+  _checkout "$@"
+  ;;
+
+remote)
+  shift 1
+  git_remote "$@"
+  ;;
+
+pull)
+  shift 1
+  _stow pull "$@"
+  ;;
+
+push)
+  shift 1
+  _stow push "$@" || _stow push --set-upstream origin master "$@"
+  ;;
+
+set)
+  shift 1
+  _stow config "$@"
+  ;;
+
+status)
+  shift 1
+  _stow status "$@"
+  ;;
+
+log)
+  shift 1
+  _stow log "$@"
+  ;;
+
+help | -h* | --h*)
+  shift 0
+  __help
+  ;;
+
+*)
+  shift 0
+  [ ! -z "$1" ] && _stow "$@" || echo "$HELP"
+  exit 0
+  ;;
+
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

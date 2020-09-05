@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# _systemmgr_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for systemmgr
+
+_systemmgr_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/systemmgr/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/systemmgr/list)"
+
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+  install | update | remove)
+    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+    return
+    ;;
+  *)
+    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+    ;;
+    
+  esac
+
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _systemmgr_completions -o default systemmgr
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

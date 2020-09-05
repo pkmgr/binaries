@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : gen-dns
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Generate a dns zone
+# @Source      : https://bash.cyberciti.biz/domain/create-bind9-domain-zone-configuration-file/
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_red "Generate a dns zone"
+  printf_red "This will look for a"
+  printf_red "$HOME/templates/dns-zone.txt"
+  printf_help "Usage: $APPNAME Domain"
+  exit
+}
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help" ] && __help
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [[ $(id -u) -ne 0 ]]; then
+  printf_exit "Please re-run this as root"
+  exit
+fi
+
+EDITOR="${EDITOR:-vim}"
+DNSROOT="$HOME/Documents/dns"
+dnsTemplate="$(cat /usr/local/share/CasjaysDev/scripts/templates/dns-zone.txt)"
+
+DOMAIN="$1"
+WWWIP="$2"
+
+[ -z "$1" ] && __help
+[ "$1" = "--help" ] && __help && exit
+if [ "$1" = "--edit" ]; then
+  shift 1
+  if [ ! -z "$1" ]; then
+    [ -f "$1" ] && $EDITOR "$1" 2>/dev/null
+  else
+    [ -f $HOME/templates/dns-zone.txt ] &&
+      $EDITOR "$HOME/Templates/dns-zone.txt" ||
+      $EDITOR "/usr/local/share/CasjaysDev/scripts/templates/dns-zone.txt" 2>/dev/null
+  fi
+  printf_green "File has been edited"
+  exit $?
+fi
+
+[ ! -f "$DNSROOT/$DOMAIN.zone" ] || printf_exit "$DNSROOT/$DOMAIN.zone already exist"
+
+mkdir -p "$DNSROOT"
+
+echo "$dnsTemplate" >"$DNSROOT/$DOMAIN.zone"
+
+if [ -f /etc/named/other/google-verifications.conf ]; then
+  cat /etc/named/other/google-verifications.conf >>"$DNSROOT/$DOMAIN.zone"
+  echo "" >>"$DNSROOT"
+fi
+
+if [ -f /etc/named/other/misc.conf ]; then
+  cat /etc/named/other/misc.conf >>"$DNSROOT/$DOMAIN.zone"
+  echo "" >>"$DNSROOT/$DOMAIN.zone"
+fi

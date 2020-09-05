@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : weather
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : weather in your console
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_green "
+\t\tWeather in your terminal
+\t\thttps://github.com/chubin/wttr.in
+\t\tIE: weather option 90210 or weather city lax
+\t\tOptions are as follows:
+\t\tcity use zipcode or airport code        | weather report for city
+\t\tv2 use zipcode or airport code          | version 2 of wttr.in
+\t\timg use city or closest airport code    | create an image file
+\t\tmoon                                    | get moon phase
+\t\tRun weather :help                      | see all options
+\t\tweather for defaults and detected location
+"
+  exit 1
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+LOCID="${MYLOCATIONID:-$2}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+report() { printf_color "Weather report for $LOCID\n" "21"; }
+grep_v() { grep -v "Weather report" | grep -v "Location"; }
+wttrin() { curl -LSs "http://wttr.in/$LOCID?AFu$2" | grep_v && report; }
+wttrin2() { curl -LSs "http://v2.wttr.in/$LOCID?AFu$2" | grep_v && report; }
+wttrimage() { curl -LSsq "http://wttr.in/$LOCID_AFuw.png" -o "$HOME/.local/tmp/weather.png"; }
+wttrcity() { curl -LSsq "http://wttr.in/$MYLOCATIONZIP?AFu$2" | grep -v "Weather report" | head -n 6 && echo ""; }
+wttrmoon() { curl -LSs "http://wttr.in/moon?AFu$2"; }
+wttrsimple() { curl -LSs http://wttr.in/$LOCID?format=3; }
+accuweather() { curl -s "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=${@:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+mkd "$HOME/.local/tmp"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+help | -h | --help)
+  __help
+  ;;
+city | -c | --city)
+  shift 1
+  LOCID="${MYLOCATIONZIP:-$1}"
+  [ -z "$LOCID" ] && __help
+  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME city zipcode"
+  wttrcity "$@"
+  ;;
+v2 | -v2 | --v2)
+  shift 1
+  LOCID="${MYLOCATIONID:-$1}"
+  [ -z "$LOCID" ] && __help
+  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME v2 zipcode"
+  wttrin2 "$@"
+  ;;
+img | -i | --img | image | --image)
+  shift 1
+  LOCID="${MYLOCATIONID:-$1}"
+  [ -z "$LOCID" ] && __help
+  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME img zipcode"
+  wttrimage "$@"
+  ;;
+moon | -m | --moon)
+  shift 1
+  LOCID="${MYLOCATIONZIP:-$1}"
+  [ -z "$LOCID" ] && __help
+  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME moon"
+  wttrmoon "$@"
+  ;;
+simple | -simple | --simple)
+  shift 1
+  LOCID="${MYLOCATIONID:-$1}"
+  [ -z "$LOCID" ] && __help
+  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME simple"
+  wttrsimple "$@"
+  ;;
+accu | accuweather | accuweather)
+  shift 1
+  LOCID="${MYLOCATIONID:-$1}"
+  [ -z "$LOCID" ] && __help
+  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME accuweather"
+  accuweather "$@"
+  ;;
+*)
+  shift 0
+  LOCID="${MYLOCATIONID:-$1}"
+  [ -z "$LOCID" ] && __help
+  [ "$1" = "--help" ] && __help
+  wttrin "$@"
+  ;;
+
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

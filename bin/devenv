@@ -1,0 +1,374 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : devenv
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : setup a development environment
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/devenv/list)"
+
+__help() {
+  printf_red "Setup a development enviroment"
+  printf_red "By default this will try to guess"
+  printf_red "the current project and set it up"
+  printf_red "Usage: devenv project | devenv node"
+  printf_red "The current enviroments are as follows:"
+  printf_red "$LIST"
+  exit 1
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if_sample() {
+  if [ -f .env.sample ] || [ -f .env ]; then cp -Rf .env.sample .env; fi
+  if [ -f .config.sample ] || [ -f .config ]; then cp -Rf .config.sample .config; fi
+  if [ -f config.example.js ] || [ -f config.js ]; then cp -Rf config.example.js config.js; fi
+  if [ -f .config.json.sample ] || [ -f .config.json ]; then cp -Rf .config.json.sample .config.json; fi
+}
+
+run_new_site() {
+  printf_green "Enter the full path for your new project!"
+  printf_custom_question "3" "Enter location for your new site - enter . for current: "
+  read -r sitedir
+  [ ! -z "$sitedir" ] || cd "$sitedir"
+
+}
+
+run_jekyll() {
+  local appname=jekyll
+  local project=jekyll
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_hugo() {
+  local appname=hugo
+  local project=hugo
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_ruby() {
+  local appname=ruby
+  local project=ruby
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_python() {
+  local appname=python
+  local project=python
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_perl() {
+  local appname=perl
+  local project=perl
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_php() {
+  local appname=php
+  local project=php
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_node() {
+  local appname=node || appname=node || appname=npm
+  local project=node
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  [ -f package.json ] || npm init
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  npm init
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_vuecli() {
+  local appname=vue
+  local project=node
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  $appname create
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_reactcli() {
+  local appname=create-react-app
+  local project=javascript
+  cmd_exists $appname || printf_exit "$node is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  $appname
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_expresscli() {
+  local appname=express-generator
+  local project=javascript
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$projappnameect" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  $appname
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_create-project() {
+  local appname=create-project
+  local project=javascript
+  cmd_exists $appname || printf_exit "$appname is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$project" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  $appname
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_mevn() {
+  local appname=mevn
+  local project=javascript
+  cmd_exists $git || printf_exit "$git is not installed"
+  if_sample
+  if [[ $* = "--new" ]]; then echo "$project" && exit; fi
+  if [[ $* = "--help" ]]; then __help; fi
+  [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
+  if [ -f "~/.config/screen/dev/$project" ]; then
+    screen -c ~/.config/screen/dev/$project
+  fi
+  git clone -q https://github.com/icebob/vue-express-mongo-boilerplate ./
+  exit 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+gen_shellcheck() {
+  cp -Rf "SCRIPTSFUNCTDIR/templates/shellcheckrc" ./shellcheckrc
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ "$1" = "--start" ]; then
+  START="$2"
+  shift 1
+
+  case "$START" in
+  jekyll)
+    if [ -f ./_config.yml ]; then
+      cmd_exists watchy && watchy -w _config.yml -- jekyll serve --host=0.0.0.0 || cmd_exists jekyll && jekyll serve --host=0.0.0.0 || printf_exit "There was a problem staring - no config found"
+    else
+      printf_exit "There was a problem starting - no config found"
+    fi
+    ;;
+
+  *)
+    printf_red "No parameters specified"
+    exit
+    ;;
+  esac
+fi
+
+case "$1" in
+jekyll)
+  shift 1
+  run_new_site
+  run_jekyll "$@"
+  ;;
+
+hugo)
+  shift 1
+  run_new_site
+  run_hugo "$@"
+  ;;
+
+ruby)
+  shift 1
+  run_new_site
+  run_ruby "$@"
+  ;;
+
+python)
+  shift 1
+  run_new_site
+  run_python "$@"
+  ;;
+
+perl)
+  shift 1
+  run_new_site
+  run_perl "$@"
+  ;;
+
+php)
+  shift 1
+  run_new_site
+  run_php "$@"
+  ;;
+
+node)
+  shift 1
+  run_new_site
+  run_node "$@"
+  ;;
+
+vue)
+  shift 1
+  run_new_site
+  run_vuecli "$@"
+  ;;
+
+react)
+  shift 1
+  run_new_site
+  run_reactcli "$@"
+  ;;
+
+express)
+  shift 1
+  run_new_site
+  run_expresscli "$@"
+  ;;
+
+create-project)
+  shift 1
+  run_new_site
+  run_create-project "$@"
+  ;;
+
+mevn)
+  shift 1
+  run_new_site
+  run_mevn "$@"
+  ;;
+gen-shellrc)
+  shift 1
+  gen_shellcheck
+  ;;
+*)
+  shift --
+  __help "$@"
+  ;;
+esac
+
+set --
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

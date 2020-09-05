@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : emojis
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : show and choose an emoji
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Emoji list
+ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/array)"
+LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/list)"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+dmenu_emojis() {
+  xclip -h 2>/dev/null || exit 1
+  chosen=$(cut -d ';' -f1 $SCRIPTSFUNCTDIR/helpers/emojis/emojis | dmenu -i -l 20 | sed "s/ .*//")
+
+  [ "$chosen" != "" ] || exit
+
+  if [ -n "$1" ]; then
+    #xdotool key Shift+Insert
+    xdotool key --clearmodifiers ctrl+shift+v
+  else
+    echo "$chosen" | tr -d '\n' | xclip -selection clipboard
+    notify-send "'$chosen' copied to clipboard." &
+    xdotool key --clearmodifiers ctrl+shift+v
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+update | -update | --update)
+  mkdir -p "$HOME/.local/bin"
+  curl -LSs https://raw.githubusercontent.com/mrowa44/emojify/master/emojify -o "$HOME/.local/bin/emojify" 2>/dev/null && chmod +x "$HOME/.local/bin/emojify"
+  [ $? -eq 0 ] && printf_green "Update Successful" || printf_red "Update Failed"
+  if (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; then
+    sudo mv -f "$HOME/.local/bin/emojify" /usr/local/bin/emojify
+    [ $? -eq 0 ] && printf_green "System Update Successful" || printf_red "System Update Failed"
+  fi
+  ;;
+
+help | -h* | --h*)
+  emojis --usage
+  echo ""
+  ;;
+
+dmenu)
+  dmenu_emojis
+  ;;
+
+search | -s* | --s*)
+  shift 1
+  var="$1"
+  emojify --list | grep "$var"
+  unset var
+  ;;
+
+print | -p* | --p* | -e* | --e* | echo | text)
+  shift 1
+  args="$@"
+  var="$(printf_green $args)"
+  emojify "$var"
+  unset var
+  ;;
+
+list | -l* | --l*)
+  var="($(emojify -l | awk '{print $2}' 2>/dev/null | sed 's# ##g' | tr '\n' ' '))"
+  echo -e ""
+  echo -e $var | sed 's#(- emojify emojis: ##g'
+  printf_red "List of available emojis - Just copy and use"
+  unset var
+  ;;
+
+* | usage | -u* | --u*)
+  printf_green '
+                    🙄😆 emojify - emojis on the command line 😱😄
+        Usage:
+       -h|help|-help|--help        | This help!                  | emojis help
+       -s|search|-search|--search  | search for an emoji         | emojis search smile
+       -l|list|-list|--list        | list all available emojis   | emojis list
+       -p|print|-print|--print     | print to console            | emojis print "Hello :smile:"
+       -update|update|--update     | update emojify              | emojis update'
+  exit
+  ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# _pasteit_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for pasteit
+
+
+
+_pasteit_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="--help --title --name --private --language --expire --reply -b --apikey"
+
+  _init_completion || return
+
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$prev"))
+
+  case $cur in
+  -h)
+    COMPREPLY=($(compgen -W '$(printf_green "Usage: $PROGRAM [options] < [input_file]")' -- "$cur"))
+    return
+    ;;
+
+  -n)
+    COMPREPLY=($(compgen -W '${USER}' -- "$cur"))
+    return
+    ;;
+
+  -*)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    return
+    ;;
+
+  esac
+
+COMPREPLY=($(compgen -W '$(_filedir)' -- "$cur"))
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# enable completions
+complete -F _pasteit_completions -o default pasteit
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1,0 +1,132 @@
+; Default zone
+$ORIGIN                                       "$DOMAIN".
+$TTL                                          38400
+
+; default soa records
+@                            IN  SOA          dns1 dns-admin ( 2020072202 10800 3600 1209600 38400)
+
+;default nameservers
+@                            IN  NS           dns1
+@                            IN  NS           dns2
+;@                           IN  NS           dns1.casjaydns.com.
+;@                           IN  NS           dns2.casjaydns.com.
+
+;dns1 and dns2 on vultr
+dns                          IN  A            149.28.32.84
+dns1                         IN  A            149.28.32.84
+dns2                         IN  A            149.28.32.84
+
+dns                          IN  AAAA         2001:19f0:5:2653:5400:02ff:fee3:f42e
+dns1                         IN  AAAA         2001:19f0:5:2653:5400:02ff:fee3:f42e
+dns2                         IN  AAAA         2001:19f0:5:2653:5400:02ff:fee3:f42e
+
+;  ***********CHANGE THESE TO MATCH PROVIDER***************
+@                            IN  A            185.199.108.153
+@                            IN  A            185.199.109.153
+@                            IN  A            185.199.110.153
+@                            IN  A            185.199.111.153
+*                            IN  A            185.199.108.153
+*                            IN  A            185.199.109.153
+*                            IN  A            185.199.110.153
+*                            IN  A            185.199.111.153
+
+@                            IN  HINFO       "Web" "Shared Hosting"
+@                            IN  TXT         "Free Web Hosted"
+*                            IN  HINFO       "Web" "Shared Hosting"
+*                            IN  TXT         "Free Web Hosted"
+
+;  **********Common Options**********
+;xmpp
+irc                          IN  CNAME       chat.freenode.net.
+webchat                      IN  CNAME       webchat.freenode.net.
+xmpp                         IN  CNAME       xmpp-server.l.google.com.
+talk                         IN  CNAME       xmpp
+chat                         IN  CNAME       xmpp
+userdata                     IN  CNAME       xmpp
+pubsub                       IN  CNAME       xmpp
+conference                   IN  CNAME       xmpp
+
+;_xmpp-server.conference     IN  SRV         10  1   5269    xmpp
+;_xmpp-server.pubsub._tcp    IN  SRV         10  1   5269    xmpp
+;_xmpp-client._tcp           IN  SRV         10  1   5222    xmpp
+;_xmpp-server._tcp           IN  SRV         10  1   5269    xmpp
+
+_xmpp-server._tcp            IN  SRV         5   0   5269    xmpp-server.l.google.com.
+_xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server1.l.google.com.
+_xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server2.l.google.com.
+_xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server3.l.google.com.
+_xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server4.l.google.com.
+_jabber._tcp                 IN  SRV         5   0   5269    xmpp-server.l.google.com.
+_jabber._tcp                 IN  SRV         20  0   5269    xmpp-server1.l.google.com.
+_jabber._tcp                 IN  SRV         20  0   5269    xmpp-server2.l.google.com.
+_jabber._tcp                 IN  SRV         20  0   5269    xmpp-server3.l.google.com.
+_jabber._tcp                 IN  SRV         20  0   5269    xmpp-server4.l.google.com.
+_irc._tcp                    IN  SRV         10 10   6667    chat.freenode.net.
+_ircs._tcp                   IN  SRV         10 10   6697    chat.freenode.net.
+
+;default email server on google
+gsuite                       IN  CNAME       gsuite.mail.casjay.net.redirect.center.
+client                       IN  CNAME       gsuite.mail.casjay.net.redirect.center.
+mail                         IN  CNAME       ASPMX.L.GOOGLE.COM.
+smtp                         IN  CNAME       smtp.gmail.com.
+imap                         IN  CNAME       imap.gmail.com.
+pop                          IN  CNAME       pop.gmail.com.
+lists                        IN  CNAME       mail
+autoconfig                   IN  CNAME       mail
+autodiscover                 IN  CNAME       mail
+news                         IN  CNAME       mail
+
+@                            IN  MX          1 ASPMX.L.GOOGLE.COM.
+*                            IN  MX          1 ASPMX.L.GOOGLE.COM.
+@                            IN  MX          5 ALT1.ASPMX.L.GOOGLE.COM.
+*                            IN  MX          5 ALT1.ASPMX.L.GOOGLE.COM.
+@                            IN  MX          5 ALT2.ASPMX.L.GOOGLE.COM.
+*                            IN  MX          5 ALT2.ASPMX.L.GOOGLE.COM.
+
+@                            IN  SPF         "v=spf1 a mx ptr all"
+*                            IN  SPF         "v=spf1 a mx ptr all"
+@                            IN  TXT         "v=spf1 a mx ptr all"
+*                            IN  TXT         "v=spf1 a mx ptr all"
+
+;ntp options
+;machines on ntp.org
+ntp                          IN  CNAME       0.casjay.pool.ntp.org.
+pool.ntp                     IN  CNAME	 	   ntp
+*.pool.ntp                   IN  CNAME       ntp
+
+;gsuite
+office      3600             IN  CNAME       gsuite.casjay.net.redirect.center.
+sites       3600             IN  CNAME       gsuite.sites.casjay.net.redirect.center.
+drive       3600             IN  CNAME       gsuite.drive.casjay.net.redirect.center.
+cloud       3600             IN  CNAME       gsuite.drive.casjay.net.redirect.center.
+groups      3600             IN  CNAME       gsuite.groups.casjay.net.redirect.center.
+calendar    3600             IN  CNAME       gsuite.calendar.casjay.net.redirect.center.
+
+;sip server
+;pbx                         IN  A           149.28.32.84
+;sip                         IN  A           149.28.32.84
+;tel                         IN  A           149.28.32.84
+;iax                         IN  A           149.28.32.84
+
+;database server
+sql                          IN  CNAME       casjay.heliohost.org.
+*.sql                        IN  CNAME       casjay.heliohost.org.
+
+;support servers
+wiki                         IN  CNAME       help.casjay.net.redirect.center.
+support                      IN  CNAME       help.casjay.net.redirect.center.
+
+;vpn server
+ppp                          IN  A           149.28.32.84
+vpn                          IN  A           149.28.32.84
+
+;misc settings
+invoice                      IN  A           149.28.32.84
+piwik                        IN  A           149.28.32.84
+
+
+localhost                    IN  A           127.0.0.1
+localhost                    IN  AAAA        ::1
+@                            IN  CAA         0 issue "letsencrypt.org"
+@                            IN  CAA         0 iodef "mailto:casjay+ssl@gmail.com"
+@                            IN  TYPE257     \# 22 000569737375656C657473656E63727970742E6F7267

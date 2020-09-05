@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : remove-samples
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : remove sample files
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--help" ] && printf_help "Install all required packages"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ ! -z "$1" ]; then
+  YUM_PACKAGE_NAME=""$@""
+  DEB_PACKAGE_NAME=""$@""
+  PAC_PACKAGE_NAME=""$@""
+else
+  DEB_PACKAGE_NAME="sudo git curl gnupg lynx wget net-tools python3 python3-pil python3-pip vim-nox"
+  YUM_PACKAGE_NAME="sudo git curl gnupg lynx wget python3 python3-pip net-tools vim"
+  PAC_PACKAGE_NAME="sudo git curl gnupg lynx wget python3 python-pip net-tools vim"
+fi
+
+PIP_PACKAGE_NAME=""
+
+if cat /etc/*release | grep ^NAME | grep CentOS; then
+  printf_green "============================================="
+  printf_green "Installing packages for CentOS               "
+  printf_green "============================================="
+  for pkg in "${YUM_PACKAGE_NAME}"; do
+    yum install -y $pkg
+  done
+
+elif cat /etc/*release | grep ^NAME | grep Red; then
+  printf_green "============================================="
+  printf_green "Installing packages for RedHat               "
+  printf_green "============================================="
+  for pkg in "${YUM_PACKAGE_NAME}"; do
+    yum install -y $pkg
+  done
+
+elif cat /etc/*release | grep ^NAME | grep Fedora; then
+  printf_green "============================================="
+  printf_green "Installing packages for Fedora               "
+  printf_green "============================================="
+  for pkg in "${YUM_PACKAGE_NAME}"; do
+    yum install -y $pkg
+  done
+
+elif cat /etc/*release | grep ^NAME | grep Ubuntu; then
+  printf_green "============================================="
+  printf_green "Installing packages for Ubuntu               "
+  printf_green "============================================="
+  for pkg in "${DEB_PACKAGE_NAME}"; do
+    apt-get install -yy $pkg
+  done
+
+elif cat /etc/*release | grep ^NAME | grep Debian; then
+  printf_green "============================================="
+  printf_green "Installing packages for Debian               "
+  printf_green "============================================="
+  for pkg in "${DEB_PACKAGE_NAME}"; do
+    apt-get install -yy $pkg
+  done
+
+elif cat /etc/*release | grep ^NAME | grep Mint; then
+  printf_green "============================================="
+  printf_green "Installing packages for Mint                 "
+  printf_green "============================================="
+  for pkg in "${DEB_PACKAGE_NAME}"; do
+    apt-get install -yy $pkg
+  done
+
+elif cat /etc/*release | grep ^NAME | grep Knoppix; then
+  printf_green "============================================="
+  printf_green "Installing packages for Knoppix              "
+  printf_green "============================================="
+  for pkg in "${YUM_PACKAGE_NAME}"; do
+    yum install -y $pkg
+  done
+
+elif cat /etc/*release | grep ^NAME | grep Arch; then
+  printf_green "============================================="
+  printf_green "Installing packages for Arch                 "
+  printf_green "============================================="
+  for pkg in "${PAC_PACKAGE_NAME}"; do
+    pacman -Syyu --clean --noconfirm --needed $pkg
+  done
+
+else
+  printf_red "OS NOT DETECTED, couldn't install packages "
+  exit 1
+fi
+
+#  for pip in $PIP_PACKAGE_NAME ; do
+#    sudo python3 -m pip install $pip || sudo python2 -m pip install $pip
+#  done
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+printf_green "============================================="
+printf_green "Installation has completed                   "
+printf_green "============================================="
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

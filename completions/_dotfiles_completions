@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# _dotfiles_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for dotfiles
+
+_dotfiles_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/list)"
+  local ADMIN="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/admin)"
+  local STOW="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
+  local LSBIN="$(ls ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/bin/)"
+
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  admin)
+    COMPREPLY=($(compgen -W '--all ${ADMIN[*]}' -- "${cur[*]}"))
+    return
+    ;;
+
+  install)
+    COMPREPLY=($(compgen -W '--all ${LIST[*]}' -- "$cur"))
+    return
+    ;;
+
+  stow)
+    COMPREPLY=($(compgen -W ' ${STOW[*]}' -- "$cur"))
+    return
+    ;;
+
+  config)
+    COMPREPLY=($(compgen -W 'dircolors' -- "$cur"))
+    return
+    ;;
+
+  update)
+    COMPREPLY=($(compgen -W ' ${LIST[*]}' -- "$cur"))
+    return
+    ;;
+
+  describe)
+    COMPREPLY=($(compgen -W ' ${LSBIN}' -- "$cur"))
+    ;;
+
+  version)
+    COMPREPLY=($(compgen -W ' ${LIST[*]} ${ADMIN[*]}' -- "$cur"))
+    return
+    ;;
+  
+  *)
+    COMPREPLY=($(compgen -W ' ${LIST[*]}' -- "$cur"))
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '${ARRAY[*]}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _dotfiles_completions -o default dotfiles
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

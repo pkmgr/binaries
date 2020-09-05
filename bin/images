@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : images
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : open images
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP # display message and pause
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() { printf_custom "84" "Usage: images  |  an image menu" && exit 1; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then __help; fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+while :; do
+  # show menu
+  clear
+  printf_head "Image Menu"
+  printf_green "a. launch gimp"
+  printf_green "b. launch shotwell"
+  printf_green "c. launch sxiv"
+  printf_green "d. launch ristretto"
+  printf_green "e. launch kphotoalbum"
+  printf_green "f. launch gomephotos"
+  printf_green "y. launch custom application"
+  printf_green "z. Exit"
+  printf_green "---------------------------------"
+  printf_custom_question "6" "Enter your choice [a-z] : "
+  read -n 1 -s main && echo ""
+
+  # take action
+  case $main in
+
+  a)
+    shift 1
+    run_prog_menus gimp
+    ;;
+  b)
+    shift 1
+    run_prog_menus shotwell
+    ;;
+  c)
+    shift 1
+    open_file_menus sxiv
+    ;;
+  d)
+    shift 1
+    run_prog_menus ristretto
+    ;;
+  e)
+    shift 1
+    run_prog_menus kphotoalbum
+    ;;
+  f)
+    shift 1
+    run_prog_menus gomephotos
+    ;;
+  y)
+    shift 1
+    custom_menus
+    ;;
+  z) break ;;
+  *)
+    printf_custom "42" "$main was invalid choice - Please try a different selection"
+    sleep 3
+    continue
+    ;;
+
+  esac
+done
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : myeditor
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : setup editor
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+create_link() {
+  case "$1" in
+  *)
+    if [ ! -z "$2" ]; then
+      shift 1
+      if cmd_exists "$1"; then
+        printf_green "Linking $HOME/.local/bin/myeditor to $1"
+        ln_sf "$(command -v $1)" "$HOME/.local/bin/myeditor"
+        exit 0
+      else
+        printf_green "Linking $HOME/.local/bin/myeditor to $EDITOR"
+        ln_sf "$EDITOR" "$HOME/.local/bin/myeditor"
+        exit 0
+      fi
+    fi
+    ;;
+  esac
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -z "$EDITOR" ]; then
+  if [ -n "$(command -v code 2>/dev/null)" ]; then
+    export EDITOR="code"
+  elif [ -n "$(command -v vscode 2>/dev/null)" ]; then
+    export EDITOR="vscode"
+  elif [ -n "$(command -v vim 2>/dev/null)" ]; then
+    export EDITOR="vim"
+  elif [ -n "$(command -v nvim 2>/dev/null)" ]; then
+    export EDITOR="nvim"
+  elif [ -n "$(command -v geany 2>/dev/null)" ]; then
+    export EDITOR="geany"
+  elif [ -n "$(command -v gedit 2>/dev/null)" ]; then
+    export EDITOR="gedit"
+  elif [ -n "$(command -v atom 2>/dev/null)" ]; then
+    export EDITOR="atom"
+  elif [ -n "$(command -v brackets 2>/dev/null)" ]; then
+    export EDITOR="brackets"
+  elif [ -n "$(command -v emacs 2>/dev/null)" ]; then
+    export EDITOR="emacs"
+  elif [ -n "$(command -v mousepad 2>/dev/null)" ]; then
+    export EDITOR="mousepad"
+  elif [ -n "$(command -v nano 2>/dev/null)" ]; then
+    export EDITOR="nano"
+  fi
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ ! -z "$EDITOR" ] || printf_help "No editors are installed"
+[ "$1" = "--help" ] && printf_help "Usage: myeditor myfile   |   myeditor --create"
+[ "$1" = "--create" ] && create_link "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$HOME/.local/bin/myeditor" ]; then
+  "$HOME/.local/bin/myeditor" "$@"
+else
+  $EDITOR "$@"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

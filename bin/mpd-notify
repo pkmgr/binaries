@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : mpd-notify
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : mpd notfication script
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+APP="$HOME/.config/mpd/mpd-notify"
+CONFIG="$APP/mpd-notify.cfg"
+BINLOC="/usr/local/bin/mpd-notify"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+daemonName="mpd-notify"
+pidFile="$APP/$daemonName.pid"
+runInterval=1
+
+if [ -f "$APP/mpd-notify.cfg" ] && [ -f "$APP/mpd-notify-bin.sh" ]; then
+  source "$APP/mpd-notify.cfg"
+  source "$APP/mpd-notify-bin.sh"
+else
+  printf_red "Please install my mpd dotfiles"
+  exit 1
+fi
+
+myPid=$(echo $$)
+
+setupDaemon() {
+  if [ ! -f "$logFile" ]; then
+    touch "$logFile"
+  else
+    # Check to see if we need to rotate the logs.
+    size=$(($(ls -l "$logFile" | cut -d " " -f 5) / 1024))
+    if [[ $size -gt $logMaxSize ]]; then
+      rm -R "$logFile"
+      touch "$logFile"
+    fi
+  fi
+  mpc -p $PORT >/dev/null 2>&1
+  if [[ $? -ne 0 ]]; then
+    echo -n "MPD not running. Attempting to start..."
+    mpd
+    if [[ $? -ne 0 ]]; then
+      echo "Unable to start MPD. Please do it yourself then start mpd-notify."
+    else
+      echo "Done."
+    fi
+  fi
+
+}
+
+startDaemon() {
+
+  setupDaemon
+  if [[ "$(checkDaemon)" -eq 1 ]]; then
+    echo "ERROR: $daemonName is already running."
+    exit 1
+  fi
+  echo " *Starting $daemonName."
+  echo "$myPid" >"$pidFile"
+  log '*** '$(date +"%Y-%m-%d")": Starting up $daemonName."
+
+  # Begin main loop
+  loop
+}
+
+stopDaemon() {
+  if [[ "$(checkDaemon)" -eq 0 ]]; then
+    echo " ERROR: $daemonName is not running."
+    exit 1
+  fi
+  echo "Stopping $daemonName"
+  log '*** '$(date +"%Y-%m-%d")": $daemonName stopped."
+
+  if [[ ! -z $(cat $pidFile) ]]; then
+    kill -9 $(cat "$pidFile") &>/dev/null
+  fi
+}
+
+statusDaemon() {
+  # Check if running
+  if [[ "$(checkDaemon)" -eq 1 ]]; then
+    echo "$daemonName is running."
+  else
+    echo "$daemonName is not running."
+  fi
+  exit 0
+}
+
+restartDaemon() {
+  if [[ "$(checkDaemon)" -eq 0 ]]; then
+    echo "$daemonName isn't running."
+    startDaemon
+  fi
+  stopDaemon
+  startDaemon &
+  disown
+}
+
+checkDaemon() {
+  # Check to see if the daemon is running.
+  # This is a different function than statusDaemon
+  # so that we can use it other functions.
+  if [ -z "$oldPid" ]; then
+    return 0
+  elif [[ $(ps aux | grep "$oldPid" | grep -v grep) > /dev/null ]]; then
+    if [ -f "$pidFile" ]; then
+      if [[ $(cat "$pidFile") == "$oldPid" ]]; then
+        echo 1
+        # Daemon is running.
+        # echo 1
+      else
+        # Daemon isn't running.
+        return 0
+      fi
+    fi
+    # elif [[ `ps aux | grep "$daemonName" | grep -v grep | grep -v "$myPid" | grep -v "0:00.00"` > /dev/null ]]; then
+    #   # Daemon is running but without the correct PID. Restart it.
+    #   log '*** '`date +"%Y-%m-%d"`": $daemonName running with invalid PID; restarting."
+    #   restartDaemon
+    #   return 1
+  else
+    # Daemon not running.
+    return 0
+  fi
+  return 1
+}
+
+loop() {
+  # Just get the song title and artist.
+  currentSong=$(mpc -p $PORT)
+  currTitleArtist="$(mpc -p $PORT | head -n 1)"
+
+  # Via mpc call and awk, get the status of mpd. For some reason, comparing the two as strings would not work. Converting their status to integers and comparing those, does.
+  if [[ $(echo "$currentSong" | awk '/\[(paused|playing)\]/ {print $1}') == "[playing]" ]]; then
+    curStatus=1
+  elif [[ $(echo "$currentSong" | awk '/\[(paused|playing)\]/ {print $1}') == "[paused]" ]]; then
+    curStatus=0
+  fi
+
+  curVol=$(echo "$currentSong" | grep -o -E "volume.+?%")
+
+  # zzz
+  sleep 1
+
+  newSong=$(mpc -p $PORT)
+  newTitleArtist="$(mpc -p $PORT | head -n 1)"
+
+  if [[ $(echo "$newSong" | awk '/\[(paused|playing)\]/ {print $1}') == "[playing]" ]]; then
+    newStatus=1
+  elif [[ $(echo "$newSong" | awk '/\[(paused|playing)\]/ {print $1}') == "[paused]" ]]; then
+    newStatus=0
+  fi
+
+  newVol=$(echo "$newSong" | grep -o -E "volume.+?%")
+
+  # Get the path of the currently playing song as well as the cover.
+  albumPath=$(getFile | sed -r 's/\/[^/]*$//')"/"
+  albumPath="$(mpc -p $PORT -f %file% | head -n 1)"
+
+  notifyStatus
+  notifySong
+  notifyVolume
+
+  loop
+}
+
+log() {
+  echo "$1" >>"$logFile"
+}
+
+##################
+#    ArgParse    #
+##################
+
+if [ -f "$pidFile" ]; then
+  oldPid=$(cat "$pidFile")
+fi
+checkDaemon
+case "$1" in
+"")
+  startDaemon &
+  disown
+  ;;
+start)
+  startDaemon &
+  disown
+  ;;
+stop)
+  stopDaemon
+  ;;
+status)
+  statusDaemon
+  ;;
+restart)
+  restartDaemon
+  ;;
+*)
+  printf_exit "Error: usage $0 { start | stop | restart | status }"
+  ;;
+esac
+
+exit 0
+
+# end

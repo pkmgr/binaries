@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# _tldr_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for tldr
+
+cachedir=~/.local/share/tldr
+complete -W "$(
+  q=($cachedir/*/*)
+  sed 's@\.md @ @g' <<<${q[@]##*/}
+)" tldr

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# _emojis_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for emojis
+
+_emojis_completions() {
+  local cur prev words cword
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/list)"
+  _init_completion || return
+
+  case $prev in
+    -l|list|-list|--list)
+      COMPREPLY=( $(compgen -W '${LIST}' -- "$cur") )
+      return
+      ;;
+    *)
+      COMPREPLY=( $(compgen -W '${ARRAY}' -- "$cur") )
+      ;;
+  esac
+
+} &&
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# enable completions
+
+complete -F _emojis_completions -o default emj
+complete -F _emojis_completions -o default emojis
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

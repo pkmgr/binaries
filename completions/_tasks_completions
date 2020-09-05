@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# bash completion for tasks
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for tasks
+
+_tasks_completions() {
+  local cur prev words cword
+  local ARRAY="list add report cleanup "
+
+  _init_completion || return
+
+  # relevant options completion
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _tasks_completions -o default tasks

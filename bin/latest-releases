@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : jason@casjaysdev.com
+# @File        : latest-releases
+# @Created     : Wed, Aug 23, 2020, 14:29 EST
+# @License     : MIT
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Check github for the latest release
+# @Source      : https://github.com/nickjj/latest-releases
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+config_path="${HOME}/.config/latest-releases"
+auth_path="${config_path}/auth"
+github_path="${config_path}/github"
+
+if [ ! -f "${auth_path}" ]; then
+  echo "GITHUB_USERNAME="yourname"" >"${auth_path}"
+  echo "GITHUB_PERSONAL_ACCESS_TOKEN="youraccesstoken"" >>"${auth_path}"
+fi
+
+if [ ! -f "${github_path}" ]; then
+  echo "
+  gokcehan/lf
+  docker/docker-ce
+  nodejs/node
+  " >"${github_path}"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_green "Add these 2 lines to ${auth_path}, modify the values for your info and save it:"
+  printf_green 'export GITHUB_USERNAME="yourname"'
+  printf_green 'export GITHUB_PERSONAL_ACCESS_TOKEN="youraccesstoken"'
+  printf_green "Add your list of GitHub repos to ${github_path}."
+  printf_green "Separate out each entry on a new line and only include the owner/repo."
+  printf_green "Here's an example of what that file could look like:"
+  printf_green "pallets/flask"
+  printf_green "phoenixframework/phoenix"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help "] && __help
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+curl_auth=""
+if [ -f "${auth_path}" ]; then
+  # shellcheck source=/dev/null
+  source "${auth_path}"
+  curl_auth="-u ${GITHUB_USERNAME}:${GITHUB_PERSONAL_ACCESS_TOKEN}"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ ! -f "${github_path}" ]; then
+  printf_green "${github_path} not found"
+  printf_green "Add your list of GitHub repos to the above file. Separate out"
+  printf_green "each entry on a new line and only include the owner/repo."
+  printf_green "Here's an example of what that file could look like:"
+  printf_green "pallets/flask"
+  printf_green "phoenixframework/phoenix"
+  exit 1
+fi
+
+printf_green "Latest releases on GitHub:\n\n"
+
+local nl=$'\n'
+local out=""
+while read -r repo; do
+  local tag_info=""
+  local tag_name=""
+  local tag_commit_url=""
+  local tag_commit_date=""
+
+  set +e
+  if ! tag_info="$(curl "${curl_auth}" -s \
+    "https://api.github.com/repos/${repo}/tags?per_page=1" |
+    jq -r ".[0].name, .[0].commit.url" 2>/dev/null | paste -sd,-)"; then
+    printf_green "You are API rate limited by GitHub, please authenticate by:"
+    printf_green "1. Go to https://github.com/settings/tokens"
+    printf_green "2. Create a personal access token with no special permissions"
+    printf_green "3. Run: ${auth_path}"
+    printf_green "Add these 2 lines to the file, modify the values for your info and save it:"
+    printf_green 'export GITHUB_USERNAME="yourname"'
+    printf_green 'export GITHUB_PERSONAL_ACCESS_TOKEN="youraccesstoken"'
+    exit "${?}"
+  fi
+  set -e
+
+  tag_name="$(cut -d ',' -f 1 <<<"${tag_info}")"
+  tag_commit_url="$(cut -d ',' -f 2 <<<"${tag_info}")"
+  tag_commit_date="$(curl "${curl_auth}" -s "${tag_commit_url}" |
+    jq -r ".commit.author.date" | cut -d 'T' -f 1)"
+
+  out+=$"${repo} | ${tag_name} | ${tag_commit_date}${nl}"
+done <"${github_path}"
+
+column -t <<<"${out}" | sort -t "|" -k 3 -r
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

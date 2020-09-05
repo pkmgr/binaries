@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : scratchpad
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Setup a console base scratchpad
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+unset TMUX
+
+mkdir -p "$HOME/.local/share/editors/scratchpads"
+
+ext="$(date +"%m-%d-%Y").txt"
+date="$(date +"%m-%d-%Y %H:%M")"
+title="$date"
+scratchdir="$HOME/.local/share/editors/scratchpads"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+tmux_conf() {
+  if [ ! -f "$scratchdir/tmux.conf" ]; then
+    echo "
+# remap prefix from 'C-b' to 'C-a'
+unbind C-b
+set-option -g prefix C-a
+bind-key C-a send-prefix
+# loud or quiet?
+set -g visual-activity off
+set -g visual-bell off
+set -g visual-silence off
+setw -g monitor-activity off
+set -g bell-action none
+
+#  modes
+setw -g clock-mode-colour colour5
+setw -g mode-style 'fg=colour1 bg=colour18 bold'
+
+# panes
+set -g pane-border-style 'fg=colour19 bg=colour0'
+set -g pane-active-border-style 'bg=colour0 fg=colour9'
+
+# statusbar
+set -g status-position bottom
+set -g status-justify left
+set -g status-style 'bg=colour18 fg=colour137 dim'
+set -g status-left ''
+set -g status-right '#[fg=colour233,bg=colour19] %m/%d #[fg=colour233,bg=colour8] %H:%M:%S '
+set -g status-right-length 50
+set -g status-left-length 20
+
+setw -g window-status-current-style 'fg=colour1 bg=colour19 bold'
+setw -g window-status-current-format ' #I#[fg=colour249]:#[fg=colour255]#W#[fg=colour249]#F '
+
+setw -g window-status-style 'fg=colour9 bg=colour18'
+setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
+
+setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
+
+# messages
+set -g message-style 'fg=colour232 bg=colour16 bold'
+
+" >"$scratchdir/tmux.conf"
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" ] && ext=""$@".txt" && title="$1"
+
+tmux_conf
+tmux ls 2>/dev/null | grep -q scratchpad >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo -e "$title\n" >"$scratchdir/$ext"
+  tmux -f "$scratchdir/tmux.conf" new-session -d -s scratchpad "vim $scratchdir/$ext"
+fi
+
+tmux attach -t scratchpad >/dev/null 2>&1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

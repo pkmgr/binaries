@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# _gen-dns_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for gen-dns
+
+_gen-dns_completions() {
+  local cur prev words cword
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gen-dns/list)"
+  _init_completion || return
+
+  case $prev in
+  --edit)
+    _filedir
+    return
+    ;;
+
+  --help)
+    COMPREPLY=($(compgen -W '--help' -- "$cur"))
+    return
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _gen-dns_completions -o default gen-dns
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

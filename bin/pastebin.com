@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : passmgr
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Send output to pastebin
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+[ "$1" = "--help" ] && printf_help "Usage: 'command | pastebin.com or pastebin.com filename'"
+
+# bash pastebin.com client
+# https://github.com/mefuckin/pastebin-shell
+
+if [ ! -d "$HOME/.config/pastebin" ]; then mkdir -p "$HOME/.config/pastebin"; fi
+if [ ! -f "$HOME/.config/pastebin/config.conf" ]; then touch "$HOME/.config/pastebin/config.conf"; fi
+
+# Path to config file
+config_file="$HOME/.config/pastebin/config.conf"
+
+# Config file overwrites following default settings
+
+# This is my API Developer Key (you can change it here or use config file)
+api_dev_key="${PASTEBIN_API_KEY:-97d4dbcc849cf72fe005154e40904f71}"
+
+# Autologin
+logintopastebin="0"
+
+# Default paste title, if -n argument is not defined
+api_paste_name=""
+
+# Default paste highlighting, if -f argument is not defined
+api_paste_format="text"
+
+# Default private settings, if -p argument is not defined (0=public, 1=unlisted, 2=private)
+api_paste_private="0"
+
+# Default expire date, if -e argument is not defined
+api_paste_expire_date="1H"
+
+# Pastebin.com API URL
+api_url="http://pastebin.com/api"
+
+usage() {
+  cat <<EOF
+Usage: $0 [options]
+Post text from stdin to pastebin.com.
+
+Options:
+	-l				Log into pastebin.com
+	-u				Your pastebin.com username
+	-p				Your pastebin.com password
+	-n name				Paste title
+	-f format			Syntax highlightig format (you can find list
+					of formats at http://pastebin.com/api#5)
+	-e expire			Paste expire time:
+					  n (or never) - never
+					  10M          - 10 minutes
+					  1H           - 1 hour
+					  1D           - 1 day
+					  1M           - 1 month
+	-r private			Private settings: public (or 0), unlisted (or 1)
+					or private (or 2, need to login)
+	-h				Show this message
+	-o				Print sample config
+	-c /path/to/pastebin.conf	Set path to config file
+
+EOF
+}
+
+# command_exists() tells if a given command exists.
+function command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+sample_config() {
+  cat <<EOF
+# Change to your API Developer Key
+#api_dev_key=""
+
+# Change to your pastebin.com username, if you want to log into your account
+#api_user_name=""
+
+# Change to your pastebin.com password
+#api_user_password=""
+
+# Set to 1 if you want to log into your account automatically
+# (you may login with -l, -u, -p arguments also)
+#logintopastebin="0"
+
+# Default paste title, if -n argument is not defined
+#api_paste_name=""
+
+# Default paste highlighting, if -f argument is not defined
+# (see http://pastebin.com/api#5 for more)
+#api_paste_format="text"
+
+# Default private settings, if -p argument is not defined
+# (0=public, 1=unlisted, 2=private)
+#api_paste_private="0"
+
+# Default expire date, if -e argument is not defined
+#api_paste_expire_date="N"
+
+EOF
+}
+
+auth_user() {
+  if [ -z "$api_user_name" ] || [ -z "$api_user_password" ]; then
+    echo "Username and/or password is undefined."
+    echo "Please adjust 'api_user_name' and 'api_user_password' in the configuration file '$config_file'"
+    exit 1
+  fi
+
+  server_reply="$(curl --silent --data "api_dev_key=$api_dev_key" --data-urlencode "api_user_name=$api_user_name" --data-urlencode "api_user_password=$api_user_password" "$api_url/api_login.php")"
+
+  if [[ $server_reply == Bad* ]]; then
+    echo "Username: $api_user_name"
+    echo "$server_reply"
+    exit 1
+  else
+    api_user_key="$server_reply"
+  fi
+}
+
+if ! command_exists curl; then
+  echo "'curl' is needed. Please install 'curl'. More details can be found at https://curl.haxx.se/"
+  exit 1
+fi
+
+# Load configuration file if it exists.
+if [ -f "$config_file" ]; then
+  # shellcheck source=/dev/null
+  source "$config_file"
+fi
+
+while getopts "hu:p:ln:f:c:e:r:o" OPTION; do
+  case $OPTION in
+  h)
+    usage
+    exit
+    ;;
+  o)
+    sample_config
+    exit
+    ;;
+  u)
+    api_user_name="$OPTARG"
+    logintopastebin=1
+    ;;
+  p) api_user_password="$OPTARG" ;;
+  l) logintopastebin=1 ;;
+  n) api_paste_name="$OPTARG" ;;
+  f) api_paste_format="$OPTARG" ;;
+  e) case $OPTARG in
+    n | never) api_paste_expire_date=N ;;
+    10M) api_paste_expire_date=10M ;;
+    1H) api_paste_expire_date=1H ;;
+    1D) api_paste_expire_date=1D ;;
+    1M) api_paste_expire_date=1M ;;
+    1W) api_paste_expire_date=1W ;;
+    2W) api_paste_expire_date=2W ;;
+    *)
+      echo "Invalid expire date"
+      exit 1
+      ;;
+    esac ;;
+  r)
+    case $OPTARG in
+    public | 0) api_paste_private=0 ;;
+    unlisted | 1) api_paste_private=1 ;;
+    private | 2)
+      if [ $logintopastebin -ne 1 ]; then
+        echo "You need to log in (option -l or -u) if you want to post private pastes."
+        exit 1
+      else
+        api_paste_private=2
+      fi
+      ;;
+    *)
+      echo "Invalid private value"
+      exit 1
+      ;;
+    esac
+    ;;
+  c)
+    if [ -f "$OPTARG" ]; then
+      # shellcheck source=/dev/null
+      source "$OPTARG"
+    else
+      echo "$OPTARG is not exists"
+      exit 1
+    fi
+    ;;
+  esac
+done
+
+[ $logintopastebin -ne 0 ] && auth_user
+api_paste_code=$(cat -)
+curl -0 --show-error \
+  --data "api_dev_key=$api_dev_key" \
+  --data "api_option=paste" \
+  --data "api_paste_code=$api_paste_code" \
+  --data "api_paste_format=$api_paste_format" \
+  --data "api_paste_private=$api_paste_private" \
+  --data "api_paste_expire_date=$api_paste_expire_date" \
+  --data "api_user_key=$api_user_key" \
+  --data-urlencode "api_paste_name=$api_paste_name" \
+  --data-urlencode "api_paste_code=$api_paste_code" \
+  "$api_url/api_post.php"
+
+echo
+exit $?
+
+# end

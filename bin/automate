@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : automate
+# @Created     : Mon, Dec 31, 2019, 00:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : home automation
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# functions
+
+devnull() { "$@" >/dev/null 2>&1; }
+urlcheck() { devnull curl --output /dev/null --silent --head --fail "$1"; }
+printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
+printf_green() { printf_color "$1" 2; }
+printf_red() { printf_color "$1" 1; }
+printf_success() { printf_green "\t\t[✔] $1\n"; }
+printf_error() { printf_red "\t\t[✖] $1 $2\n"; }
+printf_result() {
+  if [ "$?" -eq 0 ]; then printf_success "Completed"; else printf_error "Failed"; fi
+  return "$?"
+}
+hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
+
+__help() {
+  printf_green "\t\tUsage: automate tv start\n"
+  printf_green "\t\tUsage: automate tv stop\n"
+  exit 0
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# variables
+
+[ "$1" = "--help" ] && __help
+[ -z "$1" ] && __help
+
+hue_device="$(hostname2ip ${HUE_DEVICE:-$1})"
+hue_api_key="${HUE_API_KEY}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$1" in
+start) devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
+off | false | 1) devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":false}' ;;
+*) devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

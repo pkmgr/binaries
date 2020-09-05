@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : calc
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : calculator wrapper for qalc/bc
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+if [ $# -ne 1 ]; then
+  printf_info 'You must quote your params IE: calc "2 + 4" or "2*2"'
+  exit 1
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ARG="$(echo "$1" | sed '/^$/d;s/[[:blank:]]//g' && set --)"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__help() {
+  printf_green "Console Based calculator"
+  printf_green "Usage: calc 20*4/2+23-14"
+  printf_green "Addition:       calc 1+1"
+  printf_green "Subtraction:    calc 1-1"
+  printf_green "Multiplication: calc 1*1"
+  printf_green "Division:       calc 1/1"
+  exit 1
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ -z "$1" ] && __help
+[ "$1" = "--help" ] && __help && exit
+
+#if cmd_exists qalc; then
+#  qalc_app() { qalc "$ARG"; }
+
+if cmd_exists bc; then
+  qalc_app() { echo -n "$ARG = $(echo "$ARG" | bc -q)"; }
+
+else
+  printf_exit "Can't find a calculator app!"
+fi
+
+if [ "$1" = "--term" ]; then
+  echo -e "\n\n\n"
+  printf_cyan "Usage: 20*4/2+23-14"
+  printf_red "press q or ctrl + c to exit"
+  while :; do
+    printf_custom_question "2" "What is it you would like to solve?  "
+    read ARG
+    if [ "$ARG" = "q" ]; then
+      exit 0
+    else
+      printf_green "$(qalc_app)"
+    fi
+  done
+fi
+
+printf_green "$(qalc_app)"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

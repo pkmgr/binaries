@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author          : Jason
+# @Contact         : casjaysdev@casjay.net
+# @File            : wallpapermgr
+# @Created         : Wed, Aug 18, 2020, 02:48 EST
+# @License         : WTFPL
+# @Copyright       : Copyright (c) CasjaysDev
+# @Description     : Install Wallpapers
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/wallpapermgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+wallpapermgr_install
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Setup the help function
+
+__help() {
+  printf_help "\n
+\t\t              A Wallpaper Manager for all systems   |   Usage: wallpapermgr command
+\t\twallpapermgr version              - show the version info           | IE: wallpapermgr version casjay
+\t\twallpapermgr remove               - remove wallpaper pack           | IE: wallpapermgr remove casjay
+\t\twallpapermgr install              - install wallpaper pack          | IE: wallpapermgr install dwt1
+\t\twallpapermgr update               - update wallpaper pack           | IE: wallpapermgr update
+"
+  exit
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set options
+
+[ "$1" = "--help" ] && __help && exit
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# main program
+
+case "$1" in
+
+help | h | --h*)
+  __help
+  ;;
+
+remove)
+  shift 1
+  PCKLIST=$@
+  declare -a LISTARRAY=$PCKLIST
+  for wallpaper in ${LISTARRAY[*]}; do
+    rm -Rf "$WALLPAPERS/$wallpaper"
+  done
+  ;;
+
+install | update)
+  shift 1
+  PCKLIST=$@
+  declare -a LISTARRAY=$PCKLIST
+  for wallpaper in ${LISTARRAY[*]}; do
+    if [[ -d "$WALLPAPERS/$wallpaper" ]]; then
+      execute "git -C $WALLPAPERS/$wallpaper pull" "Updating $wallpaper pack"
+    else
+      execute "git clone $WALLPAPERMGRREPO/$wallpaper $WALLPAPERS/$wallpaper" "Installing $wallpaper pack"
+    fi
+  done
+  ;;
+
+version)
+  shift 1
+  ANAME="$1"
+  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1 2>/dev/null)" ]; then
+    file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
+    if [ -f "$file" ]; then
+      printf_green "Information about $1: \n$(bash -c "$file --version")"
+    fi
+  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
+    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
+  else
+    printf_exit "File was not found is it installed?"
+  fi
+  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
+  exit
+  ;;
+
+*)
+  __help
+  ;;
+
+esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# exit
+if [ ! -z "$EXIT" ]; then exit "$EXIT"; fi
+
+# end

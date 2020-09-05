@@ -1,0 +1,13 @@
+{
+  "python.pythonPath": "/usr/bin/python3",
+  "shellcheck.enable": true,
+  "shellcheck.enableQuickFix": true,
+  "shellcheck.useWSL": false,
+  "shellcheck.run": "onType",
+  "shellcheck.executablePath": "shellcheck",
+  "shellcheck.exclude": [2059, 2034, 1090, 2015, 2155, 2012, 2045],
+  "shellcheck.customArgs": [],
+  "shellcheck.ignorePatterns": {},
+  "shellcheck.ignoreFileSchemes": ["git", "gitfs"],
+  "cSpell.enabled": false
+}
