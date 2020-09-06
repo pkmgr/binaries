@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-APPNAME="$(basename $0)"
+APPNAME="latest-releases"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
@@ -42,6 +42,7 @@ config_path="${HOME}/.config/latest-releases"
 auth_path="${config_path}/auth"
 github_path="${config_path}/github"
 
+mkdir -p "$config_path"
 if [ ! -f "${auth_path}" ]; then
   echo "GITHUB_USERNAME="yourname"" >"${auth_path}"
   echo "GITHUB_PERSONAL_ACCESS_TOKEN="youraccesstoken"" >>"${auth_path}"
