@@ -43,13 +43,12 @@ set -e
 PROGRAM=${0##*/}
 
 # can be overriden from env
-: ${PASTE_URL='https://pastebin.casjay.in/api/create'}
+PASTE_URL="${PASTE_URL:-https://casjay.cc}/api/create"
 #: ${PASTE_APIKEY='apikey'}
 
 # filter url for printing (remove password)
 print_url() {
   local url="$1"
-
   echo "$url" | sed -e 's;://[^@]*@;://;'
 }
 
