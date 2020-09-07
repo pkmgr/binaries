@@ -49,6 +49,7 @@ export DEVENVMGR="${DEVENVMGR:-https://github.com/devenvmgr}"
 export ICONMGRREPO="${ICONMGRREPO:-https://github.com/iconmgr}"
 export FONTMGRREPO="${FONTMGRREPO:-https://github.com/fontmgr}"
 export THEMEMGRREPO="${THEMEMGRREPO:-https://github.com/thememgr}"
+export DOCKERMGRREPO="${DOCKERMGRREPO:-https://github.com/dockermgr}"
 export SYSTEMMGRREPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}"
 export WALLPAPERMGRREPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}"
 
@@ -413,7 +414,7 @@ get_app_info() {
 
 ##################################################################################################
 
-#transmission-remote-cli() { cmd_exists transmission-remote-cli || cmd_exists transmission-remote  ;}
+#transmission-remote-cli() { cmd_exists transmission-remote-cli || cmd_exists transmission-remote; }
 
 ##################################################################################################
 
@@ -868,11 +869,28 @@ dfmgr_install() {
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$CONF"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/dfmgr/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/dfmgr/list)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+}
+
+##################################################################################################
+
+dockermgr_install() {
+  user_installdirs
+  PREFIX="dockermgr"
+  REPO="${DOCKERMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="/srv/docker"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
@@ -883,14 +901,14 @@ fontmgr_install() {
   PREFIX="fontmgr"
   REPO="${FONTMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SHARE/CasjaysDev/fontmgr"
+  HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
   APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/fontmgr/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/fontmgr/list)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$FONTDIR" "$HOMEDIR"
 }
 
@@ -901,14 +919,14 @@ iconmgr_install() {
   PREFIX="iconmgr"
   REPO="${ICONMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/iconmgr"
+  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
   APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/iconmgr/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/iconmgr/list)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
 }
 
@@ -918,21 +936,20 @@ pkmgr_install() {
   PREFIX="pkmgr"
   REPO="${PKMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/pkmgr"
+  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
   APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/pkmgr/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/pkmgr/list)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
 ##################################################################################################
 
 systemmgr_install() {
-  system_installdirs
   system_installdirs
   PREFIX="systemmgr"
   REPO="${SYSTEMMGRREPO}"
@@ -941,11 +958,11 @@ systemmgr_install() {
   SHARE="/usr/local/share"
   HOMEDIR="/usr/local/etc"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
+  USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
   APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/systemmgr/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/systemmgr/list)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
@@ -956,14 +973,14 @@ thememgr_install() {
   PREFIX="thememgr"
   REPO="${THEMEMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/thememgr"
+  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
   APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/thememgr/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/thememgr/list)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
@@ -980,8 +997,8 @@ wallpapermgr_install() {
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
   APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/thememgr/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/thememgr/list)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
 }
 
@@ -1005,7 +1022,7 @@ os_support() {
 
 unsupported_oses() {
   for OSes in "$@"; do
-    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ "$(os_support)" ]]; then
+    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $(os_support) ]]; then
       printf_red "\t\t$(os_support $OSes) is not supported\n"
       exit
     fi
