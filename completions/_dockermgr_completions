@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# _dockermgr_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for dockermgr
+
+_dockermgr_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dockermgr/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dockermgr/list)"
+  _init_completion || return
+
+  case $prev in
+  help | h | --h*)
+    return
+    ;;
+
+  install)
+    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+    return
+    ;;
+
+  init)
+    return
+    ;;
+
+  ssh)
+    COMPREPLY=($(compgen -W '$(sudo docker ps | sed "s#$(head -n1)##g" | grep -v "^#" 2>/dev/null)' -- "$cur"))
+    return
+    ;;
+
+  run)
+    COMPREPLY=($(compgen -W '$(sudo docker ps -q -f status=running -f name=^/${NAME}$)' -- "$cur"))
+    return
+    ;;
+
+  active)
+    return
+    ;;
+
+  inactive)
+    return
+    ;;
+
+  *)
+    COMPREPLY=($(compgen -W '$LIST' -- "$cur"))
+    ;;
+
+  esac
+
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _dockermgr_completions -o default dockermgr

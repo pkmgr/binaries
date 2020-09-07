@@ -104,7 +104,7 @@ printf_exit() {
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
-  sleep 1
+  echo ""
   exit 1
 }
 
@@ -112,7 +112,8 @@ printf_exit() {
 
 printf_help() {
   [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="2"
-  printf_color "\t\t$1\n" "$color"
+  printf_color "\t\t$1" "$color"
+  echo ""
   exit 0
 }
 

@@ -45,6 +45,7 @@ HOMEDIR="${HOMEDIR:-/srv/docker}"
 
 __help() {
   printf_green "Scripts to setup docker containers"
+  printf_green "Available scripts are: $(echo "$API" | tr '\n' ' ')"
   exit 1
 }
 
@@ -52,7 +53,9 @@ __help() {
 
 __init() {
   if ! cmd_exists docker; then
-    bash -c "$(curl -fsSL https://get.docker.com)" || printf_exit "Installation has failed"
+    printf_green "Installing docker and setting systemd"
+    printf_green "This will take a few minutes"
+    sudo bash -c "$(curl -fsSL https://get.docker.com)" >/dev/null 2>&1 || printf_exit "Installation has failed"
   fi
   if grep -q docker /etc/group; then
     sudo usermod -aG docker "$USER"
@@ -68,7 +71,12 @@ ExecStart=
 ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
 EOF
   fi
-  sudo systemctl enable docker --now
+  sudo systemctl enable docker --now >/dev/null 2>&1
+  if systemctl status docker | grep -q active 2>/dev/null; then
+    printf_green "docker installation has completed"
+  else
+    printf_red "docker installation has failed"
+  fi
 }
 
 __init_help() {
@@ -113,7 +121,7 @@ __run_main() {
 
 __ssh_help() {
   printf_green "Auto connect to first container if none are specified"
-  printf_green "Usage: docker-ssh container_name"
+  printf_green "Usage: $APPNAME ssh container_name"
   exit 1
 }
 
@@ -127,7 +135,7 @@ __ssh_main() {
   if [[ "$CONTAINER" == "" ]]; then
     CONTAINER=$(docker ps | grep -Eo "^[0-9a-z]{8,}\b") || __ssh_error
   fi
-  docker exec -i -t "$CONTAINER" bash -l
+  sudo docker exec -i -t "$CONTAINER" bash -l
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -146,7 +154,7 @@ init)
 
 install)
   shift
-  [ "$1" = "--help" ] && __init_help
+  [ "$1" = "--help" ] && __install_help
   __install "$@"
   ;;
 
@@ -162,8 +170,32 @@ run)
   __run_main "$@"
   ;;
 
-*)
+active)
+  sudo docker ps | sed "s#$(head -n1)##g" | grep -v "^#" ||
+    printf_exit "Nothing to show"
+  ;;
+
+inactive)
+  sudo docker ps -a | sed "s#$(head -n1)##g" | grep -v "^#" ||
+    printf_exit "Nothing to show"
+  ;;
+
+help | --help)
   __help
+  ;;
+
+*)
+  if ! cmd_exists docker; then
+    printf_question "Docker is not installed: would you like to install it?"
+    read -r -n 1 -s install && echo
+    if [[ $install == "y" || $install == "Y" ]]; then
+      __init
+    else
+      printf_exit "User cancelled"
+    fi
+  else
+    __help
+  fi
   ;;
 
 esac
