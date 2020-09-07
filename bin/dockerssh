@@ -6,7 +6,7 @@ USER="${SUDO_USER:-${USER}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : docker-ssh
+# @File        : dockerssh
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
