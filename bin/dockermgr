@@ -112,8 +112,12 @@ __run_main() {
   if [ "$(sudo docker ps -q -f status=running -f name=^/${NAME}$)" ]; then
     sudo docker container exec -it "$NAME" /bin/bash -l
   else
-    sudo docker run -d --network host -it --name $NAME --restart always "$1" /sbin/init &&
-      sudo docker container exec -it "$NAME" /bin/bash -l
+    if [ -n "$1" ]; then
+      sudo docker run -d --network host -it --name "$NAME" --restart always "$1" /sbin/init &&
+        sudo docker container exec -it "$NAME" /bin/bash -l
+    else
+      printf_exit "Error: No container name was given"
+    fi
   fi
 }
 
@@ -171,13 +175,15 @@ run)
   ;;
 
 active)
+  [ "$1" = "--help" ] && printf_exit "Show active containers"
   sudo docker ps | sed "s#$(head -n1)##g" | grep -v "^#" ||
-    printf_exit "Nothing to show"
+    printf_exit "There are no active containers"
   ;;
 
 inactive)
+  [ "$1" = "--help" ] && printf_exit "Show all containers"
   sudo docker ps -a | sed "s#$(head -n1)##g" | grep -v "^#" ||
-    printf_exit "Nothing to show"
+    printf_exit "There doesn't seem to be any containers on this system"
   ;;
 
 help | --help)
