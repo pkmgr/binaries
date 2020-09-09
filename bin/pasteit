@@ -10,7 +10,7 @@ USER="${SUDO_USER:-${USER}}"
 # @Created     : Mon, Dec 31, 2019, 00:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : Post to a pastebin
+# @Description : Post to a Stikked pastebin
 # @Source      : https://github.com/glensc/pbin
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,8 +43,8 @@ set -e
 PROGRAM=${0##*/}
 
 # can be overriden from env
-PASTE_URL="${PASTE_URL:-https://casjay.cc}/api/create"
-#: ${PASTE_APIKEY='apikey'}
+PASTE_URL="${PRIVATE_PASTEBIN_URL:-https://casjay.cc}/api/create"
+PASTE_APIKEY="${PRIVATE_PASTEBIN_APIKEY:-apikey}"
 
 # filter url for printing (remove password)
 print_url() {
