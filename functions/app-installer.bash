@@ -1287,7 +1287,7 @@ dfmgr_install_version() {
   dfmgr_install
   install_version
   mkdir -p "$CASJAYSDEVSAPPDIR/dfmgr" "$CASJAYSDEVSAPPDIR/dfmgr"
-  if [ ! -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
     ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
   fi
 }
@@ -1460,7 +1460,7 @@ thememgr_install_version() {
   thememgr_install
   install_version
   mkdir -p "$CASJAYSDEVSAPPDIR/thememgr" "$CASJAYSDEVSAPPDIR/thememgr"
-  if [ ! -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
     ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/thememgr/$APPNAME"
   fi
 }
@@ -1488,7 +1488,7 @@ wallpapermgr_run_postinst() {
 wallpaper_install_version() {
   wallpapermgr_install
   mkdir -p "$CASJAYSDEVSAPPDIR/wallpapermgr" "$CASJAYSDEVSAPPDIR/wallpapermgr"
-  if [ ! -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
     ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/wallpapermgr/$APPNAME"
   fi
 }
