@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+APPNAME="docekrmgr"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -134,6 +134,12 @@ __run_main() {
   fi
 }
 
+__run_update() {
+  for d in $(ls "$HOMEDIR"); do
+    __install "$d"
+  done
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __ssh_help() {
@@ -197,6 +203,11 @@ inactive)
   [ "$1" = "--help" ] && printf_exit "Show all containers"
   sudo docker ps -a | sed "s#$(head -n1)##g" | grep -v "^#" ||
     printf_exit "There doesn't seem to be any containers on this system"
+  ;;
+
+log)
+  shift
+  docker log "$1"
   ;;
 
 help | --help)
