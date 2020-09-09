@@ -53,9 +53,9 @@ echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Installing git"
 dfmgr install git
 
-echo -e "\n\t\t-----------------------------------------------------\n"
-printf_green "Running system upgrade - pkmgr silent-upgrade"
-sudo pkmgr silent-upgrade
+#echo -e "\n\t\t-----------------------------------------------------\n"
+#printf_green "Running system upgrade - pkmgr silent-upgrade"
+#sudo pkmgr silent-upgrade
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Printing help"

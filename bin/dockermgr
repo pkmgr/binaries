@@ -56,15 +56,16 @@ __init() {
     printf_green "This will take a few minutes"
     sudo bash -c "$(curl -fsSL https://get.docker.com)" >/dev/null 2>&1 || printf_exit "Installation has failed"
   fi
+  mkdir -p "$HOME/.docker"
   if grep -q docker /etc/group; then
     sudo usermod -aG docker "$USER"
-    sudo chown "$USER":"$USER" /home/"$USER"/.docker -R
-    sudo chmod g+rwx "$HOME/.docker" -R
+    sudo chown -R "$USER":"$USER" "$HOME/.docker"
+    sudo chmod -R g+rwx "$HOME/.docker"
   fi
 
   if [ ! -f /etc/systemd/system/docker.service.d/docker.conf ]; then
     sudo mkdir -p /etc/systemd/system/docker.service.d
-    cat <<EOF | sudo tee -a /etc/systemd/system/docker.service.d/docker.conf
+    cat <<EOF | sudo tee -a /etc/systemd/system/docker.service.d/docker.conf >/dev/null 2>&1
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
