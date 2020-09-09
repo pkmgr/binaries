@@ -14,11 +14,8 @@ arch:
 #  - armhf
 
 install:
-  - sudo git clone https://github.com/casjay-dotfiles/scripts "/usr/local/share/CasjaysDev/scripts"
+  - sudo git clone https://github.com/casjay-dotfiles/scripts "/usr/local/share/CasjaysDev/scripts"; sudo rm -Rf /usr/local/share/CasjaysDev/scripts/.git
   - sudo /usr/local/share/CasjaysDev/scripts/install.sh
-  - sudo rm -Rf /usr/local/share/CasjaysDev/scripts/.git
-  - sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.sh)" || exit 1
-  - sudo dfmgr install git misc bash
   - sudo ./tests/travis-ci.sh
 
 #services:
