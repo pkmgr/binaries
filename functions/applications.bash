@@ -237,9 +237,6 @@ ensure_dirs() {
 ##################################################################################################
 
 user_installdirs() {
-  touch "$TEMP/$APPNAME.inst.tmp"
-  APPNAME="${APPNAME:-installer}"
-
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     export INSTALL_TYPE=user
     export HOME="/root"
@@ -294,9 +291,6 @@ user_installdirs
 ##################################################################################################
 
 system_installdirs() {
-  touch "$TEMP/$APPNAME.inst.tmp"
-  APPNAME="${APPNAME:-installer}"
-
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     #printf_info "Install Type: system - ${WHOAMI}"
     #printf_red "\t\tInstalling as root ❓\n"
