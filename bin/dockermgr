@@ -93,7 +93,12 @@ __install() {
   declare -a LISTARRAY="$*"
   for container in ${LISTARRAY[*]}; do
     APPNAME="$1"
-    sudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
+    if [ -d "$HOMEDIR/$APPNAME" ]; then
+      sudo git -C "$HOMEDIR/$APPNAME" reset --hard -q
+      sudo git -C "$HOMEDIR/$APPNAME" pull -q
+    else
+      sudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
+    fi
     sudo chmod -Rf 755 "$HOMEDIR/$APPNAME/install.sh"
     sudo bash -c "$HOMEDIR/$APPNAME/install.sh"
     if [ -d "$HOMEDIR/$APPNAME/os" ]; then
