@@ -42,16 +42,16 @@ printf_red "Cleaning old logs"
 
 requiresudo rm -f "/etc/cron.*/*logrotate*" >/dev/null 2>&1
 requiresudo logrotate -f "/etc/logrotate.conf" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/bandwidth" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*.{0,1,2,3,4,5,6,7,8,9}" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*/*.{0,1,2,3,4,5,6,7,8,9}" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*.gz" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*/*.gz" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*/*/*.gz" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*.old" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*/*.old" >/dev/null 2>&1
-requiresudo rm -Rf "$/var/log/*/*/*.old" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/bandwidth" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*.{0,1,2,3,4,5,6,7,8,9}" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*/*.{0,1,2,3,4,5,6,7,8,9}" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*.gz" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*/*.gz" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*/*/*.gz" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*.old" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*/*.old" >/dev/null 2>&1
+requiresudo rm -Rf "/var/log/*/*/*.old" >/dev/null 2>&1
 rm -Rf "$HOME/.local/logs/*" >/dev/null 2>&1
 rm -Rf "$HOME/.local/log" >/dev/null 2>&1
 
