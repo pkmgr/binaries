@@ -135,9 +135,13 @@ __run_main() {
 }
 
 __run_update() {
-  for d in $(ls "$HOMEDIR"); do
-    __install "$d"
-  done
+  if [ "$*" != "" ]; then
+    install "$@"
+  else
+    for d in $(ls "$HOMEDIR"); do
+      __install "$d"
+    done
+  fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -210,6 +214,10 @@ log)
   docker log "$1"
   ;;
 
+update)
+  shift
+  __run_update "$@"
+  ;;
 help | --help)
   __help
   ;;
