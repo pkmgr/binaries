@@ -34,11 +34,14 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+dockermgr_install
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 API="$(curl -s "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
-HOMEDIR="${HOMEDIR:-/srv/docker}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -87,11 +90,15 @@ __init_help() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __install() {
-  git clone -q "$1" "$HOMEDIR/$1"
-  bash -c "$HOMEDIR/$1/install.sh"
-  if [ -d "$HOMEDIR/$1/os" ]; then
-    sudo cp -Rf "$HOMEDIR/$1/os/." /
-  fi
+  declare -a LISTARRAY="$*"
+  for container in ${LISTARRAY[*]}; do
+    local APPNAME="$1"
+    sudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
+    sudo bash -c "$HOMEDIR/$APPNAME/install.sh"
+    if [ -d "$HOMEDIR/$APPNAME/os" ]; then
+      sudo cp -Rf "$HOMEDIR/$APPNAME/os/." /
+    fi
+  done
 }
 
 __install_help() {
@@ -165,13 +172,13 @@ install)
 ssh)
   shift
   [ "$1" = "--help" ] && __ssh_help
-  __ssh_main "$@"
+  __ssh_main "$1"
   ;;
 
 run)
   shift
   [ "$1" = "--help" ] && __run_help
-  __run_main "$@"
+  __run_main "$1"
   ;;
 
 active)

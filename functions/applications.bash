@@ -879,7 +879,7 @@ dockermgr_install() {
   PREFIX="dockermgr"
   REPO="${DOCKERMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="/srv/docker"
+  HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
