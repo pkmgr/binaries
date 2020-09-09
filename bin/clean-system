@@ -52,8 +52,10 @@ requiresudo rm -Rf "/var/log/*/*/*.gz" >/dev/null 2>&1
 requiresudo rm -Rf "/var/log/*.old" >/dev/null 2>&1
 requiresudo rm -Rf "/var/log/*/*.old" >/dev/null 2>&1
 requiresudo rm -Rf "/var/log/*/*/*.old" >/dev/null 2>&1
-rm -Rf "$HOME/.local/logs/*" >/dev/null 2>&1
-rm -Rf "$HOME/.local/log" >/dev/null 2>&1
+
+if [ -f "$HOME/.config/logrotate/config" ]; then
+  logrotate -f "$HOME/.config/logrotate/config"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
