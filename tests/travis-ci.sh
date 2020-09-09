@@ -40,13 +40,9 @@ sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Installing packages"
-for installpkgs in cmake cmake-data cmatrix conky cowsay cscope curl dmenu exo-utils figlet; do
-  sudo pkmgr silent "$installpkgs"
+for installpkgs in cmake cmake-data cmatrix conky cowsay cscope curl dmenu exo-utils figlet neovim neofetch fish zsh tmux; do
+  execute "sudo pkmgr silent "$installpkgs"" "Installing $installpkgs"
   exitCode=$?
-done
-
-for pkg in neovim neofetch fish zsh tmux; do
-  execute "sudo pkmgr silent "$pkg"" " Installing $pkg"
 done
 
 echo -e "\n\t\t-----------------------------------------------------\n"
