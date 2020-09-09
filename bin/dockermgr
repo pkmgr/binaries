@@ -92,8 +92,9 @@ __init_help() {
 __install() {
   declare -a LISTARRAY="$*"
   for container in ${LISTARRAY[*]}; do
-    local APPNAME="$1"
+    APPNAME="$1"
     sudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
+    sudo chmod -Rf 755 "$HOMEDIR/$APPNAME/install.sh"
     sudo bash -c "$HOMEDIR/$APPNAME/install.sh"
     if [ -d "$HOMEDIR/$APPNAME/os" ]; then
       sudo cp -Rf "$HOMEDIR/$APPNAME/os/." /
