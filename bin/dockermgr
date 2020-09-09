@@ -37,7 +37,6 @@ fi
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 API="$(curl -s "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 HOMEDIR="${HOMEDIR:-/srv/docker}"
 
@@ -53,7 +52,7 @@ __help() {
 
 __init() {
   if ! cmd_exists docker; then
-    printf_green "Installing docker and setting systemd"
+    printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"
     sudo bash -c "$(curl -fsSL https://get.docker.com)" >/dev/null 2>&1 || printf_exit "Installation has failed"
   fi

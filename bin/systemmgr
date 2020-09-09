@@ -48,6 +48,7 @@ SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+API="$(curl -s "https://api.github.com/orgs/systemmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 
 __help() {
   printf_green "

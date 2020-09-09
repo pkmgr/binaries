@@ -469,6 +469,7 @@ if [ -f /tmp/pkmgr-curl.txt ]; then
 fi
 
 #---------------------------------------------------------------------------------------
+API="$(curl -s "https://api.github.com/orgs/pkmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 
 case "$1" in
 help | -h* | --h*)

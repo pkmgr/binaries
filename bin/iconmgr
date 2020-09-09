@@ -42,6 +42,7 @@ iconmgr_install
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+API="$(curl -s "https://api.github.com/orgs/iconmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 
 generate_theme_index() { true; }
 generate_icon_index() { true; }
