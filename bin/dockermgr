@@ -100,7 +100,7 @@ __install() {
       sudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
     fi
     sudo chmod -Rf 755 "$HOMEDIR/$APPNAME/install.sh"
-    sudo bash -s "$HOMEDIR/$APPNAME/install.sh"
+    sudo -HE bash "$HOMEDIR/$APPNAME/install.sh"
     if [ -d "$HOMEDIR/$APPNAME/os" ]; then
       sudo cp -Rf "$HOMEDIR/$APPNAME/os/." /
     fi
