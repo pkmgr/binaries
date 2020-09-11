@@ -48,7 +48,7 @@ __help() {
 \t\tv2 use zipcode or airport code          | version 2 of wttr.in
 \t\timg use city or closest airport code    | create an image file
 \t\tmoon                                    | get moon phase
-\t\tRun weather :help                      | see all options
+\t\tRun weather :help                       | see all options
 \t\tweather for defaults and detected location
 "
   exit 1

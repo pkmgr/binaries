@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-APPNAME="docekrmgr"
+APPNAME="dockermgr"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -216,8 +216,10 @@ log)
 
 update)
   shift
+  pkmg update docker
   __run_update "$@"
   ;;
+
 help | --help)
   __help
   ;;
