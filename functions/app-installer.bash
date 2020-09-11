@@ -1527,16 +1527,15 @@ run_postinst_global() {
 
   else
     # Run on everything else
-    if [ -d "$APPDIR/wallpapers" ]; then
-      mkdir -p $WALLPAPERS/$APPNAME
+    if [ -d "$APPDIR/backgrounds" ]; then
+      mkdir -p "$WALLPAPERS/system"
       local wallpapers="$(ls $APPDIR/backgrounds/ 2>/dev/null | wc -l)"
       if [ "$wallpapers" != "0" ]; then
         wallpaperFiles="$(ls $APPDIR/backgrounds)"
         for wallpaper in $wallpaperFiles; do
-          ln_sf "$APPDIR/backgrounds/$wallpaper" "$WALLPAPERS/$APPNAME/$wallpaper"
+          ln_sf "$APPDIR/backgrounds/$wallpaper" "$WALLPAPERS/system/$wallpaper"
         done
       fi
-      ln_rm "$WALLPAPERS/$APPNAME/"
     fi
 
     if [ -d "$APPDIR/startup" ]; then
