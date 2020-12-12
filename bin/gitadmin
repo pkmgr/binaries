@@ -259,7 +259,7 @@ make_newsite() {
 # Gets the organizations from the user
 
 git_all_orgs() {
-  ORGAPI="https://api.github.com/user/orgs?per_page=1000"
+  ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=all"
   for org in $GITHUB_USERNAME $(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}'); do
     gitadmin --clone $org
   done
@@ -438,7 +438,7 @@ case "$1" in
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
-    GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
+    GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000&type=all"
     MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
