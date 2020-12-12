@@ -259,7 +259,7 @@ make_newsite() {
 # Gets the organizations from the user
 
 git_all_orgs() {
-  ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=all"
+  ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=owner"
   for org in $GITHUB_USERNAME $(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}'); do
     gitadmin --clone $org
   done
@@ -454,7 +454,7 @@ case "$1" in
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
-    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=all"
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=owner"
     MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
@@ -506,7 +506,7 @@ case "$1" in
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
-    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=all"
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=owner"
     MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
@@ -718,7 +718,7 @@ stow)
   TOKEN="${GITHUB_ACCESS_TOKEN:-$2}"
   REPO_URL="https://github.com/$USERNAME"
   if [ ! -z "$TOKEN" ]; then
-    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=all"
+    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=owner"
     MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
