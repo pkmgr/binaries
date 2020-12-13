@@ -438,7 +438,7 @@ case "$1" in
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
-    GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000&type=all"
+    GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000&type=owner"
     MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
@@ -454,7 +454,7 @@ case "$1" in
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
-    GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=owner"
+    GITHUBAPIREPO="https://api.github.com/user/repos?type=owner&per_page=1000"
     MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
