@@ -134,7 +134,7 @@ permission | permissions)
   mess=" 🏠🔥❗ Permission Fixes ❗🔥🏠 "
   ;;
 
-bug)
+bug | bugs)
   shift 1
   mess=" 🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
   ;;

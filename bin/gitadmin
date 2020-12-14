@@ -137,10 +137,10 @@ run_git_init() {
   if [ ! -z "$repo" ]; then
     git remote add origin $repo
     printf_green "$repo has been added"
-    printf_question "Should I push to the new repo" [Y/n]
+    printf_question "Should I push to the new repo? [y/n]"
     read -r -n 1 push && echo
     if [[ $push == "y" || $push == "Y" ]]; then
-      printf_question "This will overwrite the repo if it exists. Continue" [Y/n]
+      printf_question "This will overwrite the repo if it exists. Continue? [y/n]"
       read -r -n 1 confirm_repo && echo
       if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
         if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
@@ -167,7 +167,7 @@ run_git_setup() {
     if [ ! -z "$PREVREPO" ]; then
       printf_info "Repo is: $PREVREPO"
     fi
-    printf_question "Should I continue to reset this repo"
+    printf_question "Should I continue to reset this repo? [y/n]"
     read -n 1 continue && echo ""
     if [[ $continue == "y" || $continue == "Y" ]]; then
       rm -Rf ./.git
@@ -186,7 +186,7 @@ run_git_setup() {
     printf_green "Success: Repo has been initialized"
 
   if [ ! -z "$PREVREPO" ]; then
-    printf_question "Should I reuse the remote repo" [Y/n]
+    printf_question "Should I reuse the remote repo? [y/n]"
     read -r -n 1 reuse && echo
   else
     PREVREPO=""
@@ -197,7 +197,7 @@ run_git_setup() {
     repo="$PREVREPO"
     run_git_init
   else
-    printf_question "Should I add a remote repo" [Y/n]
+    printf_question "Should I add a remote repo? [y/n]"
     read -r -n 1 remote && echo
     if [[ $remote == "y" || $remote == "Y" ]]; then
       printf_custom_question "3" "Enter remote repo: "
@@ -225,7 +225,7 @@ run_git_setup_automated() {
     exit 1
   fi
   if [ -z "$PREVREPO" ]; then
-    printf_red "Can not run in automated mode due to there not being a repo setup"
+    printf_red "Can't run in automated mode due to there not being a repo setup"
     exit 1
   fi
   printf_red "Setting up the repo as requested" && sleep 5
