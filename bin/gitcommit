@@ -238,7 +238,7 @@ if [ "$repo" != "localdir" ]; then
     git push -q
     getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
   else
-    printf_question "Should I push to $repo" [Y/n]
+    printf_question "Should I push to $repo? [y/n]"
     read -r -n 1 -s push && echo
     if [[ $push == "y" || $push == "Y" ]]; then
       printf_green "Pushing the changes to $repo"
