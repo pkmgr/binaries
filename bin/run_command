@@ -52,10 +52,11 @@ args="$1-$date"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 "$@" >"$logdir/$args.log" 2>"$logdir/$args.err" &
-if [ $? -eq 0 ]; then
+if [ "$?" -eq 0 ]; then
   printf_success ""$1" completed successfully"
 else
-  printf_error "$1 has failed"
+  printf_red "$1 has failed"
+  exit 1
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

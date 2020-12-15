@@ -51,7 +51,7 @@ if [ "$1" = "--automated" ]; then
 fi
 
 if [ -f .gitignore ] && [ -z "$overwrite" ]; then
-  printf_question "Should I overwrite your git ignore?" [Y/n]
+  printf_question "Should I overwrite your git ignore? [y/n]"
   read -r -n 1 -s overwrite && echo
   if [[ $overwrite == "n" || $overwrite == "N" ]]; then
     printf_red "User aborted, not overwriting your .gitignore"

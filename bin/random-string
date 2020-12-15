@@ -6,11 +6,11 @@ USER="${SUDO_USER:-${USER}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : random-strings
+# @File        : random-string
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : generate random strings
+# @Description : generate random string
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -38,7 +38,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--help" ] && printf_help "Usage: random-strings howmany    |    random-strings 20"
+[ "$1" = "--help" ] && printf_help "Usage: random-string howmany    |    random-string 20"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -11,7 +11,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Created         : Wed, Aug 15, 2020, 13:52 EST
 # @License         : MIT
 # @Copyright       : Copyright (c) CasjaysDev
-# @Description     : Menu driven ssh 
+# @Description     : Menu driven ssh
 # @Source          : https://github.com/vaniacer/sshto
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -50,15 +50,15 @@ cmdlist_renew () { cmdlist=(
 	#Command#  #Description#
     "Username" "Change ssh username to \Z2$GUEST\Z0"
     ''         ''
-  	"ls  -la"  "List Files"
-	  "free -h"  "Show free memory"
-  	"df  -ih"  "Show free inodes"
-	  "df   -h"  "Show free disk space"
+    "ls  -la"  "List Files"
+    "free -h"  "Show free memory"
+    "df  -ih"  "Show free inodes"
+    "df   -h"  "Show free disk space"
     "${new_custom:-$RUN_CUSTOM}" "Execute Custom Command"
     ''         ''
     "Info"     "Full system info"
-	  "Sshkey"   "Add my ssh key to \Z4$target\Z0"
-	  "Alias"    "Add my usefull aliases to \Z4$target\Z0"
+    "Sshkey"   "Add my ssh key to \Z4$target\Z0"
+    "Alias"    "Add my usefull aliases to \Z4$target\Z0"
     "Copy"     "Copy selected file or dir to \Z4$target\Z0"
     ''         ''
     "Custom"   "CMD: \Z1${new_custom:-$RUN_CUSTOM}\Z0"
@@ -243,7 +243,7 @@ remote_port () {
 }
 
 #------------------------{ Upload\Download dialogs }-----------------------------------------------
-downpath () { 
+downpath () {
     new_path=$(dialog --ok-label "CHANGE" --cancel-label "BACK" --output-fd 1 --max-input 100 \
                        --aspect 100 --colors --inputbox 'Change download folder' 10 50 $DEST)
     DEST=${new_path:-$DEST}
@@ -302,9 +302,9 @@ first_dialog () {
        -*\ *\ *-:*) first_dialog ;;
                *:0) go_to_target  ; first_dialog;;
                *:2) contents_menu;;
-      	       *:3) second_dialog;;
-      	       *:*) bye;;
-  	esac
+               *:3) second_dialog;;
+               *:*) bye;;
+    esac
 }
 
 #------------------------{ Second dialog - Select command }----------------------------------------
@@ -355,4 +355,3 @@ list=( "${fullist[@]}" )
 
 #--{ Go baby, GO!) }--
 first_dialog; bye
-

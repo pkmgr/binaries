@@ -40,9 +40,9 @@ __CHTSH_DATETIME="2020-08-05 09:30:30 +0200"
 
 # cht.sh configuration loading
 #
-# configuration is stored in ~/.cht.sh/ (can be overridden by CHTSH_HOME)
+# configuration is stored in ~/.config/.cht.sh/ (can be overridden by CHTSH_HOME)
 #
-CHTSH_HOME=${CHTSH:-"$HOME"/.cht.sh}
+CHTSH_HOME=${CHTSH:-"$HOME"/.config/.cht.sh}
 [ -z "$CHTSH_CONF" ] && CHTSH_CONF=$CHTSH_HOME/cht.sh.conf
 # shellcheck disable=SC1090,SC2002
 [ -e "$CHTSH_CONF" ] && source "$CHTSH_CONF"
@@ -347,8 +347,8 @@ do_query() {
   local b_opts=
   local uri="${CHTSH_URL}/\"\$(get_query_options $query)\""
 
-  if [ -e "$HOME/.cht.sh/id" ]; then
-    b_opts="-b \"\$HOME/.cht.sh/id\""
+  if [ -e "$HOME/.config/.cht.sh/id" ]; then
+    b_opts="-b \"\$HOME/.config/.cht.sh/id\""
   fi
 
   eval curl "$b_opts" -s "$uri" >"$TMP1"
@@ -546,7 +546,7 @@ command -v rlwrap >/dev/null || {
   exit 1
 }
 
-mkdir -p "$HOME/.cht.sh/"
+mkdir -p "$HOME/.config/.cht.sh/"
 lines=$(tput lines)
 
 if command -v less >/dev/null; then
@@ -643,11 +643,11 @@ EOF
 }
 
 cmd_hush() {
-  mkdir -p "$HOME/.cht.sh/" && touch "$HOME/.cht.sh/.hushlogin" && echo "Initial 'use help' message was disabled"
+  mkdir -p "$HOME/.config/.cht.sh/" && touch "$HOME/.config/.cht.sh/.hushlogin" && echo "Initial 'use help' message was disabled"
 }
 
 cmd_id() {
-  id_file="$HOME/.cht.sh/id"
+  id_file="$HOME/.config/.cht.sh/id"
 
   if [ id = "$input" ]; then
     new_id=""
@@ -688,7 +688,7 @@ cmd_id() {
     if ! [ -e "$id_file" ]; then
       printf '#\n\n' >"$id_file"
     fi
-    printf ".cht.sh\tTRUE\t/\tTRUE\t0\tid\t$new_id\n" >>"$id_file"
+    printf ".config/.cht.sh\tTRUE\t/\tTRUE\t0\tid\t$new_id\n" >>"$id_file"
   fi
   echo "$new_id"
 }
@@ -776,7 +776,7 @@ TMP1=$(mktemp /tmp/cht.sh.XXXXXXXXXXXXX)
 trap 'rm -f $TMP1 $TMP2' EXIT
 trap 'true' INT
 
-if ! [ -e "$HOME/.cht.sh/.hushlogin" ] && [ -z "$this_query" ]; then
+if ! [ -e "$HOME/.config/.cht.sh/.hushlogin" ] && [ -z "$this_query" ]; then
   echo "type 'help' for the cht.sh shell help"
 fi
 
@@ -788,7 +788,7 @@ while true; do
   fi
 
   input=$(
-    rlwrap -H "$HOME/.cht.sh/history" -pgreen -C cht.sh -S "$full_prompt" bash "$0" --read | sed 's/ *#.*//'
+    rlwrap -H "$HOME/.config/.cht.sh/history" -pgreen -C cht.sh -S "$full_prompt" bash "$0" --read | sed 's/ *#.*//'
   )
 
   cmd_name=${input%% *}

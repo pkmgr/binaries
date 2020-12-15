@@ -34,10 +34,6 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
 LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
 HELP="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/help)"
@@ -149,6 +145,11 @@ git_init() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help" ] && __help
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 case "$1" in
 --system)
   shift 1
@@ -179,7 +180,9 @@ esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ ! -d "$gitdir" ] && [ ! -f "$gitdir/config" ]; then git_init; fi
+if [ ! -d "$gitdir" ] && [ ! -f "$gitdir/config" ]; then
+git_init
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

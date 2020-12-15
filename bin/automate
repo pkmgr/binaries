@@ -49,6 +49,7 @@ hue_api_key="${HUE_API_KEY}"
 case "$1" in
 start) devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
 off | false | 1) devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":false}' ;;
+on | true | 0) devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
 *) devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
 esac
 

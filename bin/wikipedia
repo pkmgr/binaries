@@ -44,7 +44,7 @@ check_app curl
 
 [ ! -z "$1" ] || printf_exit "Usage: wikipedia linux"
 
-curl "https://en.wikipedia.org/wiki/$1" | lynx -stdin
+curl -LSs "https://en.wikipedia.org/wiki/$1" | lynx -stdin
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

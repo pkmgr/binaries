@@ -38,7 +38,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ ! -z "$1" ] || printf_help "Convert celcius to fahrenheit\n\t\tUsage: celcius2f 32	|	Tempature in C"
+[ ! -z "$1" ] || printf_help "Convert celcius to fahrenheit\n\t\tUsage: celcius2f 37"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
