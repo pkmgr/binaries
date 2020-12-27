@@ -109,8 +109,8 @@ calendar    3600             IN  CNAME       gsuite.calendar.casjay.net.redirect
 ;iax                         IN  A           149.28.32.84
 
 ;database server
-sql                          IN  CNAME       casjay.heliohost.org.
-*.sql                        IN  CNAME       casjay.heliohost.org.
+sql                          IN  CNAME       149.28.32.84
+*.sql                        IN  CNAME       149.28.32.84
 
 ;support servers
 wiki                         IN  CNAME       help.casjay.net.redirect.center.
