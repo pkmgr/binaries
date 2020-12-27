@@ -582,6 +582,17 @@ __getpythonver
 
 ##################################################################################################
 
+__getphpver() {
+  if cmdif php; then
+    PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
+  else
+    PHPVER=""
+  fi
+  echo $PHPVER
+}
+
+##################################################################################################
+
 setexitstatus() {
   [ ! -z "$EXIT" ] && local EXIT="$?"
   local EXITSTATUS+="$EXIT"

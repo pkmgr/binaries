@@ -464,6 +464,17 @@ __getpythonver
 
 ##################################################################################################
 
+__getphpver() {
+  if cmdif php; then
+    PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
+  else
+    PHPVER=""
+  fi
+  echo $PHPVER
+}
+
+##################################################################################################
+
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; }
 sudorun() { if sudoif; then sudo -HE "$@"; else "$@"; fi; }
 sudorerun() {
@@ -919,7 +930,7 @@ os_support() {
 
 unsupported_oses() {
   for OSes in "$@"; do
-    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ "$(os_support)" ]]; then
+    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $(os_support) ]]; then
       printf_red "\t\t$(os_support $OSes) is not supported\n"
       exit
     fi

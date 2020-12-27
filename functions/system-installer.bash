@@ -375,6 +375,17 @@ __getpythonver
 
 ##################################################################################################
 
+__getphpver() {
+  if cmdif php; then
+    PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
+  else
+    PHPVER=""
+  fi
+  echo $PHPVER
+}
+
+##################################################################################################
+
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; }
 sudorun() { if sudoif; then sudo -HE "$@"; else "$@"; fi; }
 sudorerun() {
