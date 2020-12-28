@@ -193,6 +193,11 @@ custom)
   fi
   ;;
 
+setup)
+  shift 1
+  gitadmin setup
+  ;;
+
 *)
   if [ -n "$1" ]; then
     mess="$newmess"
