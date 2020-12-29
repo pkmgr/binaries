@@ -39,25 +39,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 printf_red "Cleaning old logs"
-if [ "$1" != "" ]; then
-  requiresudo rm -fv /etc/cron.*/*logrotate*
-  requiresudo logrotate -fv /etc/logrotate.conf
-  requiresudo rm -Rfv /var/log/bandwidth
-  requiresudo rm -Rfv /var/log/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rfv /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rfv /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rfv /var/log/*.gz
-  requiresudo rm -Rfv /var/log/*/*.gz
-  requiresudo rm -Rfv /var/log/*/*/*.gz
-  requiresudo rm -Rfv /var/log/*.old
-  requiresudo rm -Rfv /var/log/*/*.old
-  requiresudo rm -Rfv /var/log/*/*/*.old
-
-  if [ -f "$HOME/.config/logrotate/config" ]; then
-    requiresudo logrotate -fv "$HOME/.config/logrotate/config"
-  fi
-
-else
+if [ "$1" = "" ]; then
   requiresudo rm -f /etc/cron.*/*logrotate* >/dev/null 2>&1
   requiresudo logrotate -f /etc/logrotate.conf >/dev/null 2>&1
   requiresudo rm -Rf /var/log/bandwidth >/dev/null 2>&1
@@ -73,6 +55,23 @@ else
 
   if [ -f "$HOME/.config/logrotate/config" ]; then
     requiresudo logrotate -f "$HOME/.config/logrotate/config"
+  fi
+else
+  requiresudo rm -fv /etc/cron.*/*logrotate*
+  requiresudo logrotate -fv /etc/logrotate.conf
+  requiresudo rm -Rfv /var/log/bandwidth
+  requiresudo rm -Rfv /var/log/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rfv /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rfv /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rfv /var/log/*.gz
+  requiresudo rm -Rfv /var/log/*/*.gz
+  requiresudo rm -Rfv /var/log/*/*/*.gz
+  requiresudo rm -Rfv /var/log/*.old
+  requiresudo rm -Rfv /var/log/*/*.old
+  requiresudo rm -Rfv /var/log/*/*/*.old
+
+  if [ -f "$HOME/.config/logrotate/config" ]; then
+    requiresudo logrotate -fv "$HOME/.config/logrotate/config"
   fi
 fi
 
