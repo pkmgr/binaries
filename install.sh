@@ -175,10 +175,12 @@ run_postinst() {
     sudo fontmgr install Hack
   fi
 
-  ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
-  for function in $(ls $SCRIPTSAPPFUNCTDIR/functions); do
-    ln -sf $SCRIPTSAPPFUNCTDIR/functions/$function $CASJAYSDEVSHARE/functions/$function
+  for function in $(ls "$SCRIPTSFUNCTDIR/functions"); do
+    ln_sf "$SCRIPTSFUNCTDIR/functions/$function" "$CASJAYSDEVSHARE/functions/$function"
   done
+
+  ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
+
 }
 
 execute \

@@ -353,7 +353,8 @@ cmd_exists() {
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
   for cmd in $LISTARRAY; do
-    type -P "$1" | grep -q "/" 2>/dev/null
+    unalias $cmd >/devnull 2>&1
+    type -P "$cmd" | grep -q "/" 2>/dev/null
   done
 }
 set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
@@ -386,13 +387,8 @@ run_post() {
   set --
 }
 
-printclip() {
-  cmd_exists xclip && xclip -o -s || return 1
-}
-
-putclip() {
-  cmd_exists xclip && xclip -i -sel c || return 1
-}
+printclip() { cmd_exists xclip && xclip -o -s || return 1; }
+putclip() { cmd_exists xclip && xclip -i -sel c || return 1; }
 
 ##################################################################################################
 
