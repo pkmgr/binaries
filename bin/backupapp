@@ -39,7 +39,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __help() {
-  printf_green "Usage: $APPNAME Directory BackupName"
+  printf_green "Usage: $APPNAME BackupName Directory"
   return 0
 }
 
@@ -59,12 +59,12 @@ _run_backup() {
 
 backupapp() {
   local filename count backupdir rmpre4vbackup
-  [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
-  [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
+  [ ! -z "$2" ] && local myappdir="$@" || local myappdir="$APPDIR"
+  [ ! -z "$1" ] && local myappname="$1" && shift 1 || local myappname="$APPNAME"
   local logdir="$HOME/.local/log"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/dotfiles}"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/apps}"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   mkdir -p "$backupdir" "$logdir"
