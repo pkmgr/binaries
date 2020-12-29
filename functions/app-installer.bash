@@ -532,6 +532,7 @@ requiresudo() {
     fi
   else
     printf_red "\t\tYou dont have access to sudo\n\t\tPlease contact the syadmin for access\n"
+    exit 1
   fi
 }
 

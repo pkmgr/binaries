@@ -800,6 +800,7 @@ requiresudo() {
     fi
   else
     printf_red "You dont have access to sudo\n\t\tPlease contact the syadmin for access"
+    exit 1
   fi
 }
 
