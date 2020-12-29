@@ -735,30 +735,6 @@ check_cpan() {
 
 ##################################################################################################
 
-can_i_sudo() {
-  (
-    ISINDSUDO=$(sudo grep -Re "$MYUSER" /etc/sudoers* | grep "ALL" >/dev/null)
-    sudo -vn && sudo -ln
-  ) 2>&1 | grep -v 'may not' >/dev/null
-}
-
-##################################################################################################
-
-sudoask() {
-  if [ ! -f "$HOME/.sudo" ]; then
-    sudo true &>/dev/null
-    while true; do
-      echo "$$" >"$HOME/.sudo"
-      sudo -n true
-      sleep 10
-      rm -Rf "$HOME/.sudo"
-      kill -0 "$$" || return
-    done &>/dev/null &
-  fi
-}
-
-##################################################################################################
-
 git_clone() {
   local repo="$1"
   rm_rf "$2"
@@ -782,8 +758,32 @@ git_update() {
 
 ##################################################################################################
 
+can_i_sudo() {
+  (
+    ISINDSUDO=$(sudo grep -Re "$MYUSER" /etc/sudoers* | grep "ALL" >/dev/null)
+    sudo -vn && sudo -ln
+  ) 2>&1 | grep -v 'may not' >/dev/null
+}
+
+##################################################################################################
+
+sudoask() {
+  if [ ! -f "$HOME/.sudo" ]; then
+    sudo true &>/dev/null
+    while true; do
+      echo "$$" >"$HOME/.sudo"
+      sudo -n true
+      sleep 10
+      rm -Rf "$HOME/.sudo"
+      kill -0 "$$" || return
+    done &>/dev/null 2>/dev/null &
+  fi
+}
+
+##################################################################################################
+
 sudoexit() {
-  if [ "$?" -eq 0 ]; then
+  if can_i_sudo; then
     sudoask || printf_green "Getting privileges successfull continuing"
   else
     printf_red "Failed to get privileges\n"
@@ -793,15 +793,11 @@ sudoexit() {
 ##################################################################################################
 
 requiresudo() {
-  if [ -f "$(command -v sudo 2>/dev/null)" ]; then
-    if (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; then
-      sudoask
-      sudoexit
-      sudo "$@" 2>/dev/null
-    fi
+  if can_i_sudo; then
+    sudoask && sudoexit && sudo "$@" 2>/dev/null
   else
     printf_red "You dont have access to sudo\n\t\tPlease contact the syadmin for access"
-    exit 1
+    return 1
   fi
 }
 
