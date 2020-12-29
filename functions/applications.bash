@@ -386,8 +386,13 @@ run_post() {
   set --
 }
 
-printclip() { clip -o -s; }
-putclip() { xclip -i -sel c; }
+printclip() {
+  cmd_exists xclip && xclip -o -s || return 1
+}
+
+putclip() {
+  cmd_exists xclip && xclip -i -sel c || return 1
+}
 
 ##################################################################################################
 

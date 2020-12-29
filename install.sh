@@ -176,6 +176,9 @@ run_postinst() {
   fi
 
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
+  for function in $(ls $SCRIPTSAPPFUNCTDIR/functions); do
+    ln -sf $SCRIPTSAPPFUNCTDIR/functions/$function $CASJAYSDEVSHARE/functions/$function
+  done
 }
 
 execute \
