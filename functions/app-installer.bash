@@ -717,19 +717,19 @@ install_packages() {
         fi
       done
     fi
+    local MISSING=""
   fi
-  
-  local MISSING=""
+
   for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
-  if cmd_exists "pkmgr"; then
+    if cmd_exists "pkmgr"; then
+      printf_warning "Still missing: $MISSING"
+      execute "install_required $APPNAME" "Installing $APPNAME from package list"
+    fi
+    local MISSING=""
+    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
     printf_warning "Still missing: $MISSING"
-    execute "install_required $cmd" "Installing from package list"
-  fi
-  local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
-  printf_warning "Still missing: $MISSING"
-  exit 1
+    exit 1
   fi
   unset MISSING
 }
