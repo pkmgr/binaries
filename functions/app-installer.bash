@@ -702,6 +702,27 @@ dotfilesreqadmin() {
 
 ##################################################################################################
 
+install_required() {
+  local MISSING=""
+  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  if [ ! -z "$MISSING" ]; then
+    if cmd_exists "pkmgr"; then
+      printf_warning "Installing from package list"
+      printf_warning "Still missing: $MISSING"
+      if cmd_exists yay; then
+        pkmgr --enable-aur dotfiles "$APPNAME"
+      else
+        pkmgr dotfiles "$APPNAME"
+      fi
+    fi
+  fi
+  unset MISSING
+}
+
+export -f install_required
+
+##################################################################################################
+
 install_packages() {
   local MISSING=""
   if cmd_exists "pkmgr"; then
@@ -717,36 +738,17 @@ install_packages() {
         fi
       done
     fi
-    local MISSING=""
-
+    unset MISSING
     for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
-      printf_warning "Still missing: $MISSING"
+      printf_warning "Still missing: $APPNAME packages"
       execute "install_required $APPNAME" "Installing $APPNAME from package list"
     fi
-    local MISSING=""
+    unset MISSING
     for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
     printf_warning "Still missing: $MISSING"
+    unset MISSING
     exit 1
-  fi
-  unset MISSING
-}
-
-##################################################################################################
-
-install_required() {
-  local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
-      printf_warning "Installing from package list"
-      printf_warning "Still missing: $MISSING"
-      if cmd_exists yay; then
-        pkmgr --enable-aur dotfiles "$APPNAME"
-      else
-        pkmgr dotfiles "$APPNAME"
-      fi
-    fi
   fi
   unset MISSING
 }
