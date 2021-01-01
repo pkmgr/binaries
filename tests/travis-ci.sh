@@ -86,9 +86,10 @@ git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/them
 git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/systemmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to systemmgr/installer" || printf_red "Failed to push to systemmgr/installer"
 git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/wallpapermgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to wallpapermgr/installer" || printf_red "Failed to push to wallpapermgr/installer"
 
-systemmgr install ssl ssh
+systemmgr install ssl
 
-#dfmgr install --all
+dfmgr install vim
+
 echo -e "\n\n\t\t-----------------------------------------------------\n"
 exit $?
 ## end
