@@ -711,9 +711,9 @@ install_packages() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "pkmgr --enable-aur silent $miss" "Installing $miss" || execute "install_required $miss" "Installing $miss"
         else
-          execute "pkmgr silent $miss" "Installing $miss"
+          execute "pkmgr silent $miss" "Installing $miss" || || execute "install_required $miss" "Installing $miss"
         fi
       done
     fi
