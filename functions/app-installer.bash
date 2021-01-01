@@ -735,24 +735,22 @@ install_packages() {
           execute "pkmgr silent $miss" "Installing $miss"
         fi
       done
-      unset MISSING
     fi
+    unset MISSING
 
-    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd"; done
     if [ ! -z "$MISSING" ]; then
-      printf_warning "Still missing: $APPNAME packages"
+      printf_warning "Still missing: $MISSING"
       execute "install_required $APPNAME" "Installing $APPNAME from package list"
-      unset MISSING
     fi
+    unset MISSING
 
     for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Still missing: $MISSING"
-      unset MISSING
       exit 1
     fi
   fi
-
   unset MISSING
 }
 
