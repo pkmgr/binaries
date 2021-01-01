@@ -713,7 +713,7 @@ install_packages() {
         if cmd_exists yay; then
           execute "pkmgr --enable-aur silent $miss" "Installing $miss" || execute "install_required $miss" "Installing $miss"
         else
-          execute "pkmgr silent $miss" "Installing $miss" || || execute "install_required $miss" "Installing $miss"
+          execute "pkmgr silent $miss" "Installing $miss" || execute "install_required $miss" "Installing $miss"
         fi
       done
     fi
