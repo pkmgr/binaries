@@ -704,9 +704,9 @@ dotfilesreqadmin() {
 
 install_packages() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
+  if cmd_exists "pkmgr"; then
+    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+    if [ ! -z "$MISSING" ]; then
       printf_warning "Attempting to install missing packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
@@ -718,11 +718,9 @@ install_packages() {
       done
     fi
     local MISSING=""
-  fi
 
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
+    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+    if [ ! -z "$MISSING" ]; then
       printf_warning "Still missing: $MISSING"
       execute "install_required $APPNAME" "Installing $APPNAME from package list"
     fi
