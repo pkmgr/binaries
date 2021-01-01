@@ -711,14 +711,25 @@ install_packages() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "pkmgr --enable-aur silent $miss" "Installing $miss" || execute "install_required $miss" "Installing $miss"
+          execute "pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "pkmgr silent $miss" "Installing $miss" || execute "install_required $miss" "Installing $miss"
+          execute "pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
   fi
   unset MISSING
+  
+  local MISSING=""
+  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  if [ ! -z "$MISSING" ]; then
+    printf_warning "Still missing: $MISSING"
+    execute "install_required $cmd" "Installing from package list"
+  fi
+  unset MISSING
+  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  printf_warning "Still missing: $MISSING"
+  exit 1
 }
 
 ##################################################################################################
