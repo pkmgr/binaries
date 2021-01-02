@@ -140,7 +140,7 @@ update)
         if urlcheck $REPO/$upd/raw/master/install.sh; then
           printf_yellow "Initializing the installer from"
           printf_purple "$REPO/$upd"
-          bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)"
+          bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)" 2>/dev/null
           getexitcode "$upd has been installed"
         else
           urlinvalid $REPO/$upd/raw/master/install.sh
@@ -155,7 +155,7 @@ update)
         if urlcheck $REPO/$updadmin/raw/master/install.sh; then
           printf_yellow "Initializing the installer from"
           printf_purple "$REPO/$updadmin"
-          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)"
+          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)" 2>/dev/null
           getexitcode "$updadmin has been installed"
         else
           urlinvalid $REPO/$updadmin/raw/master/install.sh
@@ -178,7 +178,7 @@ install)
     if urlcheck $REPO/$ins/raw/master/install.sh; then
       printf_yellow "Initializing the installer from"
       printf_purple "$REPO/$ins"
-      bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" 2>/dev/null
       getexitcode "$ins has been installed"
     else
       urlinvalid $REPO/$ins/raw/master/install.sh
