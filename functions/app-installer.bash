@@ -668,7 +668,7 @@ dotfilesreqcmd() {
 
 dotfilesreq() {
   local confdir="$USRUPDATEDIR"
-  declare -a LISTARRAY="$@"
+  declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
     if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
       execute \
@@ -689,7 +689,7 @@ dotfilesreqadmincmd() {
 
 dotfilesreqadmin() {
   local confdir="$SYSUPDATEDIR"
-  declare -a LISTARRAY="$@"
+  declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
     if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
       execute \
@@ -1132,12 +1132,13 @@ get_app_version() {
   else
     local version="0000000"
   fi
+  local GITREPO=""$REPO/$APPNAME""
   local APPVERSION="${APPVERSION:-$REPORAW/master/version.txt}"
   [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
   [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
   [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
   [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
-  [ -n "$REPO/$APPNAME" ] && printf_info "APP repo:                  $REPO/$APPNAME"
+  [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
   [ -n "$PLUGNAMES" ] && printf_info "Plugins:                   $PLUGNAMES"
   [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
   [ -n "$version" ] && printf_info "APP Version:               $version"
