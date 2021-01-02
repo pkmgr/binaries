@@ -741,13 +741,19 @@ install_packages() {
     for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd"; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Still missing: $MISSING"
-      execute "install_required $APPNAME" "Installing $APPNAME from package list"
+      if cmd_exists yay; then
+        pkmgr --enable-aur dotfiles "$APPNAME"
+      else
+        pkmgr dotfiles "$APPNAME"
+      fi
     fi
     unset MISSING
 
     for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
+      if [ "$APPDIR/install.sh" ]; then
+      rm -Rf "$APPDIR/install.sh"
       set -eE
       exit 1
     fi
