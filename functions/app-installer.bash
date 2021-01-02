@@ -747,7 +747,8 @@ install_packages() {
 
     for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
-      printf_warning "Still missing: $MISSING"
+      printf_warning "Can not install the required packages for $APPNAME"
+      set -eE
       exit 1
     fi
   fi
