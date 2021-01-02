@@ -132,7 +132,7 @@ install)
   [ -z "$1" ] && echo "$LIST" && exit 1
   [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY=$*
   for ins in ${LISTARRAY[*]}; do
-    dfmgr_instupdate "$ins"
+    dfmgr_instupdate "$ins" 2>/dev/null
   done
   ;;
 
@@ -142,7 +142,7 @@ update)
     dfmgr_instupdate "$@"
   elif [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
     for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
-      dfmgr_instupdate "$upd"
+      dfmgr_instupdate "$upd" 2>/dev/null
     done
   fi
   ;;
