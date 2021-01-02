@@ -753,7 +753,7 @@ install_packages() {
     if [ ! -z "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
       if [ -f "$APPDIR/install.sh" ]; then
-        unlink -f "$APPDIR/install.sh" || rm -Rf "$APPDIR/install.sh"
+        unlink -f "$APPDIR" || rm -Rf "$APPDIR"
       fi
       set -eE
       exit 1
