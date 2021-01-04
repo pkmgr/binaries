@@ -990,7 +990,11 @@ user_installdirs() {
 
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     export INSTALL_TYPE=user
-    export HOME="/root"
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      export HOME="/usr/local/share/CasjaysDev/root"
+    else
+      export HOME="/root"
+    fi
     export BIN="$HOME/.local/bin"
     export CONF="$HOME/.config"
     export SHARE="$HOME/.local/share"
@@ -1009,8 +1013,8 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
-    #    USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
-    #    SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   else
     export INSTALL_TYPE=user
     export HOME="${HOME}"
@@ -1048,8 +1052,12 @@ system_installdirs() {
     #printf_info "Install Type: system - ${WHOAMI}"
     #printf_red "\t\tInstalling as root ❓\n"
     export INSTALL_TYPE=system
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      export HOME="/usr/local/share/CasjaysDev/root"
+    else
+      export HOME="/root"
+    fi
     export BACKUPDIR="$HOME/.local/backups/dotfiles"
-    export HOME="/root"
     export BIN="/usr/local/bin"
     export CONF="/usr/local/etc"
     export SHARE="/usr/local/share"
@@ -1067,12 +1075,12 @@ system_installdirs() {
     export CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
     export WALLPAPERS="/usr/local/share/wallpapers"
-    #    USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
-    #    SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   else
     export INSTALL_TYPE=system
-    export BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
     export HOME="${HOME:-/home/$WHOAMI}"
+    export BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
     export BIN="$HOME/.local/bin"
     export CONF="$HOME/.config"
     export SHARE="$HOME/.local/share"
