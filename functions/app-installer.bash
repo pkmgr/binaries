@@ -1324,7 +1324,8 @@ installer_noupdate() {
 install_version() {
   mkdir -p "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/dotfiles"
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
+    #ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
+    ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
   fi
 }
 
