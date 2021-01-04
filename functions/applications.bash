@@ -884,10 +884,14 @@ dfmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
@@ -901,10 +905,14 @@ dockermgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
@@ -919,10 +927,14 @@ fontmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$FONTDIR" "$HOMEDIR"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
@@ -937,10 +949,14 @@ iconmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
@@ -954,10 +970,14 @@ pkmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
@@ -973,10 +993,14 @@ systemmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
@@ -991,10 +1015,14 @@ thememgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
@@ -1009,10 +1037,14 @@ wallpapermgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
 }
 
 ##################################################################################################
