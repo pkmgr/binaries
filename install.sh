@@ -85,10 +85,8 @@ sudoreq # sudo required
 #sudorun  # sudo optional
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [[ ! "$OSTYPE" =~ ^darwin ]]; then
-  APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python "
-  APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli "
-fi
+APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python "
+APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli "
 PERL="CPAN "
 PYTH="pip "
 PIPS=""
