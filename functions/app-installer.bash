@@ -23,6 +23,7 @@ export TEMP="${TEMP:-/tmp}"
 
 export WHOAMI="${SUDO_USER:-$USER}"
 export HOME="${USER_HOME:-$HOME}"
+export LOGDIR="${LOGDIR:-$HOME/.local/log}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,16 +40,15 @@ devnull2() { "$@" >/dev/null 2>&1; }
 
 if [ "$*" = "--vdebug" ]; then
   set -xveE
-  logdir="$HOME/.local/log/debug"
-  mkdir -p "$logdir"
-  touch "$logdir/$APPNAME.log" "$logdir/$APPNAME.err"
-  chmod -Rf 755 "$logdir/debug"
-  exec >> "$logdir/$APPNAME.debug" 2>&1
+  mkdir -p "$LOGDIR/debug"
+  touch "$LOGDIR/debug/$APPNAME.log" "$LOGDIR/debug/$APPNAME.err"
+  chmod -Rf 755 "$LOGDIR/debug"
+  exec >> "$LOGDIR/debug/$APPNAME.debug" 2>&1
   devnull() {
-    "$@" >>"$logdir/$APPNAME.log" 2>>"$logdir/$APPNAME.err"
+    "$@" >>"$LOGDIR/debug/$APPNAME.log" 2>>"$LOGDIR/debug/$APPNAME.err"
   }
   devnull2() { 
-    "$@" 2>>"$logdir/$APPNAME.err" >/dev/null
+    "$@" 2>>"$LOGDIR/debug/$APPNAME.err" >/dev/null
     }
 fi
 
@@ -903,6 +903,11 @@ execute() {
   printf_execute_result $exitCode "$MSG"
   if [ $exitCode -ne 0 ]; then
     printf_execute_error_stream <"$TMP_FILE"
+  fi
+  if [ "$*" = "--verbose" ] || [ "$*" = "--vdebug" ] ; then
+    if [ -f "$TMP_FILE" ]; then
+      cat "$TMP_FILE" >> "$LOGDIR/debug/$APPNAME.debug"
+    fi
   fi
   rm -rf "$TMP_FILE"
   return $exitCode
