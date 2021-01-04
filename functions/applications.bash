@@ -34,10 +34,7 @@ fi
 ##################################################################################################
 
 case "$(uname -s)" in
-Darwin)
-  dircolors() { gdircolors; }
-  export -f dircolors
-  ;;
+Darwin) alias dircolors=gdircolors ;;
 esac
 
 ##################################################################################################
@@ -262,8 +259,8 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
-    #    USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
-    #    SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   else
     export INSTALL_TYPE=user
     export HOME="${HOME}"
@@ -285,8 +282,8 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    #    USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
-    #    SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
 }
 
@@ -322,8 +319,8 @@ system_installdirs() {
     export CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
     export WALLPAPERS="/usr/local/share/wallpapers"
-    #    USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
-    #    SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   else
     export INSTALL_TYPE=system
     export BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
@@ -345,8 +342,8 @@ system_installdirs() {
     export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    #    USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
-    #    SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
+    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
 }
 
@@ -656,8 +653,12 @@ getexitcode() {
 ##################################################################################################
 
 getlipaddr() {
-  NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
-  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s#addr:##g | head -n1)"
+  if [[ "$OSTYPE" =~ ^darwin ]]; then
+    NETDEV="$(route get default | grep interface | awk '{print $2}')"
+  else
+    NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
+  fi
+  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
 }
 
 ##################################################################################################
