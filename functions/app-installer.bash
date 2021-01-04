@@ -454,7 +454,7 @@ ask_for_confirmation() {
 ##################################################################################################
 
 __getip() {
-  if [[ ! "$OSTYPE" =~ ^darwin ]]; then
+  if [[ "$OSTYPE" =~ ^darwin ]]; then
     NETDEV="$(route get default | grep interface | awk '{print $2}')"
   else
     NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
