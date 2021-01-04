@@ -39,9 +39,11 @@ devnull() { "$@" >/dev/null 2>&1; }
 if [ "$*" = "--debug" ]; then
   devnull() {
     set -xveE
+    BASH_XTRACEFD="5"
     mkdir -p "$HOME/.local/log/debug"
     touch "$HOME/.local/log/debug/$APPNAME.log" "$HOME/.local/log/debug/$APPNAME.err"
     chmod -Rf 755 "$HOME/.local/log/debug"
+    exec 5> "$HOME/.local/log/debug/$APPNAME.debug"
     "$@" >>"$HOME/.local/log/debug/$APPNAME.log" 2>>"$HOME/.local/log/debug/$APPNAME.err"
   }  
 fi
