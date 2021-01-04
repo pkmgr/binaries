@@ -1649,12 +1649,15 @@ run_postinst_global() {
   ensure_perms
 
   #  IFS="$OIFS"
-  date '+Installed on: %m/%d/%y @ %H:%M:%S' > "$APPDIR/.installed"
 }
 
 ##################################################################################################
 
 run_exit() {
+  if [ ! -f "$APPDIR/.installed" ]; then
+    date '+Installed on: %m/%d/%y @ %H:%M:%S' > "$APPDIR/.installed"
+  fi
+
   if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
   if [ -n "$EXIT" ]; then exit "$EXIT"; fi
