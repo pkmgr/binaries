@@ -43,7 +43,7 @@ if [ "$*" = "--vdebug" ]; then
   mkdir -p "$logdir"
   touch "$logdir/$APPNAME.log" "$logdir/$APPNAME.err"
   chmod -Rf 755 "$logdir/debug"
-  exec 3>> "$logdir/$APPNAME.debug" 2>&1
+  exec >> "$logdir/$APPNAME.debug" 2>&1
   devnull() {
     "$@" >>"$logdir/$APPNAME.log" 2>>"$logdir/$APPNAME.err"
   }
