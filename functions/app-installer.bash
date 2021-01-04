@@ -37,14 +37,14 @@ cmd_exists() {
 devnull() { "$@" >/dev/null 2>&1; }
 devnull2() { "$@" >/dev/null 2>&1; }
 
-if [ "$*" = "--debug" ]; then
+if [ "$*" = "--vdebug" ]; then
   set -xveE
   BASH_XTRACEFD="5"
+  mkdir -p "$HOME/.local/log/debug"
+  touch "$HOME/.local/log/debug/$APPNAME.log" "$HOME/.local/log/debug/$APPNAME.err"
+  chmod -Rf 755 "$HOME/.local/log/debug"
   exec 5> "$HOME/.local/log/debug/$APPNAME.debug"
   devnull() {
-    mkdir -p "$HOME/.local/log/debug"
-    touch "$HOME/.local/log/debug/$APPNAME.log" "$HOME/.local/log/debug/$APPNAME.err"
-    chmod -Rf 755 "$HOME/.local/log/debug"
     "$@" >>"$HOME/.local/log/debug/$APPNAME.log" 2>>"$HOME/.local/log/debug/$APPNAME.err"
   }
   devnull2() { 
