@@ -724,7 +724,7 @@ install_required() {
 install_packages() {
   local MISSING=""
   if cmd_exists "pkmgr"; then
-    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Attempting to install missing packages"
       printf_warning "$MISSING"
@@ -738,7 +738,7 @@ install_packages() {
     fi
     unset MISSING
 
-    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd"; done
+    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Still missing: $MISSING"
       if cmd_exists yay; then
@@ -749,7 +749,7 @@ install_packages() {
     fi
     unset MISSING
 
-    for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
       if [ -f "$APPDIR/install.sh" ]; then
