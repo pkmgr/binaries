@@ -1649,6 +1649,7 @@ run_postinst_global() {
   ensure_perms
 
   #  IFS="$OIFS"
+  date '+Installed on: %m/%d/%y @ %H:%M:%S' > "$APPNAME/.installed"
 }
 
 ##################################################################################################
