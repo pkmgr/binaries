@@ -454,7 +454,11 @@ ask_for_confirmation() {
 ##################################################################################################
 
 __getip() {
-  NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
+  if [[ ! "$OSTYPE" =~ ^darwin ]]; then
+    NETDEV="$(route get default | grep interface | awk '{print $2}')"
+  else
+    NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
+  fi
   CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
 }
 __getip
