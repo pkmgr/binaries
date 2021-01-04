@@ -39,16 +39,16 @@ devnull2() { "$@" >/dev/null 2>&1; }
 
 if [ "$*" = "--vdebug" ]; then
   set -xveE
-  BASH_XTRACEFD="5"
-  mkdir -p "$HOME/.local/log/debug"
-  touch "$HOME/.local/log/debug/$APPNAME.log" "$HOME/.local/log/debug/$APPNAME.err"
-  chmod -Rf 755 "$HOME/.local/log/debug"
-  exec 5> "$HOME/.local/log/debug/$APPNAME.debug"
+  logdir="$HOME/.local/log/debug"
+  mkdir -p "$logdir"
+  touch "$logdir/$APPNAME.log" "$logdir/$APPNAME.err"
+  chmod -Rf 755 "$logdir/debug"
+  exec 3>> "$logdir/$APPNAME.debug" 2>&1
   devnull() {
-    "$@" >>"$HOME/.local/log/debug/$APPNAME.log" 2>>"$HOME/.local/log/debug/$APPNAME.err"
+    "$@" >>"$logdir/$APPNAME.log" 2>>"$logdir/$APPNAME.err"
   }
   devnull2() { 
-    "$@" 2>>"$HOME/.local/log/debug/$APPNAME.err" >/dev/null
+    "$@" 2>>"$logdir/$APPNAME.err" >/dev/null
     }
 fi
 
