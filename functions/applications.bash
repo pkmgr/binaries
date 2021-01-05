@@ -1065,6 +1065,10 @@ os_support() {
   esac
 }
 
+supported_oses() {
+  return 0
+}
+
 unsupported_oses() {
   for OSes in "$@"; do
     if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $(os_support) ]]; then
