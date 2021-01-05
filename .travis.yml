@@ -14,6 +14,7 @@ jobs:
         #- armhf
     - os: osx
       osx_image: xcode12.1
+      before_install: brew install -f jq
 
 install:
   - sudo git clone https://github.com/casjay-dotfiles/scripts "/usr/local/share/CasjaysDev/scripts"; sudo rm -Rf /usr/local/share/CasjaysDev/scripts/.git
