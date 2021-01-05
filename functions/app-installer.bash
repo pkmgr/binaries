@@ -720,30 +720,31 @@ dotfilesreqadmin() {
 ##################################################################################################
 
 install_required() {
-  local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
-      printf_warning "Installing from package list"
-      printf_warning "Still missing: $MISSING"
-      if cmd_exists yay; then
-        pkmgr --enable-aur dotfiles "$APPNAME"
-      else
-        pkmgr dotfiles "$APPNAME"
-      fi
-    fi
-  fi
-  unset MISSING
+  [[ $# -eq 0 ]] && return 0
+  # local MISSING=""
+  # for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  # if [ ! -z "$MISSING" ]; then
+  #   if cmd_exists "pkmgr"; then
+  #     printf_warning "Installing from package list"
+  #     printf_warning "Still missing: $MISSING"
+  #     if cmd_exists yay; then
+  #       pkmgr --enable-aur dotfiles "$APPNAME"
+  #     else
+  #       pkmgr dotfiles "$APPNAME"
+  #     fi
+  #   fi
+  # fi
+  # unset MISSING
 }
 
 ##################################################################################################
 
 install_packages() {
+  [[ $# -eq 0 ]] && return 0
   local PATH="$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin
   local PATH+="$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin
   local PATH+=/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
   local MISSING=""
-  [[ $# -eq 0 ]] && return
   if cmd_exists "pkmgr"; then
     for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
