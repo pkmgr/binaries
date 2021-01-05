@@ -771,7 +771,7 @@ install_packages() {
     if [ ! -z "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
       if [ -f "$APPDIR/install.sh" ]; then
-        unlink "$APPDIR" || rm -Rf "$APPDIR"
+        devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
       fi
       set -eE
       exit 1
