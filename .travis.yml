@@ -2,16 +2,18 @@
 
 language: bash
 sudo: enabled
-os: linux
-dist: focal
 
-before_install:
-  - sudo apt-get update
-
-arch:
-  - amd64
-#  - arm64
-#  - armhf
+jobs:
+  include:
+    - os: linux
+      dist: focal
+      before_install: sudo apt-get update
+      arch:
+        - amd64
+        #- arm64
+        #- armhf
+    - os: osx
+      osx_image: xcode12.1
 
 install:
   - sudo git clone https://github.com/casjay-dotfiles/scripts "/usr/local/share/CasjaysDev/scripts"; sudo rm -Rf /usr/local/share/CasjaysDev/scripts/.git
