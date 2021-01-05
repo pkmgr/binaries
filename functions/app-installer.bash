@@ -770,11 +770,11 @@ install_packages() {
     for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
-      if [ -f "$APPDIR/install.sh" ]; then
-        devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
-      fi
-      set -eE
-      exit 1
+      #if [ -f "$APPDIR/install.sh" ]; then
+      #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
+      #fi
+      #set -eE
+      return 1
     fi
   fi
   unset MISSING
