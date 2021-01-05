@@ -739,7 +739,9 @@ install_required() {
 ##################################################################################################
 
 install_packages() {
-  local PATH=""$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin:"$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:."
+  local PATH="$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin
+  local PATH+="$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin
+  local PATH+=/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
   local MISSING=""
   if cmd_exists "pkmgr"; then
     for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
@@ -981,6 +983,45 @@ unsupported_oses() {
       exit
     fi
   done
+}
+
+if_os() {
+  local OS="$(echo $1 | tr '[:upper:]' '[:lower:]')"
+  [ "$OS" = darwin ] || [ "$OS" = macos ] && OS="$(echo mac | tr '[:upper:]' '[:lower:]')"
+  local TYPE="$(uname | tr '[:upper:]' '[:lower:]')"
+  [ "$TYPE" = darwin ] && TYPE="$(echo mac | tr '[:upper:]' '[:lower:]')"
+  if [ "$OS" = "$TYPE" ]; then
+    printf_red "\t\tSetting up for $OS"
+    case "$OS" in
+    linux*)
+      if [[ "$(uname)" =~ ^Linux ]]; then
+        shift 1
+        "$@"
+      else
+        exit
+      fi
+      ;;
+    mac* | darwin*)
+      if [[ "$(uname)" =~ ^Darwin ]]; then
+        shift 1
+        "$@"
+      else
+        exit
+      fi
+      ;;
+    win* | msys* | mingw* | cygwin*)
+      if [[ "$(uname)" =~ ^MING ]] || [[ "$(uname)" =~ ^MSYS ]]; then
+        shift 1
+        "$@"
+      else
+        exit
+      fi
+      ;;
+    *)
+      "$@"
+      ;;
+    esac
+  fi
 }
 
 ##################################################################################################

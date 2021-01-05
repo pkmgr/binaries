@@ -1074,6 +1074,45 @@ unsupported_oses() {
   done
 }
 
+if_os() {
+  local OS="$(echo $1 | tr '[:upper:]' '[:lower:]')"
+  [ "$OS" = darwin ] || [ "$OS" = macos ] && OS="$(echo mac | tr '[:upper:]' '[:lower:]')"
+  local TYPE="$(uname | tr '[:upper:]' '[:lower:]')"
+  [ "$TYPE" = darwin ] && TYPE="$(echo mac | tr '[:upper:]' '[:lower:]')"
+  if [ "$OS" = "$TYPE" ]; then
+    printf_red "\t\tSetting up for $OS"
+    case "$OS" in
+    linux*)
+      if [[ "$(uname)" =~ ^Linux ]]; then
+        shift 1
+        "$@"
+      else
+        exit
+      fi
+      ;;
+    mac* | darwin*)
+      if [[ "$(uname)" =~ ^Darwin ]]; then
+        shift 1
+        "$@"
+      else
+        exit
+      fi
+      ;;
+    win* | msys* | mingw* | cygwin*)
+      if [[ "$(uname)" =~ ^MING ]] || [[ "$(uname)" =~ ^MSYS ]]; then
+        shift 1
+        "$@"
+      else
+        exit
+      fi
+      ;;
+    *)
+      "$@"
+      ;;
+    esac
+  fi
+}
+
 ##################################################################################################
 
 # end
