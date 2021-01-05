@@ -739,6 +739,7 @@ install_required() {
 ##################################################################################################
 
 install_packages() {
+  local PATH=""$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin:"$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:."
   local MISSING=""
   if cmd_exists "pkmgr"; then
     for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
