@@ -989,22 +989,25 @@ unsupported_oses() {
 }
 
 if_os() {
-  local OS="$(echo $1 | tr '[:upper:]' '[:lower:]')"
-  [ "$OS" = darwin ] || [ "$OS" = macos ] && OS="$(echo mac | tr '[:upper:]' '[:lower:]')"
   local TYPE="$(uname | tr '[:upper:]' '[:lower:]')"
+  local OS="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
   [ "$TYPE" = darwin ] && TYPE="$(echo mac | tr '[:upper:]' '[:lower:]')"
+  [ "$OS" = darwin ] || [ "$OS" = macos ] && OS="$(echo mac | tr '[:upper:]' '[:lower:]')"
   if [ "$OS" = "$TYPE" ]; then
     case "$OS" in
     linux*)
       shift 1
+      printf_red "\t\tSetting up for Linux\n"
       "$@"
       ;;
     mac* | darwin*)
       shift 1
+      printf_red "\t\tSetting up for Mac\n"
       "$@"
       ;;
     win* | msys* | mingw* | cygwin*)
       shift 1
+      printf_red "\t\tSetting up for Windows\n"
       "$@"
       ;;
     *)
@@ -1330,6 +1333,8 @@ show_optvars() {
     printf_info "System Manager Repo:       $SYSTEMMGRREPO"
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
+    printf_info "PATH:                      $PATH"
+
     exit $?
   fi
 

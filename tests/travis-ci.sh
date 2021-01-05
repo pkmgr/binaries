@@ -51,11 +51,7 @@ if [[ "$OSTYPE" =~ ^linux ]]; then
 fi
 
 echo -e "\n\t\t-----------------------------------------------------\n"
-printf_green "pkmgr info"
-pkmgr info
-
-echo -e "\n\t\t-----------------------------------------------------\n"
-printf_green "Installing scripts"
+printf_green "Testing scripts install"
 sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.sh)"
 
 #echo -e "\n\t\t-----------------------------------------------------\n"
@@ -88,6 +84,10 @@ fontmgr install hack
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing wallpapermgr"
 wallpapermgr install casjay
+
+echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "printing pkmgr info"
+pkmgr info
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Printing help"
