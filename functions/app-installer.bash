@@ -743,6 +743,7 @@ install_packages() {
   local PATH+="$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin
   local PATH+=/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
   local MISSING=""
+  [ -z "$1" ] || exit
   if cmd_exists "pkmgr"; then
     for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
@@ -991,7 +992,7 @@ if_os() {
   local TYPE="$(uname | tr '[:upper:]' '[:lower:]')"
   [ "$TYPE" = darwin ] && TYPE="$(echo mac | tr '[:upper:]' '[:lower:]')"
   if [ "$OS" = "$TYPE" ]; then
-    printf_red "\t\tSetting up for $OS"
+    printf_red "\t\tSetting up for $OS\n"
     case "$OS" in
     linux*)
       if [[ "$(uname)" =~ ^Linux ]]; then
