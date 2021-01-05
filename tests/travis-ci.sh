@@ -52,7 +52,7 @@ fi
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "pkmgr info"
-pkmgr show_info
+pkmgr info
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Installing scripts"
