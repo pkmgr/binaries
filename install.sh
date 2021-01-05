@@ -85,7 +85,7 @@ sudoreq # sudo required
 #sudorun  # sudo optional
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if_os mac && APP="jq sudo "
+if_os mac && APP="jq sudo curl wget "
 if_os linux && APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python "
 if_os linux && APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli "
 PERL="CPAN "

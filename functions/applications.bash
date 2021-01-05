@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-export PATH="$(echo /usr/local/bin:$PATH:/usr/sbin:/sbin | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
+TMPPATH="$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin
+TMPPATH+="$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin
+TMPPATH+=/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
+
+export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 
 #trap '' err exit SIGINT SIGTERM
 export WHOAMI="${USER}"

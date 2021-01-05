@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+TMPPATH="$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin
+TMPPATH+="$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin
+TMPPATH+=/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
+
 APPNAME="${APPNAME:-app-installer}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -16,7 +20,7 @@ APPNAME="${APPNAME:-app-installer}"
 set -o pipefail
 trap '' ERR EXIT
 
-export PATH="$(echo $PATH:/usr/local/bin:/usr/bin:/user/games | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
+export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 export SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 export TMP="${TMP:-/tmp}"
 export TEMP="${TEMP:-/tmp}"
@@ -741,9 +745,6 @@ install_required() {
 
 install_packages() {
   [[ $# -eq 0 ]] && return 0
-  local PATH="$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin
-  local PATH+="$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin
-  local PATH+=/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
   local MISSING=""
   if cmd_exists "pkmgr"; then
     for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
