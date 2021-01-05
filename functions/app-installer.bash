@@ -995,33 +995,23 @@ if_os() {
     printf_red "\t\tSetting up for $OS\n"
     case "$OS" in
     linux*)
-      if [[ "$(uname)" =~ ^Linux ]]; then
-        shift 1
-        "$@"
-      else
-        exit
-      fi
+      shift 1
+      "$@"
       ;;
     mac* | darwin*)
-      if [[ "$(uname)" =~ ^Darwin ]]; then
-        shift 1
-        "$@"
-      else
-        exit
-      fi
+      shift 1
+      "$@"
       ;;
     win* | msys* | mingw* | cygwin*)
-      if [[ "$(uname)" =~ ^MING ]] || [[ "$(uname)" =~ ^MSYS ]]; then
-        shift 1
-        "$@"
-      else
-        exit
-      fi
+      shift 1
+      "$@"
       ;;
     *)
       "$@"
       ;;
     esac
+  else
+    return 1
   fi
 }
 
