@@ -1074,35 +1074,6 @@ unsupported_oses() {
   done
 }
 
-if_os() {
-  local OS="$(echo $1 | tr '[:upper:]' '[:lower:]')"
-  [ "$OS" = darwin ] || [ "$OS" = macos ] && OS="$(echo mac | tr '[:upper:]' '[:lower:]')"
-  local TYPE="$(uname | tr '[:upper:]' '[:lower:]')"
-  [ "$TYPE" = darwin ] && TYPE="$(echo mac | tr '[:upper:]' '[:lower:]')"
-  if [ "$OS" = "$TYPE" ]; then
-    printf_red "\t\tSetting up for $OS\n"
-    case "$OS" in
-    linux*)
-      shift 1
-      "$@"
-      ;;
-    mac* | darwin*)
-      shift 1
-      "$@"
-      ;;
-    win* | msys* | mingw* | cygwin*)
-      shift 1
-      "$@"
-      ;;
-    *)
-      "$@"
-      ;;
-    esac
-  else
-    return 1
-  fi
-}
-
 ##################################################################################################
 
 # end
