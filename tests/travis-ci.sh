@@ -35,8 +35,6 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main program
-echo -e "\n\t\t-----------------------------------------------------\n"
-sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.sh)"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Setting up git for push"
@@ -49,6 +47,10 @@ git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/font
 git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/thememgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to thememgr/installer" || printf_red "Failed to push to thememgr/installer"
 git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/systemmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to systemmgr/installer" || printf_red "Failed to push to systemmgr/installer"
 git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/wallpapermgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to wallpapermgr/installer" || printf_red "Failed to push to wallpapermgr/installer"
+
+echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "Installing scripts"
+sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.sh)"
 
 #echo -e "\n\t\t-----------------------------------------------------\n"
 #printf_green "Running system upgrade - pkmgr silent-upgrade"
