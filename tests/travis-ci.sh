@@ -51,6 +51,10 @@ if [[ "$OSTYPE" =~ ^linux ]]; then
 fi
 
 echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "pkmgr info"
+pkmgr show_info
+
+echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Installing scripts"
 sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.sh)"
 
