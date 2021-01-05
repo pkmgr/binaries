@@ -43,13 +43,13 @@ if [ "$*" = "--vdebug" ]; then
   mkdir -p "$LOGDIR/debug"
   touch "$LOGDIR/debug/$APPNAME.log" "$LOGDIR/debug/$APPNAME.err"
   chmod -Rf 755 "$LOGDIR/debug"
-  exec >> "$LOGDIR/debug/$APPNAME.debug" 2>&1
+  exec >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
   devnull() {
     "$@" >>"$LOGDIR/debug/$APPNAME.log" 2>>"$LOGDIR/debug/$APPNAME.err"
   }
-  devnull2() { 
+  devnull2() {
     "$@" 2>>"$LOGDIR/debug/$APPNAME.err" >/dev/null
-    }
+  }
 fi
 
 # fail if git is not installed
@@ -146,7 +146,7 @@ printf_execute_error_stream() { while read -r line; do printf_execute_error "↳
 
 printf_readline() {
   $(set -o pipefail)
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="3"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
   while read line; do
     printf_custom "$color" "$line"
   done
@@ -156,7 +156,7 @@ printf_readline() {
 ##################################################################################################
 
 printf_custom() {
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg" "$color"
@@ -176,7 +176,7 @@ printf_custom_input() {
 
 printf_custom_question() {
   local custom_question
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
@@ -186,7 +186,7 @@ printf_custom_question() {
 
 printf_question_timeout() {
   local custom_question
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
@@ -198,7 +198,7 @@ printf_question_timeout() {
 ##################################################################################################
 
 printf_head() {
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="6"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   local msg="$*"
   shift
   printf_color "
@@ -909,9 +909,9 @@ execute() {
   if [ $exitCode -ne 0 ]; then
     printf_execute_error_stream <"$TMP_FILE"
   fi
-  if [ "$*" = "--verbose" ] || [ "$*" = "--vdebug" ] ; then
+  if [ "$*" = "--verbose" ] || [ "$*" = "--vdebug" ]; then
     if [ -f "$TMP_FILE" ]; then
-      cat "$TMP_FILE" >> "$LOGDIR/debug/$APPNAME.debug"
+      cat "$TMP_FILE" >>"$LOGDIR/debug/$APPNAME.debug"
     fi
   fi
   rm -rf "$TMP_FILE"
@@ -1325,7 +1325,7 @@ installer_noupdate() {
 install_version() {
   mkdir -p "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/dotfiles"
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    if [ "$APPNAME"  = "installer" ] && [ -d "$CASJAYSDEVSAPPDIR/$PREFIX" ]; then
+    if [ "$APPNAME" = "installer" ] && [ -d "$CASJAYSDEVSAPPDIR/$PREFIX" ]; then
       ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/$PREFIX/scripts"
       ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-scripts"
     fi
@@ -1690,7 +1690,7 @@ run_postinst_global() {
 
 run_exit() {
   if [ ! -f "$APPDIR/.installed" ]; then
-    date '+Installed on: %m/%d/%y @ %H:%M:%S' > "$APPDIR/.installed"
+    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed"
   fi
 
   if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi

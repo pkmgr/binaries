@@ -97,7 +97,7 @@ printf_not_found() { if ! cmd_exists "$1"; then printf_exit "The $1 command is n
 ##################################################################################################
 
 printf_exit() {
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
@@ -108,7 +108,7 @@ printf_exit() {
 ##################################################################################################
 
 printf_help() {
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="2"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="2"
   printf_color "\t\t$1" "$color"
   echo ""
   exit 0
@@ -118,7 +118,7 @@ printf_help() {
 
 printf_readline() {
   set -o pipefail
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="3"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
   while read line; do
     printf_custom "$color" "$line"
   done
@@ -129,7 +129,7 @@ printf_readline() {
 
 printf_newline() {
   set -o pipefail
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="3"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
   while read line; do
     printf_color "\t\t$line\n" "$color"
   done
@@ -139,7 +139,7 @@ printf_newline() {
 ##################################################################################################
 
 printf_custom() {
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="3"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
   local msg="$*"
   shift
   printf_color "\t\t$msg" "$color"
@@ -150,7 +150,7 @@ printf_custom() {
 
 printf_custom_question() {
   local custom_question
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
@@ -165,7 +165,7 @@ printf_read_question() {
 ##################################################################################################
 
 printf_head() {
-  [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="6"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   local msg="$*"
   shift
   printf_color "
@@ -888,7 +888,7 @@ dfmgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -909,7 +909,7 @@ dockermgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -931,7 +931,7 @@ fontmgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$FONTDIR" "$HOMEDIR"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -953,7 +953,7 @@ iconmgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -974,7 +974,7 @@ pkmgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -997,7 +997,7 @@ systemmgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1019,7 +1019,7 @@ thememgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1041,7 +1041,7 @@ wallpapermgr_install() {
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-   APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
