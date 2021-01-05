@@ -67,7 +67,7 @@ sudo systemmgr install installer
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing systemmgr"
-systemmgr install ssl
+systemmgr install cron
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing dfmgr"
