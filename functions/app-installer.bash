@@ -56,14 +56,14 @@ fi
 
 if ! command -v "git" >/dev/null 2>&1; then
   echo -e "\t\t\033[0;31mAttempting to install git\033[0m"
-  if cmd_exists apt; then
+  if cmd_exists brew; then
+    brew install -f git >/dev/null 2>&1
+  elif cmd_exists apt; then
     apt install -yy -q git >/dev/null 2>&1
   elif cmd_exists pacman; then
     pacman -S --noconfirm git >/dev/null 2>&1
   elif cmd_exists yum; then
     yum install -yy -q git >/dev/null 2>&1
-  elif cmd_exists brew; then
-    brew install -f git >/dev/null 2>&1
   elif cmd_exists choco; then
     choco install git -y >/dev/null 2>&1
     if ! command -v git >/dev/null 2>&1; then
@@ -771,7 +771,7 @@ install_packages() {
     if [ ! -z "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
       if [ -f "$APPDIR/install.sh" ]; then
-        unlink -f "$APPDIR" || rm -Rf "$APPDIR"
+        unlink "$APPDIR" || rm -Rf "$APPDIR"
       fi
       set -eE
       exit 1
