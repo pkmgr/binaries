@@ -1241,7 +1241,7 @@ show_optvars() {
   fi
 
   path_info() {
-    echo "$PATH " | tr ':' '\n' | sort -u
+    echo "$PATH" | tr ':' '\n' | sort -u
   }
 
   if [ "$1" = "--location" ]; then
