@@ -26,7 +26,7 @@ APPNAME="${APPNAME:-app-installer}"
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-devnull() { "$@" >/dev/null 2>&1 || return $?; }
+devnull() { "$@" >/dev/null 2>&1 && return 0 || return $?; }
 
 # fail if git is not installed
 

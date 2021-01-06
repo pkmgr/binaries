@@ -329,7 +329,7 @@ script_run() {
     script_run_if_is_url "$1"
     /tmp/pkmgr-script.sh
   fi
-  sudo rm_rf "/tmp/pkmgr-script.sh"
+  rm_rf "/tmp/pkmgr-script.sh"
 }
 
 #---------------------------------------------------------------------------------------
@@ -349,7 +349,7 @@ __schedule() {
   remove)
     shift 1
     printf_green "Removing pkmgr schedule"
-    sudo rm_rf "$file" ||
+    rm_rf "$file" ||
       printf_error "Failed to remove $file"
     ;;
   add)
@@ -373,7 +373,7 @@ __schedule() {
         echo $MAILMESS | mail -r "$mailadmin" -s "pkmgr failed" "$mailadmin"
       fi
     fi
-    [ ! -f "$loggerfile.tmp" ] || sudo cat "$loggerfile.tmp" sudo | tee -a "$loggerfile" && sudo rm_rf "$loggerfile.tmp"
+    [ ! -f "$loggerfile.tmp" ] || sudo cat "$loggerfile.tmp" sudo | tee -a "$loggerfile" && rm_rf "$loggerfile.tmp"
     ;;
   *)
     [ -f "$file" ] && pkmgr cron remove || pkmgr cron add
@@ -482,7 +482,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f /tmp/pkmgr-curl.txt ]; then
-  sudo rm_rf /tmp/pkmgr-curl.txt
+  rm_rf /tmp/pkmgr-curl.txt
 fi
 
 #---------------------------------------------------------------------------------------
@@ -555,7 +555,7 @@ curl)
   for pkg in ${LISTARRAY[*]}; do
     execute "devnull $pkgmgrbininssil $pkg" "Installing $pkg"
   done
-  [ -z $VDEBUG ] && sudo rm_rf /tmp/pkmgr-curl.txt
+  [ -z $VDEBUG ] && rm_rf /tmp/pkmgr-curl.txt
   ;;
 
 dotfiles)
@@ -567,7 +567,7 @@ dotfiles)
   for pkg in ${LISTARRAY[*]}; do
     execute "devnull $pkgmgrbininssil $pkg" "Installing $pkg"
   done
-  [ -z $VDEBUG ] && sudo rm_rf /tmp/pkmgr-curl.txt
+  [ -z $VDEBUG ] && rm_rf /tmp/pkmgr-curl.txt
   ;;
 
 script)
