@@ -1001,7 +1001,7 @@ if_os() {
     fi
     ;;
   *)
-    "$@"
+    return 1
     ;;
   esac
 }

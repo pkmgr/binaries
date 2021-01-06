@@ -388,6 +388,27 @@ system_service_disable() {
   set --
 }
 
+is_online() {
+  return_code() {
+    if [ "$1" = 0 ]; then
+      return 0
+    else
+      return 1
+    fi
+  }
+  test_ping() {
+    timeout 0.3 ping -c1 8.8.8.8 &>/dev/null
+    local pingExit=$?
+    return_code $pingExit
+  }
+  test_http() {
+    curl -LSIs --max-time 1 http://1.1.1.1 | grep "HTTP/2 200" | head -n 1 &>/dev/null
+    local httpExit=$?
+    return_code $httpExit
+  }
+  test_ping || test_http
+}
+
 run_post() {
   local e="$1"
   local m="${e//devnull//}"
@@ -425,7 +446,7 @@ get_app_info() {
 
 ##################################################################################################
 
-#transmission-remote-cli() { cmd_exists transmission-remote-cli || cmd_exists transmission-remote; }
+#transmission-remote-cli() { cmd_exists transmission-remote-cli || cmd_exists transmission-remote || transmission; }
 
 ##################################################################################################
 
@@ -433,18 +454,22 @@ backupapp() {
   local filename count backupdir rmpre4vbackup
   [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
   [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/dotfiles}"
-  local filename="$myappname-$(date +%Y-%m-%d-%H-%M-%S).tar.gz"
+  local logdir="$HOME/.local/log/backupapp"
+  local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
+  local filename="$myappname-$curdate.tar.gz"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/apps/}"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
-  mkdir -p "$backupdir"
+  mkdir -p "$backupdir" "$logdir"
   if [ -e "$myappdir" ] && [ ! -d $myappdir/.git ]; then
-    echo "#################################" >>"$backupdir/$myappname.log"
-    echo "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$backupdir/$myappname.log"
-    echo "# Backing up $myappdir" >>"$backupdir/$myappname.log"
-    echo "#################################" >>"$backupdir/$myappname.log"
-    tar cfzv "$backupdir/$filename" "$myappdir" >>"$backupdir/$myappname.log" 2>&1 &&
-      echo -e "Backup has completed successfully\n#################################\n\n" >>"$backupdir/$myappname.log"
+    echo -e "#################################" >>"$logdir/$myappname.log"
+    echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
+    echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
+    echo -e "#################################\n" >>"$logdir/$myappname.log"
+    tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>&1
+    echo -e "\n#################################" >>"$logdir/$myappname.log"
+    echo -e "# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
+    echo -e "#################################\n\n" >>"$logdir/$myappname.log"
     rm -Rf "$myappdir"
   fi
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
@@ -1063,7 +1088,37 @@ os_support() {
 }
 
 supported_oses() {
-  return 0
+  if [[ $# -eq 0 ]]; then return 1; fi
+  for OSes in "$@"; do
+    UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    case "$1" in
+    linux)
+      if [[ "$UNAME" =~ ^linux ]]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+
+    mac*)
+      if [[ "$UNAME" =~ ^darwin ]]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    win*)
+      if [[ "$UNAME" =~ ^ming ]]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    *)
+      return 1
+      ;;
+    esac
+  done
 }
 
 unsupported_oses() {
