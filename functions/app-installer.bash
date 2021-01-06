@@ -970,12 +970,12 @@ os_support() {
     OSTYPE="$(uname -s | tr '[:upper:]' '[:lower:]')"
   fi
   case "$OSTYPE" in
-  linux*) echo "Linux" ;;
-  mac* | darwin*) echo "MacOS" ;;
-  win* | msys* | mingw* | cygwin*) echo "Windows" ;;
-  bsd*) echo "BSD" ;;
-  solaris*) echo "Solaris" ;;
-  *) echo "Unknown OS" ;;
+  linux*) echo "Linux" || return 1 ;;
+  mac* | darwin*) echo "MacOS" || return 1 ;;
+  win* | msys* | mingw* | cygwin*) echo "Windows" || return 1 ;;
+  bsd*) echo "BSD" || return 1 ;;
+  solaris*) echo "Solaris" || return 1 ;;
+  *) echo "Unknown OS" || return 1 ;;
   esac
 }
 
@@ -989,32 +989,40 @@ unsupported_oses() {
 }
 
 if_os() {
-  local TYPE="$(uname | tr '[:upper:]' '[:lower:]')"
-  local OS="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
-  [ "$TYPE" = darwin ] && TYPE="$(echo mac | tr '[:upper:]' '[:lower:]')"
-  [ "$OS" = darwin ] || [ "$OS" = macos ] && OS="$(echo mac | tr '[:upper:]' '[:lower:]')"
-  if [ "$OS" = "$TYPE" ]; then
-    case "$OS" in
-    linux*)
+  UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  case "$1" in
+  linux)
+    if [[ "$UNAME" =~ ^linux ]]; then
       shift 1
       printf_red "\t\tSetting up for Linux\n"
       "$@"
-      ;;
-    mac* | darwin*)
+    else
+      return 1
+    fi
+    ;;
+
+  mac*)
+    if [[ "$UNAME" =~ ^darwin ]]; then
       shift 1
       printf_red "\t\tSetting up for Mac\n"
       "$@"
-      ;;
-    win* | msys* | mingw* | cygwin*)
+    else
+      return 1
+    fi
+    ;;
+  win*)
+    if [[ "$UNAME" =~ ^ming ]]; then
       shift 1
       printf_red "\t\tSetting up for Windows\n"
       "$@"
-      ;;
-    *)
-      "$@"
-      ;;
-    esac
-  fi
+    else
+      return 1
+    fi
+    ;;
+  *)
+    "$@"
+    ;;
+  esac
 }
 
 ##################################################################################################
