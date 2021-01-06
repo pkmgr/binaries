@@ -296,7 +296,7 @@ backupapp() {
   local logdir="$HOME/.local/log/backupapp"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/dotfiles}"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/dotfiles/$PREFIX}"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   mkdir -p "$backupdir" "$logdir"
