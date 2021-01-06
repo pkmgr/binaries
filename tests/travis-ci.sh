@@ -71,11 +71,11 @@ sudo systemmgr install installer
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing systemmgr"
-systemmgr install cron
+systemmgr install cron ssh
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing dfmgr"
-dfmgr install bashtop
+dfmgr install bashtop neofetch
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing fontmgr"
