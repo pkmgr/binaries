@@ -2,7 +2,7 @@
 
 TMPPATH=""$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin:"
 TMPPATH+=""$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin:"
-TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
+TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:$PATH"
 
 APPNAME="${APPNAME:-app-installer}"
 
@@ -1241,7 +1241,7 @@ show_optvars() {
   fi
 
   path_info() {
-    echo "$PATH " | tr ':' '\n' | sort
+    echo "$PATH " | tr ':' '\n' | sort -u
   }
 
   if [ "$1" = "--location" ]; then
