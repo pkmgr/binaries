@@ -553,7 +553,7 @@ curl)
   PCKLIST="$(cat /tmp/pkmgr-curl.txt | grep -Ev '^$|^#' | sort -u | tr '\n' ' ' && echo)"
   declare -a LISTARRAY=$PCKLIST
   for pkg in ${LISTARRAY[*]}; do
-    execute "devnull $pkgmgrbininssil $pkg" "Installing $pkg"
+    execute "$pkgmgrbininssil $pkg" "Installing $pkg"
   done
   [ -z $VDEBUG ] && rm_rf /tmp/pkmgr-curl.txt
   ;;
@@ -565,7 +565,7 @@ dotfiles)
   PCKLIST="$(cat /tmp/pkmgr-curl.txt | grep -Ev '^$|^#' | sort -u | tr '\n' ' ' && echo)"
   declare -a LISTARRAY=$PCKLIST
   for pkg in ${LISTARRAY[*]}; do
-    execute "devnull $pkgmgrbininssil $pkg" "Installing $pkg"
+    execute "$pkgmgrbininssil $pkg" "Installing $pkg"
   done
   [ -z $VDEBUG ] && rm_rf /tmp/pkmgr-curl.txt
   ;;

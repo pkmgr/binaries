@@ -762,7 +762,8 @@ install_packages() {
 
     for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
-      printf_warning "Still missing: $MISSING"
+      printf_warning "Still missing:"
+      printf_warning "$MISSING"
       if cmd_exists yay; then
         pkmgr --enable-aur dotfiles "$APPNAME"
       else
