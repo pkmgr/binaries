@@ -362,7 +362,7 @@ cmd_exists() {
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
   for cmd in $LISTARRAY; do
-    unalias $cmd >/devnull 2>&1
+    unalias $cmd >/dev/null 2>&1
     type -P "$cmd" | grep -q "/" 2>/dev/null
   done
 }
@@ -387,6 +387,7 @@ system_service_disable() {
   setexitstatus
   set --
 }
+
 run_post() {
   local e="$1"
   local m="${e//devnull//}"
