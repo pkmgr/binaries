@@ -1016,6 +1016,7 @@ user_installdirs() {
     export INSTALL_TYPE=user
     if [[ "$OSTYPE" =~ ^darwin ]]; then
       export HOME="/usr/local/share/CasjaysDev/root"
+      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
     else
       export HOME="/root"
     fi
@@ -1078,6 +1079,7 @@ system_installdirs() {
     export INSTALL_TYPE=system
     if [[ "$OSTYPE" =~ ^darwin ]]; then
       export HOME="/usr/local/share/CasjaysDev/root"
+      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
     else
       export HOME="/root"
     fi
