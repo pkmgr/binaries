@@ -397,8 +397,13 @@ run_post() {
   set --
 }
 
-printclip() { cmd_exists xclip && xclip -o -s || return 1; }
-putclip() { cmd_exists xclip && xclip -i -sel c || return 1; }
+if [[ "$OSTYPE" =~ ^darwin ]]; then
+  printclip() { cmd_exists pbpaste && LC_CTYPE=UTF-8 tr -d "\n" | pbpaste || return 1; }
+  putclip() { cmd_exists pbcopy && LC_CTYPE=UTF-8 tr -d "\n" | pbcopy || return 1; }
+elif [[ "$OSTYPE" =~ ^linux ]]; then
+  printclip() { cmd_exists xclip && xclip -o -s; }
+  putclip() { cmd_exists xclip && xclip -i -sel c || return 1; }
+fi
 
 ##################################################################################################
 
@@ -702,7 +707,7 @@ check_app() {
     read -n 1 -s choice && echo
     if [[ $choice == "y" || $choice == "Y" ]]; then
       for miss in $MISSING; do
-        execute "pkmgr silent-install $miss" "Installing $miss" | printf_readline || return 1
+        execute "pkmgr silent-install $miss" "Installing $miss" || return 1
       done
     else
       return 1
