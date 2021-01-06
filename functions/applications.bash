@@ -362,7 +362,7 @@ cmd_exists() {
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
   for cmd in $LISTARRAY; do
-    unalias $cmd >/dev/null 2>&1
+    unalias $cmd 2>/dev/null >&1
     type -P "$cmd" | grep -q "/" 2>/dev/null
   done
 }
@@ -476,7 +476,7 @@ runapp() {
 
 cmdif() {
   local package=$1
-  devnull unalias "$package"
+  devnull2 unalias "$package"
   if devnull command -v "$package"; then return 0; else return 1; fi
 }
 perlif() {

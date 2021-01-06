@@ -51,6 +51,11 @@ pkmgr_install
 #---------------------------------------------------------------------------------------
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
+if [[ "$1" = "--vdebug" ]]; then
+  VDEBUG=true
+  shift 1
+  devnull() { "$@"; }
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -548,7 +553,7 @@ curl)
   for pkg in ${LISTARRAY[*]}; do
     execute "devnull $pkgmgrbininssil $pkg" "Installing $pkg"
   done
-  sudo rm -Rf /tmp/pkmgr-curl.txt
+  [ -z $VDEBUG ] && sudo rm -Rf /tmp/pkmgr-curl.txt
   ;;
 
 dotfiles)
@@ -560,7 +565,7 @@ dotfiles)
   for pkg in ${LISTARRAY[*]}; do
     execute "devnull $pkgmgrbininssil $pkg" "Installing $pkg"
   done
-  sudo rm -Rf /tmp/pkmgr-curl.txt
+  [ -z $VDEBUG ] && sudo rm -Rf /tmp/pkmgr-curl.txt
   ;;
 
 script)
