@@ -11,7 +11,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : DotFile manager
+# @Description : DotFiles manager
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

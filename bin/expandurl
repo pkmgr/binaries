@@ -38,11 +38,6 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-printclip() { xclip -o -s; }
-putclip() { xclip -i -sel c; }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 url="$1"
 
 [ ! -z "$1" ] || printf_help "Nothing to expand"
@@ -50,7 +45,7 @@ url="$1"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-check_app xclip
+check_app printclip || check_app putclip
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

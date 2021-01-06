@@ -66,12 +66,12 @@ curl -s http://api.ipstack.com/${PUBLIC_IP}?access_key=$IPSTACK_ACCESS_TOKEN |
     read -r COUNTRY
     read -r ZIP
     echo -e "\n\t\tLAT: ${LATITUDE}\n\t\tLON: ${LONGITUDE}\n\t\tCity: ${CITY}\n\t\tRegion: ${REGION}\n\t\tCountry: ${COUNTRY}\n\t\tZip: ${ZIP}" |
-      tr --delete \" >${OUTPUT_FILE}
+      tr -d \" >${OUTPUT_FILE}
   done
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-printf_green "$(cat "${OUTPUT_FILE}")"
+printf_green "$(cat "${OUTPUT_FILE}")\n"
 rm -Rf "${OUTPUT_FILE}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

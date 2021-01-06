@@ -44,7 +44,8 @@ CAL_CONFIG="$HOME/.config/local/calendar.local"
 if [ -f "$HOME/.config/local/calendar.local" ]; then
   source "$HOME/.config/local/calendar.local"
 else
-  echo '#Calendar Configuration
+  echo '
+#Calendar Configuration
 # directory for storing the events. Make sure this path exists
 eventpath="$HOME/.local/share/ics"
 # alter these to your most common location
