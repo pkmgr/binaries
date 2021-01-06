@@ -992,8 +992,7 @@ if_os() {
   case "$1" in
   linux)
     if [[ "$UNAME" =~ ^linux ]]; then
-      shift 1
-      "$@"
+      return 0
     else
       return 1
     fi
@@ -1001,16 +1000,14 @@ if_os() {
 
   mac*)
     if [[ "$UNAME" =~ ^darwin ]]; then
-      shift 1
-      "$@"
+      return 0
     else
       return 1
     fi
     ;;
   win*)
     if [[ "$UNAME" =~ ^ming ]]; then
-      shift 1
-      "$@"
+      return 0
     else
       return 1
     fi
