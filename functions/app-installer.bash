@@ -744,7 +744,7 @@ install_required() {
 ##################################################################################################
 
 install_packages() {
-  if [[ $* != "" ]]; then
+  if [ -n "$1" ]; then
     local MISSING=""
     if cmd_exists "pkmgr"; then
       for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
@@ -1080,8 +1080,8 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    #    USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
-    #    SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
   git_repo_urls
 }
@@ -1142,8 +1142,8 @@ system_installdirs() {
     export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    #    USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
-    #    SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
+    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
   git_repo_urls
 }
@@ -1347,7 +1347,7 @@ show_optvars() {
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
     for PATHS in $(path_info); do
-      printf_info "PATHS:                     $pathinfo"
+      printf_info "PATHS:                     $PATHS"
     done
     exit $?
   fi
