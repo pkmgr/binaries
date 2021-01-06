@@ -752,9 +752,9 @@ install_packages() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -u $USER pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudo -HEu $USER pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -u $USER pkmgr silent $miss" "Installing $miss"
+          execute "sudo -HEu $USER pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -765,9 +765,9 @@ install_packages() {
       printf_warning "Still missing:"
       printf_warning "$MISSING"
       if cmd_exists yay; then
-        sudo -u $USER pkmgr --enable-aur dotfiles "$APPNAME"
+        sudo -HEu $USER pkmgr --enable-aur dotfiles "$APPNAME"
       else
-        sudo -u $USER pkmgr dotfiles "$APPNAME"
+        sudo -HEu $USER pkmgr dotfiles "$APPNAME"
       fi
     fi
     unset MISSING
@@ -796,9 +796,9 @@ install_python() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -u $USER pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudo -HEu $USER pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -u $USER pkmgr silent $miss" "Installing $miss"
+          execute "sudo -HEu $USER pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -817,9 +817,9 @@ install_perl() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -u $USER pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudo -HEu $USER pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -u $USER pkmgr silent $miss" "Installing $miss"
+          execute "sudo -HEu $USER pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -837,7 +837,7 @@ install_pip() {
       printf_warning "Attempting to install missing pip packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER pkmgr pip $miss" "Installing $miss"
+        execute "sudo -HEu $USER pkmgr pip $miss" "Installing $miss"
       done
     fi
   fi
@@ -854,7 +854,7 @@ install_cpan() {
       printf_warning "Attempting to install missing cpan packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER pkmgr cpan $miss" "Installing $miss"
+        execute "sudo -HEu $USER pkmgr cpan $miss" "Installing $miss"
       done
     fi
   fi
@@ -871,7 +871,7 @@ install_gem() {
       printf_warning "Attempting to install missing gem packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER pkmgr gem $miss" "Installing $miss"
+        execute "sudo -HEu $USER pkmgr gem $miss" "Installing $miss"
       done
     fi
   fi
