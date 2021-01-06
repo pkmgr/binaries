@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-TMPPATH="$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin
-TMPPATH+="$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin
-TMPPATH+=/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.
+TMPPATH=""$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin:"
+TMPPATH+=""$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin:"
+TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:."
 
 APPNAME="${APPNAME:-app-installer}"
 
@@ -744,46 +744,44 @@ install_required() {
 ##################################################################################################
 
 install_packages() {
-  if [ -n "$1" ]; then
-    local MISSING=""
-    if cmd_exists "pkmgr"; then
-      for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
-      if [ ! -z "$MISSING" ]; then
-        printf_warning "Attempting to install missing packages"
-        printf_warning "$MISSING"
-        for miss in $MISSING; do
-          if cmd_exists yay; then
-            execute "pkmgr --enable-aur silent $miss" "Installing $miss"
-          else
-            execute "pkmgr silent $miss" "Installing $miss"
-          fi
-        done
-      fi
-      unset MISSING
-
-      for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
-      if [ ! -z "$MISSING" ]; then
-        printf_warning "Still missing: $MISSING"
+  local MISSING=""
+  if cmd_exists "pkmgr"; then
+    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+    if [ ! -z "$MISSING" ]; then
+      printf_warning "Attempting to install missing packages"
+      printf_warning "$MISSING"
+      for miss in $MISSING; do
         if cmd_exists yay; then
-          pkmgr --enable-aur dotfiles "$APPNAME"
+          execute "pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          pkmgr dotfiles "$APPNAME"
+          execute "pkmgr silent $miss" "Installing $miss"
         fi
-      fi
-      unset MISSING
+      done
+    fi
+    unset MISSING
 
-      for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
-      if [ ! -z "$MISSING" ]; then
-        printf_warning "Can not install the required packages for $APPNAME"
-        #if [ -f "$APPDIR/install.sh" ]; then
-        #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
-        #fi
-        #set -eE
-        return 1
+    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+    if [ ! -z "$MISSING" ]; then
+      printf_warning "Still missing: $MISSING"
+      if cmd_exists yay; then
+        pkmgr --enable-aur dotfiles "$APPNAME"
+      else
+        pkmgr dotfiles "$APPNAME"
       fi
     fi
     unset MISSING
+
+    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+    if [ ! -z "$MISSING" ]; then
+      printf_warning "Can not install the required packages for $APPNAME"
+      #if [ -f "$APPDIR/install.sh" ]; then
+      #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
+      #fi
+      #set -eE
+      return 1
+    fi
   fi
+  unset MISSING
 }
 
 ##################################################################################################
@@ -995,7 +993,6 @@ if_os() {
   linux)
     if [[ "$UNAME" =~ ^linux ]]; then
       shift 1
-      printf_red "\t\tSetting up for Linux\n"
       "$@"
     else
       return 1
@@ -1005,7 +1002,6 @@ if_os() {
   mac*)
     if [[ "$UNAME" =~ ^darwin ]]; then
       shift 1
-      printf_red "\t\tSetting up for Mac\n"
       "$@"
     else
       return 1
@@ -1014,7 +1010,6 @@ if_os() {
   win*)
     if [[ "$UNAME" =~ ^ming ]]; then
       shift 1
-      printf_red "\t\tSetting up for Windows\n"
       "$@"
     else
       return 1
@@ -1259,7 +1254,7 @@ show_optvars() {
   fi
 
   path_info() {
-    echo $PATH | tr ':' '\n'
+    echo "$PATH " | tr ':' '\n' | sort
   }
 
   if [ "$1" = "--location" ]; then
