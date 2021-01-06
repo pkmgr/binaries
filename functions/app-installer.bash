@@ -933,24 +933,11 @@ show_spinner() {
   local -r PID="$1"
   local i=0
   local frameText=""
-  if [ "$TRAVIS" != "true" ]; then
-    printf "\n\n\n"
-    tput cuu 3
-    tput sc
-  fi
   while kill -0 "$PID" &>/dev/null; do
-    frameText="                [ ${FRAMES:i++%NUMBER_OR_FRAMES:1} ] $MSG"
-    if [ "$TRAVIS" != "true" ]; then
-      printf "%s\n" "$frameText"
-    else
-      printf "%s" "$frameText"
-    fi
+    frameText="   [${FRAMES:i++%NUMBER_OR_FRAMES:1}] $MSG"
+    printf "%s" "$frameText"
     sleep 0.2
-    if [ "$TRAVIS" != "true" ]; then
-      tput rc
-    else
-      printf "\r"
-    fi
+    printf "\r"
   done
 }
 
