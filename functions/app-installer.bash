@@ -1257,6 +1257,10 @@ show_optvars() {
     exit $?
   fi
 
+  path_info() {
+    echo $PATH | tr ':' '\n'
+  }
+
   if [ "$1" = "--location" ]; then
     printf_info "AppName:                   $APPNAME"
     printf_info "Installed to:              $APPDIR"
@@ -1341,8 +1345,9 @@ show_optvars() {
     printf_info "System Manager Repo:       $SYSTEMMGRREPO"
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
-    printf_info "PATH:                      $PATH"
-
+    for PATHS in $(path_info); do
+      printf_info "PATHS:                     $pathinfo"
+    done
     exit $?
   fi
 
