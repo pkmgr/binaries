@@ -63,19 +63,19 @@ run_new_site() {
   printf_green "Enter the full path for your new project!"
   printf_custom_question "3" "Enter location for your new site - enter . for current: "
   read -r sitedir
-  [ ! -z "$sitedir" ] || cd "$sitedir"
+  [ ! -z "$sitedir" ] || cd "$sitedir" || exit 1
 
 }
 
 run_jekyll() {
   local appname=jekyll
   local project=jekyll
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   exit 0
 }
@@ -85,12 +85,12 @@ run_jekyll() {
 run_hugo() {
   local appname=hugo
   local project=hugo
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   exit 0
 }
@@ -100,12 +100,12 @@ run_hugo() {
 run_ruby() {
   local appname=ruby
   local project=ruby
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   exit 0
 }
@@ -115,12 +115,12 @@ run_ruby() {
 run_python() {
   local appname=python
   local project=python
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   exit 0
 }
@@ -130,12 +130,12 @@ run_python() {
 run_perl() {
   local appname=perl
   local project=perl
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   exit 0
 }
@@ -145,12 +145,12 @@ run_perl() {
 run_php() {
   local appname=php
   local project=php
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   exit 0
 }
@@ -160,13 +160,13 @@ run_php() {
 run_node() {
   local appname=node || appname=node || appname=npm
   local project=node
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || npm init
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   npm init
   exit 0
@@ -177,15 +177,15 @@ run_node() {
 run_vuecli() {
   local appname=vue
   local project=node
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
-  $appname create
+  "$appname" create
   exit 0
 }
 
@@ -194,13 +194,13 @@ run_vuecli() {
 run_reactcli() {
   local appname=create-react-app
   local project=javascript
-  cmd_exists $appname || printf_exit "$node is not installed"
+  cmd_exists "$appname" || printf_exit "$node is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   $appname
   exit 0
@@ -211,13 +211,13 @@ run_reactcli() {
 run_expresscli() {
   local appname=express-generator
   local project=javascript
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
-  if [[ $* = "--new" ]]; then echo "$projappnameect" && exit; fi
+  if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   $appname
   exit 0
@@ -228,15 +228,15 @@ run_expresscli() {
 run_create-project() {
   local appname=create-project
   local project=javascript
-  cmd_exists $appname || printf_exit "$appname is not installed"
+  cmd_exists "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$project" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
-  $appname
+  "$appname"
   exit 0
 }
 
@@ -245,13 +245,13 @@ run_create-project() {
 run_mevn() {
   local appname=mevn
   local project=javascript
-  cmd_exists $git || printf_exit "$git is not installed"
+  cmd_exists "$git" || printf_exit "$git is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$project" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "~/.config/screen/dev/$project" ]; then
-    screen -c ~/.config/screen/dev/$project
+  if [ -f "$HOME/.config/screen/dev/$project" ]; then
+    screen -c "$HOME/.config/screen/dev/$project"
   fi
   git clone -q https://github.com/icebob/vue-express-mongo-boilerplate ./
   exit 0

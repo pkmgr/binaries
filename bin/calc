@@ -42,7 +42,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ARG="$(echo "$1" | sed '/^$/d;s/[[:blank:]]//g' && set --)"
+ARG="$(echo "$*" | sed '/^$/d;s/[[:blank:]]//g' && set --)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -61,12 +61,10 @@ __help() {
 [ -z "$1" ] && __help
 [ "$1" = "--help" ] && __help && exit
 
-#if cmd_exists qalc; then
-#  qalc_app() { qalc "$ARG"; }
-
-if cmd_exists bc; then
-  qalc_app() { echo -n "$ARG = $(echo "$ARG" | bc -q)"; }
-
+if cmd_exists qalc; then
+  qalc_app() { qalc "$ARG"; }
+elif cmd_exists bc; then
+  qalc_app() { echo "$ARG = $(echo "$ARG" | bc -q)"; }
 else
   printf_exit "Can't find a calculator app!"
 fi

@@ -43,7 +43,7 @@ __help() {
   return 0
 }
 
-if [ $# -ne 2 ]; then printf_red "Not enough arguments given!" && __help; fi
+if [ $# -lt 2 ]; then printf_red "Not enough arguments given!" && __help; fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
@@ -53,31 +53,76 @@ check_app tar
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
-_run_backup() {
-  tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>&1 && printf_green "The Backup has completed successfully\n" || return 1
-}
-
 backupapp() {
-  local filename count backupdir rmpre4vbackup
-  [ ! -z "$2" ] && local myappdir="$@" || local myappdir="$APPDIR"
-  [ ! -z "$1" ] && local myappname="$1" && shift 1 || local myappname="$APPNAME"
-  local logdir="$HOME/.local/log"
+
+  local filename count backupdir rmpre4vbackup myappdirtmp
+  [ ! -z "$2" ] && local myappdir="$*" || local myappdir="$APPDIR"
+  [ ! -z "$1" ] && local myappname="$1" && shift || local myappname="$APPNAME"
+  local logdir="$HOME/.local/log/backups"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
   local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/apps}"
-  local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
-  local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   mkdir -p "$backupdir" "$logdir"
-  if [ -e "$myappdir" ]; then
-    echo "#################################" >>"$logdir/$myappname.log" &&
-      echo "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log" &&
-      echo "# Backing up $myappdir" >>"$logdir/$myappname.log" &&
-      echo "#################################" >>"$logdir/$myappname.log" &&
-      _run_backup &&
-      echo -e "\n#################################\n# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')\n#################################\n\n" >>"$logdir/$myappname.log" ||
-      printf_exit "The backup has failed to complete.\n\t\tMore information can be found in the log file:\n\t\t$backupdir/$myappname.log\n"
+
+  _run_header() {
+    printf_green "Starting backup"
+    echo -e "##################################################################" >>"$logdir/$myappname.log"
+    echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
+    echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
+    echo -e "##################################################################\n" >>"$logdir/$myappname.log"
+  }
+
+  _run_footer() {
+    echo -e "\n##################################################################" >>"$logdir/$myappname.log"
+    echo -e "#Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
+    echo -e "##################################################################\n\n" >>"$logdir/$myappname.log"
+    if [ "$exitCode" = 0 ]; then
+      printf_green "The backup has completed successfully."
+      printf_green "Saved to: $backupdir/$filename"
+    else
+      printf_red "The backup has failed to complete."
+      printf_red "More information can be found in the log file:"
+      printf_exit "$logdir/$myappname.log"
+    fi
+  }
+
+  _run_backup() {
+    tar cfzv "$backupdir/$filename" $backupfiles >>"$logdir/$myappname.log" 2>&1 || return 1
+    exitCode=$?
+  }
+
+  _cleanup() {
+    local leaveCount=5
+    local fileCount=$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)
+    local removeoldbackups=$(ls $backupdir/$myappname*.tar.gz 2>/dev/null)
+
+    tailCount=$((fileCount - leaveCount))
+    ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+  }
+
+  check_file_dir() {
+    if [ -L "$1" ] || [ -f "$1" ] || [ -d "$1" ]; then
+      return 0
+    else
+      return 1
+    fi
+  }
+
+  for d in $myappdir; do
+    check_file_dir "$d" && backupfiles+="$d " || backupfiles+=""
+  done
+
+  if [ -n "$backupfiles" ]; then
+    _run_header
+    _run_backup
+    _run_footer
+    _cleanup
+  else
+    printf_red "Nothing to back up"
+    printf_green "$backupfiles"
+    return 1
   fi
-  if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
+
 }
 
 backupapp "$@"

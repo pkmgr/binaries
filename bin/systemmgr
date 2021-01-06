@@ -48,13 +48,15 @@ SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-API="$(curl -s "https://api.github.com/orgs/systemmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+if cmd_exists jq; then
+  API="$(curl -s "https://api.github.com/orgs/systemmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+fi
 
 __help() {
   printf_green "
 \t\tA Package Manager for all systems   |   Usage: sudo systemmgr command
 \t\tsystemmgr version              - show the version info      | IE: systemmgr version tor
-\t\tsystemmgr list                 - list installed packages    | IE: systemmgr list 
+\t\tsystemmgr list                 - list installed packages    | IE: systemmgr list
 \t\tsystemmgr search               - search for a package       | IE: systemmgr search postfix
 \t\tsystemmgr install              - install a package          | IE: systemmgr install cron
 \t\tsystemmgr remove               - remove a package           | IE: systemmgr remove tor
@@ -143,7 +145,7 @@ update)
         if urlcheck $REPO/$updadmin/raw/master/install.sh; then
           printf_yellow "Initializing the installer from"
           printf_purple "$REPO/$updadmin"
-          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)" 2>/dev/null
+          sudo -HE bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)" 2>/dev/null
           getexitcode "$updadmin has been installed"
         else
           urlinvalid $REPO/$updadmin/raw/master/install.sh
@@ -153,7 +155,7 @@ update)
     fi
 
   else
-    sudo systemmgr install "$@"
+    sudo -HE systemmgr install "$@"
   fi
   ;;
 
@@ -165,7 +167,7 @@ install)
     if urlcheck $REPO/$ins/raw/master/install.sh; then
       printf_yellow "Initializing the installer from"
       printf_purple "$REPO/$ins"
-      sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" 2>/dev/null
+      sudo -HE bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" 2>/dev/null
       getexitcode "$ins has been installed"
     else
       urlinvalid $REPO/$ins/raw/master/install.sh
@@ -179,7 +181,7 @@ cron)
   if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
     file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
     if [ -f "$file" ]; then
-      sudo $file --cron
+      sudo -HE $file --cron
     fi
   fi
   ;;
