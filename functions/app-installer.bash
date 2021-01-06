@@ -744,45 +744,46 @@ install_required() {
 ##################################################################################################
 
 install_packages() {
-  [[ $# -eq 0 ]] && return 0
-  local MISSING=""
-  if cmd_exists "pkmgr"; then
-    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
-      printf_warning "Attempting to install missing packages"
-      printf_warning "$MISSING"
-      for miss in $MISSING; do
-        if cmd_exists yay; then
-          execute "pkmgr --enable-aur silent $miss" "Installing $miss"
-        else
-          execute "pkmgr silent $miss" "Installing $miss"
-        fi
-      done
-    fi
-    unset MISSING
+  if [[ $* != "" ]]; then
+    local MISSING=""
+    if cmd_exists "pkmgr"; then
+      for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+      if [ ! -z "$MISSING" ]; then
+        printf_warning "Attempting to install missing packages"
+        printf_warning "$MISSING"
+        for miss in $MISSING; do
+          if cmd_exists yay; then
+            execute "pkmgr --enable-aur silent $miss" "Installing $miss"
+          else
+            execute "pkmgr silent $miss" "Installing $miss"
+          fi
+        done
+      fi
+      unset MISSING
 
-    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
-      printf_warning "Still missing: $MISSING"
-      if cmd_exists yay; then
-        pkmgr --enable-aur dotfiles "$APPNAME"
-      else
-        pkmgr dotfiles "$APPNAME"
+      for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+      if [ ! -z "$MISSING" ]; then
+        printf_warning "Still missing: $MISSING"
+        if cmd_exists yay; then
+          pkmgr --enable-aur dotfiles "$APPNAME"
+        else
+          pkmgr dotfiles "$APPNAME"
+        fi
+      fi
+      unset MISSING
+
+      for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+      if [ ! -z "$MISSING" ]; then
+        printf_warning "Can not install the required packages for $APPNAME"
+        #if [ -f "$APPDIR/install.sh" ]; then
+        #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
+        #fi
+        #set -eE
+        return 1
       fi
     fi
     unset MISSING
-
-    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
-      printf_warning "Can not install the required packages for $APPNAME"
-      #if [ -f "$APPDIR/install.sh" ]; then
-      #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
-      #fi
-      #set -eE
-      return 1
-    fi
   fi
-  unset MISSING
 }
 
 ##################################################################################################

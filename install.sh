@@ -86,8 +86,8 @@ sudoreq # sudo required
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if_os mac && APP="jq sudo curl wget "
-if_os linux && APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python "
-if_os linux && APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli "
+if_os linux && APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python " &&
+  APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli "
 PERL="CPAN "
 PYTH="pip "
 PIPS=""
