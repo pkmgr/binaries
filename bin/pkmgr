@@ -290,12 +290,12 @@ cpan_run() {
         sudo curl -LSs "$cpanconf" -o "$cpanfile" &&
         sudo touch "$cpandir/.init" || exit 1
     fi
-    bash -c "sudo cpan notest install $@" | printf_readline
+    bash -c "sudo cpan notest install $*" | printf_readline
   fi
 }
 
 cpan_remove() {
-  bash -c "sudo cpan --uninstall $@" | printf_readline
+  bash -c "sudo cpan --uninstall $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
