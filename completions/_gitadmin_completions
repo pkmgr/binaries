@@ -6,7 +6,7 @@
 # autocomplete for gitadmin
 
 _gitadmin_completions() {
-  mkdir -p "$HOME/Projects/github" >/dev/null 2>&1
+  mkdir -p "$HOME/Projects" >/dev/null 2>&1
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitadmin/array)"
@@ -22,15 +22,27 @@ _gitadmin_completions() {
     ;;
 
   push)
-    projdir="$(ls -d $HOME/Projects/*/*/*)"
-    COMPREPLY=($(compgen -W '${projdir}' -- "$cur"))
-    return 1
+    k=0
+    i="$HOME/Projects"
+    for d in $(ls -d $i/*); do
+      for j in $(compgen -f "$d/$cur"); do
+        [ -d "$j" ] && j="${j}"
+        COMPREPLY[k++]=${j}
+      done
+    done
+    return 0
     ;;
 
   pull)
-    projdir="$(ls -d $HOME/Projects/*/*/*)"
-    COMPREPLY=($(compgen -W '${projdir}' -- "$cur"))
-    return 1
+    k=0
+    i="$HOME/Projects"
+    for d in $i/*; do
+      for j in $(compgen -f "$d/$cur"); do
+        [ -d "$j" ] && j="${j} "
+        COMPREPLY[k++]=${j}
+      done
+    done
+    return 0
     ;;
 
   clone)
@@ -40,10 +52,12 @@ _gitadmin_completions() {
 
   --org)
     k=0
-    i="$HOME/Projects/github"
-    for j in $(compgen -f "$i/$cur"); do
-      [ -d "$j" ] && j="${j} "
-      COMPREPLY[k++]=${j#$i/}
+    i="$HOME/Projects"
+    for d in $i/*; do
+      for j in $(compgen -f "$d/$cur"); do
+        [ -d "$j" ] && j="${j}"
+        COMPREPLY[k++]=${j#$d/}
+      done
     done
     return 0
     ;;

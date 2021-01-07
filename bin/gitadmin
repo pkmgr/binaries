@@ -54,9 +54,11 @@ unset PREVREPO
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # cd into directory
 cd_into() {
-  cd "$1" && printf_green "Changing the directory to $1" &&
-    printf_green "Type exit to return to your previous directory" &&
-    exec bash || exit 1
+  if [ $PWD != $1 ]; then
+    cd "$1" && printf_green "Changing the directory to $1" &&
+      printf_green "Type exit to return to your previous directory" &&
+      exec bash || exit 1
+  fi
 }
 
 export -f cd_into
@@ -432,6 +434,7 @@ git_push_single() {
       return 1
     fi
   fi
+  exit $?
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -450,6 +453,7 @@ git_pull_single() {
       return 1
     fi
   fi
+  exit $?
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -462,8 +466,9 @@ git_clone_single() {
     git_pull_single "$projdir" | printf_readline "6"
   else
     git clone "$1" "$projdir" | printf_readline "6"
+    cd_into "$projdir"
   fi
-  cd_into "$projdir"
+  exit $?
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
