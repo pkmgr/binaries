@@ -443,14 +443,14 @@ __help() {
 #---------------------------------------------------------------------------------------
 
 __aliases() {
-  echo -e '
+  echo -e "
   alias apt='sudo -HE $APPNAME'
   alias apt-get='sudo -HE $APPNAME'
   alias dnf='sudo -HE $APPNAME'
   alias yum='sudo -HE $APPNAME'
   alias pacman='sudo -HE $APPNAME'
   alias brew='sudo -HE -u $USER $APPNAME'
-  '
+  "
 }
 
 #---------------------------------------------------------------------------------------
