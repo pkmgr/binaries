@@ -122,20 +122,20 @@ printf_purple() { printf_color "$1" 5; }
 printf_yellow() { printf_color "$1" 3; }
 printf_blue() { printf_color "$1" 4; }
 printf_cyan() { printf_color "$1" 6; }
-printf_info() { printf_color "\t\t[ ℹ️ ] $1\n" 3; }
+printf_info() { printf_color "\t\t[ ?? ] $1\n" 3; }
 printf_exit() {
   printf_color "\t\t$1\n" 1
   exit 1
 }
 printf_help() { printf_color "\t\t$1\n" 1; }
 printf_read() { printf_color "\t\t$1" 5; }
-printf_success() { printf_color "\t\t[ ✔ ] $1\n" 2; }
-printf_error() { printf_color "\t\t[ ✖ ] $1 $2\n" 1; }
-printf_warning() { printf_color "\t\t[ ❗ ] $1\n" 3; }
-printf_question() { printf_color "\t\t[ ❓ ] $1 [❓] " 6; }
-printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
-printf_execute_success() { printf_color "\t\t[ ✔ ] $1 \n" 2; }
-printf_execute_error() { printf_color "\t\t[ ✖ ] $1 $2 \n" 1; }
+printf_success() { printf_color "\t\t[ ? ] $1\n" 2; }
+printf_error() { printf_color "\t\t[ ? ] $1 $2\n" 1; }
+printf_warning() { printf_color "\t\t[ ? ] $1\n" 3; }
+printf_question() { printf_color "\t\t[ ? ] $1 [?] " 6; }
+printf_error_stream() { while read -r line; do printf_error "? ERROR: $line"; done; }
+printf_execute_success() { printf_color "\t\t[ ? ] $1 \n" 2; }
+printf_execute_error() { printf_color "\t\t[ ? ] $1 $2 \n" 1; }
 printf_execute_result() {
   if [ "$1" -eq 0 ]; then
     printf_execute_success "$2"
@@ -144,7 +144,7 @@ printf_execute_result() {
   fi
   return "$1"
 }
-printf_execute_error_stream() { while read -r line; do printf_execute_error "↳ ERROR: $line"; done; }
+printf_execute_error_stream() { while read -r line; do printf_execute_error "? ERROR: $line"; done; }
 
 ##################################################################################################
 
@@ -497,10 +497,10 @@ __getphpver() {
 ##################################################################################################
 
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; }
-sudorun() { if sudoif; then sudo -HE "$@"; else "$@"; fi; }
+sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
 sudorerun() {
   local ARGS="$ARGS"
-  if [[ $UID != 0 ]]; then if sudoif; then sudo -HE "$APPNAME" "$ARGS" && exit $?; else sudoreq; fi; fi
+  if [[ $UID != 0 ]]; then if sudoif; then sudo "$APPNAME" "$ARGS" && exit $?; else sudoreq; fi; fi
 }
 sudoreq() { if [[ $UID != 0 ]]; then
   echo "" && printf_error "Please run this script with sudo"
@@ -752,9 +752,9 @@ install_packages() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -HEu $USER pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudou $USER pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -HEu $USER pkmgr silent $miss" "Installing $miss"
+          execute "sudou $USER pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -765,9 +765,9 @@ install_packages() {
       printf_warning "Still missing:"
       printf_warning "$MISSING"
       if cmd_exists yay; then
-        sudo -HEu $USER pkmgr --enable-aur dotfiles "$APPNAME"
+        sudou $USER pkmgr --enable-aur dotfiles "$APPNAME"
       else
-        sudo -HEu $USER pkmgr dotfiles "$APPNAME"
+        sudou $USER pkmgr dotfiles "$APPNAME"
       fi
     fi
     unset MISSING
@@ -796,9 +796,9 @@ install_python() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -HEu $USER pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudou $USER pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -HEu $USER pkmgr silent $miss" "Installing $miss"
+          execute "sudou $USER pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -817,9 +817,9 @@ install_perl() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -HEu $USER pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudou $USER pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -HEu $USER pkmgr silent $miss" "Installing $miss"
+          execute "sudou $USER pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -837,7 +837,7 @@ install_pip() {
       printf_warning "Attempting to install missing pip packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -HEu $USER pkmgr pip $miss" "Installing $miss"
+        execute "sudou $USER pkmgr pip $miss" "Installing $miss"
       done
     fi
   fi
@@ -854,7 +854,7 @@ install_cpan() {
       printf_warning "Attempting to install missing cpan packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -HEu $USER pkmgr cpan $miss" "Installing $miss"
+        execute "sudou $USER pkmgr cpan $miss" "Installing $miss"
       done
     fi
   fi
@@ -871,7 +871,7 @@ install_gem() {
       printf_warning "Attempting to install missing gem packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -HEu $USER pkmgr gem $miss" "Installing $miss"
+        execute "sudou $USER pkmgr gem $miss" "Installing $miss"
       done
     fi
   fi
@@ -1075,7 +1075,7 @@ system_installdirs() {
 
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     #printf_info "Install Type: system - ${WHOAMI}"
-    #printf_red "\t\tInstalling as root ❓\n"
+    #printf_red "\t\tInstalling as root ?\n"
     export INSTALL_TYPE=system
     if [[ "$OSTYPE" =~ ^darwin ]]; then
       export HOME="/usr/local/share/CasjaysDev/root"
