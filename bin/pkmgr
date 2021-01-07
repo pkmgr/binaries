@@ -182,11 +182,11 @@ Darwin)
     pkgmgrbinins="sudo -HE -u $USER brew install"        #
     pkgmgrbininssil="sudo -HE -u $USER brew install -f " #
     pkgmgrbinremsil="sudo -HE -u $USER brew remove -f "  #
-    pkgmgrbinupdsil="sudo -HE -u $USER brew update -f "  #
-    pkgmgrbinupdcron="sudo -HE -u $USER brew update -f " #
+    pkgmgrbinupdsil="sudo -HE -u $USER brew upgrade -f "  #
+    pkgmgrbinupdcron="sudo -HE -u $USER brew upgrade -f " #
     pkgmgrbindel="sudo -HE -u $USER brew remove "        #
     pkgmgrbinsea="sudo -HE -u $USER brew search "        #
-    pkgmgrbinupd="sudo -HE -u $USER brew update "        #
+    pkgmgrbinupd="sudo -HE -u $USER brew upgrade "        #
     pkgmgrbincle="sudo -HE -u $USER brew cleanup "       #
     pkgmgrbincac="sudo -HE -u $USER brew update "        #
     pkgmgrexport() { sudo -HE -u $USER brew list | sort -u; }
