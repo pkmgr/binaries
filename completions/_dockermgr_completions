@@ -8,8 +8,8 @@
 _dockermgr_completions() {
   local cur prev words cword
   local prefix=dockermgr
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/prefix/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/prefix/list)"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/list)"
 
   local cur prev words cword split
   _init_completion -s || return
@@ -40,7 +40,7 @@ _dockermgr_completions() {
       ;;
     update)
       k=0
-      i="$HOME/.local/share/CasjaysDev/apps/prefix"
+      i="$HOME/.local/share/CasjaysDev/apps/$prefix"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
