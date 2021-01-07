@@ -45,7 +45,8 @@ fi
 USERNAME="$2"
 TOKEN="$GITHUB_ACCESS_TOKEN"
 REPO_URL="https://github.com/$USERNAME"
-PROJECT_DIR="${GITHUB_PROJECT_DIR:-$HOME/Projects/github}"
+PROJECT_BASE="$HOME/Projects"
+PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
 WTFLICENSE="${MYLICENSE:-https://github.com/casjay/resources/raw/master/license/wtfpl.md}"
 unset PREVREPO
@@ -419,13 +420,14 @@ main() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 git_push_single() {
+  [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d ./.git ]; then
     git push
   else
     get_username_repo "$1"
-    [ -n "$1" ] && baserepo="$1" || baserepo="$PROJECT_DIR/$username/$userrepo"
-    if [ -d "$baserepo" ]; then 
-      git -C "$baserepo" push 
+    [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
+    if [ -d "$projdir/.git" ]; then 
+      git -C "$projdir" push 
     else
       return 1
     fi
@@ -435,13 +437,14 @@ git_push_single() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 git_pull_single() {
+  [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d ./.git ]; then
     git pull
   else
     get_username_repo "$1"
-    [ -n "$1" ] && baserepo="$1" || baserepo="$PROJECT_DIR/$username/$userrepo"
-    if [ -d "$baserepo" ]; then 
-      git -C "$baserepo" pull 
+    [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
+    if [ -d "$projdir/.git" ]; then 
+      git -C "$projdir" pull 
     else
       return 1
     fi
@@ -451,13 +454,13 @@ git_pull_single() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 git_clone_single() {
+  [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
   get_username_repo "$1"
-  get_githost "$1"
-  [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_DIR/$username/$userrepo"
+  [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
   if [ -d "$projdir" ]; then 
     git_pull_single "$projdir"
   else
-    git clone "$1" "$projdir/$username/$userrepo"
+    git clone "$1" "$projdir"
   fi
   cd
 }
