@@ -37,9 +37,7 @@ sudo git -C /usr/local/share/CasjaysDev/scripts pull
 ```
   
   
-<p align=center>
-    <a href="https://travis-ci.com/casjay-dotfiles/scripts" target="_blank"><img alt="Qries" src="https://travis-ci.com/casjay-dotfiles/scripts.svg?branch=master"><br /> <br />
-
+<p align="center">
   <a href="https://github.com/dfmgr" target="_blank">dotfiles</a>  |
   <a href="https://github.com/fontmgr" target="_blank">fonts</a>  |  
   <a href="https://github.com/iconmgr" target="_blank">icons</a>  |  
@@ -51,5 +49,7 @@ sudo git -C /usr/local/share/CasjaysDev/scripts pull
   
   
 <p align=center>
-  <a href="https://github.com/systemmgr/installer" target="_blank">scripts site</a><br />
+  <a href="https://github.com/systemmgr/installer" target="_blank">scripts site</a><br /><br />
+  <a href="https://travis-ci.com/casjay-dotfiles/scripts" target="_blank"><img alt="Qries" src="https://travis-ci.com/casjay-dotfiles/scripts.svg?branch=master"><br> <br>
+
 </p>  
