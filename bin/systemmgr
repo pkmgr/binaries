@@ -69,7 +69,7 @@ __help() {
 
 preupdate(){ 
 if [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
-  git -C /usr/local/share/CasjaysDev/scripts pull -q 
+  sudo git -C /usr/local/share/CasjaysDev/scripts pull -q 
   [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi    
 }
