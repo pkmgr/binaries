@@ -11,7 +11,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : DotFiles manager
+# @Description : DotFiles ManaGeR
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,20 +42,28 @@ dfmgr_install
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-API="$(curl -s "https://api.github.com/orgs/dfmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+if cmd_exists jq; then
+  API="$(curl -s "https://api.github.com/orgs/dfmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+fi
 
 __help() {
   printf_help "\n
 \t\tA DotFiles Manager for all systems   |   Usage: dfmgr command
 \t\tdfmgr version              - show the version info           | IE: dfmgr version bash
+\t\tdfmgr available            - list available dotfiles         | IE: dfmgr available
 \t\tdfmgr list                 - list installed dotfiles         | IE: dfmgr list
 \t\tdfmgr search               - find a dotfile                  | IE: dfmgr search geany
 \t\tdfmgr install              - install a dotfile               | IE: dfmgr install vim
 \t\tdfmgr update               - update the dotfiles             | IE: dfmgr update
+\t\tdfmgr personal             - update personal dotfiles        | IE: dfmgr personal
 "
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+dfmgr_available() {
+  printf_custom "4" "$API"
+}
 
 dfmgr_list() {
   if [ -n "$1" ]; then
@@ -109,6 +117,27 @@ dfmgr_instupdate() {
   done
 }
 
+df_personal() {
+  shift 1
+  dir="$HOME/.local/dotfiles/personal"
+  if [ -f "$dir/install.sh" ]; then
+    bash -c "$dir/install.sh"
+    getexitcode "Personal dotfiles has been updated"
+  elif [ -f "$dir/update.sh" ]; then
+    bash -c "$dir/update.sh"
+    getexitcode "Personal dotfiles has been updated"
+  elif [ -d "$dir/.git" ]; then
+    printf_purple "Updating your personal files"
+    git -C "$dir" pull -q &&
+      cp -Rfa "$dir"/etc/skel/. ~/ &&
+      gpg --import "$dir"/tmp/*.gpg 2>/dev/null
+    gpg --import "$dir"/tmp/*.sec 2>/dev/null &&
+      gpg --import-ownertrust "$dir"/tmp/*.trust 2>/dev/null
+    getexitcode "Personal dotfiles has been updated"
+  else
+    printf_red "Can't install your personal dotfiles"
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
@@ -116,7 +145,7 @@ case "$1" in
 help | h | --h*)
   __help
   ;;
-
+  
 list)
   shift 1
   dfmgr_list "$@"
@@ -125,6 +154,16 @@ list)
 search)
   shift 1
   dfmgr_search "$@"
+  ;;
+
+available)
+  shift 1
+  available
+  ;;
+
+personal)
+  shift 1
+  df_personal
   ;;
 
 install)
