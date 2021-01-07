@@ -35,6 +35,8 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+printf_green "Current working dir: $PWD"
+
 # main program
 if [ -d "$HOME/casjay-dotfiles/scripts" ] && [ -n $GITHUB_API_KEY ]; then
   if [[ "$OSTYPE" =~ ^linux ]]; then
