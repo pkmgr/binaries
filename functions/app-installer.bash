@@ -837,7 +837,7 @@ install_pip() {
       printf_warning "Attempting to install missing pip packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER pkmgr pip $miss" "Installing $miss"
+        execute "sudo -u $USER "PATH=$PATH" pkmgr pip $miss" "Installing $miss"
       done
     fi
   fi
@@ -854,7 +854,7 @@ install_cpan() {
       printf_warning "Attempting to install missing cpan packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER pkmgr cpan $miss" "Installing $miss"
+        execute "sudo -u $USER "PATH=$PATH" pkmgr cpan $miss" "Installing $miss"
       done
     fi
   fi
@@ -871,7 +871,7 @@ install_gem() {
       printf_warning "Attempting to install missing gem packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER pkmgr gem $miss" "Installing $miss"
+        execute "sudo -u $USER "PATH=$PATH" pkmgr gem $miss" "Installing $miss"
       done
     fi
   fi
