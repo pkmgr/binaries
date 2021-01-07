@@ -177,19 +177,19 @@ Linux)
   ;;
 Darwin)
   if [ -f "$(command -v brew)" ]; then
-    dotfilesrepo="$REPODF/brew"                       #
-    pkgmgrbin="sudo -HE $USER brew"                   #
-    pkgmgrbinins="sudo -HE $USER brew install"        #
-    pkgmgrbininssil="sudo -HE $USER brew install -f " #
-    pkgmgrbinremsil="sudo -HE $USER brew remove -f "  #
-    pkgmgrbinupdsil="sudo -HE $USER brew update -f "  #
-    pkgmgrbinupdcron="sudo -HE $USER brew update -f " #
-    pkgmgrbindel="sudo -HE $USER brew remove "        #
-    pkgmgrbinsea="sudo -HE $USER brew search "        #
-    pkgmgrbinupd="sudo -HE $USER brew update "        #
-    pkgmgrbincle="sudo -HE $USER brew cleanup "       #
-    pkgmgrbincac="sudo -HE $USER brew update "        #
-    pkgmgrexport() { sudo -HE $USER brew list | sort -u; }
+    dotfilesrepo="$REPODF/brew"                          #
+    pkgmgrbin="sudo -HE -u $USER brew"                   #
+    pkgmgrbinins="sudo -HE -u $USER brew install"        #
+    pkgmgrbininssil="sudo -HE -u $USER brew install -f " #
+    pkgmgrbinremsil="sudo -HE -u $USER brew remove -f "  #
+    pkgmgrbinupdsil="sudo -HE -u $USER brew update -f "  #
+    pkgmgrbinupdcron="sudo -HE -u $USER brew update -f " #
+    pkgmgrbindel="sudo -HE -u $USER brew remove "        #
+    pkgmgrbinsea="sudo -HE -u $USER brew search "        #
+    pkgmgrbinupd="sudo -HE -u $USER brew update "        #
+    pkgmgrbincle="sudo -HE -u $USER brew cleanup "       #
+    pkgmgrbincac="sudo -HE -u $USER brew update "        #
+    pkgmgrexport() { sudo -HE -u $USER brew list | sort -u; }
   fi
   ;;
 CYGWIN* | MINGW32* | MSYS* | MINGW*)
@@ -239,9 +239,9 @@ fi
 
 pip_run() {
   if cmd_exists pip3; then
-    bash -c "sudo pip3 install --upgrade $*" | printf_readline
+    bash -c "sudo pip3 install --upgrade $* 2>/dev/null" | printf_readline
   elif cmd_exists pip; then
-    bash -c "sudo pip install --upgrade $*" | printf_readline
+    bash -c "sudo pip install --upgrade $* 2>/dev/null" | printf_readline
   else
     exit 1
   fi
@@ -249,9 +249,9 @@ pip_run() {
 
 pip_remove() {
   if cmd_exists pip3; then
-    bash -c "sudo pip3 remove $*" | printf_readline
+    bash -c "sudo pip3 remove $* 2>/dev/null" | printf_readline
   elif cmd_exists pip; then
-    bash -c "sudo pip remove $*" | printf_readline
+    bash -c "sudo pip remove $* 2>/dev/null" | printf_readline
   else
     exit 1
   fi
@@ -260,21 +260,21 @@ pip_remove() {
 #---------------------------------------------------------------------------------------
 
 gem_run() {
-  bash -c "sudo gem install --no-user-install $*" | printf_readline
+  bash -c "sudo gem install --no-user-install $* 2>/dev/null" | printf_readline
 }
 
 gem_remove() {
-  bash -c "sudo gem uninstall --no-user-install --force $*" | printf_readline
+  bash -c "sudo gem uninstall --no-user-install --force $* 2>/dev/null" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
 
 npm_run() {
-  bash -c "sudo npm install -g $*" | printf_readline
+  bash -c "sudo npm install -g $* 2>/dev/null" | printf_readline
 }
 
 npm_remove() {
-  bash -c "sudo npm remove -g $*" | printf_readline
+  bash -c "sudo npm remove -g $* 2>/dev/null" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
@@ -449,7 +449,7 @@ __aliases() {
   "alias dnf='sudo -HE $APPNAME'
   "alias yum='sudo -HE $APPNAME'
   "alias pacman='sudo -HE $APPNAME'
-  "alias brew='sudo -HE $USER $APPNAME'
+  "alias brew='sudo -HE -u $USER $APPNAME'
   '
 }
 
