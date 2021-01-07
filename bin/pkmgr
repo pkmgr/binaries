@@ -189,7 +189,7 @@ Darwin)
     pkgmgrbinupd="sudo -HE -u $USER brew upgrade "        #
     pkgmgrbincle="sudo -HE -u $USER brew cleanup "       #
     pkgmgrbincac="sudo -HE -u $USER brew update "        #
-    pkgmgrexport() { sudo -HE -u $USER brew list | sort -u; }
+    pkgmgrexport() { echo $(sudo -HE -u $USER brew list --cask && sudo -HE -u $USER brew list --formula) | sort -u; }
   fi
   ;;
 CYGWIN* | MINGW32* | MSYS* | MINGW*)
