@@ -86,6 +86,15 @@ printf_green "Testing wallpapermgr"
 wallpapermgr install casjay
 
 echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "Testing pkmgr pip install"
+pkmgr pip wakatime youtube-dl
+
+echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "Testing pkmgr gem install"
+pkmgr gem geminabox
+
+
+echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing pkmgr info"
 pkmgr info
 
