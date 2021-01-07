@@ -29,6 +29,25 @@ export WHOAMI="${SUDO_USER:-$USER}"
 export HOME="${USER_HOME:-$HOME}"
 export LOGDIR="${LOGDIR:-$HOME/.local/log}"
 
+sudo_root(){
+  local SUDOBIN="$(command -v sudo)"
+  local SUDOARG="-HE"
+  $SUDOBIN $SUDOARG "$@"
+}
+
+sudo_user(){
+  local SUDOBIN="$(command -v sudo)"
+  local SUDOARG="-HE -u $USER"
+  $SUDOBIN $SUDOARG "$@"
+}
+
+sudo_pkmgr(){ 
+  local PKMGRBIN="$(command -v pkmgr)"
+  local SUDOBIN="$(command -v sudo)"
+  local SUDOARG="-HE -u $USER"
+  $SUDOBIN $SUDOARG $PKMGRBIN "$@"
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 cmd_exists() {
@@ -752,9 +771,9 @@ install_packages() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -u $USER bash -c pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -u $USER bash -c pkmgr silent $miss" "Installing $miss"
+          execute "sudo_pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -765,9 +784,9 @@ install_packages() {
       printf_warning "Still missing:"
       printf_warning "$MISSING"
       if cmd_exists yay; then
-        sudo -u $USER bash -c pkmgr --enable-aur dotfiles "$APPNAME"
+        sudo_pkmgr --enable-aur dotfiles "$APPNAME"
       else
-        sudo -u $USER bash -c pkmgr dotfiles "$APPNAME"
+        sudo_pkmgr dotfiles "$APPNAME"
       fi
     fi
     unset MISSING
@@ -796,9 +815,9 @@ install_python() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -u $USER bash -c pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -u $USER bash -c pkmgr silent $miss" "Installing $miss"
+          execute "sudo_pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -817,9 +836,9 @@ install_perl() {
       printf_warning "$MISSING"
       for miss in $MISSING; do
         if cmd_exists yay; then
-          execute "sudo -u $USER bash -c pkmgr --enable-aur silent $miss" "Installing $miss"
+          execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
         else
-          execute "sudo -u $USER bash -c pkmgr silent $miss" "Installing $miss"
+          execute "sudo_pkmgr silent $miss" "Installing $miss"
         fi
       done
     fi
@@ -837,7 +856,7 @@ install_pip() {
       printf_warning "Attempting to install missing pip packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER "PATH=$PATH" bash -c pkmgr pip $miss" "Installing $miss"
+        execute "sudo_pkmgr pip $miss" "Installing $miss"
       done
     fi
   fi
@@ -854,7 +873,7 @@ install_cpan() {
       printf_warning "Attempting to install missing cpan packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER "PATH=$PATH" bash -c pkmgr cpan $miss" "Installing $miss"
+        execute "sudo_pkmgr cpan $miss" "Installing $miss"
       done
     fi
   fi
@@ -871,7 +890,7 @@ install_gem() {
       printf_warning "Attempting to install missing gem packages"
       printf_warning "$MISSING"
       for miss in $MISSING; do
-        execute "sudo -u $USER "PATH=$PATH" bash -c pkmgr gem $miss" "Installing $miss"
+        execute "sudo_pkmgr gem $miss" "Installing $miss"
       done
     fi
   fi
@@ -1625,7 +1644,7 @@ run_postinst_global() {
       chmod -Rf 755 "$APPDIR/bin/$app"
       ln_sf "$APPDIR/bin/$app" "$SYSBIN/$app"
     done
-    cmd_exists updatedb && updatedb
+    cmd_exists updatedb && updatedb || return 0
 
   else
     # Run on everything else
