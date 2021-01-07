@@ -140,7 +140,7 @@ remove)
 update)
   shift 1
   if [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
-    git -c /usr/local/share/CasjaysDev/scripts pull -q &&
+    git -C /usr/local/share/CasjaysDev/scripts pull -q &&
     [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
   fi    
   if [ -z "$1" ]; then
