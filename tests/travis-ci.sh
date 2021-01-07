@@ -93,6 +93,9 @@ echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing pkmgr gem install"
 pkmgr gem geminabox
 
+echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "Testing pkmgr cpan install"
+pkmgr cpan CPAN
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing pkmgr info"

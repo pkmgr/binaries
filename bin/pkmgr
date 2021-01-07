@@ -240,9 +240,9 @@ fi
 pip_run() {
   #bash -c "PYTHONUSERBASE=$HOME/.local python3 -m pip install --user $@"
   if cmd_exists pip3; then
-    bash -c "sudo -HE pip3 install --upgrade $*"
+    bash -c "sudo -HE pip3 install --upgrade $*" | printf_readline
   elif cmd_exists pip2; then
-    bash -c "sudo -HE pip install --upgrade $*"
+    bash -c "sudo -HE pip install --upgrade $*" | printf_readline
   else
     exit 1
   fi
@@ -251,13 +251,13 @@ pip_run() {
 #---------------------------------------------------------------------------------------
 
 gem_run() {
-  bash -c "sudo -HE gem install $*"
+  bash -c "sudo -HE gem install --no-user-install $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
 
 npm_run() {
-  bash -c "sudo -HE npm install -g $*"
+  bash -c "sudo -HE npm install -g $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
@@ -273,7 +273,7 @@ cpan_run() {
         sudo -HE curl -LSs "$cpanconf" -o "$cpanfile" &&
         sudo -HE touch "$cpandir/.init" || exit 1
     fi
-    sudo -HE cpan notest install "$@"
+    bash -c "sudo -HE cpan notest install $@" | printf_readline
   fi
 }
 
