@@ -35,10 +35,11 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-printf_green "Current working dir: $PWD"
+printf_green "Current working dir:"
+printf_green "$PWD"
 
 # main program
-if [ -d "$HOME/casjay-dotfiles/scripts" ] && [ -n $GITHUB_API_KEY ]; then
+if [ -d "$HOME/build/casjay-dotfiles/scripts" ] && [ -n $GITHUB_API_KEY ]; then
   if [[ "$OSTYPE" =~ ^linux ]]; then
     echo -e "\n\t\t-----------------------------------------------------\n"
     printf_green "Setting up git for push"
