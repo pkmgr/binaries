@@ -29,19 +29,19 @@ export WHOAMI="${SUDO_USER:-$USER}"
 export HOME="${USER_HOME:-$HOME}"
 export LOGDIR="${LOGDIR:-$HOME/.local/log}"
 
-sudo_root(){
+sudo_root() {
   local SUDOBIN="$(command -v sudo)"
   local SUDOARG="-HE"
   $SUDOBIN $SUDOARG "$@"
 }
 
-sudo_user(){
+sudo_user() {
   local SUDOBIN="$(command -v sudo)"
   local SUDOARG="-HE -u $USER"
   $SUDOBIN $SUDOARG "$@"
 }
 
-sudo_pkmgr(){ 
+sudo_pkmgr() {
   local PKMGRBIN="$(command -v pkmgr)"
   local SUDOBIN="$(command -v sudo)"
   local SUDOARG="-HE -u $USER"
@@ -130,6 +130,11 @@ ORANGE="\033[0;33m"
 LIGHTRED='\033[1;31m'
 BG_GREEN="\[$(tput setab 2 2>/dev/null)\]"
 BG_RED="\[$(tput setab 9 2>/dev/null)\]"
+ICON_INFO="[ ℹ️ ]"
+ICON_GOOD="[ ✔ ]"
+ICON_WARN="[ ❗ ]"
+ICON_ERROR="[ ✖ ]"
+ICON_QUESTION="[ ❓ ]"
 
 ##################################################################################################
 
@@ -141,20 +146,20 @@ printf_purple() { printf_color "$1" 5; }
 printf_yellow() { printf_color "$1" 3; }
 printf_blue() { printf_color "$1" 4; }
 printf_cyan() { printf_color "$1" 6; }
-printf_info() { printf_color "\t\t[ ?? ] $1\n" 3; }
+printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
 printf_exit() {
   printf_color "\t\t$1\n" 1
   exit 1
 }
 printf_help() { printf_color "\t\t$1\n" 1; }
 printf_read() { printf_color "\t\t$1" 5; }
-printf_success() { printf_color "\t\t[ ? ] $1\n" 2; }
-printf_error() { printf_color "\t\t[ ? ] $1 $2\n" 1; }
-printf_warning() { printf_color "\t\t[ ? ] $1\n" 3; }
-printf_question() { printf_color "\t\t[ ? ] $1 [?] " 6; }
+printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
+printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
+printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
+printf_question() { printf_color "\t\t$ICON_QUESTION $1 " 6; }
 printf_error_stream() { while read -r line; do printf_error "? ERROR: $line"; done; }
-printf_execute_success() { printf_color "\t\t[ ? ] $1 \n" 2; }
-printf_execute_error() { printf_color "\t\t[ ? ] $1 $2 \n" 1; }
+printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
+printf_execute_error() { printf_color "\t\t$ICON_WARN $1 $2\n" 1; }
 printf_execute_result() {
   if [ "$1" -eq 0 ]; then
     printf_execute_success "$2"
