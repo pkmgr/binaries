@@ -177,18 +177,18 @@ Linux)
   ;;
 Darwin)
   if [ -f "$(command -v brew)" ]; then
-    dotfilesrepo="$REPODF/brew"                          #
-    pkgmgrbin="sudo -HE -u $USER brew"                   #
-    pkgmgrbinins="sudo -HE -u $USER brew install"        #
-    pkgmgrbininssil="sudo -HE -u $USER brew install -f " #
-    pkgmgrbinremsil="sudo -HE -u $USER brew remove -f "  #
+    dotfilesrepo="$REPODF/brew"                           #
+    pkgmgrbin="sudo -HE -u $USER brew"                    #
+    pkgmgrbinins="sudo -HE -u $USER brew install"         #
+    pkgmgrbininssil="sudo -HE -u $USER brew install -f "  #
+    pkgmgrbinremsil="sudo -HE -u $USER brew remove -f "   #
     pkgmgrbinupdsil="sudo -HE -u $USER brew upgrade -f "  #
     pkgmgrbinupdcron="sudo -HE -u $USER brew upgrade -f " #
-    pkgmgrbindel="sudo -HE -u $USER brew remove "        #
-    pkgmgrbinsea="sudo -HE -u $USER brew search "        #
+    pkgmgrbindel="sudo -HE -u $USER brew remove "         #
+    pkgmgrbinsea="sudo -HE -u $USER brew search "         #
     pkgmgrbinupd="sudo -HE -u $USER brew upgrade "        #
-    pkgmgrbincle="sudo -HE -u $USER brew cleanup "       #
-    pkgmgrbincac="sudo -HE -u $USER brew update "        #
+    pkgmgrbincle="sudo -HE -u $USER brew cleanup "        #
+    pkgmgrbincac="sudo -HE -u $USER brew update "         #
     pkgmgrexport() { echo $(sudo -HE -u $USER brew list --cask && sudo -HE -u $USER brew list --formula) | sort -u; }
   fi
   ;;
@@ -444,12 +444,12 @@ __help() {
 
 __aliases() {
   echo -e '
-  "alias apt='sudo -HE $APPNAME'
-  "alias apt-get='sudo -HE $APPNAME'
-  "alias dnf='sudo -HE $APPNAME'
-  "alias yum='sudo -HE $APPNAME'
-  "alias pacman='sudo -HE $APPNAME'
-  "alias brew='sudo -HE -u $USER $APPNAME'
+  alias apt='sudo -HE $APPNAME'
+  alias apt-get='sudo -HE $APPNAME'
+  alias dnf='sudo -HE $APPNAME'
+  alias yum='sudo -HE $APPNAME'
+  alias pacman='sudo -HE $APPNAME'
+  alias brew='sudo -HE -u $USER $APPNAME'
   '
 }
 
