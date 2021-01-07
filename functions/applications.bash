@@ -200,6 +200,26 @@ printf_result() {
 
 ##################################################################################################
 
+get_githost() {
+  echo $* | sed -e "s/[^/]*\/\/\([^@]*@\)\?\([^:/]*\).*/\2/" | awk -F. '{print $(NF-1) "."  $NF}' | sed 's#\..*##g'
+}
+
+##################################################################################################
+
+get_username_repo(){
+  local url="$1.git"
+  local re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
+  if [[ $url =~ $re ]]; then
+    protocol=${BASH_REMATCH[1]}
+    separator=${BASH_REMATCH[2]}
+    hostname=${BASH_REMATCH[3]}
+    username=${BASH_REMATCH[4]}
+    userrepo=${BASH_REMATCH[5]}
+  fi
+}
+
+##################################################################################################
+
 notifications() {
   local title="$1"
   shift 1
