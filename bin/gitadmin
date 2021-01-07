@@ -426,8 +426,8 @@ git_push_single() {
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
-    if [ -d "$projdir/.git" ]; then 
-      git -C "$projdir" push 
+    if [ -d "$projdir/.git" ]; then
+      git -C "$projdir" push
     else
       return 1
     fi
@@ -443,8 +443,9 @@ git_pull_single() {
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
-    if [ -d "$projdir/.git" ]; then 
-      git -C "$projdir" pull 
+    if [ -d "$projdir/.git" ]; then
+      git -C "$projdir" pull
+      cd_into "$projdir"
     else
       return 1
     fi
@@ -457,12 +458,12 @@ git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
   get_username_repo "$1"
   [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
-  if [ -d "$projdir" ]; then 
+  if [ -d "$projdir" ]; then
     git_pull_single "$projdir"
   else
     git clone "$1" "$projdir"
   fi
-  cd
+  cd_into "$projdir"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -471,17 +472,17 @@ case "$1" in
 push)
   shift 1
   git_push_single "$@"
-;;
+  ;;
 
 pull)
   shift 1
   git_pull_single "$@"
-;;
+  ;;
 
 clone)
   shift 1
   git_clone_single "$@"
-;;
+  ;;
 
 --help)
   help

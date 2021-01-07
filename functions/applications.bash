@@ -107,17 +107,9 @@ printf_not_found() { if ! cmd_exists "$1"; then printf_exit "The $1 command is n
 
 printf_exit() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
-  [ $# -eq 0 ] && printf_exit 'Not enough arguments given | Usage: printf_help "My message"'
-  [ -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ] [ -z "$4" ] && [ ! -z "$5" ] && [ ! -z "$6" ] [ -z "$7" ] && [ ! -z "$8" ] && [ ! -z "$9" ] \
-  || { printf_color "\t\t$*" "$color" ; echo ; exit; }
-  [ -z $2 ] || printf_color "\n\t\t$2" "$color"
-  [ -z $3 ] || printf_color "\n\t\t$3" "$color"
-  [ -z $4 ] || printf_color "\n\t\t$4" "$color"
-  [ -z $5 ] || printf_color "\n\t\t$5" "$color"
-  [ -z $6 ] || printf_color "\n\t\t$6" "$color"
-  [ -z $7 ] || printf_color "\n\t\t$7" "$color"
-  [ -z $8 ] || printf_color "\n\t\t$8" "$color"
-  [ -z $9 ] || printf_color "\n\t\t$9" "$color"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg" "$color"
   echo ""
   exit 0
 }
@@ -126,17 +118,9 @@ printf_exit() {
 
 printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
-  [ $# -eq 0 ] && printf_exit 'Not enough arguments given | Usage: printf_help "My message"'
-  [ -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ] [ -z "$4" ] && [ ! -z "$5" ] && [ ! -z "$6" ] [ -z "$7" ] && [ ! -z "$8" ] && [ ! -z "$9" ] \
-  || { printf_color "\t\t$*" "$color" ; echo ; exit; }
-  [ -z $2 ] || printf_color "\n\t\t$2" "$color"
-  [ -z $3 ] || printf_color "\n\t\t$3" "$color"
-  [ -z $4 ] || printf_color "\n\t\t$4" "$color"
-  [ -z $5 ] || printf_color "\n\t\t$5" "$color"
-  [ -z $6 ] || printf_color "\n\t\t$6" "$color"
-  [ -z $7 ] || printf_color "\n\t\t$7" "$color"
-  [ -z $8 ] || printf_color "\n\t\t$8" "$color"
-  [ -z $9 ] || printf_color "\n\t\t$9" "$color"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg" "$color"
   echo ""
   exit 0
 }
@@ -145,17 +129,9 @@ printf_help() {
 
 printf_custom() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
-  [ $# -eq 0 ] && printf_exit 'Not enough arguments given | Usage: printf_help "My message"'
-  [ -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ] [ -z "$4" ] && [ ! -z "$5" ] && [ ! -z "$6" ] [ -z "$7" ] && [ ! -z "$8" ] && [ ! -z "$9" ] \
-  || { printf_color "\t\t$*" "$color" ; echo ; return; }
-  [ -z $2 ] || printf_color "\n\t\t$2" "$color"
-  [ -z $3 ] || printf_color "\n\t\t$3" "$color"
-  [ -z $4 ] || printf_color "\n\t\t$4" "$color"
-  [ -z $5 ] || printf_color "\n\t\t$5" "$color"
-  [ -z $6 ] || printf_color "\n\t\t$6" "$color"
-  [ -z $7 ] || printf_color "\n\t\t$7" "$color"
-  [ -z $8 ] || printf_color "\n\t\t$8" "$color"
-  [ -z $9 ] || printf_color "\n\t\t$9" "$color"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg" "$color"
   echo ""
 }
 
