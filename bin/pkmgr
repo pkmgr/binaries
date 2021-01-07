@@ -443,14 +443,14 @@ __help() {
 #---------------------------------------------------------------------------------------
 
 __aliases() {
-  printf_green "
-alias apt='sudo -HE $APPNAME'
-alias apt-get='sudo -HE $APPNAME'
-alias dnf='sudo -HE $APPNAME'
-alias yum='sudo -HE $APPNAME'
-alias pacman='sudo -HE $APPNAME'
-alias brew='sudo -HE $USER $APPNAME'
-"
+  echo -e '
+  "alias apt='sudo -HE $APPNAME'
+  "alias apt-get='sudo -HE $APPNAME'
+  "alias dnf='sudo -HE $APPNAME'
+  "alias yum='sudo -HE $APPNAME'
+  "alias pacman='sudo -HE $APPNAME'
+  "alias brew='sudo -HE $USER $APPNAME'
+  '
 }
 
 #---------------------------------------------------------------------------------------
@@ -517,15 +517,23 @@ help | -h* | --h*)
 
 aliases)
   shift 1
+  if [ -d "$HOME/.config/bash/local" ] && grep userbashprofilelocal "$HOME/.bashrc" >/dev/null 2>&1; then
+    ALIASFILE="$HOME/.config/bash/local/pkmgr.bash"
+  else
+    ALIASFILE="$HOME/.bash_profile"
+  fi
   [ "$1" = "--help" ] && printf_help "Print to terminal or --save to export to bash_profile"
   if [ "$1" = "--save" ]; then
     printf_green "Saving the aliases to your bash profile"
-    if grep -vq "# pkmgr aliases" "$HOME/.bash_profile"; then
-      echo "# pkmgr aliases - Do not remove this line" >>"$HOME/.bash_profile"
-      __aliases >>"$HOME/.bash_profile"
+    if grep -vq "# pkmgr aliases" "$ALIASFILE"; then
+      echo "# pkmgr aliases - Do not remove this line" >>"$ALIASFILE"
+      __aliases >>"$ALIASFILE"
+      printf_custom "5" "$ALIASFILE"
     fi
   else
-    __aliases
+    __aliases | printf_readline "2"
+    printf_custom "3" "add --save to save this to the alias file"
+    printf_custom "5" "$ALIASFILE"
   fi
   ;;
 

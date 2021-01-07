@@ -101,8 +101,8 @@ for app in speedtest-cli links mdless wakatime cpan; do
 done
 
 echo -e "\n\t\t-----------------------------------------------------\n"
-printf_green "printing pkmgr info"
-pkmgr info
+printf_green "printing pkmgr aliases"
+pkmgr aliases
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Printing help"
