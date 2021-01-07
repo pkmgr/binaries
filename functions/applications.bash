@@ -233,6 +233,7 @@ get_githost() {
 ##################################################################################################
 
 get_username_repo(){
+  unset protocol separator hostname username userrepo
   local url="$1.git"
   local re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
   if [[ $url =~ $re ]]; then
@@ -437,6 +438,14 @@ system_service_disable() {
   if system_service_exists; then execute "sudo systemctl disable --now $1" "Disabling service: $1"; fi
   setexitstatus
   set --
+}
+
+do_not_add_a_url() {
+  regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  string="$1"
+  if [[ "$string" =~ $regex ]]; then
+    printf_exit "Do not provide the full url" "only provide the username/repo"
+  fi
 }
 
 is_online() {
