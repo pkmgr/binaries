@@ -87,15 +87,18 @@ wallpapermgr install casjay
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing pkmgr pip install"
-pkmgr pip wakatime youtube-dl
+execute "pkmgr pip wakatime"
+execute "pkmgr pip youtube-dl"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing pkmgr gem install"
-pkmgr gem geminabox
+execute "pkmgr gem geminabox"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
-printf_green "Testing pkmgr cpan install"
-pkmgr cpan CPAN
+printf_green "printing installed app locations"
+for app in speedtest-cli links mdless wakatime cpan; do
+  execute "command -v $app" "$app"
+done
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing pkmgr info"
