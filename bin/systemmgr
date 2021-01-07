@@ -67,6 +67,13 @@ __help() {
 
 #---------------------------------------------------------------------------------------
 
+preupdate(){ 
+if [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
+  git -C /usr/local/share/CasjaysDev/scripts pull -q 
+  [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi    
+}
+
 systemmgr_list() {
   if [ -n "$1" ]; then
     if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A "$SYSUPDATEDIR/$1" 2>/dev/null)" ]; then
@@ -139,10 +146,7 @@ remove)
 
 update)
   shift 1
-  if [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
-    git -C /usr/local/share/CasjaysDev/scripts pull -q &&
-    [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-  fi    
+  preupdate
   if [ -z "$1" ]; then
     if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
       for updadmin in $(ls $SYSUPDATEDIR); do
@@ -165,6 +169,7 @@ update)
 
 install)
   shift 1
+  preupdate
   [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
     declare -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
