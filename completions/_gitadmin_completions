@@ -21,6 +21,23 @@ _gitadmin_completions() {
     return
     ;;
 
+  push)
+    projdir="$(ls -d $HOME/Projects/*/*/*)"
+    COMPREPLY=($(compgen -W '${projdir}' -- "$cur"))
+    return 1
+    ;;
+
+  pull)
+    projdir="$(ls -d $HOME/Projects/*/*/*)"
+    COMPREPLY=($(compgen -W '${projdir}' -- "$cur"))
+    return 1
+    ;;
+
+  clone)
+    COMPREPLY=($(compgen -W '$(git clone)' -- "$cur"))
+    return 1
+    ;;
+
   --org)
     k=0
     i="$HOME/Projects/github"

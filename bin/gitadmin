@@ -422,12 +422,12 @@ main() {
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d ./.git ]; then
-    git push
+    git push | printf_readline "6"
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      git -C "$projdir" push
+      git -C "$projdir" push | printf_readline "6"
     else
       return 1
     fi
@@ -439,12 +439,12 @@ git_push_single() {
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d ./.git ]; then
-    git pull
+    git pull | printf_readline "6"
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      git -C "$projdir" pull
+      git -C "$projdir" pull | printf_readline "6"
       cd_into "$projdir"
     else
       return 1
@@ -459,9 +459,9 @@ git_clone_single() {
   get_username_repo "$1"
   [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
   if [ -d "$projdir" ]; then
-    git_pull_single "$projdir"
+    git_pull_single "$projdir" | printf_readline "6"
   else
-    git clone "$1" "$projdir"
+    git clone "$1" "$projdir" | printf_readline "6"
   fi
   cd_into "$projdir"
 }
