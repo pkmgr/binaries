@@ -8,5 +8,8 @@
   "shellcheck.customArgs": [],
   "shellcheck.ignorePatterns": {},
   "shellcheck.ignoreFileSchemes": ["git", "gitfs"],
-  "cSpell.enabled": false
+  "cSpell.enabled": false,
+  "files.associations": {
+    "*.yaml": "home-assistant"
+  }
 }
