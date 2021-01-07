@@ -418,7 +418,68 @@ main() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+git_push_single() {
+  if [ -d ./.git ]; then
+    git push
+  else
+    get_username_repo "$1"
+    [ -n "$1" ] && baserepo="$1" || baserepo="$PROJECT_DIR/$username/$userrepo"
+    if [ -d "$baserepo" ]; then 
+      git -C "$baserepo" push 
+    else
+      return 1
+    fi
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git_pull_single() {
+  if [ -d ./.git ]; then
+    git pull
+  else
+    get_username_repo "$1"
+    [ -n "$1" ] && baserepo="$1" || baserepo="$PROJECT_DIR/$username/$userrepo"
+    if [ -d "$baserepo" ]; then 
+      git -C "$baserepo" pull 
+    else
+      return 1
+    fi
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git_clone_single() {
+  get_username_repo "$1"
+  get_githost "$1"
+  [ -n "$2" ] & &local projdir="$2" || local projdir="$PROJECT_DIR/$username/$userrepo"
+  if [ -d "$projdir" ]; then 
+    git_pull_single "$projdir"
+  else
+    git clone "$1" "$projdir/$username/$userrepo"
+  fi
+  cd
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 case "$1" in
+push)
+  shift 1
+  git_push_single "$@"
+;;
+
+pull)
+  shift 1
+  git_pull_single "$@"
+;;
+
+clone)
+  shift 1
+  git_clone_single "$@"
+;;
+
 --help)
   help
   exit
