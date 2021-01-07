@@ -36,18 +36,20 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # main program
-if [[ "$OSTYPE" =~ ^linux ]]; then
-  echo -e "\n\t\t-----------------------------------------------------\n"
-  printf_green "Setting up git for push"
-  curl -LSs -H "Authorization: token ${GITHUB_API_KEY}" "https://${PERSONAL_GIT_REPO}/etc/skel/.config/git/git-credentials" -o "$HOME/.config/git/git-credentials" >/dev/null 2>&1
-  git clone -q https://github.com/casjay-dotfiles/scripts "$HOME/push-scripts" >/dev/null 2>&1
-  git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/pkmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to pkmgr/installer" || printf_red "Failed to push to pkmgr/installer"
-  git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/dfmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to dfmgr/installer" || printf_red "Failed to push to dfmgr/installer"
-  git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/iconmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to iconmgr/installer" || printf_red "Failed to push to iconmgr/installer"
-  git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/fontmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to fontmgr/installer" || printf_red "Failed to push to fontmgr/installer"
-  git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/thememgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to thememgr/installer" || printf_red "Failed to push to thememgr/installer"
-  git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/systemmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to systemmgr/installer" || printf_red "Failed to push to systemmgr/installer"
-  git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/wallpapermgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to wallpapermgr/installer" || printf_red "Failed to push to wallpapermgr/installer"
+if [ -d "$HOME/casjay-dotfiles/scripts" ] && [ -n $GITHUB_API_KEY ]; then
+  if [[ "$OSTYPE" =~ ^linux ]]; then
+    echo -e "\n\t\t-----------------------------------------------------\n"
+    printf_green "Setting up git for push"
+    curl -LSs -H "Authorization: token ${GITHUB_API_KEY}" "https://${PERSONAL_GIT_REPO}/etc/skel/.config/git/git-credentials" -o "$HOME/.config/git/git-credentials" >/dev/null 2>&1
+    git clone -q https://github.com/casjay-dotfiles/scripts "$HOME/push-scripts" >/dev/null 2>&1
+    git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/pkmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to pkmgr/installer" || printf_red "Failed to push to pkmgr/installer"
+    git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/dfmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to dfmgr/installer" || printf_red "Failed to push to dfmgr/installer"
+    git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/iconmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to iconmgr/installer" || printf_red "Failed to push to iconmgr/installer"
+    git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/fontmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to fontmgr/installer" || printf_red "Failed to push to fontmgr/installer"
+    git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/thememgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to thememgr/installer" || printf_red "Failed to push to thememgr/installer"
+    git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/systemmgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to systemmgr/installer" || printf_red "Failed to push to systemmgr/installer"
+    git -C "$HOME/push-scripts" push -q -f https://${GITHUB_API_KEY}@github.com/wallpapermgr/installer >/dev/null 2>&1 && printf_green "Successfully pushed to wallpapermgr/installer" || printf_red "Failed to push to wallpapermgr/installer"
+  fi
 fi
 
 echo -e "\n\t\t-----------------------------------------------------\n"
@@ -92,11 +94,11 @@ execute "pkmgr pip youtube-dl"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing pkmgr gem install"
-execute "pkmgr gem geminabox"
+execute "pkmgr gem Test"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing installed app locations"
-for app in speedtest-cli links mdless wakatime cpan; do
+for app in speedtest-cli links wakatime cpan; do
   execute "command -v $app"
 done
 
