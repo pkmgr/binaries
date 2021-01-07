@@ -239,9 +239,9 @@ fi
 
 pip_run() {
   if cmd_exists pip3; then
-    bash -c "sudo -HE pip3 install --upgrade $*" | printf_readline
+    bash -c "sudo pip3 install --upgrade $*" | printf_readline
   elif cmd_exists pip; then
-    bash -c "sudo -HE pip install --upgrade $*" | printf_readline
+    bash -c "sudo pip install --upgrade $*" | printf_readline
   else
     exit 1
   fi
@@ -249,9 +249,9 @@ pip_run() {
 
 pip_remove() {
   if cmd_exists pip3; then
-    bash -c "sudo -HE pip3 remove $*" | printf_readline
+    bash -c "sudo pip3 remove $*" | printf_readline
   elif cmd_exists pip; then
-    bash -c "sudo -HE pip remove $*" | printf_readline
+    bash -c "sudo pip remove $*" | printf_readline
   else
     exit 1
   fi
@@ -260,21 +260,21 @@ pip_remove() {
 #---------------------------------------------------------------------------------------
 
 gem_run() {
-  bash -c "sudo -HE gem install --no-user-install $*" | printf_readline
+  bash -c "sudo gem install --no-user-install $*" | printf_readline
 }
 
 gem_remove() {
-  bash -c "sudo -HE gem uninstall --no-user-install --force $*" | printf_readline
+  bash -c "sudo gem uninstall --no-user-install --force $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
 
 npm_run() {
-  bash -c "sudo -HE npm install -g $*" | printf_readline
+  bash -c "sudo npm install -g $*" | printf_readline
 }
 
 npm_remove() {
-  bash -c "sudo -HE npm remove -g $*" | printf_readline
+  bash -c "sudo npm remove -g $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
@@ -287,15 +287,15 @@ cpan_run() {
     if [ ! -f "$cpanfile" ] || [ ! -f "$cpandir/.init" ]; then
       printf_green "Grabbing the CPAN.pm file"
       urlcheck "$cpanconf" &&
-        sudo -HE curl -LSs "$cpanconf" -o "$cpanfile" &&
-        sudo -HE touch "$cpandir/.init" || exit 1
+        sudo curl -LSs "$cpanconf" -o "$cpanfile" &&
+        sudo touch "$cpandir/.init" || exit 1
     fi
-    bash -c "sudo -HE cpan notest install $@" | printf_readline
+    bash -c "sudo cpan notest install $@" | printf_readline
   fi
 }
 
 cpan_remove() {
-  bash -c "sudo -HE cpan --uninstall $@" | printf_readline
+  bash -c "sudo cpan --uninstall $@" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
