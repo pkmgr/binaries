@@ -47,7 +47,6 @@ __help() {
 \t\tsudoers remove         |   remove yourself from sudo
 \t\tsudoers pass           |   require password for sudo
 \t\tsudoers nopass         |   don't require a password for sudo
-\t\tsudoers                |   this message
 "
 }
 
@@ -87,7 +86,7 @@ if can_i_sudo; then
   remuser)
     shift 1
     printf_green "New password prompt"
-    sudoo passwd "$MYUSER" || exit 1
+    sudo passwd "$MYUSER" || exit 1
     printf_green "Removing $MYUSER from sudoers"
     if sudo grep -q -E "^sudo:" /etc/group; then
       sudo deluser "$MYUSER" sudo >/dev/null 2>&1
