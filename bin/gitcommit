@@ -196,6 +196,7 @@ custom)
 setup)
   shift 1
   gitadmin setup
+  exit
   ;;
 
 *)
