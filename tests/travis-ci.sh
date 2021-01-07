@@ -97,7 +97,7 @@ execute "pkmgr gem geminabox"
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing installed app locations"
 for app in speedtest-cli links mdless wakatime cpan; do
-  execute "command -v $app" "$app"
+  execute "command -v $app"
 done
 
 echo -e "\n\t\t-----------------------------------------------------\n"
