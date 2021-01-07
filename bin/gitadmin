@@ -453,7 +453,7 @@ git_pull_single() {
 git_clone_single() {
   get_username_repo "$1"
   get_githost "$1"
-  [ -n "$2" ] & &local projdir="$2" || local projdir="$PROJECT_DIR/$username/$userrepo"
+  [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_DIR/$username/$userrepo"
   if [ -d "$projdir" ]; then 
     git_pull_single "$projdir"
   else
