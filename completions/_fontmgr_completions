@@ -7,28 +7,60 @@
 
 _fontmgr_completions() {
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/fontmgr/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/fontmgr/list)"
+  local prefix=fontmgr
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/prefix/array)"
+  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/prefix/list)"
 
-  _init_completion || return
+  local cur prev words cword split
+  _init_completion -s || return
+
+  list_all() {
+    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+  }
+
+  local special i
+  for ((i = 1; i < ${#words[@]} - 1; i++)); do
+    if [[ ${words[i]} == @(install|update|remove) ]]; then
+      special=${words[i]}
+      break
+    fi
+  done
+
+  if [[ -v special ]]; then
+    if [[ $cur == @(*/|[.~])* && \
+      $special == @(|install|update|remove) ]]; then
+      list_all
+      return
+    fi
+
+    case $special in
+    install)
+      list_all
+      return
+      ;;
+    update)
+      k=0
+      i="$HOME/.local/share/CasjaysDev/apps/prefix"
+      for j in $(compgen -f "$i/$cur"); do
+        [ -d "$j" ] && j="${j}"
+        COMPREPLY[k++]=${j#$i/}
+      done
+      return 0
+      ;;
+    remove)
+      list_all
+      return
+      ;;
+    esac
+  fi
 
   case $prev in
-  help | h | --h*)
-    return
-    ;;
-  install | update | remove)
-    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
-    return
-    ;;
-    
   *)
-    COMPREPLY=($(compgen -W '$LIST' -- "$cur"))
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     ;;
-
   esac
 
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+  $split && return
 
 } &&
 
