@@ -10,7 +10,7 @@ USER="${SUDO_USER:-${USER}}"
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : expandurl and copy to clipboard
+# @Description : Get full url from a shortner and copy to clipboard
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

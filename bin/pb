@@ -15,8 +15,9 @@
 # greets:
 #   all the ops of these great free services <3
 #
-usage () {
-    cat <<EOF
+
+usage() {
+  cat <<EOF
 
           █
      ▄▀▀▄ █▐▀▄
@@ -54,70 +55,247 @@ EOF
   exit 0
 }
 
+pasteit() {
+  [ "$1" = "--version" ] && get_app_info "$APPNAME"
+  [ "$1" = "--help " ] && printf_exit "Pastes from STDIN or file from commandline argument to Stikked pastebin"
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  set -e
+  PROGRAM=${0##*/}
+
+  # can be overriden from env
+  PASTE_URL="${PRIVATE_PASTEBIN_URL:-https://casjay.cc}/api/create"
+  PASTE_APIKEY="${PRIVATE_PASTEBIN_APIKEY:-apikey}"
+
+  # filter url for printing (remove password)
+  print_url() {
+    local url="$1"
+    echo "$url" | sed -e 's;://[^@]*@;://;'
+  }
+
+  # paste. take input from stdin
+  pastebin() {
+    # show params
+    sed -e '/^$/d' >&2 <<-EOF
+		${PASTE_APIKEY+apikey: "$PASTE_APIKEY"}
+		${title+title: "$title"}
+		${name+name: "$name"}
+		${private+private: "$private"}
+		${language+language: "$language"}
+		${expire+expire: "$expire"}
+		${reply+reply: "$reply"}
+	EOF
+
+    # do paste
+    curl "$PASTE_URL${PASTE_APIKEY+?apikey=${PASTE_APIKEY}}" \
+      ${title+-F title="$title"} \
+      ${name+-F name="$name"} \
+      ${private+-F private="$private"} \
+      ${language+-F lang="$language"} \
+      ${expire+-F expire="$expire"} \
+      ${reply+-F reply="$reply"} \
+      -F 'text=<-'
+  }
+
+  # try to resolve mime-type to language
+  mime_to_lang() {
+    local mime="$1"
+
+    awk -F ':' -vm="$mime" 'm==$1 {print $2}' <<-EOF
+	application/javascript:javascript
+	application/xml:xml
+	text/html:html5
+	text/x-c:c
+	text/x-c++:cpp
+	text/x-diff:diff
+	text/x-lua:lua
+	text/x-php:php
+	text/x-python:python
+	text/x-ruby:ruby
+	text/x-shellscript:bash
+	EOF
+  }
+
+  # detect filetype. outputs nothing if no file binary or no detected
+  detect_mimetype() {
+    local file="$1" out
+
+    out=$(file -L --mime-type "$file" 2>/dev/null || :)
+    echo "${out#*: }"
+  }
+
+  usage() {
+    echo "Usage: $PROGRAM [options] < [input_file]
+
+Options:
+  -a, --apikey    API key for the server
+  -t, --title     title of this paste
+  -n, --name      author of this paste
+  -p, --private   should this paste be private
+  -l, --language  language this paste is in
+  -e, --expire    paste expiration in minutes
+  -r, --reply     reply to existing paste
+"
+  }
+
+  set_defaults() {
+    unset title
+    unset private
+    unset language
+    unset expire
+    unset reply
+
+    # default to user
+    name=${SUDO_USER:-$USER}
+  }
+
+  set_defaults
+
+  # parse command line args
+  t=$(getopt -o h,t:,n:,p,l:,e:,r:,b:,a: --long help,title:,name:,private,language:,expire:,reply:,apikey: -n "$PROGRAM" -- "$@")
+  eval set -- "$t"
+
+  while :; do
+    case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -t | --title)
+      shift
+      title="$1"
+      ;;
+    -n | --name)
+      shift
+      name="$1"
+      ;;
+    -p | --private)
+      private=1
+      ;;
+    -l | --language)
+      shift
+      language="$1"
+      ;;
+    -e | --expire)
+      shift
+      expire="$1"
+      ;;
+    -r | --reply)
+      shift
+      reply="$1"
+      ;;
+    -b)
+      shift
+      PASTE_URL="$1"
+      ;;
+    -a | --apikey)
+      shift
+      PASTE_APIKEY="$1"
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo >&2 "$PROGRAM: Internal error: [$1] not recognized!"
+      exit 1
+      ;;
+    esac
+    shift
+  done
+
+  printf "Paste endpoint: %s\n" "$(print_url "$PASTE_URL")"
+
+  # if we have more commandline arguments, set these as title
+  if [ "${title+set}" != "set" ]; then
+    title="$*"
+  fi
+
+  # set language from first filename
+  if [ -n "$1" ] && [ "${language+set}" != "set" ]; then
+    mime=$(detect_mimetype "$1")
+
+    if [ -n "$mime" ]; then
+      language=$(mime_to_lang "$mime")
+    fi
+  fi
+
+  # take filenames from commandline, or from stdin
+  if [ $# -gt 0 ]; then
+    paste=$(cat "$@")
+  else
+    paste=$(cat)
+  fi
+
+  printf "%s" "$paste" | pastebin
+}
+
 ARG="${2:-/dev/stdin}"
 UA=${UA:="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36"}
 case $1 in
-	ix|ix.io)
-		curl -A "$UA" -sF 'f:1=<-' http://ix.io < $ARG
-	;;
-	0x0|null|nullbyte|0*)
-		curl -A "$UA" -sF 'file=@-' https://0x0.st < $ARG
-	;;
-	sprunge|sprunge.us|s*)
-		curl -A "$UA" -sF 'sprunge=<-' http://sprunge.us < $ARG
-	;;
-	iotek|iopaste|p.iotek.org|iop*)
-		curl -A "$UA" -sT- https://p.iotek.org < $ARG
-	;;
-	clbin|clbin.com|cl*)
-		curl -A "$UA" -sF 'clbin=<-' https://clbin.com < $ARG
-	;;
-	uguu|uguu.se|u*)
-		curl -A "$UA" -sF 'file=@-' https://uguu.se/api.php?d=upload-tool < $ARG
-	;;
-	lewd|lewd.se|l*)
-		curl -A "$UA" -sF 'file=@-' https://lewd.se/api.php?d=upload-tool < $ARG
-	;;
-	fiery|fiery.me|f*)
-		curl -A "$UA" -sF 'files[]=@-' https://safe.fiery.me/api/upload < $ARG | grep -Po '"url":"[A-Za-z0-9]+.*?"' | sed 's/"url":"//;s/"//'
-	;;
-	catbox|catbox.moe|cat*)
-		curl -A "$UA" -sF 'reqtype=fileupload' -F 'fileToUpload=@-' https://catbox.moe/user/api.php < $ARG
-	;;
-	dmca|dmca.gripe|gripe|dm*)
-		curl -A "$UA" -sF 'files[]=@-' http://dmca.gripe/api/upload < $ARG | grep -Po '"url":"[A-Za-z0-9]+.*?"' | sed 's/"url":"//;s/"//;s/[\]//g'
-	;;
-	dumpz|dumpz.org|du*)
-		curl -A "$UA" -s --data-binary @- https://dumpz.org < $ARG | sed 's/http/&s/;s!$!/text/!'
-	;;
-	w1r3|wire|w1r3.net|w*)
-		curl -sF 'upload=@-' https://w1r3.net < $ARG
-	;;
-	pb|pastebin|pastebin.com)
-		[ -z ${PB_API_DEV} ] && usage
-		PRIVACY="${PRIVACY:-1}"
-		if [ -n "${PRIVACY}" ]; then
-			case ${PRIVACY} in
-				public|0)
-					PRIVACY=0
-				;;
-				unlisted|1)
-					PRIVACY=1
-				;;
-				private|2)
-					PRIVACY=2
-				;;
-				*)
-					usage
-				;;
-			esac
-		fi
-		qs="api_option=paste&api_dev_key=${PB_API_DEV}&api_paste_expire_date=N&api_paste_private=${PRIVACY}&api_paste_name=`basename ${ARG}`"
-		[ -n ${PB_API_USR} ] && [ -z ${ANON} ] && qs="${qs}&api_user_key=${PB_API_USR}"
-		curl -A "$UA" -d "${qs}" --data-urlencode "api_paste_code=`<$ARG`" http://pastebin.com/api/api_post.php
-	;;
-	*)
-		usage
-	;;
+--help | -h) usage ;;
+ix | ix.io)
+  curl -A "$UA" -sF 'f:1=<-' http://ix.io <$ARG
+  ;;
+0x0 | null | nullbyte | 0*)
+  curl -A "$UA" -sF 'file=@-' https://0x0.st <$ARG
+  ;;
+sprunge | sprunge.us | s*)
+  curl -A "$UA" -sF 'sprunge=<-' http://sprunge.us <$ARG
+  ;;
+iotek | iopaste | p.iotek.org | iop*)
+  curl -A "$UA" -sT- https://p.iotek.org <$ARG
+  ;;
+clbin | clbin.com | cl*)
+  curl -A "$UA" -sF 'clbin=<-' https://clbin.com <$ARG
+  ;;
+uguu | uguu.se | u*)
+  curl -A "$UA" -sF 'file=@-' https://uguu.se/api.php?d=upload-tool <$ARG
+  ;;
+lewd | lewd.se | l*)
+  curl -A "$UA" -sF 'file=@-' https://lewd.se/api.php?d=upload-tool <$ARG
+  ;;
+fiery | fiery.me | f*)
+  curl -A "$UA" -sF 'files[]=@-' https://safe.fiery.me/api/upload <$ARG | grep -Po '"url":"[A-Za-z0-9]+.*?"' | sed 's/"url":"//;s/"//'
+  ;;
+catbox | catbox.moe | cat*)
+  curl -A "$UA" -sF 'reqtype=fileupload' -F 'fileToUpload=@-' https://catbox.moe/user/api.php <$ARG
+  ;;
+dmca | dmca.gripe | gripe | dm*)
+  curl -A "$UA" -sF 'files[]=@-' http://dmca.gripe/api/upload <$ARG | grep -Po '"url":"[A-Za-z0-9]+.*?"' | sed 's/"url":"//;s/"//;s/[\]//g'
+  ;;
+dumpz | dumpz.org | du*)
+  curl -A "$UA" -s --data-binary @- https://dumpz.org <$ARG | sed 's/http/&s/;s!$!/text/!'
+  ;;
+w1r3 | wire | w1r3.net | w*)
+  curl -sF 'upload=@-' https://w1r3.net <$ARG
+  ;;
+pb | pastebin | pastebin.com)
+  [ -z ${PB_API_DEV} ] && usage
+  PRIVACY="${PRIVACY:-1}"
+  if [ -n "${PRIVACY}" ]; then
+    case ${PRIVACY} in
+    public | 0)
+      PRIVACY=0
+      ;;
+    unlisted | 1)
+      PRIVACY=1
+      ;;
+    private | 2)
+      PRIVACY=2
+      ;;
+    *)
+      usage
+      ;;
+    esac
+  fi
+  qs="api_option=paste&api_dev_key=${PB_API_DEV}&api_paste_expire_date=N&api_paste_private=${PRIVACY}&api_paste_name=$(basename ${ARG})"
+  [ -n "${PB_API_USR}" ] && [ -z ${ANON} ] && qs="${qs}&api_user_key=${PB_API_USR}"
+  curl -A "$UA" -d "${qs}" --data-urlencode "api_paste_code=$(<$ARG)" http://pastebin.com/api/api_post.php
+  ;;
+*)
+  pasteit "$*"
+  ;;
 esac
 # vi:syntax=sh

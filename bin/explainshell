@@ -60,8 +60,8 @@ URL=$(echo "http://explainshell.com/explain/$1?args=${@:2}" | sed -e 's/ /+/g')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-printf_green "$(curl -s "$URL" | sed -n '/<pre/,/<\/pre>/p' | sed -n '/<pre/,/<\/pre>/p' | sed -s 's/<[^>]*>//g' |
-  sed -e 's/^ *//g;s/ *$//g' | grep '.' | cat)"
+printf_green "\n$(curl -s "$URL" | sed -n '/<pre/,/<\/pre>/p' | sed -n '/<pre/,/<\/pre>/p' | sed -s 's/<[^>]*>//g' |
+  sed -e 's/^ *//g;s/ *$//g' | grep '.' | cat | printf_readline)\n"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
