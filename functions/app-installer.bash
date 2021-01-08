@@ -1822,9 +1822,11 @@ run_postinst_global() {
     fi
   fi
 
+  sudorun mkdir -p /etc/casjaysdev/updates/versions
+
   # Permission fix
   ensure_perms
-  mkd /etc/casjaysdev/updates/versions
+
   #  IFS="$OIFS"
 }
 
