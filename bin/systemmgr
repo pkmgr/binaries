@@ -67,11 +67,11 @@ __help() {
 
 #---------------------------------------------------------------------------------------
 
-preupdate(){ 
-if [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
-  sudo git -C /usr/local/share/CasjaysDev/scripts pull -q 
-  [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-fi    
+preupdate() {
+  if [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
+    sudo git -C /usr/local/share/CasjaysDev/scripts pull -q
+    [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+  fi
 }
 
 systemmgr_list() {
@@ -111,12 +111,6 @@ systemmgr_search() {
 
 #---------------------------------------------------------------------------------------
 
-removepkg() {
-  devnull sudo rm -Rf "$HOMEDIR/$1"
-}
-
-#---------------------------------------------------------------------------------------
-
 case "$1" in
 help | h | --h*)
   __help
@@ -137,9 +131,7 @@ remove)
   printf_green "Removing $ARGS from $HOMEDIR"
   declare -a LISTARRAY="$ARGS"
   for rmf in ${LISTARRAY[*]}; do
-    printf_yellow "Removing $rmf from your system"
-    removepkg "$HOMEDIR/$rmf"
-    getexitcode "$rmf has been removed"
+    sudo bash -c "$FUNC; app_uninstall" "$rmf"
     echo ""
   done
   ;;
