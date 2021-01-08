@@ -20,7 +20,9 @@ _gitadmin_completions() {
   help | h | --h*)
     return
     ;;
-
+  update)
+    --while
+    ;;
   push)
     k=0
     i="$HOME/Projects"
