@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-TMPPATH=""$HOME"/.local/share/bash/basher/cellar/bin:"$HOME"/.local/share/bash/basher/bin:"
-TMPPATH+=""$HOME"/.local/bin:"$HOME"/.cargo/bin:"$HOME"/.local/share/gem/bin:/usr/local/bin:"
+TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
+TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
 TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:$PATH"
 
 APPNAME="${APPNAME:-app-installer}"
@@ -282,8 +282,8 @@ system_service_enable() {
       sudo systemctl enable -f $service" "Enabling service: $1 || return 1
     done
   }
-  if system_service_exists $@; then
-    execute "run_systemctl $@" "Enabling service: $1"
+  if system_service_exists "$@"; then
+    execute "run_systemctl $*" "Enabling service: $1"
   fi
   setexitstatus
   set --
@@ -295,8 +295,8 @@ system_service_disable() {
       sudo systemctl disable --now $service || return 1
     done
   }
-  if system_service_exists $@; then
-    execute "run_systemctl $@" "Disabling service: $1"
+  if system_service_exists "$@"; then
+    execute "run_systemctl $*" "Disabling service: $1"
   fi
   setexitstatus
   set --

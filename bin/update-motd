@@ -41,29 +41,29 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "/etc/casjaysdev/messages/legal.txt" ]; then
-  devnull sudo cp -Rf /etc/casjaysdev/messages/legal.txt /etc/issue
+  sudo cp -Rf /etc/casjaysdev/messages/legal.txt /etc/issue >/dev/null 2>&1
 fi
 
-if [ -n "$(command -v fortune 2>/dev/null)" ] && [ -n "$(command -v cowsay 2>/dev/null)" ]; then
-  printf "\n\n\n" | devnull sudo tee >/etc/motd
-  fortune | cowsay | devnull sudo tee >>/etc/motd
-  printf "\n\n" | devnull sudo tee >>/etc/motd
+if [ "$(command -v fortune 2>/dev/null)" ] && [ -n "$(command -v cowsay 2>/dev/null)" ]; then
+  printf "\n\n\n" | sudo tee /etc/motd >/dev/null 2>&1
+  fortune | cowsay | sudo tee -a /etc/motd >/dev/null 2>&1
+  printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 else
-  printf "\n\n" | devnull sudo tee >>/etc/motd
+  printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
 if if_os_id debian; then
-  printf "Debian version: $(cat /etc/debian_version)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | devnull sudo tee >>/etc/motd
+  printf "Debian version: $(cat /etc/debian_version)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
 if if_os_id rhel; then
-  printf "RHEL version: $(cat /etc/os-release)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | devnull sudo tee >>/etc/motd
+  printf "RHEL version: $(cat /etc/os-release)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
-printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | devnull sudo tee >>/etc/motd
-printf "\n\n" | devnull sudo tee >>/etc/motd
-devnull sudo cp -Rf /etc/motd /etc/motd.net
-devnull sudo cp -Rf /etc/issue /etc/issue.net
+printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+sudo cp -Rf /etc/motd /etc/motd.net >/dev/null 2>&1
+sudo cp -Rf /etc/issue /etc/issue.net >/dev/null 2>&1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
