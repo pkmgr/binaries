@@ -269,19 +269,35 @@ set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
 getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
 
 system_service_exists() {
-  if sudo systemctl list-units --full -all | grep -Fq "$1"; then return 0; else return 1; fi
+  for service in "$@"; do
+    if sudo systemctl list-units --full -all | grep -Fq "$1"; then return 0; else return 1; fi
+  done
   setexitstatus
   set --
 }
 
 system_service_enable() {
-  if system_service_exists; then execute "sudo systemctl enable -f $1" "Enabling service: $1"; fi
+  run_systemctl() {
+    for service in "$@"; do
+      sudo systemctl enable -f $service" "Enabling service: $1 || return 1
+    done
+  }
+  if system_service_exists $@; then
+    execute "run_systemctl $@" "Enabling service: $1"
+  fi
   setexitstatus
   set --
 }
 
 system_service_disable() {
-  if system_service_exists; then execute "sudo systemctl disable --now $1" "Disabling service: $1"; fi
+  run_systemctl() {
+    for service in "$@"; do
+      sudo systemctl disable --now $service || return 1
+    done
+  }
+  if system_service_exists $@; then
+    execute "run_systemctl $@" "Disabling service: $1"
+  fi
   setexitstatus
   set --
 }
@@ -325,7 +341,7 @@ backupapp() {
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   mkdir -p "$backupdir" "$logdir"
   if [ -e "$myappdir" ] && [ ! -d $myappdir/.git ]; then
-    echo -e "#################################" >>"$logdir/$myappname.log"
+    echo -e " #################################" >>"$logdir/$myappname.log"
     echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
     echo -e "#################################\n" >>"$logdir/$myappname.log"
