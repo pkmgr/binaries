@@ -108,6 +108,22 @@ systemmgr_search() {
   done
   exit
 }
+#---------------------------------------------------------------------------------------
+
+app_uninstall() {
+  [ -z "$1" ] && APPNAME="$APPNAME" || APPNAME="$1"
+  if [ -d "$APPDIR" ]; then
+    printf_yellow "Removing $APPNAME from your system"
+    devnull sudo rm -Rf "$APPDIR" &&
+      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME" &&
+      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" &&
+      devnull sudo find $BIN $SHARE $COMPDIR -xtype l -exec rm {} \;
+    getexitcode "$APPNAME has been removed"
+  else
+    printf_red "$APPNAME doesn't seem to be installed"
+    return 1
+  fi
+}
 
 #---------------------------------------------------------------------------------------
 
@@ -131,7 +147,7 @@ remove)
   printf_green "Removing $ARGS from $HOMEDIR"
   declare -a LISTARRAY="$ARGS"
   for rmf in ${LISTARRAY[*]}; do
-    sudo bash -c "$FUNC; app_uninstall" "$rmf"
+    app_uninstall "$rmf"
     echo ""
   done
   ;;

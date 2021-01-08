@@ -933,25 +933,6 @@ show_spinner() {
 
 ##################################################################################################
 
-app_uninstall() {
-  [ -z "$1" ] && APPNAME="$APPNAME" || APPNAME="$1"
-  if [ -d "$APPDIR" ]; then
-    printf_yellow "Removing $APPNAME from your system"
-    rm_rf "$APPDIR" &&
-      rm_rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME" &&
-      rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" &&
-      broken_symlinks $BIN $SHARE $COMPDIR
-    getexitcode "$APPNAME has been removed"
-  else
-    printf_red "$APPNAME doesn't seem to be installed"
-    return 1
-  fi
-}
-
-FUNC=$(declare -f app_uninstall)
-
-##################################################################################################
-
 dfmgr_install() {
   user_installdirs
   PREFIX="dfmgr"
