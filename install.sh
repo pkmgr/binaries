@@ -117,7 +117,7 @@ install_gem $GEMS
 
 # Other dependencies
 dotfilesreq
-dotfilesreqadmin
+dotfilesreqadmin cron
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -181,6 +181,7 @@ run_postinst() {
 
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
   cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/configs.txt
+  date +"%b %d, %Y at %H:%M" | sudo tee >/etc/casjaysdev/updates/versions/date.configs.txt
 }
 
 execute \

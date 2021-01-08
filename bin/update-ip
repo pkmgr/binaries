@@ -48,23 +48,23 @@ NETDEV="$(getlipaddr)"
 CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1 | awk '{print $1}')"
 
 if [ -f "/etc/casjaysdev/messages/legal.txt" ]; then
-  sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/casjaysdev/messages/legal.txt 2>/dev/null
+  devnull sudo sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/casjaysdev/messages/legal.txt 2>/dev/null
 fi
 
 if [ -f "/etc/issue" ]; then
-  sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/issue 2>/dev/null
+  devnull sudo sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/issue 2>/dev/null
 fi
 
 if [ -f "/etc/issue.net" ]; then
-  sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/issue.net 2>/dev/null
+  devnull sudo sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/issue.net 2>/dev/null
 fi
 
 if [ -f "/etc/motd" ]; then
-  sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/motd 2>/dev/null
+  devnull sudo sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/motd 2>/dev/null
 fi
 
 if [ -f "/etc/motd.net" ]; then
-  sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/motd.net 2>/dev/null
+  devnull sudo sed -i "s#MY IP Adress is.*#MY IP Adress is: $CURRIP4#g" /etc/motd.net 2>/dev/null
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

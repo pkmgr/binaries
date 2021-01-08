@@ -41,29 +41,29 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "/etc/casjaysdev/messages/legal.txt" ]; then
-  sudo cp -Rf /etc/casjaysdev/messages/legal.txt /etc/issue
+  devnull sudo cp -Rf /etc/casjaysdev/messages/legal.txt /etc/issue
 fi
 
 if [ -n "$(command -v fortune 2>/dev/null)" ] && [ -n "$(command -v cowsay 2>/dev/null)" ]; then
-  printf "\n\n\n" | sudo tee >/etc/motd
-  fortune | cowsay | sudo tee >>/etc/motd
-  printf "\n\n" | sudo tee >>/etc/motd
+  printf "\n\n\n" | devnull sudo tee >/etc/motd
+  fortune | cowsay | devnull sudo tee >>/etc/motd
+  printf "\n\n" | devnull sudo tee >>/etc/motd
 else
-  printf "\n\n" | sudo tee >>/etc/motd
+  printf "\n\n" | devnull sudo tee >>/etc/motd
 fi
 
 if if_os_id debian; then
-  printf "Debian version: $(cat /etc/debian_version)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee >>/etc/motd
+  printf "Debian version: $(cat /etc/debian_version)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | devnull sudo tee >>/etc/motd
 fi
 
 if if_os_id rhel; then
-  printf "RHEL version: $(cat /etc/os-release)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee >>/etc/motd
+  printf "RHEL version: $(cat /etc/os-release)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | devnull sudo tee >>/etc/motd
 fi
 
-printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee >>/etc/motd
-printf "\n\n" | sudo tee >>/etc/motd
-sudo cp -Rf /etc/motd /etc/motd.net
-sudo cp -Rf /etc/issue /etc/issue.net
+printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | devnull sudo tee >>/etc/motd
+printf "\n\n" | devnull sudo tee >>/etc/motd
+devnull sudo cp -Rf /etc/motd /etc/motd.net
+devnull sudo cp -Rf /etc/issue /etc/issue.net
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
