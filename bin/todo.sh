@@ -16,8 +16,8 @@ USER="${SUDO_USER:-${USER}}"
 # @Source      : https://github.com/todotxt/todo.txt-cli
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# NOTE:  Todo.sh requires the .todo/config configuration file to run.
-# Place the .todo/config file in your home directory or use the -d option for a custom location.
+# NOTE:  Todo.sh requires the .config/todo/config configuration file to run.
+# Place the .config/todo/config file in your home directory or use the -d option for a custom location.
 
 [ -f VERSION-FILE ] && . VERSION-FILE || VERSION="@DEV_VERSION@"
 version() {
@@ -106,7 +106,7 @@ help() {
 		    -c
 		        Color mode
 		    -d CONFIG_FILE
-		        Use a configuration file other than the default ~/.todo/config
+		        Use a configuration file other than the default ~/.config/todo/config
 		    -f
 		        Forces actions without confirmation or interactive input
 		    -h
@@ -198,7 +198,7 @@ actionsHelp() {
 
 		    command [ACTIONS]
 		      Runs the remaining arguments using only todo.sh builtins.
-		      Will not call any .todo.actions.d scripts.
+		      Will not call any .config/todo/actions.d scripts.
 
 		    deduplicate
 		      Removes duplicate lines from todo.txt.
@@ -606,7 +606,7 @@ shift $((OPTIND - 1))
 # defaults if not yet defined
 TODOTXT_VERBOSE=${TODOTXT_VERBOSE:-1}
 TODOTXT_PLAIN=${TODOTXT_PLAIN:-0}
-TODOTXT_CFG_FILE=${TODOTXT_CFG_FILE:-$HOME/.todo/config}
+TODOTXT_CFG_FILE=${TODOTXT_CFG_FILE:-$HOME/.config/todo/config}
 TODOTXT_FORCE=${TODOTXT_FORCE:-0}
 TODOTXT_PRESERVE_LINE_NUMBERS=${TODOTXT_PRESERVE_LINE_NUMBERS:-1}
 TODOTXT_AUTO_ARCHIVE=${TODOTXT_AUTO_ARCHIVE:-1}
@@ -675,7 +675,7 @@ export SENTENCE_DELIMITERS=',.:;'
 }
 
 [ -e "$TODOTXT_CFG_FILE" ] || {
-  CFG_FILE_ALT="$HOME/.todo.cfg"
+  CFG_FILE_ALT="$HOME/.config/todo.cfg"
 
   if [ -e "$CFG_FILE_ALT" ]; then
     TODOTXT_CFG_FILE="$CFG_FILE_ALT"
@@ -707,12 +707,12 @@ export SENTENCE_DELIMITERS=',.:;'
 }
 
 if [ -z "$TODO_ACTIONS_DIR" ] || [ ! -d "$TODO_ACTIONS_DIR" ]; then
-  TODO_ACTIONS_DIR="$HOME/.todo/actions"
+  TODO_ACTIONS_DIR="$HOME/.config/todo/actions"
   export TODO_ACTIONS_DIR
 fi
 
 [ -d "$TODO_ACTIONS_DIR" ] || {
-  TODO_ACTIONS_DIR_ALT="$HOME/.todo.actions.d"
+  TODO_ACTIONS_DIR_ALT="$HOME/.config/todo/actions.d"
 
   if [ -d "$TODO_ACTIONS_DIR_ALT" ]; then
     TODO_ACTIONS_DIR="$TODO_ACTIONS_DIR_ALT"
@@ -1056,7 +1056,7 @@ elif [ -d "$TODO_ACTIONS_DIR" ] && [ -x "$TODO_ACTIONS_DIR/$action" ]; then
   exit $?
 fi
 
-## Only run if $action isn't found in .todo.actions.d
+## Only run if $action isn't found in .config/todo/actions.d
 case $action in
 "add" | "a")
   if [[ -z "$2" && $TODOTXT_FORCE = 0 ]]; then
