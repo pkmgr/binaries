@@ -208,7 +208,7 @@ get_githost() {
 
 ##################################################################################################
 
-get_username_repo(){
+get_username_repo() {
   unset protocol separator hostname username userrepo
   local url="$1.git"
   local re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
@@ -466,12 +466,12 @@ fi
 
 get_app_info() {
   local APPNAME="$1"
-  local FILE="$SCRIPTSFUNCTDIR/bin/$APPNAME"
+  local FILE="$(command -v $APPNAME)"
   if [ -f "$FILE" ]; then
     echo ""
-    cat "$SCRIPTSFUNCTDIR/bin/$APPNAME" | grep "# @" | grep " : " >/dev/null 2>&1 &&
-      cat "$SCRIPTSFUNCTDIR/bin/$APPNAME" | grep "# @" | grep " : " | printf_newline "3" &&
-      printf_green "Scripts Version: $(cat $SCRIPTSFUNCTDIR/version.txt)" ||
+    cat "$FILE" | grep "# @" | grep " : " >/dev/null 2>&1 &&
+      cat "$FILE" | grep "# @" | grep " : " &&
+      printf_green "Version: $(cat $FILE | grep "##@Version" | grep " : " | printf_newline "3")" ||
       printf_red "File was found, however, No information was provided"
     echo ""
   else

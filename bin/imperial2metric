@@ -4,13 +4,14 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version     : 010820210348-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : f2celcius
+# @File        : imperial2metric
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : convert Fahrenheit to Celcius
+# @Description : convert Celcius to Fahrenheit
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -37,17 +38,67 @@ fi
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+printf_exit "Coming soon"
+__help() {
+  printf_custom "4" "Convert metric to imperial measurements"
+  printf_green "Convert celcius to fahrenheit     | $APPNAME f 20 "
+  printf_green "Convert millimeter to inches      | $APPNAME mm 20 "
+  printf_green "Convert centimeter to inches      | $APPNAME cm 20 "
+  printf_green "Convert meter to feet             | $APPNAME m 20 "
+  printf_green "Convert kilometer to miles        | $APPNAME km 20 "
+  exit
+}
 
-[ ! -z "$1" ] || printf_help "Convert fahrenheit to celcius\n\t\tUsage: f2celcius 32	|	Tempature in F"
+if [ -z "$1" ] || [ $# -lt 2 ]; then
+  __help
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-check_app tc bc
+check_app tf bc
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-tc=$(echo "scale=2;(5/9)*($1-32)" | bc)
-printf_green "Tempature in celcius is $tc"
+measurement="$1"
+math="$2"
+
+case $measurement in
+
+f)
+  shift 1
+  tf=$(echo "scale=2;((9/5) * $math) + 32" | bc)
+  printf_green "$math celcius is $tf in fahrenheit "
+  ;;
+
+mm)
+  shift 1
+  tf=$(echo "scale=2;$math * 0.0394" | bc)
+  printf_green "$math millimeter is $tf inches"
+  ;;
+
+cm)
+  shift 1
+  tf=$(echo "scale=2;($math * 0.3937)" | bc)
+  printf_green "$math centimeter is $tf inches"
+  ;;
+
+m | mt)
+  shift 1
+  tf=$(echo "scale=2;($math * 3.2808)" | bc)
+  printf_green "$math meters is $tf feet"
+  ;;
+
+k | km)
+  shift 1
+  tf=$(echo "scale=2;($math * 0.3937)" | bc)
+  printf_green "$math kilometer is $tf miles"
+  ;;
+
+*)
+  __help
+  ;;
+
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
