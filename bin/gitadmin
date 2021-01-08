@@ -476,12 +476,12 @@ git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
       for project in $(ls -d ~/Projects/github/*/*); do
-        printf_green "$project $(git -C $project pull)"
-      done && printf_custom "3" "Sleeping for a minute $(sleep 60)"
+        printf_green "$project $(git -C $project pull | printf_readline)"
+      done && clear && printf_custom "3" "Sleeping for a minute $(sleep 60)"
     done
   else
     for project in $(ls -d ~/Projects/github/*/*); do
-      printf_green "$project $(git -C $project pull)"
+      printf_green "$project $(git -C $project pull | printf_readline)"
     done
   fi
 }
