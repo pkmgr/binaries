@@ -425,12 +425,12 @@ main() {
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d ./.git ]; then
-    git push --no-log
+    printf_custom "4" "$(git push --no-log | printf_readline 3)"
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      git -C "$projdir" push --no-log
+      printf_custom "4" "$(git -C "$projdir" push --no-log | printf_readline 3)"
     else
       return 1
     fi
@@ -443,12 +443,12 @@ git_push_single() {
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d ./.git ]; then
-    git pull --no-log
+    printf_custom "4" "$(git pull --no-log | printf_readline 3)"
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      git -C "$projdir" pull --no-log
+      printf_custom "4" "$(git -C "$projdir" pull --no-log | printf_readline 3)"
       cd_into "$projdir"
     else
       return 1
@@ -464,9 +464,9 @@ git_clone_single() {
   get_username_repo "$1"
   [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
   if [ -d "$projdir" ]; then
-    git_pull_single "$projdir"
+    printf_custom "4" "$(git -C "$projdir" pull --no-log | printf_readline 3)"
   else
-    git clone "$1" "$projdir" --no-log
+    printf_custom "4" "$(git clone "$1" "$projdir" --no-log | printf_readline 3)"
     cd_into "$projdir"
   fi
   exit $?
@@ -476,13 +476,13 @@ git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
       for project in $(ls -d ~/Projects/github/*/*); do
-        printf_green "$project $(git -C $project pull --no-log)"
+        printf_green "$project $(git -C $project pull --no-log | printf_readline 3)"
       done && clear
       printf_custom "3" "Sleeping for a minute $(sleep 60)"
     done
   else
     for project in $(ls -d ~/Projects/github/*/*); do
-      printf_green "$project $(git -C $project pull --no-log)"
+      printf_green "$project $(git -C $project pull --no-log | printf_readline 3)"
     done
   fi
 }
