@@ -470,8 +470,8 @@ get_app_info() {
   if [ -f "$FILE" ]; then
     echo ""
     cat "$FILE" | grep "# @" | grep " : " >/dev/null 2>&1 &&
-      cat "$FILE" | grep "# @" | grep " : " &&
-      printf_green "Version: $(cat $FILE | grep "##@Version" | grep " : " | printf_newline "3")" ||
+      cat "$FILE" | grep "# @" | grep " : " | printf_newline "3" &&
+      printf_green "Version: $(cat $FILE | grep "##@Version" | sed 's/##@Version.*: //g')" ||
       printf_red "File was found, however, No information was provided"
     echo ""
   else
