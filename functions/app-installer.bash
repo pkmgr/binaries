@@ -1235,14 +1235,14 @@ get_app_version() {
 
 app_uninstall() {
   if [ -d "$APPDIR" ]; then
-    printf_yellow "Removing $APPNAME from your system"
+    printf_yellow "\n\t\tRemoving $APPNAME from your system\n"
     rm_rf "$APPDIR" &&
       rm_rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME" &&
       rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" &&
       broken_symlinks $BIN $SHARE $COMPDIR
-    getexitcode "$APPNAME has been removed"
+    getexitcode "\n\t\t$APPNAME has been removed\n"
   else
-    printf_red "$APPNAME doesn't seem to be installed"
+    printf_red "\n\t\t$APPNAME doesn't seem to be installed\n"
     return 1
   fi
 }
