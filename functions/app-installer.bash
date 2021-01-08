@@ -340,6 +340,7 @@ backupapp() {
 
 ##################################################################################################
 
+broken_symlinks() { devnull find "$@" -xtype l -exec rm {} \;; }
 rm_rf() { if [ -e "$1" ]; then devnull rm -Rf "$@"; else return 0; fi; }
 cp_rf() { if [ -e "$1" ]; then devnull cp -Rfa "$@"; else return 0; fi; }
 ln_rm() { devnull find "$1" -xtype l -delete || return 0; }
@@ -1232,6 +1233,15 @@ get_app_version() {
 
 ##################################################################################################
 
+app_uninstall() {
+  rm_rf "$APPDIR"
+  rm_rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME"
+  rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
+  broken_symlinks $BIN $SHARE $COMPDIR
+}
+
+##################################################################################################
+
 show_optvars() {
   if [ "$1" = "--update" ]; then
     versioncheck
@@ -1261,6 +1271,11 @@ show_optvars() {
 
   if [ "$1" = "--version" ]; then
     get_app_version
+    exit $?
+  fi
+
+  if [ "$1" = "--remove" ] || [ "$1" = "--uninstall" ]; then
+    app_uninstall
     exit $?
   fi
 
