@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+APPNAME="update-motd"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+PATH="/usr/games:$PATH"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : jason@casjaysdev.com
+# @File        : update-motd
+# @Created     : Mon, Dec 31, 2019, 00:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Update the MOTD file
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "/etc/casjaysdev/messages/legal.txt" ]; then
+  sudo cp -Rf /etc/casjaysdev/messages/legal.txt /etc/issue
+fi
+
+if [ -n "$(command -v fortune 2>/dev/null)" ] && [ -n "$(command -v cowsay 2>/dev/null)" ]; then
+  printf "\n\n\n" | sudo tee >/etc/motd
+  fortune | cowsay | sudo tee >>/etc/motd
+  printf "\n\n" | sudo tee >>/etc/motd
+else
+  printf "\n\n" | sudo tee >>/etc/motd
+fi
+
+if if_os_id debian; then
+  printf "Debian version: $(cat /etc/debian_version)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee >>/etc/motd
+fi
+
+if if_os_id rhel; then
+  printf "RHEL version: $(cat /etc/os-release)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee >>/etc/motd
+fi
+
+printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee >>/etc/motd
+printf "\n\n" | sudo tee >>/etc/motd
+sudo cp -Rf /etc/motd /etc/motd.net
+sudo cp -Rf /etc/issue /etc/issue.net
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+exit $?

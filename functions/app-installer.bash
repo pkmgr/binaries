@@ -1824,7 +1824,7 @@ run_postinst_global() {
 
   # Permission fix
   ensure_perms
-
+  mkd /etc/casjaysdev/updates/versions
   #  IFS="$OIFS"
 }
 

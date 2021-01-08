@@ -1166,6 +1166,54 @@ unsupported_oses() {
   done
 }
 
+if_os_id() {
+  if [ -f "/etc/os-release" ]; then
+    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##')
+  elif [ -f "/etc/redhat-release" ]; then
+    local distroname=$(cat /etc/redhat-release)
+  elif [ -f "$(command -v lsb_release)" ]; then
+    local distroname="$(lsb_release -a | grep 'Distributor ID' | awk '{print $3}')"
+  else
+    local distroname="unknown"
+  fi
+  for id_like in "$@"; do
+    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
+      case "$1" in
+      Arch* | arch*)
+        if [[ "$distroname" =~ "ArcoLinux" ]] || [[ "$distroname" =~ "Arch" ]] || [[ "$distroname" =~ "BlackArch" ]]; then
+          distro_id=Arch
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      RHEL* | rhel*)
+        if [[ "$distroname" =~ "Scientific" ]] || [[ "$distroname" =~ "RedHat" ]] || [[ "$distroname" =~ "CentOS" ]] || [[ "$distroname" =~ "Casjay" ]] || [[ "$distroname" =~ "Fedora" ]]; then
+          distro_id=RHEL
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      Debian* | debian)
+        if [[ "$distroname" =~ "Kali" ]] || [[ "$distroname" =~ "Parrot" ]] || [[ "$distroname" =~ "Debian" ]] || [[ "$distroname" =~ "Raspbian" ]] ||
+          [[ "$distroname" =~ "Ubuntu" ]] || [[ "$distroname" =~ "Mint" ]] || [[ "$distroname" =~ "Elementary" ]] || [[ "$distroname" =~ "KDE neon" ]]; then
+          distro_id=Debian
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      *)
+        return 1
+        ;;
+      esac
+    else
+      return 1
+    fi
+  done
+}
+
 ##################################################################################################
 
 # end
