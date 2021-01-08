@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# myshell_completions completion
+# _myshell_completions completion
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -7,7 +7,7 @@
 
 
 
-myshell_completions() {
+_myshell_completions() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY=$(for line in $(cat /etc/shells | grep -v "#") ; do basename $line | tr '\n' ' '; done && echo)
@@ -21,6 +21,6 @@ myshell_completions() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # enable completions
-complete -F myshell_completions -o default myshell
+complete -F _myshell_completions -o default myshell
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
