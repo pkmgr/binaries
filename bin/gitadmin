@@ -6,6 +6,7 @@ USER="${SUDO_USER:-${USER}}"
 shopt -s extglob
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : install
@@ -42,7 +43,7 @@ fi
 
 # defaults
 
-USERNAME="$2"
+USERNAME="${GITHUB_USERNAME:-$2}"
 TOKEN="$GITHUB_ACCESS_TOKEN"
 REPO_URL="https://github.com/$USERNAME"
 PROJECT_BASE="$HOME/Projects"
@@ -471,40 +472,66 @@ git_clone_single() {
   exit $?
 }
 
+git_update_loop() {
+  if [[ "$*" =~ "--while" ]]; then
+    while true; do
+      for project in $(ls -d ~/Projects/github/*/*); do
+        printf_green "$project $(git -C $project pull)"
+      done && printf_custom "3" "Sleeping for a minute $(sleep 60)"
+    done
+  else
+    for project in $(ls -d ~/Projects/github/*/*); do
+      printf_green "$project $(git -C $project pull)"
+    done
+  fi
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
-push)
-  shift 1
-  git_push_single "$@"
-  ;;
-
-pull)
-  shift 1
-  git_pull_single "$@"
-  ;;
-
-clone)
-  shift 1
-  git_clone_single "$@"
-  ;;
-
 --help)
   help
   exit
   ;;
 
+update)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME update | $APPNAME update --while | Run git pull on all repos"
+  shift 1
+  git_update_loop "$@"
+  ;;
+
+push)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME push | push the repo"
+  shift 1
+  git_push_single "$@"
+  ;;
+
+pull)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME update | pull the repos"
+  shift 1
+  git_pull_single "$@"
+  ;;
+
+clone)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME clone | clone the repos"
+  shift 1
+  git_clone_single "$@"
+  ;;
+
 --all-orgs)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --all-orgs | Clone/Pull all orgs owned by you"
   shift 1
   git_all_orgs
   ;;
 
 --single)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --single | clone a single repo"
   shift 1
-  ghsinglerepo $@
+  ghsinglerepo "$@"
   ;;
 
 --org)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --org | Clone/Pull all repos owned by org"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -521,6 +548,7 @@ clone)
   ;;
 
 --user)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --user | Clone/Pull all repos owned by you"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -537,6 +565,7 @@ clone)
   ;;
 
 --push)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --push | push all your repos repos"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -573,6 +602,7 @@ clone)
   ;;
 
 --clone)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --clone | clone the repos"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
