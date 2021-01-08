@@ -425,12 +425,12 @@ main() {
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d ./.git ]; then
-    printf_custom "4" "$(git push -q | printf_readline 3)"
+    printf_custom "4" "$(git push -q)"
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      printf_custom "4" "$(git -C "$projdir" push -q | printf_readline 3)"
+      printf_custom "4" "$(git -C "$projdir" push -q)"
     else
       return 1
     fi
@@ -443,12 +443,12 @@ git_push_single() {
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d ./.git ]; then
-    printf_custom "4" "$(git pull -q | printf_readline 3)"
+    printf_custom "4" "$(git pull -q)"
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      printf_custom "4" "$(git -C "$projdir" pull -q | printf_readline 3)"
+      printf_custom "4" "$(git -C "$projdir" pull -q)"
       cd_into "$projdir"
     else
       return 1
@@ -464,9 +464,9 @@ git_clone_single() {
   get_username_repo "$1"
   [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
   if [ -d "$projdir" ]; then
-    printf_custom "4" "$(git -C "$projdir" pull -q | printf_readline 3)"
+    printf_custom "4" "$(git -C "$projdir" pull -q)"
   else
-    printf_custom "4" "$(git clone "$1" "$projdir" -q | printf_readline 3)"
+    printf_custom "4" "$(git clone "$1" "$projdir" -q)"
     cd_into "$projdir"
   fi
   exit $?
@@ -476,13 +476,13 @@ git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
       for project in $(ls -d ~/Projects/github/*/*); do
-        printf_green "$project $(git -C $project pull -q | printf_readline 3)"
+        printf_green "Updating $project $(git -C $project pull -q)"
       done && clear
       printf_custom "3" "Sleeping for a minute $(sleep 60)"
     done
   else
     for project in $(ls -d ~/Projects/github/*/*); do
-      printf_green "$project $(git -C $project pull -q | printf_readline 3)"
+      printf_green "Updating $project $(git -C $project pull -q)"
     done
   fi
 }
