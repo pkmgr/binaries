@@ -57,8 +57,11 @@ check_app chsh
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
-
-chsh -s "$(command -v $1)" "${USER}"
+if [ -f "$(command -v $1)" ]; then
+  chsh -s "$(command -v $1)" "${USER}"
+else
+printf_red "Invalid shell"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
