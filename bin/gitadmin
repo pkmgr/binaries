@@ -425,12 +425,12 @@ main() {
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d ./.git ]; then
-    git push | printf_readline "6"
+    git push --no-log
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      git -C "$projdir" push | printf_readline "6"
+      git -C "$projdir" push --no-log
     else
       return 1
     fi
@@ -443,12 +443,12 @@ git_push_single() {
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d ./.git ]; then
-    git pull | printf_readline "6"
+    git pull --no-log
   else
     get_username_repo "$1"
     [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
     if [ -d "$projdir/.git" ]; then
-      git -C "$projdir" pull | printf_readline "6"
+      git -C "$projdir" pull --no-log
       cd_into "$projdir"
     else
       return 1
@@ -466,7 +466,7 @@ git_clone_single() {
   if [ -d "$projdir" ]; then
     git_pull_single "$projdir"
   else
-    git clone "$1" "$projdir" | printf_readline "6"
+    git clone "$1" "$projdir" --no-log
     cd_into "$projdir"
   fi
   exit $?
@@ -476,12 +476,13 @@ git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
       for project in $(ls -d ~/Projects/github/*/*); do
-        printf_green "$project $(git -C $project pull | printf_readline)"
-      done && clear && printf_custom "3" "Sleeping for a minute $(sleep 60)"
+        printf_green "$project $(git -C $project pull --no-log)"
+      done && clear
+      printf_custom "3" "Sleeping for a minute $(sleep 60)"
     done
   else
     for project in $(ls -d ~/Projects/github/*/*); do
-      printf_green "$project $(git -C $project pull | printf_readline)"
+      printf_green "$project $(git -C $project pull --no-log)"
     done
   fi
 }
