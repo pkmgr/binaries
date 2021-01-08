@@ -1031,6 +1031,54 @@ if_os() {
   esac
 }
 
+if_os_id() {
+  if [ -f "/etc/os-release" ]; then
+    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##')
+  elif [ -f "/etc/redhat-release" ]; then
+    local distroname=$(cat /etc/redhat-release)
+  elif [ -f "$(command -v lsb_release)" ]; then
+    local distroname="$(lsb_release -a | grep 'Distributor ID' | awk '{print $3}')"
+  else
+    local distroname="unknown"
+  fi
+  for id_like in "$@"; do
+    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
+      case "$1" in
+      Arch* | arch*)
+        if [[ "$distroname" =~ "ArcoLinux" ]] || [[ "$distroname" =~ "Arch" ]] || [[ "$distroname" =~ "BlackArch" ]]; then
+          distro_id=Arch
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      RHEL* | rhel*)
+        if [[ "$distroname" =~ "Scientific" ]] || [[ "$distroname" =~ "RedHat" ]] || [[ "$distroname" =~ "CentOS" ]] || [[ "$distroname" =~ "Casjay" ]] || [[ "$distroname" =~ "Fedora" ]]; then
+          distro_id=RHEL
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      Debian* | debian)
+        if [[ "$distroname" =~ "Kali" ]] || [[ "$distroname" =~ "Parrot" ]] || [[ "$distroname" =~ "Debian" ]] || [[ "$distroname" =~ "Raspbian" ]] ||
+          [[ "$distroname" =~ "Ubuntu" ]] || [[ "$distroname" =~ "Mint" ]] || [[ "$distroname" =~ "Elementary" ]] || [[ "$distroname" =~ "KDE neon" ]]; then
+          distro_id=Debian
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      *)
+        return 1
+        ;;
+      esac
+    else
+      return 1
+    fi
+  done
+}
+
 ##################################################################################################
 
 user_installdirs() {
@@ -1215,19 +1263,19 @@ get_app_version() {
   fi
   local GITREPO=""$REPO/$APPNAME""
   local APPVERSION="${APPVERSION:-$REPORAW/master/version.txt}"
-  [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
-  [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
-  [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
-  [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
-  [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
-  [ -n "$PLUGNAMES" ] && printf_info "Plugins:                   $PLUGNAMES"
-  [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
-  [ -n "$version" ] && printf_info "APP Version:               $version"
-  [ -n "$APPVERSION" ] && printf_info "Git Version:               $APPVERSION"
+  [ -n "$WHOAMI" ] && printf_info "WhoamI: $WHOAMI"
+  [ -n "$INSTALL_TYPE" ] && printf_info "Install Type: $INSTALL_TYPE"
+  [ -n "$APPNAME" ] && printf_info "APP name: $APPNAME"
+  [ -n "$APPDIR" ] && printf_info "APP dir: $APPDIR"
+  [ -n "$GITREPO" ] && printf_info "APP repo: $REPO/$APPNAME"
+  [ -n "$PLUGNAMES" ] && printf_info "Plugins: $PLUGNAMES"
+  [ -n "$PLUGDIR" ] && printf_info "PluginsDir: $PLUGDIR"
+  [ -n "$version" ] && printf_info "APP Version: $version"
+  [ -n "$APPVERSION" ] && printf_info "Git Version: $APPVERSION"
   if [ "$version" = "$APPVERSION" ]; then
-    printf_info "Update Available:          No"
+    printf_info "Update Available: No"
   else
-    printf_info "Update Available:          True"
+    printf_info "Update Available: True"
   fi
 }
 
