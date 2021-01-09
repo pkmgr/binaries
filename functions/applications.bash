@@ -1168,28 +1168,29 @@ unsupported_oses() {
 }
 
 if_os_id() {
-  if [ -f "$(command -v lsb_release)" ]; then
-    local distroname="$(lsb_release -a | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]')"
-    local distroversion="$(lsb_release -a | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]')"
-  elif [ -f "$(command -v lsb-release)" ]; then
-    local distroname="$(lsb-release -a | grep 'Distributor ID' | awk '{print $3}') | tr '[:upper:]' '[:lower:]'"
-    local distroversion="$(lsb-release -a | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]')"
+  unset distroname distroversion distro_id distro_version
+  if [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
+    local distroname="$(lsb_release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+    local distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]'| sed 's#"##g')"
+  elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
+    local distroname="$(lsb-release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+    local distroversion="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
   elif [ -f "/etc/os-release" ]; then
-    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##' | tr '[:upper:]' '[:lower:]')
-    local distroversion=$(grep ID_LIKE= /etc/os-release | sed 's#VERSION_ID=##' | tr '[:upper:]' '[:lower:]')
+    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+    local distroversion=$(grep ID_LIKE= /etc/os-release | sed 's#VERSION_ID=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
   elif [ -f "/etc/redhat-release" ]; then
-    local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
-    local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]')
+    local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+    local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
   else
     return 1
   fi
   for id_like in "$@"; do
-    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
       case "$1" in
-      Arch* | arch* | *arch*)
-        if [[ "$distroname" =~ "arcoLinux" ]] || [[ "$distroname" =~ "arch" ]] || [[ "$distroname" =~ "blackarch" ]]; then
+      arch* | arco*)
+        if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
           distro_id=Arch
           distro_version="$distroversion"
+          return 0
         else
           return 1
         fi
@@ -1213,11 +1214,9 @@ if_os_id() {
         fi
         ;;
       esac
-    else
-      return 1
-    fi
   done
   }
+
 
 ##################################################################################################
 
