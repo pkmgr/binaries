@@ -169,7 +169,7 @@ failexitcode
 
 run_postinst() {
   systemmgr_run_postinst
-
+  dotfilesreqadmin cron
   local fontdir="$(ls "$CASJAYSDEVSAPPDIR/fontmgr" 2>/dev/null | wc -l)"
   if [ "$fontdir" = "0" ]; then
     sudo fontmgr install Hack

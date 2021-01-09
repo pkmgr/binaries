@@ -724,11 +724,18 @@ git_update() {
 dotfilesreqcmd() {
   local gitrepo="$REPO"
   urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-    bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" ||
-    return 1
+    bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
 }
 
-dotfilesreq() {
+dotfilesreqadmincmd() {
+  local gitrepo="$REPO"
+  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
+    sudo bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
+}
+
+##################################################################################################
+
+dotfilesreqinst() {
   local confdir="$USRUPDATEDIR"
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
@@ -741,15 +748,7 @@ dotfilesreq() {
   rm_rf $TEMP/*.inst.tmp
 }
 
-##################################################################################################
-dotfilesreqadmincmd() {
-  local gitrepo="$REPO"
-  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-    sudo bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" ||
-    return 1
-}
-
-dotfilesreqadmin() {
+dotfilesreqadmininst() {
   local confdir="$SYSUPDATEDIR"
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
