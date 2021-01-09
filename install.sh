@@ -117,7 +117,7 @@ install_gem $GEMS
 
 # Other dependencies
 dotfilesreq
-dotfilesreqadmin cron
+dotfilesreqadmin
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

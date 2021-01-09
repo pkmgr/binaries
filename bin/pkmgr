@@ -634,128 +634,6 @@ init | -in)
   execute "$init" "Initializing System"
   ;;
 
-cpan)
-  case $1 in
-  install)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "install perl modules via cpan"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      cpan_run "$pkg"
-    done
-    ;;
-
-  remove)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Remove perl modules via cpan"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      cpan_remove "$pkg"
-    done
-    ;;
-
-  *)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "install perl modules via cpan"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      cpan_run "$pkg"
-    done
-    ;;
-  esac
-  ;;
-
-pip)
-  case $1 in
-  install)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Install python modules via pip"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      pip_run "$pkg"
-    done
-    ;;
-  remove)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Remove python modules via pip"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      pip_remove "$pkg"
-    done
-    ;;
-  *)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Install python modules via pip"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      pip_run "$pkg"
-    done
-    ;;
-  esac
-  ;;
-
-gem)
-  case $1 in
-  install)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Install ruby modules via rubygems"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      gem_run "$pkg"
-    done
-    ;;
-
-  remove)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Remove ruby modules via rubygems"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      gem_remove "$pkg"
-    done
-    ;;
-
-  *)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Install ruby modules via rubygems"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      gem_run "$pkg"
-    done
-    ;;
-  esac
-  ;;
-
-npm)
-  case $1 in
-  install)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Install node package via npm"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      npm_run "$pkg"
-    done
-    ;;
-
-  remove)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Remove node package via npm"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      npm_remove "$pkg"
-    done
-    ;;
-
-  *)
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Install node package via npm"
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      npm_run "$pkg"
-    done
-    ;;
-  esac
-  ;;
-
 makecache | -ca)
   shift 1
   [ "$1" = "--help" ] && printf_help "Create the cache for the package manager"
@@ -807,7 +685,130 @@ silent-upgrade | silent-update)
   $pkgmgrbinupdsil >/dev/null 2>&1 && exit 0 || exit 1
   ;;
 
+cpan | perl)
+  shift 1
+  case $1 in
+  install)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "install perl modules via cpan"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      cpan_run "$pkg"
+    done
+    ;;
+
+  remove)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Remove perl modules via cpan"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      cpan_remove "$pkg"
+    done
+    ;;
+
+  *)
+    [ "$1" = "--help" ] && printf_help "install perl modules via cpan"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      cpan_run "$pkg"
+    done
+    ;;
+  esac
+  ;;
+
+pip | python)
+  shift 1
+  case $1 in
+  install)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Install python modules via pip"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      pip_run "$pkg"
+    done
+    ;;
+  remove)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Remove python modules via pip"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      pip_remove "$pkg"
+    done
+    ;;
+  *)
+    [ "$1" = "--help" ] && printf_help "Install python modules via pip"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      pip_run "$pkg"
+    done
+    ;;
+  esac
+  ;;
+
+gem | ruby)
+  shift 1
+  case $1 in
+  install)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Install ruby modules via rubygems"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      gem_run "$pkg"
+    done
+    ;;
+
+  remove)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Remove ruby modules via rubygems"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      gem_remove "$pkg"
+    done
+    ;;
+
+  *)
+    [ "$1" = "--help" ] && printf_help "Install ruby modules via rubygems"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      gem_run "$pkg"
+    done
+    ;;
+  esac
+  ;;
+
+npm | node)
+  shift 1
+  case $1 in
+  install)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Install node package via npm"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      npm_run "$pkg"
+    done
+    ;;
+
+  remove)
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Remove node package via npm"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      npm_remove "$pkg"
+    done
+    ;;
+
+  *)
+    [ "$1" = "--help" ] && printf_help "Install node package via npm"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      npm_run "$pkg"
+    done
+    ;;
+  esac
+  ;;
+
 silent)
+  shift 1
   case $1 in
   install)
     shift 1
