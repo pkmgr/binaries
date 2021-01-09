@@ -225,7 +225,7 @@ if [ -f "$(command -v yay)" ]; then
     pkgmgrbininssil="$pkgmgrbin -Sy --needed --noconfirm --cleanafter --overwrite='*' "
     pkgmgrbinremsil="$pkgmgrbin -Ry --noconfirm --needed --noconfirm" #
     pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "                   #
-    pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                  #
+    #pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                  #
     pkgmgrbindel="$pkgmgrbin -R "                                     #
     pkgmgrbinsea="$pkgmgrbin -Ss "                                    #
     pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"          #
@@ -389,7 +389,7 @@ __schedule() {
     shift 1
     sudo su -c "echo -e ###########\n$date\n###########\n >> $logfile"
     sudo su -c "echo -e ###########\n$date\n###########\n >> $loggerfile"
-    sudo $pkgmgrbinupdcron | sudo tee -a $logfile 2>>"$loggerfile.tmp"
+    sudo $pkgmgrbinupdcron 2>>"$loggerfile.tmp" | sudo tee -a $logfile 
     if [ -s "$loggerfile.tmp" ] && [ -f "$loggerfile.tmp" ] && [[ ! -z $(grep '[^[:space:]]' $loggerfile.tmp) ]]; then
       if cmd_exists mail; then
         MAILMESS="$(echo -e "Errors were reported and they are as follows:\n""$(cat $loggerfile.tmp)\n")"
