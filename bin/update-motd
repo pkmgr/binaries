@@ -69,11 +69,15 @@ fi
 
 conf_versions() {
 if if_os_id debian; then
-  printf "Debian version: $(cat /etc/debian_version)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+  printf "Debian version: $distro_version  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
 if if_os_id rhel; then
-  printf "RHEL version: $(cat /etc/os-release)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+  printf "RHEL version: $distro_version  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+fi
+
+if if_os_id arch; then
+  printf "Arch version: $distro_version  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
 printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
