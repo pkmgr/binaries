@@ -1169,20 +1169,19 @@ unsupported_oses() {
 
 if_os_id() {
   if [ -f "$(command -v lsb_release)" ]; then
-    local distroname="$(lsb_release -a | grep 'Distributor ID' | awk '{print $3}')"
-    local distroversion="$(lsb_release -a | grep 'Release' | awk '{print $2}')"
+    local distroname="$(lsb_release -a | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]')"
+    local distroversion="$(lsb_release -a | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]')"
   elif [ -f "$(command -v lsb-release)" ]; then
-    local distroname="$(lsb-release -a | grep 'Distributor ID' | awk '{print $3}')"
-    local distroversion="$(lsb-release -a | grep 'Release' | awk '{print $2}')"
+    local distroname="$(lsb-release -a | grep 'Distributor ID' | awk '{print $3}') | tr '[:upper:]' '[:lower:]'"
+    local distroversion="$(lsb-release -a | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]')"
   elif [ -f "/etc/os-release" ]; then
-    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##')
-    local distroversion=$(grep ID_LIKE= /etc/os-release | sed 's#VERSION_ID=##')
+    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##' | tr '[:upper:]' '[:lower:]')
+    local distroversion=$(grep ID_LIKE= /etc/os-release | sed 's#VERSION_ID=##' | tr '[:upper:]' '[:lower:]')
   elif [ -f "/etc/redhat-release" ]; then
-    local distroname=$(cat /etc/redhat-release | awk '{print $1}')
-    local distroversion=$(cat /etc/redhat-release | awk '{print $4}')
+    local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+    local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]')
   else
-    local distroname="unknown"
-    local distroversion="unknown"
+    return 1
   fi
   for id_like in "$@"; do
     if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
@@ -1211,15 +1210,6 @@ if_os_id() {
           distro_version="$distroversion"
         else
           return 1
-        fi
-        ;;
-      *)
-        if [ -z "$distroname" ]; then
-          distro_id=Unknown
-          distro_version="Unknown"
-        else
-          distro_id="$distroname"
-          distro_version="$distroversion"
         fi
         ;;
       esac
