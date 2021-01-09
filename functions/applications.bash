@@ -1187,7 +1187,7 @@ if_os_id() {
   for id_like in "$@"; do
     if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
       case "$1" in
-      Arch* | arch*)
+      Arch* | arch* | *arch*)
         if [[ "$distroname" =~ "arcoLinux" ]] || [[ "$distroname" =~ "arch" ]] || [[ "$distroname" =~ "blackarch" ]]; then
           distro_id=Arch
           distro_version="$distroversion"
