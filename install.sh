@@ -178,11 +178,12 @@ run_postinst() {
   for function in $(ls "$SCRIPTSFUNCTDIR/functions"); do
     ln_sf "$SCRIPTSFUNCTDIR/functions/$function" "$CASJAYSDEVSHARE/functions/$function"
   done
-  
+
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
-  cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/configs.txt
-  date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.configs.txt >/dev/null 2>&1
-  
+  [ -f /etc/casjaysdev/updates/versions/configs.txt ] || cat "$APPDIR/version.txt" | sudo tee /etc/casjaysdev/updates/versions/configs.txt
+  [ -f /etc/casjaysdev/updates/versions/date.configs.txt ] || date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt
+  cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
+  date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
   cmd_exists update-motd && update-ip && update-motd  
 }
 
