@@ -43,7 +43,7 @@ KEY="${SSHTO_KEY:-$HOME/.ssh/id_rsa.pub}"                 # SSH key to use
 confile="${SSHTO_CONFIG:-$HOME/.config/sshto}/sshtorc"    # Set config File
 tmpfile="${SSHTO_TEMP:-/tmp}/sshtorc"                     # Set temp file
 
-[ -n "$1" ] && RUN_CUSTOM="${@}" || RUN_CUSTOM="pkmgr update"
+[ -n "$1" ] && RUN_CUSTOM="${*}" || RUN_CUSTOM="pkmgr update"
 
 #Add your commands to this list
 cmdlist_renew () { cmdlist=(

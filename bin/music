@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : music
@@ -70,10 +71,10 @@ while true; do
   printf_green "z. Exit"
   printf_green "---------------------------------"
   printf_custom_question "6" "Enter your choice [a-z] : "
-  read -n 1 -s main && echo ""
+  read -n 1 -s music && echo ""
 
   # take action
-  case $main in
+  case $music in
 
   a)
     shift 1
@@ -164,9 +165,9 @@ while true; do
     shift 1
     custom_menus
     ;;
-  z) break ;;
+  $'\e' | z) break ;;
   *)
-    printf_custom "42" "$main was invalid choice - Please try a different selection"
+    printf_custom "42" "$music was invalid choice - Please try a different selection"
     sleep 3
     ;;
 

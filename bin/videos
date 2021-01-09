@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : music
@@ -160,7 +161,7 @@ while :; do
     ;;
   $'\e' | z) break ;;
   *)
-    printf_custom "42" "$main was invalid choice - Please try a different selection"
+    printf_custom "42" "$videos was invalid choice - Please try a different selection"
     sleep 3
     continue
     ;;

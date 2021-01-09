@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : mytorrent
@@ -72,7 +73,7 @@ if [ -z "$TORRENT" ]; then
     export TORRENT="deluge"
   elif [ -n "$(command -v vuze 2>/dev/null)" ]; then
     export TORRENT="vuze"
-  elif [ -n "(command -v qbittorrent)" ]; then
+  elif [ -n "$(command -v qbittorrent)" ]; then
     export TORRENT="qbittorrent"
   elif [ -n "$(command -v ktorrent 2>/dev/null)" ]; then
     export TORRENT="ktorrent"
@@ -98,7 +99,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ "$TORRENT" = "transmission-remote-cli" ]; then
-  myterminal -e bash -c "$TORRENT "$@" >/dev/null 2>&1" &
+  myterminal -e bash -c "$TORRENT $* >/dev/null 2>&1" &
 else
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
     "$HOME/.local/bin/mytorrent" "$@" >/dev/null 2>&1 &

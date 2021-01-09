@@ -5,6 +5,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author          : Jason
 # @Contact         : casjaysdev@casjay.net
 # @File            : wallpapermgr
@@ -77,16 +78,16 @@ help | h | --h*)
 
 remove)
   shift 1
-  PCKLIST=$@
+  PCKLIST=$*
   declare -a LISTARRAY=$PCKLIST
   for wallpaper in ${LISTARRAY[*]}; do
-    rm -Rf "$WALLPAPERS/$wallpaper"
+    rm -Rf "${WALLPAPERS:-$SYSSHARE/wallpapers}/$wallpaper"
   done
   ;;
 
 install | update)
   shift 1
-  PCKLIST=$@
+  PCKLIST=$*
   declare -a LISTARRAY=$PCKLIST
   for wallpaper in ${LISTARRAY[*]}; do
     if [[ -d "$WALLPAPERS/$wallpaper" ]]; then

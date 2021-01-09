@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : changeip
@@ -43,7 +44,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Get Device
-NETDEV="$(getlipaddr)"
+getlipaddr
 
 # Get IP4 address
 NEWIP4="$(/sbin/ifconfig "$NETDEV" | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1)"

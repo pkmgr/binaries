@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : explainshell
@@ -51,7 +52,7 @@ __help() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-URL=$(echo "http://explainshell.com/explain/$1?args=${@:2}" | sed -e 's/ /+/g')
+URL=$(echo "http://explainshell.com/explain/$1?args=${*:2}" | sed -e 's/ /+/g')
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

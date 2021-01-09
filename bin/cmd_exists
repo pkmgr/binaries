@@ -4,13 +4,14 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : cmdfu
+# @File        : cmd_exists
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : search command usage examples on commandlinefu.com
+# @Description : check to see if the command exists
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,9 +43,9 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  unalias "$1" >/dev/null 2>&1 ||
-    command -v "$1" >/dev/null 2>&1 ||
-    exit 1
+unalias "$1" >/dev/null 2>&1 ||
+  command -v "$1" >/dev/null 2>&1 ||
+  exit 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

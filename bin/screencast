@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : screencast
@@ -60,7 +61,7 @@ notify-send "size $(du -h $OUTPUT.gif | awk '{print $1}')"
 
 eog $OUTPUT.gif
 
-trap "rm -f '$TMPFILE'" 0
+trap 'rm -f $TMPFILE' 0
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : mylocation
@@ -54,6 +55,8 @@ __help() {
 [ "$IPSTACK_ACCESS_TOKEN" = "" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+check_app jq
 
 OUTPUT_FILE=/tmp/server_location.txt
 PUBLIC_IP="$(curl -LSs -4 http:/ifconfig.co/ip)"

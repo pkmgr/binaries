@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : termbin.com
@@ -57,7 +58,7 @@ else
 
   if [ -f /tmp/termbin ]; then
     echo "" >>/tmp/termbin
-    printf_green $(cat /tmp/termbin 2>/dev/null)
+    printf_green "$(cat /tmp/termbin 2>/dev/null)"
     rm -Rf /tmp/termbin
   else
     printf_red "Something went wrong"

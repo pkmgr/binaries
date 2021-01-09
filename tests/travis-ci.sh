@@ -64,7 +64,7 @@ sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Installing packages"
 for installpkgs in cmake cmake-data cmatrix conky cowsay cscope curl dmenu exo-utils figlet neovim neofetch fish zsh tmux; do
-  execute "sudo pkmgr silent "$installpkgs"" "Installing $installpkgs"
+  execute "sudo pkmgr silent $installpkgs" "Installing $installpkgs"
   exitCode=$?
 done
 
@@ -101,6 +101,12 @@ echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing installed app locations"
 for app in speedtest-cli links wakatime cpan; do
   command -v $app | printf_readline
+done
+
+echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "Printing version for all apps"
+for f in $(ls /usr/local/share/CasjaysDev/scripts/bin); do
+  $f --version
 done
 
 echo -e "\n\t\t-----------------------------------------------------\n"

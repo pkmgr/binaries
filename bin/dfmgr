@@ -5,6 +5,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : dfmgr
@@ -145,7 +146,7 @@ case "$1" in
 help | h | --h*)
   __help
   ;;
-  
+
 list)
   shift 1
   dfmgr_list "$@"

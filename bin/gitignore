@@ -4,6 +4,7 @@ APPNAME="$(basename "$0")"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : gitignore
@@ -45,24 +46,10 @@ __help() {
   exit 1
 }
 
-if [ "$1" = "--automated" ]; then
-  shift 1
-  overwrite=Y
-fi
-
-if [ -f .gitignore ] && [ -z "$overwrite" ]; then
-  printf_question "Should I overwrite your git ignore? [y/n]"
-  read -r -n 1 -s overwrite && echo
-  if [[ $overwrite == "n" || $overwrite == "N" ]]; then
-    printf_red "User aborted, not overwriting your .gitignore"
-    exit 1
-  fi
-fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 GITIGNOREURL="${GITIGNOREURL:-https://www.toptal.com/developers/gitignore/api}"
-IGNORELIST="$(echo $@ | tr ' ' ',')"
+IGNORELIST="$(echo "$@" | tr ' ' ',')"
 
 fetch_ignore() {
   gi_args=()
@@ -79,6 +66,21 @@ fetch_ignore() {
   echo ""
 }
 
+ignore_overwrite() {
+  if [ "$1" = "--automated" ]; then
+    shift 1
+    overwrite=Y
+  fi
+  if [ -f .gitignore ] && [ -z "$overwrite" ]; then
+    printf_question "Should I overwrite your git ignore? [y/n]"
+    read -r -n 1 -s overwrite && echo
+    if [[ $overwrite == "n" || $overwrite == "N" ]]; then
+      printf_red "User aborted, not overwriting your .gitignore"
+      exit 1
+    fi
+  fi
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 check_app git
@@ -88,9 +90,17 @@ check_app curl
 [ "$1" = "--help" ] && __help && exit
 [ "$1" = "--list" ] && cat "${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array"
 
-fetch_ignore "$@" >.gitignore
+echo $*
 
-printf_green "Added $IGNORELIST to your .gitignore"
+if [ "$1" = "--console" ]; then
+  shift 1
+  printf_green "$(fetch_ignore "$@")"
+  exit
+else
+  ignore_overwrite "$@"
+  fetch_ignore "$@" >.gitignore
+  printf_green "Added $IGNORELIST to your .gitignore"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

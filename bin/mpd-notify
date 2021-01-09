@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : mpd-notify
@@ -47,6 +48,8 @@ BINLOC="/usr/local/bin/mpd-notify"
 daemonName="mpd-notify"
 pidFile="$APP/$daemonName.pid"
 runInterval=1
+logFile="$APP/$daemonName"
+logMaxSize="100"
 
 if [ -f "$APP/mpd-notify.cfg" ] && [ -f "$APP/mpd-notify-bin.sh" ]; then
   source "$APP/mpd-notify.cfg"

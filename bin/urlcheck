@@ -5,13 +5,14 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# @Author          : Jason
-# @Contact         : casjaysdev@casjay.net
-# @File            : urlcheck
-# @Created         : Wed, Aug 18, 2020, 02:48 EST
-# @License         : WTFPL
-# @Copyright       : Copyright (c) CasjaysDev
-# @Description     : Check if an URL is valid
+##Version      : 010820210439-git
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : urlcheck
+# @Created     : Wed, Aug 18, 2020, 02:48 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Check if an URL is valid
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -6,6 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 PATH="/usr/games:$PATH"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : jason@casjaysdev.com
 # @File        : update-ip
@@ -44,7 +45,8 @@ HOST=$(hostname -f)
 HOSTNAME=$(hostname -f)
 HOSTSHORT=$(hostname -s)
 
-NETDEV="$(getlipaddr)"
+getlipaddr
+
 CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1 | awk '{print $1}')"
 
 if [ -f "/etc/casjaysdev/messages/legal.txt" ]; then

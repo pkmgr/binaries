@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : multmedia
@@ -88,7 +89,7 @@ while true; do
   z) break ;;
   *)
     printf_custom_question "6" "Enter your choice [a-z] : "
-    read videos
+    read multmedia
     ;;
   esac
 done

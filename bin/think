@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : think
@@ -40,7 +41,7 @@ fi
 
 check_app fortune && check_app cowsay && check_app lolcat
 
-fortune -a | fmt -40 -s | $(shuf -n 1 -e cowsay cowthink) -$(shuf -n 1 -e b d g p s t w y) -f $(shuf -n 1 -e $(cowsay -l | tail -n +2)) -n | lolcat
+fortune -a | fmt -40 -s | "$(shuf -n 1 -e cowsay cowthink)" -"$(shuf -n 1 -e b d g p s t w y)" -f "$(shuf -n 1 -e "$(cowsay -l | tail -n +2)")" -n | lolcat
 echo ""
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

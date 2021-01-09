@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : remove-samples
@@ -43,9 +44,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -z "$1" ]; then
-  YUM_PACKAGE_NAME=""$@""
-  DEB_PACKAGE_NAME=""$@""
-  PAC_PACKAGE_NAME=""$@""
+  YUM_PACKAGE_NAME="$*"
+  DEB_PACKAGE_NAME="$*"
+  PAC_PACKAGE_NAME="$*"
 else
   DEB_PACKAGE_NAME="sudo git curl gnupg lynx wget net-tools python3 python3-pil python3-pip vim-nox"
   YUM_PACKAGE_NAME="sudo git curl gnupg lynx wget python3 python3-pip net-tools vim"
@@ -58,7 +59,7 @@ if cat /etc/*release | grep ^NAME | grep CentOS; then
   printf_green "============================================="
   printf_green "Installing packages for CentOS               "
   printf_green "============================================="
-  for pkg in "${YUM_PACKAGE_NAME}"; do
+  for pkg in ${YUM_PACKAGE_NAME}; do
     yum install -y $pkg
   done
 
@@ -66,7 +67,7 @@ elif cat /etc/*release | grep ^NAME | grep Red; then
   printf_green "============================================="
   printf_green "Installing packages for RedHat               "
   printf_green "============================================="
-  for pkg in "${YUM_PACKAGE_NAME}"; do
+  for pkg in ${YUM_PACKAGE_NAME}; do
     yum install -y $pkg
   done
 
@@ -74,7 +75,7 @@ elif cat /etc/*release | grep ^NAME | grep Fedora; then
   printf_green "============================================="
   printf_green "Installing packages for Fedora               "
   printf_green "============================================="
-  for pkg in "${YUM_PACKAGE_NAME}"; do
+  for pkg in ${YUM_PACKAGE_NAME}; do
     yum install -y $pkg
   done
 
@@ -82,7 +83,7 @@ elif cat /etc/*release | grep ^NAME | grep Ubuntu; then
   printf_green "============================================="
   printf_green "Installing packages for Ubuntu               "
   printf_green "============================================="
-  for pkg in "${DEB_PACKAGE_NAME}"; do
+  for pkg in ${DEB_PACKAGE_NAME}; do
     apt-get install -yy $pkg
   done
 
@@ -90,7 +91,7 @@ elif cat /etc/*release | grep ^NAME | grep Debian; then
   printf_green "============================================="
   printf_green "Installing packages for Debian               "
   printf_green "============================================="
-  for pkg in "${DEB_PACKAGE_NAME}"; do
+  for pkg in ${DEB_PACKAGE_NAME}; do
     apt-get install -yy $pkg
   done
 
@@ -98,7 +99,7 @@ elif cat /etc/*release | grep ^NAME | grep Mint; then
   printf_green "============================================="
   printf_green "Installing packages for Mint                 "
   printf_green "============================================="
-  for pkg in "${DEB_PACKAGE_NAME}"; do
+  for pkg in ${DEB_PACKAGE_NAME}; do
     apt-get install -yy $pkg
   done
 
@@ -106,7 +107,7 @@ elif cat /etc/*release | grep ^NAME | grep Knoppix; then
   printf_green "============================================="
   printf_green "Installing packages for Knoppix              "
   printf_green "============================================="
-  for pkg in "${YUM_PACKAGE_NAME}"; do
+  for pkg in ${YUM_PACKAGE_NAME}; do
     yum install -y $pkg
   done
 
@@ -114,7 +115,7 @@ elif cat /etc/*release | grep ^NAME | grep Arch; then
   printf_green "============================================="
   printf_green "Installing packages for Arch                 "
   printf_green "============================================="
-  for pkg in "${PAC_PACKAGE_NAME}"; do
+  for pkg in ${PAC_PACKAGE_NAME}; do
     pacman -Syyu --clean --noconfirm --needed $pkg
   done
 

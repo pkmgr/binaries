@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : run_commands
@@ -53,7 +54,7 @@ args="$1-$date"
 
 "$@" >"$logdir/$args.log" 2>"$logdir/$args.err" &
 if [ "$?" -eq 0 ]; then
-  printf_success ""$1" completed successfully"
+  printf_success "$1 completed successfully"
 else
   printf_red "$1 has failed"
   exit 1

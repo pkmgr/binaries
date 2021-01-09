@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : weather
@@ -64,11 +65,11 @@ report() { printf_color "Weather report for $LOCID\n" "21"; }
 grep_v() { grep -v "Weather report" | grep -v "Location"; }
 wttrin() { curl -LSs "http://wttr.in/$LOCID?AFu$2" | grep_v && report; }
 wttrin2() { curl -LSs "http://v2.wttr.in/$LOCID?AFu$2" | grep_v && report; }
-wttrimage() { curl -LSsq "http://wttr.in/$LOCID_AFuw.png" -o "$HOME/.local/tmp/weather.png"; }
+wttrimage() { curl -LSsq "http://wttr.in/$LOCID?AFuw.png" -o "$HOME/.local/tmp/weather.png"; }
 wttrcity() { curl -LSsq "http://wttr.in/$MYLOCATIONZIP?AFu$2" | grep -v "Weather report" | head -n 6 && echo ""; }
 wttrmoon() { curl -LSs "http://wttr.in/moon?AFu$2"; }
 wttrsimple() { curl -LSs http://wttr.in/$LOCID?format=3; }
-accuweather() { curl -s "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=${@:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
+wttraccuweather() { curl -s "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=${*:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -115,12 +116,12 @@ simple | -simple | --simple)
   [ "$1" = "--help" ] && printf_help "Usage: $APPNAME simple"
   wttrsimple "$@"
   ;;
-accu | accuweather | accuweather)
+accu | accuweather)
   shift 1
   LOCID="${MYLOCATIONID:-$1}"
   [ -z "$LOCID" ] && __help
   [ "$1" = "--help" ] && printf_help "Usage: $APPNAME accuweather"
-  accuweather "$@"
+  wttraccuweather "$@"
   ;;
 *)
   shift 0

@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author        : Jason
 # @Contact       : jason@casjaysdev.com
 # @File          : myshell
@@ -37,12 +38,10 @@ fi
 
 [ -f /etc/shells ] || exit 1
 
-
 __help() {
   printf_green "Usage: myshell ShellName    |   IE: myshell fish"
   exit
 }
-
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -60,10 +59,9 @@ check_app chsh
 if [ -f "$(command -v $1)" ]; then
   chsh -s "$(command -v $1)" "${USER}"
 else
-printf_red "Invalid shell"
+  printf_red "Invalid shell"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # end
-

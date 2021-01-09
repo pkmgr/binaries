@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : detectos
@@ -67,7 +68,7 @@ case $OS in
   ;;
 
 *)
-  [ -n $OS ] && OS="$(echo $OS)" || OS="Unknown"
+  [ -n "$OS" ] && OS="$OS" || OS="Unknown"
   ;;
 esac
 

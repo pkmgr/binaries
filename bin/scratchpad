@@ -4,6 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : scratchpad
@@ -95,7 +96,7 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" ] && ext=""$@".txt" && title="$1"
+[ "$1" ] && ext="$1.txt" && title="$1"
 
 tmux_conf
 tmux ls 2>/dev/null | grep -q scratchpad >/dev/null 2>&1

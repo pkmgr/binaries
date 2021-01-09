@@ -5,6 +5,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : gitcommit
@@ -238,18 +239,20 @@ else
 fi
 getexitcode "Successfully committed the changes"
 
-if [ "$repo" != "localdir" ]; then
-  if [[ "$*" =~ --automated ]]; then
-    printf_green "Pushing the changes to $repo"
-    git push -q
-    getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
-  else
-    printf_question "Should I push to $repo? [y/n]"
-    read -r -n 1 -s push && echo
-    if [[ $push == "y" || $push == "Y" ]]; then
+if [ "$*" != "--no" ]; then
+  if [ "$repo" != "localdir" ]; then
+    if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
       git push -q
       getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
+    else
+      printf_question "Should I push to $repo? [y/n]"
+      read -r -n 1 -s push && echo
+      if [[ $push == "y" || $push == "Y" ]]; then
+        printf_green "Pushing the changes to $repo"
+        git push -q
+        getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
+      fi
     fi
   fi
 fi

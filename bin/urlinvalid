@@ -5,6 +5,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author          : Jason
 # @Contact         : casjaysdev@casjay.net
 # @File            : urlcheck
@@ -54,9 +55,10 @@ __help() {
 
 # main program
 
-if [ -z "$1" ]; then printf_red "Invalid URL"; else printf_red "Can't find $1"; fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# execute function
+if [ -z "$1" ]; then
+  printf_red "Invalid URL"
+else
+  printf_red "Can't find $1"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

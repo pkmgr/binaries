@@ -5,6 +5,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : pkmgr
@@ -779,7 +780,7 @@ required)
   done
   ;;
 
-silent-install | silent)
+silent-install)
   shift 1
   [ "$1" = "--help" ] && printf_help "Silently install packages"
   declare -a LISTARRAY="$*"
@@ -833,6 +834,14 @@ silent)
       systemmgr install installer >/dev/null 2>&1
     fi
     $pkgmgrbinupdsil >/dev/null 2>&1 && exit 0 || exit 1
+    ;;
+
+  *)
+    [ "$1" = "--help" ] && printf_help "Silently install packages"
+    declare -a LISTARRAY="$*"
+    for pkg in ${LISTARRAY[*]}; do
+      $pkgmgrbininssil "$pkg" >/dev/null 2>&1 && exit 0 || exit 1
+    done
     ;;
   esac
   ;;

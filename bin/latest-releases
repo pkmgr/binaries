@@ -8,6 +8,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : jason@casjaysdev.com
 # @File        : latest-releases
@@ -72,9 +73,11 @@ __help() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
-[ "$1" = "--help "] && __help
+[ "$1" = "--help" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+check_app jq
 
 curl_auth=""
 if [ -f "${auth_path}" ]; then
@@ -97,18 +100,16 @@ fi
 
 printf_green "Latest releases on GitHub:\n\n"
 
-local nl=$'\n'
-local out=""
+nl=$'\n'
+out=""
 while read -r repo; do
-  local tag_info=""
-  local tag_name=""
-  local tag_commit_url=""
-  local tag_commit_date=""
+  tag_info=""
+  tag_name=""
+  tag_commit_url=""
+  tag_commit_date=""
 
   set +e
-  if ! tag_info="$(curl "${curl_auth}" -s \
-    "https://api.github.com/repos/${repo}/tags?per_page=1" |
-    jq -r ".[0].name, .[0].commit.url" 2>/dev/null | paste -sd,-)"; then
+  if ! tag_info="$(curl "${curl_auth}" -s "https://api.github.com/repos/${repo}/tags?per_page=1" | jq -r ".[0].name, .[0].commit.url" 2>/dev/null | paste -sd,-)"; then
     printf_green "You are API rate limited by GitHub, please authenticate by:"
     printf_green "1. Go to https://github.com/settings/tokens"
     printf_green "2. Create a personal access token with no special permissions"

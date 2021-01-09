@@ -6,6 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 PATH="/usr/games:$PATH"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##Version      : 010820210439-git
 # @Author      : Jason
 # @Contact     : jason@casjaysdev.com
 # @File        : update-motd
