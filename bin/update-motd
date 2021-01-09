@@ -80,7 +80,8 @@ if if_os_id arch; then
   printf "Arch version: $distro_version  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
-printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+printf "scripts package was last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+printf "Messages were last updated on: $(date +"%b %d, %Y at %H:%M")\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 }
 
 finalize() {
