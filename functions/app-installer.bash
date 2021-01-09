@@ -735,7 +735,7 @@ dotfilesreqadmincmd() {
 
 ##################################################################################################
 
-dotfilesreqinst() {
+dotfilesreq() {
   local confdir="$USRUPDATEDIR"
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
@@ -748,7 +748,7 @@ dotfilesreqinst() {
   rm_rf $TEMP/*.inst.tmp
 }
 
-dotfilesreqadmininst() {
+dotfilesreqadmin() {
   local confdir="$SYSUPDATEDIR"
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
