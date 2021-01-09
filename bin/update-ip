@@ -48,23 +48,23 @@ HOSTSHORT=$(hostname -s)
 getlipaddr
 
 if [ -d "/etc/casjaysdev/messages" ]; then
-  devnull sudo find "/etc/casjaysdev/messages" -not -path ".git/*" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  devnull sudo find "/etc/casjaysdev/messages" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
 fi
 
 if [ -f "/etc/issue" ]; then
-  devnull sudo find "/etc/issue" -not -path ".git/*" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  devnull sudo find "/etc/issue" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
 fi
 
 if [ -f "/etc/motd" ]; then
-  devnull sudo find "/etc/motd" -not -path ".git/*" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  devnull sudo find "/etc/motd" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
 fi
 
 if [ -f "/etc/issue.net" ]; then
-  devnull sudo find "/etc/issue.net" -not -path ".git/*" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  devnull sudo find "/etc/issue.net" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
 fi
 
 if [ -f "/etc/motd.net" ]; then
-  devnull sudo find "/etc/motd.net" -not -path ".git/*" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  devnull sudo find "/etc/motd.net" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
