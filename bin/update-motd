@@ -43,6 +43,11 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sudo rm -Rf /etc/issue* /etc/motd*
 
+scriptsversion="$(cat /etc/casjaysdev/updates/versions/scripts.txt)"
+configsversion="$(cat /etc/casjaysdev/updates/versions/configs.txt)"
+scriptsdate="$(cat /etc/casjaysdev/updates/versions/date.configs.txt)"
+configsdate="$(cat /etc/casjaysdev/updates/versions/configs.txt)"
+
 motd_fortune() {
 if [ "$(command -v fortune 2>/dev/null)" ] && [ -n "$(command -v cowsay 2>/dev/null)" ]; then
   printf "\n\n\n" | sudo tee -a /etc/motd >>/dev/null 2>&1
@@ -69,18 +74,18 @@ fi
 
 conf_versions() {
 if if_os_id debian; then
-  printf "Debian version: $distro_version  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+  printf "Debian version: $distro_version  |  Config version: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
 if if_os_id rhel; then
-  printf "RHEL version: $distro_version  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+  printf "RHEL version: $distro_version  |  Config version: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
 
 if if_os_id arch; then
-  printf "Arch version: $distro_version  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+  printf "Arch version: $distro_version  |  Config version: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
-
-printf "scripts package was last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+printf "configs were last updated on: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+printf "scripts package was last updated on: $scriptsdate\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 printf "Messages were last updated on: $(date +"%b %d, %Y at %H:%M")\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 }
 
