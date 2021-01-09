@@ -183,7 +183,7 @@ run_postinst() {
   cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/configs.txt
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.configs.txt >/dev/null 2>&1
   
-  cmd_exists update-motd && update
+  cmd_exists update-motd && update-motd 
 }
 
 execute \
