@@ -47,7 +47,7 @@ HOSTSHORT=$(hostname -s)
 
 getlipaddr
 
-if [ -f "/etc/casjaysdev/messages/legal.txt" ]; then
+if [ -d "/etc/casjaysdev/messages" ]; then
   devnull sudo find "/etc/casjaysdev/messages" -not -path ".git/*" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
 fi
 
