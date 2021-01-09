@@ -38,6 +38,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help" ] && printf_help "Usage: update-motd"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sudo rm -Rf /etc/issue* /etc/motd*
@@ -82,6 +83,9 @@ finalize() {
 printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 cat /etc/motd | sudo tee -a /etc/motd.net >/dev/null 2>&1
 cat /etc/issue | sudo tee -a /etc/issue.net >/dev/null 2>&1
+if [ "$1" = "--console" ]; then
+cat /etc/issue /etc/motd
+fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
