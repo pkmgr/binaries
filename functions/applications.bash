@@ -1180,24 +1180,25 @@ if_os_id() {
     if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
       case "$1" in
       Arch* | arch*)
-        if [[ "$distroname" =~ "ArcoLinux" ]] || [[ "$distroname" =~ "Arch" ]] || [[ "$distroname" =~ "BlackArch" ]]; then
+        if [[ "$distroname" =~ "arcoLinux" ]] || [[ "$distroname" =~ "arch" ]] || [[ "$distroname" =~ "blackarch" ]]; then
           distro_id=Arch
           return 0
         else
           return 1
         fi
         ;;
-      RHEL* | rhel*)
-        if [[ "$distroname" =~ "Scientific" ]] || [[ "$distroname" =~ "RedHat" ]] || [[ "$distroname" =~ "CentOS" ]] || [[ "$distroname" =~ "Casjay" ]] || [[ "$distroname" =~ "Fedora" ]]; then
+      RHEL* | rhel* | Fedora | fedora | CentOS | centos)
+        if [[ "$distroname" =~ "scientific" ]] || [[ "$distroname" =~ "redhat" ]] || [[ "$distroname" =~ "centos" ]] ||
+          [[ "$distroname" =~ "casjay" ]] || [[ "$distroname" =~ "fedora" ]]; then
           distro_id=RHEL
           return 0
         else
           return 1
         fi
         ;;
-      Debian* | debian)
-        if [[ "$distroname" =~ "Kali" ]] || [[ "$distroname" =~ "Parrot" ]] || [[ "$distroname" =~ "Debian" ]] || [[ "$distroname" =~ "Raspbian" ]] ||
-          [[ "$distroname" =~ "Ubuntu" ]] || [[ "$distroname" =~ "Mint" ]] || [[ "$distroname" =~ "Elementary" ]] || [[ "$distroname" =~ "KDE neon" ]]; then
+      Debian* | debian* | Ubuntu* | ubuntu* | Mint* | mint*)
+        if [[ "$distroname" =~ "kali" ]] || [[ "$distroname" =~ "parrot" ]] || [[ "$distroname" =~ "debian" ]] || [[ "$distroname" =~ "raspbian" ]] ||
+          [[ "$distroname" =~ "ubuntu" ]] || [[ "$distroname" =~ "mint" ]] || [[ "$distroname" =~ "elementary" ]] || [[ "$distroname" =~ "kde" ]]; then
           distro_id=Debian
           return 0
         else
