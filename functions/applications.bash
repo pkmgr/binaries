@@ -13,7 +13,7 @@ export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") pas
 TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
 
-APPNAME="${APPNAME:-app-installer}"
+APPNAME="${APPNAME:-applications}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason

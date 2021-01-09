@@ -103,11 +103,11 @@ for app in speedtest-cli links wakatime cpan; do
   command -v $app | printf_readline
 done
 
-echo -e "\n\t\t-----------------------------------------------------\n"
-printf_green "Printing version for all apps"
-for f in $(ls /usr/local/share/CasjaysDev/scripts/bin); do
-  $f --version
-done
+# echo -e "\n\t\t-----------------------------------------------------\n"
+# printf_green "Printing version for all apps"
+# for f in $(ls /usr/local/share/CasjaysDev/scripts/bin); do
+#   $f --version
+# done
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing pkmgr aliases"
