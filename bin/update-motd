@@ -80,6 +80,7 @@ printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/
 }
 
 finalize() {
+sudo touch /etc/issue /etc/motd
 printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 cat /etc/motd | sudo tee -a /etc/motd.net >/dev/null 2>&1
 cat /etc/issue | sudo tee -a /etc/issue.net >/dev/null 2>&1
