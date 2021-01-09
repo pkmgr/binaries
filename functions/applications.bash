@@ -1191,7 +1191,6 @@ if_os_id() {
         if [[ "$distroname" =~ "arcoLinux" ]] || [[ "$distroname" =~ "arch" ]] || [[ "$distroname" =~ "blackarch" ]]; then
           distro_id=Arch
           distro_version="$distroversion"
-          return 0
         else
           return 1
         fi
@@ -1201,7 +1200,6 @@ if_os_id() {
           [[ "$distroname" =~ "casjay" ]] || [[ "$distroname" =~ "fedora" ]]; then
           distro_id=RHEL
           distro_version="$distroversion"
-          return 0
         else
           return 1
         fi
@@ -1211,7 +1209,6 @@ if_os_id() {
           [[ "$distroname" =~ "ubuntu" ]] || [[ "$distroname" =~ "mint" ]] || [[ "$distroname" =~ "elementary" ]] || [[ "$distroname" =~ "kde" ]]; then
           distro_id=Debian
           distro_version="$distroversion"
-          return 0
         else
           return 1
         fi
@@ -1220,7 +1217,6 @@ if_os_id() {
         if [ -z "$distroname" ]; then
           distro_id=Unknown
           distro_version="Unknown"
-          return 1
         else
           distro_id="$distroname"
           distro_version="$distroversion"
@@ -1231,7 +1227,7 @@ if_os_id() {
       return 1
     fi
   done
-}
+  }
 
 ##################################################################################################
 
