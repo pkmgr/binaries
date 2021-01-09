@@ -162,8 +162,27 @@ case "$1" in
     exit
   fi
   requiresudo
-  gitdir="/root/.local/dotfiles/$(hostname -s)"
+  gitdir="/root/.local/dotfiles/$(hostname -s)/system"
   ;;
+
+--name)
+  shift 1
+  if [ -z "${CONFIG_CUSTOM_REPO:-$1}" ] || [ -z "${CONFIG_CUSTOM_HOME:-$2}" ] || [ -z "$3" ]; then
+    printf_custom "41" "This allows the use of a custom git dir"
+    printf_green "Usage: config --custom gitdir commands"
+    printf_exit "See config help for commands"
+    exit 1
+  fi
+  name="$1"
+  gitdir="$HOME/.local/dotfiles/$(hostname -s)/$name"
+  if [ -d "$gitdir" ]; then
+    printf_red "Error: $gitdir already in use"
+    exit 1
+  fi
+  shift
+  ;;
+esac
+
 --custom)
   shift 1
   if [ -z "${CONFIG_CUSTOM_REPO:-$1}" ] || [ -z "${CONFIG_CUSTOM_HOME:-$2}" ] || [ -z "$3" ]; then
@@ -262,7 +281,7 @@ help | -h* | --h*)
 
 *)
   shift 0
-  [ ! -z "$1" ] && _stow "$@" || echo "$HELP"
+  [ ! -z "$1" ] || echo "$HELP"
   exit 0
   ;;
 
