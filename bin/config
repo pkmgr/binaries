@@ -139,7 +139,7 @@ git_init() {
     _stow config user.name "$name"
     _stow config user.email "$email"
     _stow add .gitignore >/dev/null 2>&1
-    _stow commit -m "Added .gitignore" >/dev/null 2>&1
+    _stow commit -m " 🏠🐜❗ Added .gitignore" >/dev/null 2>&1
   fi
   exit "$?"
 }
@@ -212,12 +212,12 @@ add | stow)
       _stow add "$f"
     fi
   done
-  _stow commit -m "Added $args"
+  _stow commit -m " 🏠🐜❗ Added $args"
   ;;
 
 commit)
   shift 1
-  _stow commit "$@"
+  _stow commit " 🏠🐜❗ $@ 🏠🐜❗ "
   ;;
 
 checkout)
