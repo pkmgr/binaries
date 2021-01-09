@@ -271,6 +271,7 @@ gem_remove() {
 #---------------------------------------------------------------------------------------
 
 npm_run() {
+  NODEINSTDIR="$(command -v node 2>/dev/null | sed 's#/node##g')"
   bash -c "sudo npm install -g $* 2>/dev/null" | printf_readline
 }
 
