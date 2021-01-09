@@ -13,7 +13,7 @@ PATH="/usr/games:$PATH"
 # @Created     : Mon, Dec 31, 2019, 00:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : Update the MOTD file
+# @Description : Update the MOTD and ISSUE files
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,19 +40,33 @@ fi
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+sudo rm -Rf /etc/issue* /etc/motd*
 
-if [ -f "/etc/casjaysdev/messages/legal.txt" ]; then
-  sudo cp -Rf /etc/casjaysdev/messages/legal.txt /etc/issue >/dev/null 2>&1
-fi
-
+motd_fortune() {
 if [ "$(command -v fortune 2>/dev/null)" ] && [ -n "$(command -v cowsay 2>/dev/null)" ]; then
-  printf "\n\n\n" | sudo tee /etc/motd >/dev/null 2>&1
-  fortune | cowsay | sudo tee -a /etc/motd >/dev/null 2>&1
-  printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+  printf "\n\n\n" | sudo tee -a /etc/motd >>/dev/null 2>&1
+  fortune | cowsay | sudo tee -a /etc/motd >>/dev/null 2>&1
+  printf "\n\n" | sudo tee -a /etc/motd >>/dev/null 2>&1
 else
   printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
+}
 
+messages_motd() {
+local messages=$(ls "/etc/casjaysdev/messages/motd/" 2>/dev/null | wc -l)
+if [ "$messages" != "0" ]; then
+  cat /etc/casjaysdev/messages/motd/* | sudo tee -a /etc/motd >>/dev/null 2>&1
+fi
+}
+
+messages_issue() {
+local messages=$(ls "/etc/casjaysdev/messages/issue/" 2>/dev/null | wc -l)
+if [ "$messages" != "0" ]; then
+  cat /etc/casjaysdev/messages/issue/* | sudo tee -a /etc/issue >>/dev/null 2>&1
+fi
+}
+
+conf_versions() {
 if if_os_id debian; then
   printf "Debian version: $(cat /etc/debian_version)  |  Config version: $(cat /etc/casjaysdev/updates/versions/configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
 fi
@@ -62,9 +76,29 @@ if if_os_id rhel; then
 fi
 
 printf "The configurations where last updated on: $(cat /etc/casjaysdev/updates/versions/date.configs.txt)\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+}
+
+finalize() {
 printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-sudo cp -Rf /etc/motd /etc/motd.net >/dev/null 2>&1
-sudo cp -Rf /etc/issue /etc/issue.net >/dev/null 2>&1
+cat /etc/motd | sudo tee -a /etc/motd.net >/dev/null 2>&1
+cat /etc/issue | sudo tee -a /etc/issue.net >/dev/null 2>&1
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# main function
+main () {
+  motd_fortune
+  messages_motd
+  messages_issue
+  conf_versions
+  finalize
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# run app
+main "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
