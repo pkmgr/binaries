@@ -6,7 +6,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##Version      : 010820210439-git
+##@Version     : 010920210727-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : calc

@@ -3,7 +3,7 @@ set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##Version      : 010820210439-git
+##@Version     : 010920210727-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : tldr

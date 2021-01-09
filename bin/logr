@@ -7,7 +7,7 @@ set -o pipefail # trace ERR through pipes
 shopt -s extglob
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##Version      : 010820210439-git
+##@Version     : 010920210727-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : radioreference
