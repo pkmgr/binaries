@@ -181,7 +181,7 @@ run_postinst() {
 
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
   [ -f /etc/casjaysdev/updates/versions/configs.txt ] || cat "$APPDIR/version.txt" | sudo tee /etc/casjaysdev/updates/versions/configs.txt
-  [ -f /etc/casjaysdev/updates/versions/date.configs.txt ] || date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt
+  [ -f /etc/casjaysdev/updates/versions/date.configs.txt ] || date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.configs.txt
   cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
   cmd_exists update-motd && update-ip && update-motd  
