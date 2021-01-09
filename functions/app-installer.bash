@@ -736,29 +736,33 @@ dotfilesreqadmincmd() {
 ##################################################################################################
 
 dotfilesreq() {
-  local confdir="$USRUPDATEDIR"
-  declare -a LISTARRAY="$*"
-  for conf in ${LISTARRAY[*]}; do
-    if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-      execute \
-        "dotfilesreqcmd" \
-        "Installing required dotfile $conf"
-    fi
-  done
-  rm_rf $TEMP/*.inst.tmp
+  if cmd_exists pkmgr; then
+    local confdir="$USRUPDATEDIR"
+    declare -a LISTARRAY="$*"
+    for conf in ${LISTARRAY[*]}; do
+      if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+        execute \
+          "dotfilesreqcmd" \
+          "Installing required dotfile $conf"
+      fi
+    done
+    rm_rf $TEMP/*.inst.tmp
+  fi
 }
 
 dotfilesreqadmin() {
-  local confdir="$SYSUPDATEDIR"
-  declare -a LISTARRAY="$*"
-  for conf in ${LISTARRAY[*]}; do
-    if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-      execute \
-        "dotfilesreqadmincmd" \
-        "Installing required dotfile $conf"
-    fi
-  done
-  rm_rf $TEMP/*.inst.tmp
+  if cmd_exists pkmgr; then
+    local confdir="$SYSUPDATEDIR"
+    declare -a LISTARRAY="$*"
+    for conf in ${LISTARRAY[*]}; do
+      if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+        execute \
+          "dotfilesreqadmincmd" \
+          "Installing required dotfile $conf"
+      fi
+    done
+    rm_rf $TEMP/*.inst.tmp
+  fi
 }
 
 ##################################################################################################
