@@ -1168,14 +1168,21 @@ unsupported_oses() {
 }
 
 if_os_id() {
-  if [ -f "/etc/os-release" ]; then
-    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##')
-  elif [ -f "/etc/redhat-release" ]; then
-    local distroname=$(cat /etc/redhat-release)
-  elif [ -f "$(command -v lsb_release)" ]; then
+  if [ -f "$(command -v lsb_release)" ]; then
     local distroname="$(lsb_release -a | grep 'Distributor ID' | awk '{print $3}')"
+    local distroversion="$(lsb_release -a | grep 'Release' | awk '{print $2}')"
+  elif [ -f "$(command -v lsb-release)" ]; then
+    local distroname="$(lsb-release -a | grep 'Distributor ID' | awk '{print $3}')"
+    local distroversion="$(lsb-release -a | grep 'Release' | awk '{print $2}')"
+  elif [ -f "/etc/os-release" ]; then
+    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##')
+    local distroversion=$(grep ID_LIKE= /etc/os-release | sed 's#VERSION_ID=##')
+  elif [ -f "/etc/redhat-release" ]; then
+    local distroname=$(cat /etc/redhat-release | awk '{print $1}')
+    local distroversion=$(cat /etc/redhat-release | awk '{print $4}')
   else
     local distroname="unknown"
+    local distroversion="unknown"
   fi
   for id_like in "$@"; do
     if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
@@ -1183,6 +1190,7 @@ if_os_id() {
       Arch* | arch*)
         if [[ "$distroname" =~ "arcoLinux" ]] || [[ "$distroname" =~ "arch" ]] || [[ "$distroname" =~ "blackarch" ]]; then
           distro_id=Arch
+          distro_version="$distroversion"
           return 0
         else
           return 1
@@ -1192,6 +1200,7 @@ if_os_id() {
         if [[ "$distroname" =~ "scientific" ]] || [[ "$distroname" =~ "redhat" ]] || [[ "$distroname" =~ "centos" ]] ||
           [[ "$distroname" =~ "casjay" ]] || [[ "$distroname" =~ "fedora" ]]; then
           distro_id=RHEL
+          distro_version="$distroversion"
           return 0
         else
           return 1
@@ -1201,13 +1210,21 @@ if_os_id() {
         if [[ "$distroname" =~ "kali" ]] || [[ "$distroname" =~ "parrot" ]] || [[ "$distroname" =~ "debian" ]] || [[ "$distroname" =~ "raspbian" ]] ||
           [[ "$distroname" =~ "ubuntu" ]] || [[ "$distroname" =~ "mint" ]] || [[ "$distroname" =~ "elementary" ]] || [[ "$distroname" =~ "kde" ]]; then
           distro_id=Debian
+          distro_version="$distroversion"
           return 0
         else
           return 1
         fi
         ;;
       *)
-        return 1
+        if [ -z "$distroname" ]; then
+          distro_id=Unknown
+          distro_version="Unknown"
+          return 1
+        else
+          distro_id="$distroname"
+          distro_version="$distroversion"
+        fi
         ;;
       esac
     else
