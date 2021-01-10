@@ -318,11 +318,7 @@ ensure_dirs() {
 user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     export INSTALL_TYPE=user
-    if [[ "$OSTYPE" =~ ^darwin ]]; then
-      export HOME="/usr/local/home/root"
-    else
-      export HOME="/usr/local/home/root"
-    fi
+    export HOME="/usr/local/home/root"
     export BIN="$HOME/.local/bin"
     export CONF="$HOME/.config"
     export SHARE="$HOME/.local/share"
@@ -379,11 +375,7 @@ system_installdirs() {
     #printf_red "\t\tInstalling as root ❓\n"
     export INSTALL_TYPE=system
     export BACKUPDIR="$HOME/.local/backups/dotfiles"
-    if [[ "$OSTYPE" =~ ^darwin ]]; then
-      export HOME="/usr/local/home/root"
-    else
-      export HOME="/usr/local/home/root"
-    fi
+    export HOME="/usr/local/home/root"
     export BIN="/usr/local/bin"
     export CONF="/usr/local/etc"
     export SHARE="/usr/local/share"
@@ -723,7 +715,7 @@ __getphpver() {
 ##################################################################################################
 
 setexitstatus() {
-  [ ! -z "$EXIT" ] && local EXIT="$?"
+  [ -z "$EXIT" ] || local EXIT="$?"
   local EXITSTATUS+="$EXIT"
   if [ -z "$EXITSTATUS" ] || [ "$EXITSTATUS" -ne 0 ]; then
     BG_EXIT="${BG_RED}"
@@ -737,12 +729,19 @@ setexitstatus() {
 ##################################################################################################
 
 returnexitcode() {
-  if [ "$1" -eq 0 ] || [ "$EXIT" -eq 0 ]; then
-    BG_EXIT="${BG_GREEN} 😺"
+  [ -z "$1" ] || EXIT=$1
+  if [ "$EXIT" -gt 5 ]; then
+    BG_EXIT="${BG_RED}" BG
+    PS_SYMBOL=" ⁉️ "
+    return $EXIT
+  elif [ "$EXIT" -eq 0 ]; then
+    BG_EXIT="${BG_GREEN}"
+    PS_SYMBOL=" 😺 "
     return 0
   else
-    BG_EXIT="${BG_RED} 😟"
-    return 1
+    BG_EXIT="${BG_RED}"
+    PS_SYMBOL=" 😟 "
+    return $EXIT
   fi
 }
 
