@@ -40,7 +40,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #if [ "$(stat -c %y "$HOME/.cache/corona-virus" 2>/dev/null | cut -d' ' -f1)" != "$(date '+%Y-%m-%d %H:%M:%S.%s')" ]; then
-if [ "$(find "$HOME/.cache/corona-virus" -type f -mmin +120 -delete >/dev/null 2>&1)" ] || [ ! -f "$HOME/.cache/corona-virus" ]; then
+if [ "$(devnull find "$HOME/.cache/corona-virus" -type f -mmin +120 -delete)" ] || [ ! -f "$HOME/.cache/corona-virus" ]; then
   curl -s https://corona-stats.online/us >"$HOME/.cache/corona-virus"
   if [ ! -f "$HOME/.cache/corona-virus" ]; then
     echo "Download unsuccessfull"

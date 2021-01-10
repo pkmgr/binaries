@@ -61,7 +61,7 @@ __init() {
   if ! cmd_exists docker; then
     printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"
-    sudo bash -c "$(curl -fsSL https://get.docker.com)" >/dev/null 2>&1 || printf_exit "Installation has failed"
+    devnull sudo bash -c "$(curl -fsSL https://get.docker.com)" || printf_exit "Installation has failed"
   fi
   mkdir -p "$HOME/.docker"
   if grep -q docker /etc/group; then
@@ -72,13 +72,13 @@ __init() {
 
   if [ ! -f /etc/systemd/system/docker.service.d/docker.conf ]; then
     sudo mkdir -p /etc/systemd/system/docker.service.d
-    cat <<EOF | sudo tee -a /etc/systemd/system/docker.service.d/docker.conf >/dev/null 2>&1
+    devnull2 cat <<EOF | sudo tee /etc/systemd/system/docker.service.d/docker.conf
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
 EOF
   fi
-  sudo systemctl enable docker --now >/dev/null 2>&1
+  devnull sudo systemctl enable docker --now
   if systemctl status docker | grep -q active 2>/dev/null; then
     printf_green "docker installation has completed"
   else

@@ -517,7 +517,7 @@ help | -h* | --h*)
 
 aliases)
   shift 1
-  if [ -d "$HOME/.config/bash/local" ] && grep userbashprofilelocal "$HOME/.bashrc" >/dev/null 2>&1; then
+  if [ -d "$HOME/.config/bash/local" ] && devnull grep userbashprofilelocal "$HOME/.bashrc"; then
     ALIASFILE="$HOME/.config/bash/local/pkmgr.bash"
   else
     ALIASFILE="$HOME/.bash_profile"
@@ -636,7 +636,7 @@ init | -in)
 makecache | -ca)
   shift 1
   [ "$1" = "--help" ] && printf_help "Create the cache for the package manager"
-  $pkgmgrbincac >/dev/null 2>&1 || exit 1
+  devnull $pkgmgrbincac || exit 1
   ;;
 
 search | -s)
@@ -662,7 +662,7 @@ silent-install)
   [ "$1" = "--help" ] && printf_help "Silently install packages"
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
-    $pkgmgrbininssil "$pkg" >/dev/null 2>&1 && exit 0 || exit 1
+    devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
   done
   ;;
 
@@ -671,7 +671,7 @@ silent-remove)
   [ "$1" = "--help" ] && printf_help "Silently remove packages"
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
-    $pkgmgrbinremsil "*$pkg*" >/dev/null 2>&1 && exit 0 || exit 1
+    devnull $pkgmgrbinremsil "*$pkg*" && exit 0 || exit 1
   done
   ;;
 
@@ -679,9 +679,9 @@ silent-upgrade | silent-update)
   shift 1
   [ "$1" = "--help" ] && printf_help "Silently upgrade your system"
   if [ -f "$(command -v dotfiles)" ]; then
-    systemmgr install installer >/dev/null 2>&1
+    devnull systemmgr install installer
   fi
-  $pkgmgrbinupdsil >/dev/null 2>&1 && exit 0 || exit 1
+  devnull $pkgmgrbinupdsil && exit 0 || exit 1
   ;;
 
 cpan | perl)
@@ -814,7 +814,7 @@ silent)
     [ "$1" = "--help" ] && printf_help "Silently install packages"
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
-      $pkgmgrbininssil "$pkg" >/dev/null 2>&1 && exit 0 || exit 1
+      devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
     done
     ;;
 
@@ -823,26 +823,29 @@ silent)
     [ "$1" = "--help" ] && printf_help "Silently remove packages"
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
-      $pkgmgrbinremsil "*$pkg*" >/dev/null 2>&1 && exit 0 || exit 1
+      devnull $pkgmgrbinremsil "*$pkg*" && exit 0 || exit 1
     done
     ;;
 
   upgrade | update)
     shift 1
     [ "$1" = "--help" ] && printf_help "Silently upgrade your system"
-    if [ -f "$(command -v dotfiles)" ]; then
-      systemmgr install installer >/dev/null 2>&1
+    if [ -f "$(command -v systemmgr)" ]; then
+      devnull systemmgr install installer
     fi
-    $pkgmgrbinupdsil >/dev/null 2>&1 && exit 0 || exit 1
+    devnull $pkgmgrbinupdsil && exit 0 || exit 1
     ;;
 
   *)
     [ "$1" = "--help" ] && printf_help "Silently install packages | defaults to a silent update"
-    [ -z "$1" ] && $pkgmgrbinupdsil >/dev/null 2>&1 && exit 0 || exit 1
-    declare -a LISTARRAY="$*"
-    for pkg in ${LISTARRAY[*]}; do
-      $pkgmgrbininssil "$pkg" >/dev/null 2>&1 && exit 0 || exit 1
-    done
+    if [ -z "$1" ]; then
+      devnull $pkgmgrbinupdsil && exit 0 || exit 1
+    else
+      declare -a LISTARRAY="$*"
+      for pkg in ${LISTARRAY[*]}; do
+        devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
+      done
+    fi
     ;;
   esac
   ;;

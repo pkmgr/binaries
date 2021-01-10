@@ -114,14 +114,14 @@ git_init() {
   if [[ $choice == "y" || $choice == "Y" ]]; then
     printf_read "What is the repo url: "
     read url
-    _git clone --bare "$url" "$gitdir" >/dev/null 2>&1
+    devnull _git clone --bare "$url" "$gitdir"
     _checkout
-    _stow config --local status.showUntrackedFiles no >/dev/null 2>&1
+    devnull _stow config --local status.showUntrackedFiles no
   else
     mkdir -p "$gitdir"
-    _git init --bare "$gitdir" >/dev/null 2>&1
-    _stow config --local status.showUntrackedFiles no >/dev/null 2>&1
-    _stow config --local commit.gpgSign false >/dev/null 2>&1
+    devnull _git init --bare "$gitdir"
+    devnull _stow config --local status.showUntrackedFiles no
+    devnull _stow config --local commit.gpgSign false
     printf_question "Would you like to add a remote git repo" [y/N]
     read -n 1 -s choice
     echo ""
@@ -138,8 +138,8 @@ git_init() {
     read email
     _stow config user.name "$name"
     _stow config user.email "$email"
-    _stow add .gitignore >/dev/null 2>&1
-    _stow commit -m " 🏠🐜❗ Added .gitignore" >/dev/null 2>&1
+    devnull _stow add .gitignore
+    devnull _stow commit -m " 🏠🐜❗ Added .gitignore"
   fi
   exit "$?"
 }

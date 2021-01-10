@@ -67,7 +67,7 @@ location | --location)
 *)
   for cmd in "$@"; do
     unalias "$cmd" 2>/dev/null >&1
-    if type -P "$cmd" | grep -q "/" 2>/dev/null; then exit 0; else exit 1; fi
+    if devnull2 type -P "$cmd" | grep -q "/"; then exit 0; else exit 1; fi
     exitCode+=$?
   done
   exit $exitCode

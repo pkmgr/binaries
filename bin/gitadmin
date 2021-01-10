@@ -148,8 +148,8 @@ run_git_init() {
       read -r -n 1 confirm_repo && echo
       if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
         if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-        git push -q --set-upstream origin master -f >/dev/null 2>&1 &&
-          git push -q -f >/dev/null 2>&1 &&
+        devnull git push -q --set-upstream origin master -f &&
+          devnull git push -q -f &&
           printf_green "Successfully pushed to $repo" ||
           printf_red "Push to $repo has failed"
       else
@@ -184,8 +184,8 @@ run_git_setup() {
   date +"%m%d%Y%H%M-git" >version.txt
   ls README* 1>/dev/null 2>&1 || create_new_readme_template
   ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  git init . >/dev/null 2>&1 &&
-    git add . >/dev/null 2>&1 &&
+  devnull git init . &&
+    devnull git add . &&
     git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
     printf_green "Success: Repo has been initialized"
 
@@ -237,13 +237,13 @@ run_git_setup_automated() {
   date +"%m%d%Y%H%M-git" >version.txt
   ls README* 1>/dev/null 2>&1 || create_new_readme_template
   ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  git init >/dev/null 2>&1 &&
+  devnull git init &&
     git remote add origin $PREVREPO &&
     if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi &&
-    git add . >/dev/null 2>&1 &&
+    devnull git add . &&
     git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    git push -q --set-upstream origin master -f >/dev/null 2>&1 &&
-    git push -q -f >/dev/null 2>&1 &&
+    devnull git push -q --set-upstream origin master -f &&
+    devnull git push -q -f &&
     printf_green "Successfully pushed to: $PREVREPO" ||
     printf_red "Push to $PREVREPO has failed"
   echo ""
@@ -327,8 +327,8 @@ ghdelete() {
   printf_green "Deleting $REPONAME for user $USERNAME\n"
   devnull curl -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
   sleep 3
-  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true \
-    ghdelete-user
+  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
+  ghdelete-user
   getexitcode "$SUCCES" "$ERROR"
   return $EXIT
 }
@@ -373,9 +373,9 @@ ghsinglerepo() {
 # Reusable function for create
 
 ghcreate-user() {
-  devnull curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
+  devnull2 curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
   sleep 1
-  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i $REPONAME | grep -q "html_url" >/dev/null 2>&1 && true
+  devnull2 curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i $REPONAME | grep -q "html_url" && true
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -586,7 +586,7 @@ clone)
       SUCCES="git push completed for $USERNAME/$i"
       cd "$PROJECT_DIR/$USERNAME/$i" || exit 1
       if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-      if (git status | grep "working tree clean") >/dev/null 2>&1; then
+      if (devnull2 git status | grep -q "working tree clean"); then
         getexitcode
       else
         date +"%m%d%Y%H%M-git" >version.txt
