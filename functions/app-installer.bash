@@ -385,18 +385,22 @@ symlink() { ln_sf "$1" "$2"; }
 
 ##################################################################################################
 
-cmdif() {
-  local package="$1"
-  unalias "$package" >/dev/null 2>&1
-  if command -v "$package" >/dev/null 2>&1; then return 0; else return 1; fi
+cmd_exists() {
+  local args="$*"
+  for cmd in $args; do
+    unalias "$cmd" 2>/dev/null >&1
+    if devnull command -v "$cmd"; then return 0; else return 1; fi
+    exitCode+=$?
+  done
+  exit $exitCode
 }
 
-gemif() {
+gem_exists() {
   local package="$1"
   if devnull gem query -i -n "$package"; then return 0; else return 1; fi
 }
 
-perlif() {
+perl_exists() {
   local package="$1"
   if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}' || devnull perl -M$package -le 'print $INC{"$package.pm"}' || devnull perl -M$package -le 'print $INC{"$package"}'; then
     return 0
@@ -405,7 +409,7 @@ perlif() {
   fi
 }
 
-pythonif() {
+pthon_exists() {
   local package="$1"
   if devnull $PYTHONVER -c "import $package"; then return 0; else return 1; fi
 }
@@ -524,14 +528,14 @@ __getpythonver() {
     PIP="pip"
     PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
   fi
-  if [ "$(cmdif yay)" ] || [ "$(cmdif pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
+  if [ "$(cmd_exists yay)" ] || [ "$(cmd_exists pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
 }
 __getpythonver
 
 ##################################################################################################
 
 __getphpver() {
-  if cmdif php; then
+  if cmd_exists php; then
     PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
   else
     PHPVER=""
@@ -723,16 +727,16 @@ scripts_check() {
 #is_url() { echo "$1" | grep -q http; }
 #strip_url() { echo "$1" | sed 's#git+##g' | awk -F//*/ '{print $2}' | sed 's#.*./##g' | sed 's#python-##g'; }
 
-cmd_missing() { cmdif "$1" && return 0 || MISSING+="$1 " && return 1; }
-cpan_missing() { perlif "$1" && return 0 || MISSING+="$1" && return 1; }
-gem_missing() { gemif "$1" && return 0 || MISSING+="$1 " && return 1; }
-perl_missing() { perlif "$1" && return 0 || MISSING+="$(echo perl-$1 | sed 's#::#-#g') " && return 1; }
-pip_missing() { pythonif "$1" && return 0 || MISSING+="$1 " && return 1; }
+cmd_missing() { cmd_exists "$1" && return 0 || MISSING+="$1 " && return 1; }
+cpan_missing() { perl_exists "$1" && return 0 || MISSING+="$1" && return 1; }
+gem_missing() { gem_exists "$1" && return 0 || MISSING+="$1 " && return 1; }
+perl_missing() { perl_exists "$1" && return 0 || MISSING+="$(echo perl-$1 | sed 's#::#-#g') " && return 1; }
+pip_missing() { pthon_exists "$1" && return 0 || MISSING+="$1 " && return 1; }
 
 if cmd_exists pacman; then
-  python_missing() { pythonif "$1" && return 0 || MISSING+="python-$1 " && return 1; }
+  python_missing() { pthon_exists "$1" && return 0 || MISSING+="python-$1 " && return 1; }
 else
-  python_missing() { pythonif "$1" && return 0 || MISSING+="$PYTHONVER-$1 " && return 1; }
+  python_missing() { pthon_exists "$1" && return 0 || MISSING+="$PYTHONVER-$1 " && return 1; }
 fi
 
 ##################################################################################################
@@ -812,7 +816,7 @@ dotfilesreqadmin() {
 install_required() {
   [[ $# -eq 0 ]] && return 0
   # local MISSING=""
-  # for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  # for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
   # if [ ! -z "$MISSING" ]; then
   #   if cmd_exists "pkmgr"; then
   #     printf_warning "Installing from package list"
@@ -832,7 +836,7 @@ install_required() {
 install_packages() {
   local MISSING=""
   if cmd_exists "pkmgr"; then
-    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Attempting to install missing packages"
       printf_warning "$MISSING"
@@ -846,7 +850,7 @@ install_packages() {
     fi
     unset MISSING
 
-    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Still missing:"
       printf_warning "$MISSING"
@@ -858,7 +862,7 @@ install_packages() {
     fi
     unset MISSING
 
-    for cmd in "$@"; do cmdif "$cmd" || MISSING+="$cmd "; done
+    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
       #if [ -f "$APPDIR/install.sh" ]; then
@@ -917,7 +921,7 @@ install_perl() {
 
 install_pip() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || pip_missing "$cmd"; done
+  for cmd in "$@"; do cmd_exists $cmd || pip_missing "$cmd"; done
   if [ ! -z "$MISSING" ]; then
     if cmd_exists "pkmgr"; then
       printf_warning "Attempting to install missing pip packages"
@@ -934,7 +938,7 @@ install_pip() {
 
 install_cpan() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || cpan_missing "$cmd"; done
+  for cmd in "$@"; do cmd_exists $cmd || cpan_missing "$cmd"; done
   if [ ! -z "$MISSING" ]; then
     if cmd_exists "pkmgr"; then
       printf_warning "Attempting to install missing cpan packages"
@@ -951,7 +955,7 @@ install_cpan() {
 
 install_gem() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || gem_missing $cmd; done
+  for cmd in "$@"; do cmd_exists $cmd || gem_missing $cmd; done
   if [ ! -z "$MISSING" ]; then
     if cmd_exists "pkmgr"; then
       printf_warning "Attempting to install missing gem packages"

@@ -54,7 +54,7 @@ __help() {
 \t\t--err       : show only error
 \t\t--noerr     : hide error mesaages
 \t\t--list      : list all logs
-\t\t--open      : open a log file
+\t\t--open      : open logdir
 \n"
   return 1
 }

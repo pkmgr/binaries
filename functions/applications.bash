@@ -182,7 +182,7 @@ printf_head() {
   printf_color "
 \t\t##################################################
 \t\t$msg
-\t\t##################################################\n\n" "$color"
+\t\t##################################################\n" "$color"
 }
 
 ##################################################################################################
@@ -190,7 +190,7 @@ printf_head() {
 printf_result() {
   [ ! -z "$1" ] && EXIT="$1" || EXIT="$?"
   [ ! -z "$2" ] && local OK="$2" || local OK="Command executed successfully"
-  [ ! -z "$3" ] && local FAIL="3" || local FAIL="Command has failed"
+  [ ! -z "$3" ] && local FAIL="$3" || local FAIL="The previous command has failed"
   if [ "$EXIT" -eq 0 ]; then
     printf_success "$OK"
     exit 0
@@ -205,8 +205,6 @@ printf_result() {
 get_githost() {
   echo "$@" | sed -e "s/[^/]*\/\/\([^@]*@\)\?\([^:/]*\).*/\2/" | awk -F. '{print $(NF-1) "."  $NF}' | sed 's#\..*##g'
 }
-
-##################################################################################################
 
 get_username_repo() {
   unset protocol separator hostname username userrepo
@@ -433,19 +431,21 @@ system_installdirs() {
 
 ##################################################################################################
 
+cmd_exists() {
+  local args="$*"
+  for cmd in $args; do
+    unalias "$cmd" 2>/dev/null >&1
+    if command -v $cmd; then return 0; else return 1; fi
+    exitCode+=$?
+  done
+  exit $exitCode
+}
+
 die() { echo -e "$1" exit ${2:9999}; }
 devnull1() { "$@" 1>/dev/null || return $?; }
 devnull2() { "$@" 2>/dev/null || return $?; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
 hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1; }
-cmd_exists() {
-  local pkg LISTARRAY
-  declare -a LISTARRAY="$*"
-  for cmd in $LISTARRAY; do
-    unalias $cmd 2>/dev/null >&1
-    type -P "$cmd" | grep -q "/" 2>/dev/null
-  done
-}
 set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
 getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
 log() {
@@ -592,25 +592,25 @@ runapp() {
 
 ##################################################################################################
 
-cmdif() {
+cmd_exists() {
   local package=$1
   devnull2 unalias "$package"
   if devnull command -v "$package"; then return 0; else return 1; fi
 }
-perlif() {
+perl_exists() {
   local package=$1
   if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}'; then return 0; else return 1; fi
 }
-pythonif() {
+python_exists() {
   local package=$1
   if devnull $PYTHONVER -c "import $package"; then return 0; else return 1; fi
 }
 
 ##################################################################################################
 
-cmd_missing() { cmdif "$1" || MISSING+="$1 "; }
-perl_missing() { perlif $1 || MISSING+="perl-$1 "; }
-python_missing() { pythonif "$1" || MISSING+="$PYTHONVER-$1 "; }
+cmd_missing() { cmd_exists "$1" || MISSING+="$1 "; }
+perl_missing() { perl_exists $1 || MISSING+="perl-$1 "; }
+python_missing() { python_exists "$1" || MISSING+="$PYTHONVER-$1 "; }
 
 ##################################################################################################
 
@@ -705,14 +705,14 @@ __getpythonver() {
     PIP="pip"
     PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
   fi
-  if [ "$(cmdif yay)" ] || [ "$(cmdif pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
+  if [ "$(cmd_exists yay)" ] || [ "$(cmd_exists pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
 }
 __getpythonver
 
 ##################################################################################################
 
 __getphpver() {
-  if cmdif php; then
+  if cmd_exists php; then
     PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
   else
     PHPVER=""
@@ -737,11 +737,11 @@ setexitstatus() {
 ##################################################################################################
 
 returnexitcode() {
-  if [ "$EXIT" -eq 0 ]; then
-    BG_EXIT="${BG_GREEN}"
+  if [ "$1" -eq 0 ] || [ "$EXIT" -eq 0 ]; then
+    BG_EXIT="${BG_GREEN} 😺"
     return 0
   else
-    BG_EXIT="${BG_RED}"
+    BG_EXIT="${BG_RED} 😟"
     return 1
   fi
 }
@@ -769,8 +769,7 @@ getexitcode() {
   else
     printf_red "$PERROR"
   fi
-  unset ERROR SUCCES
-  returnexitcode
+  returnexitcode $EXIT
 }
 
 ##################################################################################################
@@ -814,7 +813,7 @@ git_update() {
 
 check_app() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
     printf_question "$cmd is not installed Would you like install it" [y/N]
     read -n 1 -s choice && echo
@@ -832,7 +831,7 @@ check_app() {
 
 check_pip() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
     printf_question "$1 is not installed Would you like install it" [y/N]
     read -n 1 -s choice
@@ -850,7 +849,7 @@ check_pip() {
 
 check_cpan() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
     printf_question "$1 is not installed Would you like install it" [y/N]
     read -n 1 -s choice

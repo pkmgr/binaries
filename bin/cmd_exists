@@ -35,17 +35,45 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+__help() {
+  printf_green "Usage: $APPNAME location $APPNAME : Show app location"
+  printf_green "Will return 0 if found and will add a 1 for each not found"
+  exit
+}
+
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ ! -z "$1" ] || printf_help "Usage: cmd_exists cmd"
+[ ! -z "$1" ] || __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-unalias "$1" >/dev/null 2>&1 ||
-  command -v "$1" >/dev/null 2>&1 ||
-  exit 1
+exitCode=""
+LISTARRAY=""
+case $1 in
+help | --help)
+  __help
+  ;;
+location | --location)
+  shift 1
+  for cmd in "$@"; do
+    unalias "$cmd" 2>/dev/null >&1
+    if command -v $cmd; then return 0; else return 1; fi
+    exitCode+=$?
+  done
+  exit $exitCode
+  ;;
+*)
+  for cmd in "$@"; do
+    unalias "$cmd" 2>/dev/null >&1
+    if type -P "$cmd" | grep -q "/" 2>/dev/null; then return 0; else return 1; fi
+    exitCode+=$?
+  done
+  exit $exitCode
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # end

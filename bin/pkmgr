@@ -52,55 +52,17 @@ pkmgr_install
 #---------------------------------------------------------------------------------------
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
-if [[ "$1" = "--vdebug" ]]; then
-  VDEBUG=true
-  shift 1
-  rm_rf() { return 0; }
-  devnull() { "$@"; }
-fi
-rm_rf() { sudo rm -Rf; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [[ "$*" =~ "how2" ]]; then install_how2 && exit 0 || exit 1; fi
-if [[ "$*" =~ "tizonia" ]]; then install_tizonia && exit 0 || exit 1; fi
+rm_rf() { sudo rm -Rf; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Variables - Distro specific
 case "$(uname -s)" in
 Linux)
-  if [ -f "$(command -v pacman)" ]; then
-    dotfilesrepo="$REPODF/pacman"        #
-    pkgmgrbin="sudo -H /usr/bin/pacman " #
-    pkgmgrbinins="$pkgmgrbin -S --noconfirm --overwrite='*' "
-    pkgmgrbininssil="$pkgmgrbin -S --noconfirm --needed --overwrite='*' "
-    pkgmgrbinremsil="$pkgmgrbin -R --noconfirm "     #
-    pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "  #
-    pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm " #
-    pkgmgrbindel="$pkgmgrbin -R "                    #
-    pkgmgrbinsea="$pkgmgrbin -Ss"                    #
-    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"
-    pkgmgrbincle="$pkgmgrbin -Scc " #
-    pkgmgrbincac="$pkgmgrbin -Syy " #
-    pkgmgrexport() { pacman -Qqe | grep -v "$(pacman -Qqm)" && echo '###' && pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }
-
-  elif [ -f "$(command -v pamac)" ]; then
-    dotfilesrepo="$REPODF/pacman"                     #
-    pkgmgrbin="sudo -HE /usr/bin/pamac"               #
-    pkgmgrbinins="$pkgmgrbin install --noconfirm "    #
-    pkgmgrbininssil="$pkgmgrbin install --noconfirm " #
-    pkgmgrbinremsil="$pkgmgrbin remove --noconfirm "  #
-    pkgmgrbinupdsil="$pkgmgrbin upgrade -a "          #
-    pkgmgrbinupdcron="$pkgmgrbin upgrade -a "         #
-    pkgmgrbindel="$pkgmgrbin remove "                 #
-    pkgmgrbinsea="$pkgmgrbin search -a "              #
-    pkgmgrbinupd="$pkgmgrbin upgrade -a "             #
-    pkgmgrbincle="$pkgmgrbin clean "                  #
-    pkgmgrbincac="$pkgmgrbin checkupdates "           #
-    pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }
-
-  elif [ -f "$(command -v apt-get)" ]; then
+  if [ -f "$(command -v apt-get)" ]; then
     dotfilesrepo="$REPODF/apt"            #
     pkgmgrbin="sudo -HE /usr/bin/apt-get" #
     pkgmgrbinins="$pkgmgrbin install"     #
@@ -114,7 +76,6 @@ Linux)
     pkgmgrbincle="$pkgmgrbin clean "                                                                                                                                                                                                #
     pkgmgrbincac="$pkgmgrbin update "                                                                                                                                                                                               #
     pkgmgrexport() { dpkg -l | grep ^ii | awk '{print $2}' | sed "s#:.*##g" | sort -u; }
-
   elif [ -f "$(command -v apt)" ]; then
     dotfilesrepo="$REPODF/apt"        #
     pkgmgrbin="sudo -HE /usr/bin/apt" #
@@ -130,88 +91,120 @@ Linux)
     pkgmgrbincac="$pkgmgrbin update "                                                                                                                                                                                           #
     pkgmgrexport() { dpkg -l | grep ^ii | awk '{print $2}' | sed "s#:.*##g" | sort -u; }
 
-  elif [ -f "$(command -v dnf)" ]; then
-    dotfilesrepo="$REPODF/yum"                  #
-    pkgmgrbin="sudo -HE /usr/bin/dnf"           #
-    pkgmgrbinins="$pkgmgrbin install "          #
-    pkgmgrbininssil="$pkgmgrbin install -y -q " #
-    pkgmgrbinremsil="$pkgmgrbin remove -y -q "  #
-    pkgmgrbinupdsil="$pkgmgrbin update -y -q "  #
-    pkgmgrbinupdcron="$pkgmgrbin update -y "    #
-    pkgmgrbindel="$pkgmgrbin remove "           #
-    pkgmgrbinsea="$pkgmgrbin search "           #
-    pkgmgrbinupd="$pkgmgrbin updat e"           #
-    pkgmgrbincle="$pkgmgrbin clean "            #
-    pkgmgrbincac="$pkgmgrbin makecache "        #
-    pkgmgrexport() { rpm -qa --qf '%{name}\n' | grep -v gpg-pubkey | sort -u; }
+    #---------------------------------------------------------------------------------------
 
-  elif [ -f "$(command -v yum)" ]; then
-    dotfilesrepo="$REPODF/yum"                  #
-    pkgmgrbin="sudo -HE /usr/bin/yum"           #
-    pkgmgrbinins="$pkgmgrbin install "          #
-    pkgmgrbininssil="$pkgmgrbin install -y -q " #
-    pkgmgrbinremsil="$pkgmgrbin remove -y -q "  #
-    pkgmgrbinupdsil="$pkgmgrbin install -y -q " #
-    pkgmgrbinupdcron="$pkgmgrbin install -y "   #
-    pkgmgrbindel="$pkgmgrbin remove "           #
-    pkgmgrbinsea="$pkgmgrbin search "           #
-    pkgmgrbinupd="$pkgmgrbin update "           #
-    pkgmgrbincle="$pkgmgrbin clean "            #
-    pkgmgrbincac="$pkgmgrbin makecache "        #
-    pkgmgrexport() { rpm -qa --qf '%{name}\n' | grep -v gpg-pubkey | sort -u; }
-
-  elif [ -f "$(command -v xbps-install)" ]; then
-    dotfilesrepo="$REPODF/xbps"                            #
-    pkgmgrbin="sudo -HE /usr/bin/xbps-install"             #
-    pkgmgrbinins="sudo -H /usr/bin/xbps-install -S "       #
-    pkgmgrbininssil="sudo -H /usr/bin/xbps-install -Sy "   #
-    pkgmgrbinremsil="sudo -H /usr/bin/xbps-remove -y "     #
-    pkgmgrbinupdsil="sudo -H /usr/bin/xbps-install -Syu "  #
-    pkgmgrbinupdcron="sudo -H /usr/bin/xbps-install -Syu " #
-    pkgmgrbindel="sudo -H /usr/bin/xbps-remove "           #
-    pkgmgrbinsea="sudo -H /usr/bin/xbps-query -Rs "        #
-    pkgmgrbinupd="sudo -H /usr/bin/xbps-install -Syu "     #
-    pkgmgrbincle="sudo -H /usr/bin/xbps-remove -O "        #
-    pkgmgrbincac="sudo -H /usr/bin/xbps-install -S "       #
-    pkgmgrexport() { xbps-query -l; }
-  fi
-  ;;
-Darwin)
-  if [ -f "$(command -v brew)" ]; then
-    dotfilesrepo="$REPODF/brew"                           #
-    pkgmgrbin="sudo -HE -u $USER brew"                    #
-    pkgmgrbinins="sudo -HE -u $USER brew install"         #
-    pkgmgrbininssil="sudo -HE -u $USER brew install -f "  #
-    pkgmgrbinremsil="sudo -HE -u $USER brew remove -f "   #
-    pkgmgrbinupdsil="sudo -HE -u $USER brew upgrade -f "  #
-    pkgmgrbinupdcron="sudo -HE -u $USER brew upgrade -f " #
-    pkgmgrbindel="sudo -HE -u $USER brew remove "         #
-    pkgmgrbinsea="sudo -HE -u $USER brew search "         #
-    pkgmgrbinupd="sudo -HE -u $USER brew upgrade "        #
-    pkgmgrbincle="sudo -HE -u $USER brew cleanup "        #
-    pkgmgrbincac="sudo -HE -u $USER brew update "         #
-    pkgmgrexport() { echo $(sudo -HE -u $USER brew list --cask && sudo -HE -u $USER brew list --formula) | sort -u; }
-  fi
-  ;;
-CYGWIN* | MINGW32* | MSYS* | MINGW*)
-  dotfilesrepo="$REPODF/win"           #
-  pkgmgrbin="choco"                    #
-  pkgmgrbinins="choco install"         #
-  pkgmgrbininssil="choco install -yf " #
-  pkgmgrbinremsil="choco remove -f "   #
-  pkgmgrbinupdsil="choco update -yf "  #
-  pkgmgrbinupdcron="choco update -yf " #
-  pkgmgrbindel="choco remove "         #
-  pkgmgrbinsea="choco search "         #
-  pkgmgrbinupd="choco update "         #
-  pkgmgrbincle="choco cleanup"         #
-  pkgmgrexport() { echo not enabled; }
-  ;;
-*)
-  echo -e "\t\tUnknown OS or OS not supported"
-  exit
-  ;;
-esac
+  elif [ -f "$(command -v pacman)" ]; then                                                                                        #
+    dotfilesrepo="$REPODF/pacman"                                                                                                 #
+    pkgmgrbin="sudo -H /usr/bin/pacman "                                                                                          #
+    pkgmgrbinins="$pkgmgrbin -S --noconfirm --overwrite='*' "                                                                     #
+    pkgmgrbininssil="$pkgmgrbin -S --noconfirm --needed --overwrite='*' "                                                         #
+    pkgmgrbinremsil="$pkgmgrbin -R --noconfirm "                                                                                  #
+    pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "                                                                               #
+    pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                                                                              #
+    pkgmgrbindel="$pkgmgrbin -R "                                                                                                 #
+    pkgmgrbinsea="$pkgmgrbin -Ss"                                                                                                 #
+    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"                                                                      #
+    pkgmgrbincle="$pkgmgrbin -Scc "                                                                                               #
+    pkgmgrbincac="$pkgmgrbin -Syy "                                                                                               #
+    pkgmgrexport() { pacman -Qqe | grep -v "$(pacman -Qqm)" && echo '###' && pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; } #
+  elif [ -f "$(command -v pamac)" ]; then                                                                                         #
+    dotfilesrepo="$REPODF/pacman"                                                                                                 #
+    pkgmgrbin="sudo -HE /usr/bin/pamac"                                                                                           #
+    pkgmgrbinins="$pkgmgrbin install --noconfirm "                                                                                #
+    pkgmgrbininssil="$pkgmgrbin install --noconfirm "                                                                             #
+    pkgmgrbinremsil="$pkgmgrbin remove --noconfirm "                                                                              #
+    pkgmgrbinupdsil="$pkgmgrbin upgrade -a "                                                                                      #
+    pkgmgrbinupdcron="$pkgmgrbin upgrade -a "                                                                                     #
+    pkgmgrbindel="$pkgmgrbin remove "                                                                                             #
+    pkgmgrbinsea="$pkgmgrbin search -a "                                                                                          #
+    pkgmgrbinupd="$pkgmgrbin upgrade -a "                                                                                         #
+    pkgmgrbincle="$pkgmgrbin clean "                                                                                              #
+    pkgmgrbincac="$pkgmgrbin checkupdates "                                                                                       #
+    pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }                                                         #
+  elif [ -f "$(command -v dnf)" ]; then                                                                                           #
+    dotfilesrepo="$REPODF/yum"                                                                                                    #
+    pkgmgrbin="sudo -HE /usr/bin/dnf"                                                                                             #
+    pkgmgrbinins="$pkgmgrbin install "                                                                                            #
+    pkgmgrbininssil="$pkgmgrbin install -y -q "                                                                                   #
+    pkgmgrbinremsil="$pkgmgrbin remove -y -q "                                                                                    #
+    pkgmgrbinupdsil="$pkgmgrbin update -y -q "                                                                                    #
+    pkgmgrbinupdcron="$pkgmgrbin update -y "                                                                                      #
+    pkgmgrbindel="$pkgmgrbin remove "                                                                                             #
+    pkgmgrbinsea="$pkgmgrbin search "                                                                                             #
+    pkgmgrbinupd="$pkgmgrbin updat e"                                                                                             #
+    pkgmgrbincle="$pkgmgrbin clean "                                                                                              #
+    pkgmgrbincac="$pkgmgrbin makecache "                                                                                          #
+    pkgmgrexport() { rpm -qa --qf '%{name}\n' | grep -v gpg-pubkey | sort -u; }                                                   #
+  elif [ -f "$(command -v yum)" ]; then                                                                                           #
+    dotfilesrepo="$REPODF/yum"                                                                                                    #
+    pkgmgrbin="sudo -HE /usr/bin/yum"                                                                                             #
+    pkgmgrbinins="$pkgmgrbin install "                                                                                            #
+    pkgmgrbininssil="$pkgmgrbin install -y -q "                                                                                   #
+    pkgmgrbinremsil="$pkgmgrbin remove -y -q "                                                                                    #
+    pkgmgrbinupdsil="$pkgmgrbin install -y -q "                                                                                   #
+    pkgmgrbinupdcron="$pkgmgrbin install -y "                                                                                     #
+    pkgmgrbindel="$pkgmgrbin remove "                                                                                             #
+    pkgmgrbinsea="$pkgmgrbin search "                                                                                             #
+    pkgmgrbinupd="$pkgmgrbin update "                                                                                             #
+    pkgmgrbincle="$pkgmgrbin clean "                                                                                              #
+    pkgmgrbincac="$pkgmgrbin makecache "                                                                                          #
+    pkgmgrexport() { rpm -qa --qf '%{name}\n' | grep -v gpg-pubkey | sort -u; }                                                   #
+  elif [ -f "$(command -v xbps-install)" ]; then                                                                                  #
+    dotfilesrepo="$REPODF/xbps"                                                                                                   #
+    pkgmgrbin="sudo -HE /usr/bin/xbps-install"                                                                                    #
+    pkgmgrbinins="$pkgmgrbin -S "                                                                                                 #
+    pkgmgrbininssil="$pkgmgrbin -Sy "                                                                                             #
+    pkgmgrbinremsil="sudo -H /usr/bin/xbps-remove -y "                                                                            #
+    pkgmgrbinupdsil="$pkgmgrbin -Syu "                                                                                            #
+    pkgmgrbinupdcron="$pkgmgrbin -Syu "                                                                                           #
+    pkgmgrbindel="sudo -H /usr/bin/xbps-remove "                                                                                  #
+    pkgmgrbinsea="sudo -H /usr/bin/xbps-query -Rs "                                                                               #
+    pkgmgrbinupd="$pkgmgrbin -Syu "                                                                                               #
+    pkgmgrbincle="sudo -H /usr/bin/xbps-remove -O "                                                                               #
+    pkgmgrbincac="$pkgmgrbin -S "                                                                                                 #
+    pkgmgrexport() { xbps-query -l; }                                                                                             #
+  fi                                                                                                                              #
+  ;;                                                                                                                              #
+Darwin)                                                                                                                           #
+  if [ -f "$(command -v brew)" ]; then                                                                                            #
+    dotfilesrepo="$REPODF/brew"                                                                                                   #
+    if [ "$1" = "--cask" ]; then                                                                                                  #
+      pkgmgrbin="sudo -HE $USER brew"                                                                                             #
+    else                                                                                                                          #
+      pkgmgrbin="sudo -HE $USER brew --cask"                                                                                      #
+    fi                                                                                                                            #
+    pkgmgrbinins="$pkgmgrbin install"                                                                                             #
+    pkgmgrbininssil="$pkgmgrbin install -f "                                                                                      #
+    pkgmgrbinremsil="$pkgmgrbin remove -f "                                                                                       #
+    pkgmgrbinupdsil="$pkgmgrbin upgrade -f "                                                                                      #
+    pkgmgrbinupdcron="$pkgmgrbin upgrade -f "                                                                                     #
+    pkgmgrbindel="$pkgmgrbin remove "                                                                                             #
+    pkgmgrbinsea="$pkgmgrbin search "                                                                                             #
+    pkgmgrbinupd="$pkgmgrbin upgrade "                                                                                            #
+    pkgmgrbincle="$pkgmgrbin cleanup "                                                                                            #
+    pkgmgrbincac="$pkgmgrbin update "                                                                                             #
+    pkgmgrexport() { echo "$($pkgmgrbin list --cask && $pkgmgrbin list --formula)" | sort -u; }                                   #
+  fi                                                                                                                              #
+  ;;                                                                                                                              #
+CYGWIN* | MINGW32* | MSYS* | MINGW*)                                                                                              #
+  dotfilesrepo="$REPODF/win"                                                                                                      #
+  pkgmgrbin="choco"                                                                                                               #
+  pkgmgrbinins="choco install"                                                                                                    #
+  pkgmgrbininssil="choco install -yf "                                                                                            #
+  pkgmgrbinremsil="choco remove -f "                                                                                              #
+  pkgmgrbinupdsil="choco update -yf "                                                                                             #
+  pkgmgrbinupdcron="choco update -yf "                                                                                            #
+  pkgmgrbindel="choco remove "                                                                                                    #
+  pkgmgrbinsea="choco search "                                                                                                    #
+  pkgmgrbinupd="choco update "                                                                                                    #
+  pkgmgrbincle="choco cleanup"                                                                                                    #
+  pkgmgrexport() { echo not enabled; }                                                                                            #
+  ;;                                                                                                                              #
+*)                                                                                                                                #
+  echo -e "\t\tUnknown OS or OS not supported"                                                                                    #
+  exit                                                                                                                            #
+  ;;                                                                                                                              #
+esac                                                                                                                              #
 
 #---------------------------------------------------------------------------------------
 
@@ -226,11 +219,11 @@ if [ -f "$(command -v yay)" ]; then
     pkgmgrbinremsil="$pkgmgrbin -Ry --noconfirm --needed --noconfirm" #
     pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "                   #
     #pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                  #
-    pkgmgrbindel="$pkgmgrbin -R "                                     #
-    pkgmgrbinsea="$pkgmgrbin -Ss "                                    #
-    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"          #
-    pkgmgrbincle="$pkgmgrbin -Scc "                                   #
-    pkgmgrbincac="$pkgmgrbin -Syy "                                   #
+    pkgmgrbindel="$pkgmgrbin -R "                            #
+    pkgmgrbinsea="$pkgmgrbin -Ss "                           #
+    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'" #
+    pkgmgrbincle="$pkgmgrbin -Scc "                          #
+    pkgmgrbincac="$pkgmgrbin -Syy "                          #
     pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }
     ;;
   esac
@@ -282,7 +275,7 @@ npm_remove() {
 #---------------------------------------------------------------------------------------
 
 cpan_run() {
-  if cmdif cpan; then
+  if cmd_exists cpan; then
     local cpandir="$(find /usr/share -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
     local cpanconf="https://raw.githubusercontent.com/casjay-base/centos/master/usr/share/perl5/CPAN/Config.pm"
     local cpanfile="$cpandir/Config.pm"
@@ -389,7 +382,7 @@ __schedule() {
     shift 1
     sudo su -c "echo -e ###########\n$date\n###########\n >> $logfile"
     sudo su -c "echo -e ###########\n$date\n###########\n >> $loggerfile"
-    sudo $pkgmgrbinupdcron 2>>"$loggerfile.tmp" | sudo tee -a $logfile 
+    sudo $pkgmgrbinupdcron 2>>"$loggerfile.tmp" | sudo tee -a $logfile
     if [ -s "$loggerfile.tmp" ] && [ -f "$loggerfile.tmp" ] && [[ ! -z $(grep '[^[:space:]]' $loggerfile.tmp) ]]; then
       if cmd_exists mail; then
         MAILMESS="$(echo -e "Errors were reported and they are as follows:\n""$(cat $loggerfile.tmp)\n")"
@@ -496,7 +489,7 @@ elif [[ "$(python2 -V 2>/dev/null)" =~ "Python 2" ]]; then
   PIP="pip"
   PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
 fi
-if cmdif pacman; then
+if cmd_exists pacman; then
   PYTHONVER="python"
   PIP="pip3"
 fi
