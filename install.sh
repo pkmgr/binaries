@@ -170,7 +170,7 @@ failexitcode
 run_postinst() {
   systemmgr_run_postinst
   dotfilesreqadmin cron
-  local fontdir="$(ls "$CASJAYSDEVSAPPDIR/fontmgr" 2>/dev/null | wc -l)"
+  local fontdir="$(devnull2 ls "$CASJAYSDEVSAPPDIR/fontmgr" | wc -l)"
   if [ "$fontdir" = "0" ]; then
     sudo fontmgr install Hack
   fi
@@ -180,11 +180,12 @@ run_postinst() {
   done
 
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
-  [ -f /etc/casjaysdev/updates/versions/configs.txt ] || cat "$APPDIR/version.txt" | sudo tee /etc/casjaysdev/updates/versions/configs.txt
+  grep -Riq "git" /etc/casjaysdev/updates/versions/configs.txt && sudo rm -Rfv /etc/casjaysdev/updates/versions/configs.txt
+  [ -f /etc/casjaysdev/updates/versions/configs.txt ] || date +"%m%d%Y%H%M-git" | sudo tee /etc/casjaysdev/updates/versions/configs.txt
   [ -f /etc/casjaysdev/updates/versions/date.configs.txt ] || date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.configs.txt
   cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
-  cmd_exists update-motd && update-ip && update-motd  
+  cmd_exists update-motd && update-ip && update-motd
 }
 
 execute \

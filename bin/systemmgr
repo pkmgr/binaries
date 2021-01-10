@@ -45,7 +45,7 @@ systemmgr_install
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/systemmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+  API="$(devnull2 curl -s "https://api.github.com/orgs/systemmgr/repos?per_page=1000" | jq -r '.[] | .name')"
 fi
 
 __help() {
@@ -73,8 +73,8 @@ preupdate() {
 
 systemmgr_list() {
   if [ -n "$1" ]; then
-    if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A "$SYSUPDATEDIR/$1" 2>/dev/null)" ]; then
-      file="$(ls -A "$SYSUPDATEDIR/$1" 2>/dev/null)"
+    if [ -d "$SYSUPDATEDIR" ] && [ -n "$(devnull2 ls -A "$SYSUPDATEDIR/$1")" ]; then
+      file="$(devnull2 ls -A "$SYSUPDATEDIR/$1")"
       if [ -f "$file" ]; then
         printf_green "Information about $1: \n$(bash -c "$file --version")"
       else
@@ -83,7 +83,7 @@ systemmgr_list() {
       fi
     fi
   else
-    declare -a LSINST="$(ls "$SYSUPDATEDIR/" 2>/dev/null)"
+    declare -a LSINST="$(devnull2 ls "$SYSUPDATEDIR/")"
     if [ -z "$LSINST" ]; then
       printf_red "No packages are installed"
       exit
@@ -101,7 +101,7 @@ systemmgr_list() {
 systemmgr_search() {
   declare -a LISTARRAY=$*
   for df in ${LISTARRAY[*]}; do
-    echo $LIST | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$df" || printf_exit "That package does not exist"
+    devnull2 echo $LIST | tr ' ' '\n' | grep --color=auto -Fi "$df" || printf_exit "That package does not exist"
   done
   exit
 }
@@ -157,7 +157,7 @@ update)
         if urlcheck $REPO/$updadmin/raw/master/install.sh; then
           printf_yellow "Initializing the installer from"
           printf_purple "$REPO/$updadmin"
-          sudo -HE bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)" 2>/dev/null
+          devnull2 sudo -HE bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)"
           getexitcode "$updadmin has been installed"
         else
           urlinvalid $REPO/$updadmin/raw/master/install.sh
@@ -180,7 +180,7 @@ install)
     if urlcheck $REPO/$ins/raw/master/install.sh; then
       printf_yellow "Initializing the installer from"
       printf_purple "$REPO/$ins"
-      sudo -HE bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" 2>/dev/null
+      devnull2 sudo -HE bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       getexitcode "$ins has been installed"
     else
       urlinvalid $REPO/$ins/raw/master/install.sh
@@ -197,13 +197,13 @@ updater | cron)
 version)
   shift 1
   ANAME="$1"
-  if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)" ]; then
-    file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
+  if [ -d "$SYSUPDATEDIR" ] && [ -n "$(devnull2 ls -A $SYSUPDATEDIR/$1)" ]; then
+    file="$(devnull2 ls -A $SYSUPDATEDIR/$1)"
     if [ -f "$file" ]; then
       printf_green "Information about $1: \n$(bash -c "$file --version")"
     fi
-  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
-    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
+  elif [ -f "$(devnull2 command -v $1)" ]; then
+    printf_green "Information about $1: $(devnull2 bash -c "$ANAME --version")"
   else
     printf_exit "File was not found is it installed?"
   fi

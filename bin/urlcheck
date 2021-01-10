@@ -43,7 +43,7 @@ fi
 # Setup the help function
 
 __help() {
-  printf_green "Usage: urlcheck URL"
+  printf_green "Usage: urlcheck URL  |  return 0 if ok and 1 if invalid"
   exit
 }
 
@@ -57,6 +57,11 @@ __help() {
 
 # main program
 
-devnull curl --output /dev/null --silent --head --fail "$1"
+devnull timeout 0.3 curl --output /dev/null --silent --head --fail "$1"
+if [ $? = 0 ]; then
+  exit 0
+else
+  exit 1
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

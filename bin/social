@@ -50,7 +50,7 @@ post_to_social() {
   local PMESS=
   printf_custom_question "5" "What would you like to post\n\t\t"
   read PMESS
-  post2social "$PMESS" >/dev/null 2>&1
+  devnull post2social "$PMESS"
   printf_green "Posting: $PMESS"
   sleep 5
 }

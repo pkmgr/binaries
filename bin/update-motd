@@ -42,72 +42,97 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sudo rm -Rf /etc/issue* /etc/motd*
+dategit="$(date +"%m%d%Y%H%M-git")"
+datever="$(date +"%b %d, %Y at %H:%M")"
+if [ -f /etc/casjaysdev/updates/versions/scripts.txt ]; then
+  scriptsversion="$(devnull2 cat /etc/casjaysdev/updates/versions/scripts.txt)"
+else scriptsversion="$dategit"; fi
+if [ -f /etc/casjaysdev/updates/versions/configs.txt ]; then
+  configsversion="$(devnull2 cat /etc/casjaysdev/updates/versions/configs.txt)"
+else configsversion="$dategit"; fi
+if [ -f /etc/casjaysdev/updates/versions/date.scripts.txt ]; then
+  scriptsdate="$(devnull2 cat /etc/casjaysdev/updates/versions/date.scripts.txt)"
+else scriptsdate="$datever"; fi
+if [ -f /etc/casjaysdev/updates/versions/date.configs.txt ]; then
+  configsdate="$(devnull2 cat /etc/casjaysdev/updates/versions/date.configs.txt)"
+else configsdate="$datever"; fi
+distro_version="$distro_version"
 
-scriptsversion="$(cat /etc/casjaysdev/updates/versions/scripts.txt)"
-configsversion="$(cat /etc/casjaysdev/updates/versions/configs.txt)"
-scriptsdate="$(cat /etc/casjaysdev/updates/versions/date.configs.txt)"
-configsdate="$(cat /etc/casjaysdev/updates/versions/configs.txt)"
-
-motd_fortune() {
-if [ "$(command -v fortune 2>/dev/null)" ] && [ -n "$(command -v cowsay 2>/dev/null)" ]; then
-  printf "\n\n\n" | sudo tee -a /etc/motd >>/dev/null 2>&1
-  fortune | cowsay | sudo tee -a /etc/motd >>/dev/null 2>&1
-  printf "\n\n" | sudo tee -a /etc/motd >>/dev/null 2>&1
-else
-  printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-fi
+messages_issue() {
+  local messages=$(devnull2 ls "/etc/casjaysdev/messages/issue/" | wc -l)
+  if [ "$messages" != "0" ]; then
+    cat /etc/casjaysdev/messages/issue/* | sed '/^$/d' | sed '1i\ ' | devnull sudo tee -a /etc/issue
+    printf "\n" | devnull sudo tee -a /etc/issue
+  fi
 }
 
 messages_motd() {
-local messages=$(ls "/etc/casjaysdev/messages/motd/" 2>/dev/null | wc -l)
-if [ "$messages" != "0" ]; then
-  cat /etc/casjaysdev/messages/motd/* | sudo tee -a /etc/motd >>/dev/null 2>&1
-fi
+  local messages=$(devnull2 ls "/etc/casjaysdev/messages/motd/" | wc -l)
+  if [ "$messages" != "0" ]; then
+    cat /etc/casjaysdev/messages/motd/* | sed '/^$/d' | devnull sudo tee -a /etc/motd
+  fi
 }
 
-messages_issue() {
-local messages=$(ls "/etc/casjaysdev/messages/issue/" 2>/dev/null | wc -l)
-if [ "$messages" != "0" ]; then
-  cat /etc/casjaysdev/messages/issue/* | sudo tee -a /etc/issue >>/dev/null 2>&1
-fi
+motd_fortune() {
+  if [ "$(devnull2 command -v fortune)" ] && [ -n "$(devnull2 command -v cowsay)" ]; then
+    printf "\n" | devnull sudo tee -a /etc/motd
+    fortune | cowsay | devnull sudo tee -a /etc/motd
+    printf "\n" | devnull sudo tee -a /etc/motd
+  else
+    printf "\n" | devnull sudo tee -a /etc/motd
+  fi
 }
 
 conf_versions() {
-if if_os_id debian; then
-  printf "Debian version: $distro_version  |  Config version: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-fi
+  if if_os_id debian; then
+    printf "Debian version: $distro_version\n" | devnull sudo tee -a /etc/motd
+    printf "Config version: $configsversion\n" | devnull sudo tee -a /etc/motd
+  fi
 
-if if_os_id rhel; then
-  printf "RHEL version: $distro_version  |  Config version: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-fi
+  if if_os_id rhel; then
+    printf "RHEL version: $distro_version\n" | devnull sudo tee -a /etc/motd
+    printf "Config version: $configsversion\n" | devnull sudo tee -a /etc/motd
+  fi
 
-if if_os_id arch; then
-  printf "Arch version: $distro_version  |  Config version: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-fi
-printf "configs were last updated on: $configsversion\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-printf "scripts package was last updated on: $scriptsdate\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-printf "Messages were last updated on: $(date +"%b %d, %Y at %H:%M")\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
+  if if_os_id arch; then
+    printf "Arch version: $distro_version\n" | devnull sudo tee -a /etc/motd
+    printf "Config version: $configsversion\n" | devnull sudo tee -a /etc/motd
+  fi
+  printf "Scripts version $scriptsversion\n" | devnull sudo tee -a /etc/motd
+  printf "configs were last updated on: $configsdate\n" | devnull sudo tee -a /etc/motd
+  printf "scripts package was last updated on: $scriptsdate\n" | devnull sudo tee -a /etc/motd
+  printf "Messages were last updated on: $(date +"%b %d, %Y at %H:%M")\n\n" | devnull sudo tee -a /etc/motd
 }
 
 finalize() {
-sudo touch /etc/issue /etc/motd
-printf "\n\n" | sudo tee -a /etc/motd >/dev/null 2>&1
-cat /etc/motd | sudo tee -a /etc/motd.net >/dev/null 2>&1
-cat /etc/issue | sudo tee -a /etc/issue.net >/dev/null 2>&1
-if [ "$1" = "--console" ]; then
-cat /etc/issue /etc/motd
-fi
+  sudo touch /etc/issue /etc/motd
+  cat /etc/motd | devnull sudo tee -a /etc/motd.net
+  cat /etc/issue | devnull sudo tee -a /etc/issue.net
+  if [ "$1" = "--console" ]; then
+    shift 1
+    cat /etc/issue /etc/motd
+  fi
+  if [ "$1" = "--vdebug" ]; then
+    shift 1
+    cat /etc/issue /etc/motd
+    printf_green "dategit: $dategit"
+    printf_green "datever: $datever"
+    printf_green "scriptsversion: $scriptsversion"
+    printf_green "configsversion: $configsversion"
+    printf_green "scriptsdate: $scriptsdate"
+    printf_green "configsdate: $configsdate"
+  fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # main function
-main () {
+main() {
   motd_fortune
   messages_motd
   messages_issue
   conf_versions
-  finalize
+  finalize "$@"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

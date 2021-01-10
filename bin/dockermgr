@@ -148,6 +148,27 @@ __run_update() {
   fi
 }
 
+__run_cron() {
+  local frequency="0 4 * * 6"
+  local croncmd="$APPNAME cron run"
+  case $1 in
+  run)
+    logr bash -c "am_i_online && $(expr $RANDOM \% 300) && docker images | awk '(NR>1) && ($2!~/none/) {print $1":"$2}' | xargs -L1 docker pull"
+    ;;
+  remove)
+    shift 1
+    removecrontab "$frequency $croncmd"
+    ;;
+  add)
+    addtocrontab "$frequency $croncmd"
+    ;;
+  *)
+    addtocrontab "$frequency $croncmd"
+    ;;
+  esac
+
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __ssh_help() {
@@ -226,6 +247,11 @@ update)
 
 help | --help)
   __help
+  ;;
+
+updater | cron)
+  shift 1
+  __run_cron "$*"
   ;;
 
 *)

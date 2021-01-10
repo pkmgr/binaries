@@ -51,7 +51,7 @@ LIST="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/list)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/thememgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+  API="$(devnull2 curl -s "https://api.github.com/orgs/thememgr/repos?per_page=1000" | jq -r '.[] | .name')"
 fi
 
 generate_theme_index() { true; }
@@ -117,7 +117,7 @@ list)
 search)
   shift 1
   THEME="$1"
-  echo $LIST | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$THEME" || printf_exit "That theme does not exist"
+  devnull2 echo $LIST | tr ' ' '\n' | grep --color=auto -Fi "$THEME" || printf_exit "That theme does not exist"
   ;;
 
 list-installed)
@@ -153,7 +153,7 @@ update)
         if urlcheck $REPO/$upd/raw/master/install.sh; then
           printf_yellow "Initializing the installer from"
           printf_purple "$REPO/$upd"
-          bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)" 2>/dev/null
+          devnull2 bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)"
           getexitcode "$upd has been installed"
         else
           urlinvalid $REPO/$upd/raw/master/install.sh
@@ -168,7 +168,7 @@ update)
         if urlcheck $REPO/$updadmin/raw/master/install.sh; then
           printf_yellow "Initializing the installer from"
           printf_purple "$REPO/$updadmin"
-          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)" 2>/dev/null
+          devnull2 sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)"
           getexitcode "$updadmin has been installed"
         else
           urlinvalid $REPO/$updadmin/raw/master/install.sh
@@ -191,7 +191,7 @@ install)
     if urlcheck $REPO/$ins/raw/master/install.sh; then
       printf_yellow "Initializing the installer from"
       printf_purple "$REPO/$ins"
-      bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" 2>/dev/null
+      devnull2 bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       getexitcode "$ins has been installed"
     else
       urlinvalid $REPO/$ins/raw/master/install.sh
@@ -208,13 +208,13 @@ updater | cron)
 version)
   shift 1
   ANAME="$1"
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1 2>/dev/null)" ]; then
-    file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
+  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1)" ]; then
+    file="$(devnull2 ls -A $USRUPDATEDIR/$1)"
     if [ -f "$file" ]; then
       printf_green "Information about $1: \n$(bash -c "$file --version")"
     fi
-  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
-    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
+  elif [ -f "$(devnull2 command -v $1)" ]; then
+    printf_green "Information about $1: $(bash -c "$ANAME --version")"
   else
     printf_exit "File was not found is it installed?"
   fi

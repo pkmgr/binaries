@@ -99,12 +99,12 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ "$TORRENT" = "transmission-remote-cli" ]; then
-  myterminal -e bash -c "$TORRENT $* >/dev/null 2>&1" &
+  devnull2 myterminal -e bash -c "$TORRENT $*"
 else
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
-    "$HOME/.local/bin/mytorrent" "$@" >/dev/null 2>&1 &
+    devnull2 "$HOME/.local/bin/mytorrent" "$@" &
   else
-    $TORRENT "$@" >/dev/null 2>&1 &
+    devnull2 $TORRENT "$@" &
   fi
 fi
 

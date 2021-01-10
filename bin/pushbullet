@@ -47,11 +47,12 @@ title="$1"
 body="$2"
 
 if [ ! -z "$PUSHBULLET_ACCESS_TOKEN" ]; then
-  curl -LSsq -u ${PUSHBULLET_ACCESS_TOKEN}: \
+  devnull2 curl -LSsq -u ${PUSHBULLET_ACCESS_TOKEN}: \
     --header 'Content-Type: application/json' \
     -X POST https://api.pushbullet.com/v2/pushes \
-    -d "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$body.\"}" \
-    >/dev/null
+    -d "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$body.\"}" | grep -q active &&
+    printf_green "Message sent" || printf_red "Failed to send"
+
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

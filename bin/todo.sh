@@ -771,7 +771,7 @@ fi
 ACTION=${1:-$TODOTXT_DEFAULT_ACTION}
 
 [ -z "$ACTION" ] && usage
-[ -d "$TODO_DIR" ] || mkdir -p "$TODO_DIR" 2>/dev/null || dieWithHelp "$1" "Fatal Error: $TODO_DIR is not a directory"
+[ -d "$TODO_DIR" ] || devnull2 mkdir -p "$TODO_DIR" || dieWithHelp "$1" "Fatal Error: $TODO_DIR is not a directory"
 (cd "$TODO_DIR") || dieWithHelp "$1" "Fatal Error: Unable to cd to $TODO_DIR"
 [ -z "$TODOTXT_PRIORITY_ON_ADD" ] ||
   echo "$TODOTXT_PRIORITY_ON_ADD" | grep -q "^[A-Z]$" ||

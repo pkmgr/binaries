@@ -113,9 +113,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ "$1" = "" ]; then
-  $FILEMANAGER "$HOME" >/dev/null 2>&1 &
+  devnull2 $FILEMANAGER "$HOME"
 else
-  $FILEMANAGER "$@" >/dev/null 2>&1 &
+  devnull2 $FILEMANAGER "$@"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -21,7 +21,7 @@ ROOTDIR="${TORSITEDIR:- /usr/local/share/tor-site}"
 
 if [ -d "$ROOTDIR" ]; then
   cd "$ROOTDIR" || exit 1
-  if ! netstat -taupln 2>/dev/null | grep -q 8082 >/dev/null; then
+  if ! devnull2 netstat -taupln | grep -q 8082 >/dev/null; then
     /usr/bin/python -m SimpleHTTPServer 8082
   fi
 fi

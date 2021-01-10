@@ -26,7 +26,10 @@ APPNAME="${APPNAME:-applications}"
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-devnull() { "$@" >/dev/null 2>&1 && return 0 || return $?; }
+devnull() {
+  "$@" >/dev/null 2>/dev/null
+  return $?
+}
 
 # fail if git is not installed
 
@@ -230,15 +233,20 @@ notifications() {
   cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }
 ##################################################################################################
-
+setupcrontab() {
+  local croncmd="logr"
+  local additional='bash -c "am_i_online && '$2' &"'
+}
 addtocrontab() {
   [ "$1" = "--help" ] && printf_help "addtocrontab "0 0 1 * *" "echo hello""
   local frequency="$1"
-  local command="$2"
+  local command="am_i_online && && sleep $(expr $RANDOM \% 300) && $2"
   local job="$frequency $command"
-  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | devnull2 crontab -
 }
-
+removecrontab() {
+  crontab -l | grep -v -F "$command" | devnull2 crontab -
+}
 cron_updater() {
   [ "$*" = "--help" ] && printf_help "Usage: $APPNAME updater $APPNAME"
   if [[ "$USER" = "root" ]]; then
@@ -434,15 +442,25 @@ cmd_exists() {
 }
 
 die() { echo -e "$1" exit ${2:9999}; }
-devnull1() { "$@" 1>/dev/null || return $?; }
-devnull2() { "$@" 2>/dev/null || return $?; }
-killpid() { devnull kill -9 "$(pidof "$1")"; }
+devnull1() {
+  "$@" 1>/dev/null
+  return $?
+}
+devnull2() {
+  "$@" 2>/dev/null
+  return $?
+}
+killpid() {
+  devnull kill -9 "$(pidof "$1")"
+  return $?
+}
 hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1; }
 set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
 getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
 log() {
   mkdir -p "$HOME/.local/log"
   "$@" >"$HOME/.local/log/$APPNAME.log" 2>"$HOME/.local/log/$APPNAME.err"
+  return $?
 }
 system_service_exists() {
   if sudo systemctl list-units --full -all | grep -Fq "$1"; then return 0; else return 1; fi

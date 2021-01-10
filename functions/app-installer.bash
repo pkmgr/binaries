@@ -610,7 +610,7 @@ requiresudo() {
 
 addtocrontab() {
   [ "$1" = "--help" ] && printf_help 'addtocrontab "frequency" "command" | IE: addtocrontab "0 4 * * *" "echo hello"'
-  local frequency="$1 sleep $(expr $RANDOM \% 300);"
+  local frequency="$1"
   local command="$2"
   local additional="$3"
   local job="$frequency $command $additional"
@@ -640,14 +640,14 @@ crontab_add() {
     shift 1
     if [[ $EUID -ne 0 ]]; then
       local croncmd="logr"
-      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
       printf_custom "3" "To remove run $file --cron remove\n"
     else
       local croncmd="logr"
-      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
       sudo crontab -l | grep -qv -F "$croncmd"
       addtocrontab "$frequency" "$croncmd" "$additional"
@@ -659,14 +659,14 @@ crontab_add() {
   *)
     if [[ $EUID -ne 0 ]]; then
       local croncmd="logr"
-      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
       printf_custom "3" "To remove run $file --cron remove\n"
     else
       local croncmd="logr"
-      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
       sudo crontab -l | grep -qv -F "$croncmd"
       addtocrontab "$frequency" "$croncmd" "$additional"

@@ -99,13 +99,13 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 [ "$1" ] && ext="$1.txt" && title="$1"
 
 tmux_conf
-tmux ls 2>/dev/null | grep -q scratchpad >/dev/null 2>&1
-if [ $? -ne 0 ]; then
+
+if devnull2 tmux ls | grep -q scratchpad; then
   echo -e "$title\n" >"$scratchdir/$ext"
-  tmux -f "$scratchdir/tmux.conf" new-session -d -s scratchpad "vim $scratchdir/$ext"
+  devnull2 tmux -f "$scratchdir/tmux.conf" new-session -d -s scratchpad "vim $scratchdir/$ext"
 fi
 
-tmux attach -t scratchpad >/dev/null 2>&1
+devnull2 tmux attach -t scratchpad
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

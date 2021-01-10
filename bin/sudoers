@@ -64,7 +64,7 @@ fi
 
 if can_i_sudo; then
 
-  sudo chmod 750 /etc/sudoers.d >/dev/null 2>&1
+  devnull sudo chmod 750 /etc/sudoers.d
 
   case "$1" in
 
@@ -73,7 +73,7 @@ if can_i_sudo; then
     printf_green "New password prompt"
     sudo passwd "$MYUSER" || exit 1
     printf_green "Removing $MYUSER sudoers file"
-    sudo rm -Rf "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
     ;;
 
   pass)
@@ -81,7 +81,7 @@ if can_i_sudo; then
     printf_green "New password prompt"
     sudo passwd "$MYUSER" || exit 1
     printf_green "Removing $MYUSER from sudoers - password now required"
-    sudo rm -Rf "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
     ;;
 
   remuser)
@@ -90,40 +90,40 @@ if can_i_sudo; then
     sudo passwd "$MYUSER" || exit 1
     printf_green "Removing $MYUSER from sudoers"
     if sudo grep -q -E "^sudo:" /etc/group; then
-      sudo deluser "$MYUSER" sudo >/dev/null 2>&1
+      devnull sudo deluser "$MYUSER" sudo
     else
-      sudo deluser "$MYUSER" wheel >/dev/null 2>&1
+      devnull sudo deluser "$MYUSER" wheel
     fi
-    sudo rm -Rf "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
     ;;
 
   adduser)
     shift 1
     printf_green "Adding $MYUSER to sudoers"
     if sudo grep -q -E "^sudo:" /etc/group; then
-      sudo usermod -aG sudo "$MYUSER" >/dev/null 2>&1
+      devnull sudo usermod -aG sudo "$MYUSER"
     else
-      sudo usermod -aG wheel "$MYUSER" >/dev/null 2>&1
+      devnull sudo usermod -aG wheel "$MYUSER"
     fi
-    echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
-    sudo chown -f root:root "/etc/sudoers.d/$1" >/dev/null 2>&1
-    sudo chmod -f 440 "/etc/sudoers.d/$1" >/dev/null 2>&1
+    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER"
+    devnull sudo chown -f root:root "/etc/sudoers.d/$1"
+    devnull sudo chmod -f 440 "/etc/sudoers.d/$1"
     ;;
 
   nopass)
     shift 1
     printf_green "Adding $MYUSER to sudoers"
-    echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
-    sudo chown -f root:root "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
-    sudo chmod -f 440 "/etc/sudoers.d/$MYUSER" >/dev/null 2>&1
+    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER"
+    devnull sudo chown -f root:root "/etc/sudoers.d/$MYUSER"
+    devnull sudo chmod -f 440 "/etc/sudoers.d/$MYUSER"
     ;;
 
   insults)
     shift 1
     printf_green "Adding insults"
-    if sudo bash -c '[ ! -f "/etc/sudoers.d/insults" ]'; then
+    if devnull2 sudo bash -c '[ ! -f "/etc/sudoers.d/insults" ]'; then
       echo "Defaults    insults" | sudo tee "/etc/sudoers.d/insults" >/dev/null 2>&1
-      sudo chown -f root:root "/etc/sudoers.d/insults" >/dev/null 2>&1
+      sudo chown -f root:root "/etc/sudoers.d/insults"
     fi
     ;;
 

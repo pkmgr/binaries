@@ -143,21 +143,21 @@ export CLMAXHIST=20
 export CLSEP=\$'\x07' # \$'\x07' is BEL
 export CLX=\"\" #xsel/xclip
 if [[ \"\$OSTYPE\" =~ linux ]];then
-  if which -s xsel;then
+  if devnull2 command -v xsel;then
     export CLXOS=\"xsel\"
-  elif which -s xsel;then
+  elif devnull2 command -v xsel;then
     export CLXOS=\"xclip\"
   fi
 elif [[ \"\$OSTYPE\" =~ cygwin ]];then
-  if which -s putclip;then
+  if devnull2 command -v putclip;then
     export CLXOS=\"putclip\"
-  elif which -s xsel;then
+  elif devnull2 command -v xsel;then
     export CLXOS=\"xsel\"
-  elif which -s xsel;then
+  elif devnull2 command -v xsel;then
     export CLXOS=\"xclip\"
   fi
 elif [[ \"\$OSTYPE\" =~ darwin ]];then
-  if which -s pbcopy;then
+  if devnull2 command -v pbcopy;then
     export CLXOS=\"pbcopy\"
   fi
 fi
@@ -239,21 +239,21 @@ nclbs=0
 if [ "$CLXOS" != "" ]; then
   clxos=${CLXOS}
 elif [[ "$OSTYPE" =~ linux ]]; then
-  if which xsel >/dev/null 2>&1; then
+  if devnull2 command -v xsel >/dev/null 2>&1; then
     clxos="xsel"
-  elif which xclip >/dev/null 2>&1; then
+  elif devnull2 command -v xclip >/dev/null 2>&1; then
     clxos="xclip"
   fi
 elif [[ "$OSTYPE" =~ cygwin ]]; then
-  if which putclip >/dev/null 2>&1; then
+  if devnull2 command -v putclip >/dev/null 2>&1; then
     clxos="putclip"
-  elif which xsel >/dev/null 2>&1; then
+  elif devnull2 command -v xsel >/dev/null 2>&1; then
     clxos="xsel"
-  elif which xclip >/dev/null 2>&1; then
+  elif devnull2 command -v xclip >/dev/null 2>&1; then
     clxos="xclip"
   fi
 elif [[ "$OSTYPE" =~ darwin ]]; then
-  if which pbcopy >/dev/null 2>&1; then
+  if devnull2 command -v pbcopy >/dev/null 2>&1; then
     clxos="pbcopy"
   fi
 fi

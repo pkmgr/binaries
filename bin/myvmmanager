@@ -92,7 +92,7 @@ else
   if [ "$VMMANAGER" = docker ] || [ "$VMMANAGER" = kubectl ]; then
     run_in_term $VMMANAGER "$@"
   else
-    $MYVMMANAGER "$@" >/dev/null 2>&1 &
+    devnull2 $MYVMMANAGER "$@"
   fi
 fi
 

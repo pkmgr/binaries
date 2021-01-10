@@ -57,7 +57,7 @@ TMPFILE=/tmp/checkspell
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 check_app aspell
-if [ "$(aspell dump dicts | wc -l 2>/dev/null)" = 0 ]; then
+if [ "$(devnull2 aspell dump dicts | wc -l)" = 0 ]; then
   printf_question "Missing dictionary files should I install them "
   read -r -n 1 -s confirm_install && echo
   if [[ "$confirm_install" == "y" || "$confirm_install" == "Y" ]]; then

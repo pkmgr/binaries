@@ -85,7 +85,7 @@ else
 fi
 
 echo " 🔃" >/tmp/imapsyncicon_"$USER"
-(pkill -RTMIN+12 "${STATUSBAR:?}" >/dev/null 2>&1) 2>/dev/null
+devnull pkill -RTMIN+12 "${STATUSBAR:?}"
 
 # Parallelize multiple accounts
 for account in $accounts; do
@@ -94,7 +94,7 @@ done
 
 wait
 rm -f /tmp/imapsyncicon_"$USER"
-(pkill -RTMIN+12 "${STATUSBAR:?}" >/dev/null 2>&1) 2>/dev/null
+devnull pkill -RTMIN+12 "${STATUSBAR:?}"
 
 notmuch new 2>/dev/null
 

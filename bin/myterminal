@@ -91,9 +91,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$HOME/.local/bin/myterminal" ]; then
-  "HOME/.local/bin/myterminal" "$@"
+  devnull2 "HOME/.local/bin/myterminal" "$@"
 else
-  $TERMINAL "$@" >/dev/null 2>&1 &
+  devnull2 $TERMINAL "$@"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

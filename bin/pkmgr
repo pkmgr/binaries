@@ -233,9 +233,9 @@ fi
 
 pip_run() {
   if cmd_exists pip3; then
-    bash -c "sudo pip3 install --upgrade $* 2>/dev/null" | printf_readline
+    devnull2 bash -c "sudo -HE pip3 install --upgrade $*" | printf_readline
   elif cmd_exists pip; then
-    bash -c "sudo pip install --upgrade $* 2>/dev/null" | printf_readline
+    devnull2 bash -c "sudo -HE pip install --upgrade $*" | printf_readline
   else
     exit 1
   fi
@@ -243,9 +243,9 @@ pip_run() {
 
 pip_remove() {
   if cmd_exists pip3; then
-    bash -c "sudo pip3 remove $* 2>/dev/null" | printf_readline
+    devnull2 bash -c "sudo -HE pip3 remove $*" | printf_readline
   elif cmd_exists pip; then
-    bash -c "sudo pip remove $* 2>/dev/null" | printf_readline
+    devnull2 bash -c "sudo -HE pip remove $*" | printf_readline
   else
     exit 1
   fi
@@ -254,29 +254,29 @@ pip_remove() {
 #---------------------------------------------------------------------------------------
 
 gem_run() {
-  bash -c "sudo gem install --no-user-install $* 2>/dev/null" | printf_readline
+  devnull2 bash -c "sudo -HE gem install --no-user-install $*" | printf_readline
 }
 
 gem_remove() {
-  bash -c "sudo gem uninstall --no-user-install --force $* 2>/dev/null" | printf_readline
+  devnull2 bash -c "sudo -HE gem uninstall --no-user-install --force -aIx $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
 
 npm_run() {
-  NODEINSTDIR="$(command -v node 2>/dev/null | sed 's#/node##g')"
-  bash -c "sudo npm install -g $* 2>/dev/null" | printf_readline
+  NODEINSTDIR="$(command -v node | sed 's#/node##g')"
+  devnull2 bash -c "sudo -HE npm install -g $*" | printf_readline
 }
 
 npm_remove() {
-  bash -c "sudo npm remove -g $* 2>/dev/null" | printf_readline
+  devnull2 bash -c "sudo -HE npm remove -g $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
 
 cpan_run() {
   if cmd_exists cpan; then
-    local cpandir="$(find /usr/share -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
+    local cpandir="$(devnull2 sudo -HE find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
     local cpanconf="https://raw.githubusercontent.com/casjay-base/centos/master/usr/share/perl5/CPAN/Config.pm"
     local cpanfile="$cpandir/Config.pm"
     if [ ! -f "$cpanfile" ] || [ ! -f "$cpandir/.init" ]; then
@@ -285,12 +285,12 @@ cpan_run() {
         sudo curl -LSs "$cpanconf" -o "$cpanfile" &&
         sudo touch "$cpandir/.init" || exit 1
     fi
-    bash -c "sudo cpan notest install $*" | printf_readline
+    bash -c "sudo -HE cpan notest install $*" | printf_readline
   fi
 }
 
 cpan_remove() {
-  bash -c "sudo cpan --uninstall $*" | printf_readline
+  bash -c "sudo -HE cpan --uninstall $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
@@ -485,11 +485,11 @@ exportpkg() {
 
 #---------------------------------------------------------------------------------------
 
-if [[ "$(python3 -V 2>/dev/null)" =~ "Python 3" ]]; then
+if [[ "$(devnull2 python3 -V)" =~ "Python 3" ]]; then
   PYTHONVER="python3"
   PIP="pip3"
   PATH="${PATH}:$(python3 -c 'import site; print(site.USER_BASE)')/bin"
-elif [[ "$(python2 -V 2>/dev/null)" =~ "Python 2" ]]; then
+elif [[ "$(devnull2 python2 -V)" =~ "Python 2" ]]; then
   PYTHONVER="python"
   PIP="pip"
   PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
@@ -507,7 +507,7 @@ fi
 
 #---------------------------------------------------------------------------------------
 if cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/pkmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+  API="$(devnull2 curl -s "https://api.github.com/orgs/pkmgr/repos?per_page=1000" | jq -r '.[] | .name')"
 fi
 
 case "$1" in
@@ -859,13 +859,13 @@ info)
 version)
   shift 1
   ANAME="$1"
-  if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)" ]; then
-    file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
+  if [ -d "$SYSUPDATEDIR" ] && [ -n "$(devnull2 ls -A $SYSUPDATEDIR/$1)" ]; then
+    file="$(devnull2 ls -A $SYSUPDATEDIR/$1)"
     if [ -f "$file" ]; then
       printf_green "Information about $1: \n$(bash -c "$file --version")"
     fi
-  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
-    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
+  elif [ -f "$(devnull2 command -v $1)" ]; then
+    printf_green "Information about $1: $(devnull2 bash -c "$ANAME --version")"
   else
     printf_exit "File was not found is it installed?"
   fi

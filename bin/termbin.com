@@ -51,16 +51,17 @@ if ! cmd_exists nc; then
 else
 
   if [ ! -z "$1" ]; then
-    cat "$1" | nc termbin.com 9999 >/tmp/termbin 2>/dev/null
+    cat "$1" | devnull2 nc termbin.com 9999 >/tmp/termbin
   else
-    nc termbin.com 9999 >/tmp/termbin 2>/dev/null
+    devnull2 nc termbin.com 9999 >/tmp/termbin
   fi
 
   if [ -f /tmp/termbin ]; then
     echo "" >>/tmp/termbin
-    printf_green "$(cat /tmp/termbin 2>/dev/null)"
-    rm -Rf /tmp/termbin
+    devnull2 cat /tmp/termbin | printf_readline
+    devnull rm -Rf /tmp/termbin
   else
+    devnull rm -Rf /tmp/termbin
     printf_red "Something went wrong"
   fi
 fi

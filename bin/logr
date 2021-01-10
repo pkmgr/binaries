@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+logrname="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 set -o pipefail # trace ERR through pipes
@@ -10,11 +10,11 @@ shopt -s extglob
 ##@Version     : 010920210727-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : radioreference
+# @File        : logr
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : play radioreference/broadcastify stream
+# @Description : A logging script
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -36,7 +36,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--version" ] && get_app_info "$logrname"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -56,21 +56,26 @@ __help() {
 \t\t--list      : list all logs
 \t\t--open      : open logdir
 \n"
-  return 1
+  exit 1
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ -z "$1" ] && help
+[ -z "$1" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-APPNAME="${APPNAME:-$1}"
+logrname="$1"
 logdir="${LOGDIR:-$HOME/.local/log}/logr"
 date=$(date +'%m%d%Y-%H%M')
 stdout="$1-$date.log"
 stderr="$1-$date.err"
 mkdir -p "$logdir"
+
+if [ "$1" = "-name" ]; then
+  logrname=$2
+  shift 2
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -91,22 +96,42 @@ case "$1" in
   ;;
 -show | -sh)
   shift 1
+  cmdline="$*"
+  echo -e "$logrname started on $(date +"%b %d, %Y at %H:%M")"
+  echo -e "Full command is: $*"
   "$@"
-  ;;
---err | -e)
-  shift 1
-  "$@" >$logdir/$APPNAME-$date.log
+  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")"
   ;;
 --noerr | -noe)
   shift 1
-  "$@" 2>/$logdir/$APPNAME-$date.err
+  cmdline="$*"
+  echo -e "logr started $logrname on $(date +"%b %d, %Y at %H:%M")"
+  echo -e "Full command is: $cmdline"
+  "$@" 2>>/$logdir/$logrname-$date.err
+  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")"
+  ;;
+--err | -e)
+  shift 1
+  cmdline="$*"
+  echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
+  echo -e "Full command is: $cmdline" >>$logdir/$logrname-$date.log
+  "$@" >>$logdir/$logrname-$date.log
+  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
   ;;
 --silent | -si)
   shift 1
-  "$@" >$logdir/$APPNAME-$date.log 2>/$logdir/$APPNAME-$date.err
+  cmdline="$*"
+  echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
+  echo -e "Full command is: $cmdline" >>$logdir/$logrname-$date.log
+  "$@" >>$logdir/$logrname-$date.log 2>>/$logdir/$logrname-$date.err
+  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
   ;;
 *)
-  "$@" >$logdir/$APPNAME-$date.log 2>/$logdir/$APPNAME-$date.err
+  cmdline="$*"
+  echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
+  echo -e "Full command is: $cmdline" >>$logdir/$logrname-$date.log
+  "$@" >>$logdir/$logrname-$date.log 2>>/$logdir/$logrname-$date.err
+  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
   ;;
 esac
 

@@ -18,7 +18,10 @@ SCRIPTDIR="$(dirname "${BASH_SOURCE[0]}")"
 
 # functions
 
-devnull() { "$@" >/dev/null 2>&1; }
+devnull() {
+  "$@" >/dev/null 2>/dev/null
+  return $?
+}
 urlcheck() { devnull curl --output /dev/null --silent --head --fail "$1"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_green() { printf_color "$1" 2; }
