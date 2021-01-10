@@ -78,7 +78,7 @@ systemmgr install cron ssl
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing dfmgr"
-dfmgr install bashtop neofetch
+dfmgr install misc bash bashtop neofetch
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing fontmgr"
@@ -101,6 +101,12 @@ echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing installed app locations"
 for app in speedtest-cli links wakatime cpan; do
   command -v $app | printf_readline
+done
+
+echo -e "\n\t\t-----------------------------------------------------\n"
+printf_green "Printing dfmgr bash"
+for f in $(ls $HOME/.config/bash/install.sh); do
+  bash -c "$f --version"
 done
 
 # echo -e "\n\t\t-----------------------------------------------------\n"
