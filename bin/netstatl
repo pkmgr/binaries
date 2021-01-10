@@ -39,12 +39,14 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "" ] && printf_help 'Usage: netstatg search    |    IE: netstatg LIST'
 [ "$1" = "--help" ] && printf_help 'Usage: netstatg search    |    IE: netstatg LIST'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-sudo netstat -taupln | grep --color=auto "$@"
+nsdef="taupln"
+nsopts="${1:-$nsdef}"
+
+sudo netstat "-$nsopts" | grep -i --color=auto "LISTEN"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

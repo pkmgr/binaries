@@ -39,12 +39,15 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ ! -z "$1" ] || printf_help 'Usage: netstatg options search    |    IE: netstatg taupln "\*"'
-[ "$1" = "--help" ] && printf_help 'Usage: netstatg options search    |    IE: netstatg taupln "\*"'
+[ "$1" = "--help" ] && printf_help 'Usage: netstatg options search    |    IE: netstatg taupln "LIST'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+nsdef="taupln"
+grdef="LIST"
+nsopts="${1:-$nsdef}"
+gropts="${2:-grdef}"
 
-requiresudo netstat "-$1" | grep --color=auto "$2"
+sudo netstat "-$nsopts" | grep -i --color=auto "$gropts"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -749,7 +749,7 @@ setexitstatus() {
 returnexitcode() {
   [ -z "$1" ] || EXIT=$1
   if [ "$EXIT" -gt 5 ]; then
-    BG_EXIT="${BG_RED}" BG
+    BG_EXIT="${BG_RED}"
     PS_SYMBOL=" ⁉️ "
     return $EXIT
   elif [ "$EXIT" -eq 0 ]; then
