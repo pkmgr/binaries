@@ -12,7 +12,8 @@ _gitadmin_completions() {
   local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitadmin/array)"
   local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitadmin/list)"
   local gitOPTS="init clone remote"
-  local automated="--automated"
+  local automatedOpts="--automated"
+  local updateOpts="--while"
 
   _init_completion || return
 
@@ -21,8 +22,10 @@ _gitadmin_completions() {
     return
     ;;
   update)
-    --while
+    COMPREPLY=($(compgen -W '${updateOpts}' -- "$cur"))
+    return 0
     ;;
+
   push)
     k=0
     i="$HOME/Projects"
@@ -80,7 +83,7 @@ _gitadmin_completions() {
     ;;
 
   setup)
-    COMPREPLY=($(compgen -W '${automated}' -- "$cur"))
+    COMPREPLY=($(compgen -W '${automatedOpts}' -- "$cur"))
     return 0
     ;;
 
