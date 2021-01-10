@@ -1269,14 +1269,18 @@ if_os_id() {
 }
 
 ##################################################################################################
-
-vdebug() {
-  printf "\n\t\tARGS:$*\n"
-  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-    HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
-    printf_custom "4" $path
-  done
-}
+if [ "$1" = "--vdebug" ]; then
+  vdebug() {
+    if [ -f ./applications.debug ]; then . ./applications.debug; fi
+    DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+    printf "\n\t\tARGS:$*\n"
+    printf "\n\t\tARGS:$DIR\n"
+    for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
+      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+      printf_custom "4" $path
+    done
+  }
+fi
 ##################################################################################################
 
 # end

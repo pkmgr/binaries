@@ -614,25 +614,26 @@ addtocrontab() {
 }
 
 crontab_add() {
-  action="${action:-$1}"
+  local appname="${APPNAME:-$1}"
+  local action="${action:-$1}"
+  local file="${file:-$appname}"
+  local frequency="${frequency:-0 4 * * *}"
   case "$action" in
   remove)
     shift 1
     if [[ $EUID -ne 0 ]]; then
-      printf_green "\t\tRemoving $APPNAME from $WHOAMI crontab\n"
-      crontab -l | grep -v -F "$APPNAME" | crontab -
-      printf_custom "2" "$APPNAME has been removed from automatically updating\n"
+      printf_green "\t\tRemoving $file from $WHOAMI crontab\n"
+      crontab -l | grep -v -F "$file" | crontab -
+      printf_custom "2" "$file has been removed from automatically updating\n"
     else
-      printf_green "\t\tRemoving $APPNAME from root crontab\n"
-      sudo crontab -l | grep -v -F "$APPNAME" | sudo crontab -
-      printf_custom "2" "$APPNAME has been removed from automatically updating\n"
+      printf_green "\t\tRemoving $file from root crontab\n"
+      sudo crontab -l | grep -v -F "$file" | sudo crontab -
+      printf_custom "2" "$file has been removed from automatically updating\n"
     fi
     ;;
 
   add)
     shift 1
-    file="${file:$APPNAME:-$1}"
-    local frequency="0 4 * * *"
     if [[ $EUID -ne 0 ]]; then
       local croncmd="logr"
       local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
@@ -652,8 +653,6 @@ crontab_add() {
     ;;
 
   *)
-    file="${file:-$1}"
-    local frequency="0 4 * * *"
     if [[ $EUID -ne 0 ]]; then
       local croncmd="logr"
       local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
