@@ -489,6 +489,27 @@ git_update_loop() {
   fi
 }
 
+
+__run_cron() {
+  local frequency="0 4 * * 6"
+  local croncmd="$APPNAME cron run"
+  case $1 in
+  run)
+    logr bash -c "am_i_online && $(expr $RANDOM \% 300) && gitadmin --all-orgs && gitadmin --user"
+    ;;
+  remove)
+    shift 1
+    removecrontab "$frequency $croncmd"
+    ;;
+  add)
+    addtocrontab "$frequency $croncmd"
+    ;;
+  *)
+    addtocrontab "$frequency $croncmd"
+    ;;
+  esac
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
@@ -809,6 +830,11 @@ setup)
 stow)
   shift 1
   dotfiles stow "$@"
+  ;;
+
+updater | cron)
+  shift 1
+  __run_cron "$*"
   ;;
 
 *)
