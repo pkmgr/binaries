@@ -71,7 +71,8 @@ date=$(date +'%m%d%Y-%H%M')
 stdout="$1-$date.log"
 stderr="$1-$date.err"
 mkdir -p "$logdir"
-
+email=${EMAIL_ERROR}
+host="$(hostname -f)"
 if [ "$1" = "-name" ]; then
   logrname=$2
   shift 2
@@ -87,7 +88,7 @@ case "$1" in
   ls "$logdir"
   ;;
 --open | -o)
-  myfilemanager "$logdir" || vifm "$logdir"
+  cmd_exists && myfilemanager "$logdir" || vifm "$logdir"
   ;;
 --clean | -c)
   rm -Rf "$logdir"
@@ -107,7 +108,7 @@ case "$1" in
   cmdline="$*"
   echo -e "logr started $logrname on $(date +"%b %d, %Y at %H:%M")"
   echo -e "Full command is: $cmdline"
-  "$@" 2>>/$logdir/$logrname-$date.err
+  "$@" 2>>$logdir/$logrname-$date.err
   echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")"
   ;;
 --err | -e)
@@ -123,18 +124,44 @@ case "$1" in
   cmdline="$*"
   echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
   echo -e "Full command is: $cmdline" >>$logdir/$logrname-$date.log
-  "$@" >>$logdir/$logrname-$date.log 2>>/$logdir/$logrname-$date.err
+  "$@" >>$logdir/$logrname-$date.log 2>>$logdir/$logrname-$date.err
   echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
   ;;
 *)
   cmdline="$*"
   echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
   echo -e "Full command is: $cmdline" >>$logdir/$logrname-$date.log
-  "$@" >>$logdir/$logrname-$date.log 2>>/$logdir/$logrname-$date.err
+  "$@" >>$logdir/$logrname-$date.log 2>>$logdir/$logrname-$date.err
   echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>$logdir/$logrname-$date.log
   ;;
 esac
 
+if [ -d "$logdir" ] && [ -n "$(devnull2 ls -A $logdir/$logrname-$date.*)" ]; then
+  for upd in $(ls $logdir/$logrname-$date.*); do
+    file="$(ls -A $logdir/$upd 2>/dev/null)"
+    if [ -f "$file" ]; then
+      sed -i "s,\x1B\[[0-9;]*[a-zA-Z],,g" "$file"
+      sed -i '/^$/d' "$file"
+    fi
+  done
+fi
+
+#if [ -s $logdir/$logrname-$date.err ] && [ -n "$EMAIL_ERROR" ] && cmd_exists mail; then
+MAILFROM="${MAILFROM:-root@$host}"
+MAILRECIP="${MAILRECIP:-$USER@$host}"
+MAILSUB="logr: $logrname"
+MAILHEADER="The $logrname script has been ran on $(hostname -s)"
+cat $logdir/$logrname-$date.err | devnull mail -r "$MAILFROM" -s "$MAILSUB" $MAILRECIP
+echo -e "
+Email Sent On: $(date +"%b %d, %Y at %H:%M")\n
+Mail From: $MAILFROM
+Mail Subject: $MAILSUB
+Mail To: $MAILRECIP
+Log File: $logdir/$logrname-$date.err
+" >$logdir/$logrname-$date.sent
+#fi
+
+[ -n "$DESKTOP_SESSION" ] && [ -s $logdir/$logrname-$date.err ] && notifications "$logrname completed" "The task has finished with errors: check the log"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # end

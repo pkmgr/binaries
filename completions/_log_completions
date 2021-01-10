@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# bash completion for logr
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for logr
+
+_logr_completions() {
+  local cur prev words cword
+  local ARRAY="--help --list --open --clean --show --noerr --err --silent "
+  local logdir=${LOGDIR:-$HOME/.local/log}/logr
+  _init_completion || return
+
+  case $prev in
+  --open)
+    _filedir "$logdir"
+    return
+    ;;
+  esac
+
+  # relevant options completion
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _logr_completions -o default logr

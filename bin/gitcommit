@@ -186,7 +186,7 @@ init)
 
 random)
   shift 1
-  mess=" 🦈🏠🐜 $(curl -s https://commitment.herokuapp.com/index.txt) 🐜🦈🏠 "
+  mess="🐜 Random: $(curl -s https://commitment.herokuapp.com/index.txt) 🐜"
   ;;
 
 custom)
