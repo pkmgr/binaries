@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version     : 010920210727-git
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : myfilemanager
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : setup filemanager
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+create_link() {
+  case "$1" in
+  *)
+    if [ ! -z "$2" ]; then
+      shift 1
+      if cmd_exists "$1"; then
+        printf_green "Linking $HOME/.local/bin/myfilemanager to $1"
+        ln_sf "$(command -v $1)" "$HOME/.local/bin/myfilemanager"
+        exit 0
+      else
+        printf_green "Linking $HOME/.local/bin/myfilemanager to $FILEMANAGER"
+        ln_sf "$FILEMANAGER" "$HOME/.local/bin/myfilemanager"
+        exit 0
+      fi
+    fi
+    ;;
+  esac
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -z "$FILEMANAGER" ] && [ ! -f "$HOME/.local/bin/myfilemanager" ]; then
+  FILEMANAGER="HOME/.local/bin/myfilemanager"
+  if [ -z $DESKTOP_SESSION ]; then
+    if [ -n "$(command -v vifm 2>/dev/null)" ]; then
+      export FILEMANAGER="vifm"
+    elif [ -n "$(command -v ranger 2>/dev/null)" ]; then
+      export FILEMANAGER="ranger"
+    elif [ -n "$(command -v lf 2>/dev/null)" ]; then
+      export FILEMANAGER="lf"
+    elif [ -n "$(command -v cfiles 2>/dev/null)" ]; then
+      export FILEMANAGER="cfiles"
+    fi
+  else
+    if [ -n "$(command -v open 2>/dev/null)" ]; then
+      export FILEMANAGER="open"
+    elif [ -n "$(command -v dolphin 2>/dev/null)" ]; then
+      export FILEMANAGER="dolphin"
+    elif [ -n "$(command -v thunar 2>/dev/null)" ]; then
+      export FILEMANAGER="thunar"
+    elif [ -n "$(command -v Thunar 2>/dev/null)" ]; then
+      export FILEMANAGER="thunar"
+    elif [ -n "$(command -v konqueror 2>/dev/null)" ]; then
+      export FILEMANAGER="konqueror"
+    elif [ -n "$(command -v spacefm 2>/dev/null)" ]; then
+      export FILEMANAGER="spacefm"
+    elif [ -n "$(command -v nemo 2>/dev/null)" ]; then
+      export FILEMANAGER="nemo"
+    elif [ -f "$(command -v pcmanfm 2>/dev/null)" ]; then
+      export FILEMANAGER="pcmanfm"
+    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
+      export FILEMANAGER="caja"
+    elif [ -f "$(command -v caja 2>/dev/null)" ]; then
+      export FILEMANAGER="nautilus"
+    elif [ -f "$(command -v nautilus 2>/dev/null)" ]; then
+      export FILEMANAGER="polo"
+    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
+      export FILEMANAGER="polo"
+    fi
+  fi
+fi
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  export FILEMANAGER="open"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ ! -z "$FILEMANAGER" ] || printf_help "No filemanagers are installed"
+[ "$1" = "--help" ] && printf_help "Usage: myfilemanager -e app   |   myfilemanager --create"
+[ "$1" = "--create" ] && create_link "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ "$1" = "" ]; then
+  $FILEMANAGER "$HOME" >/dev/null 2>&1 &
+else
+  $FILEMANAGER "$@" >/dev/null 2>&1 &
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end
