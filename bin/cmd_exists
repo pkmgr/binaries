@@ -59,7 +59,7 @@ location | --location)
   shift 1
   for cmd in "$@"; do
     unalias "$cmd" 2>/dev/null >&1
-    if command -v $cmd; then return 0; else return 1; fi
+    if command -v $cmd; then exit 0; else exit 1; fi
     exitCode+=$?
   done
   exit $exitCode
@@ -67,7 +67,7 @@ location | --location)
 *)
   for cmd in "$@"; do
     unalias "$cmd" 2>/dev/null >&1
-    if type -P "$cmd" | grep -q "/" 2>/dev/null; then return 0; else return 1; fi
+    if type -P "$cmd" | grep -q "/" 2>/dev/null; then exit 0; else exit 1; fi
     exitCode+=$?
   done
   exit $exitCode
