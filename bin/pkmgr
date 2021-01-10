@@ -465,7 +465,12 @@ show_info() {
   printf_green "Make cache cmd:             $pkgmgrbincac"
   printf_green "pip3 cmd:                   $PIP"
   printf_green "Python version              $PYTHONVER"
-
+  if cmd_exists lsb_release; then
+    printf_green "Distribution                $(lsb_release -a | grep -i Distributor | awk '{print $3}')"
+    printf_green "Codename                    $(lsb_release -a | grep -i Codename | awk '{print $2}')"
+    printf_green "Release version             $(lsb_release -a | grep -i Release | awk '{print $2}')"
+  fi
+  printf_green "Kernel version              $(uname -r)"
 }
 
 #---------------------------------------------------------------------------------------
@@ -832,7 +837,8 @@ silent)
     ;;
 
   *)
-    [ "$1" = "--help" ] && printf_help "Silently install packages"
+    [ "$1" = "--help" ] && printf_help "Silently install packages | defaults to a silent update"
+    [ -z "$1" ] && $pkgmgrbinupdsil >/dev/null 2>&1 && exit 0 || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       $pkgmgrbininssil "$pkg" >/dev/null 2>&1 && exit 0 || exit 1
