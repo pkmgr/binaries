@@ -149,9 +149,12 @@ printf_cyan() { printf_color "$1" 6; }
 printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
 printf_exit() {
   printf_color "\t\t$1\n" 1
-  exit 1
+  exit $?
 }
-printf_help() { printf_color "\t\t$1\n" 1; }
+printf_help() {
+  printf_color "\t\t$1\n" 1
+  exit $?
+}
 printf_read() { printf_color "\t\t$1" 5; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
@@ -440,9 +443,10 @@ returnexitcode() {
 ##################################################################################################
 
 getexitcode() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local RETVAL="$?"
   local ERROR="Setup failed"
-  local SUCCES="$1"
+  local SUCCES="$2"
   EXIT="$RETVAL"
   if [ "$RETVAL" -eq 0 ]; then
     printf_success "$SUCCES"
@@ -600,32 +604,71 @@ requiresudo() {
 
 ##################################################################################################
 
+addtocrontab() {
+  [ "$1" = "--help" ] && printf_help 'addtocrontab "frequency" "command" | IE: addtocrontab "0 4 * * *" "echo hello"'
+  local frequency="$1 sleep $(expr $RANDOM \% 300);"
+  local command="$2"
+  local additional="$3"
+  local job="$frequency $command $additional"
+  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+}
+
 crontab_add() {
-  shift
-  case "$1" in
+  action="${action:-$1}"
+  case "$action" in
   remove)
+    shift 1
     if [[ $EUID -ne 0 ]]; then
       printf_green "\t\tRemoving $APPNAME from $WHOAMI crontab\n"
       crontab -l | grep -v -F "$APPNAME" | crontab -
-
+      printf_custom "2" "$APPNAME has been removed from automatically updating\n"
     else
       printf_green "\t\tRemoving $APPNAME from root crontab\n"
       sudo crontab -l | grep -v -F "$APPNAME" | sudo crontab -
+      printf_custom "2" "$APPNAME has been removed from automatically updating\n"
     fi
     ;;
-  *)
-    local sleepcmd="$(expr $RANDOM \% 300)"
-    local cronjob="0 4 * * * sleep ${sleepcmd} ;"
+
+  add)
+    shift 1
+    file="${file:$APPNAME:-$1}"
+    local frequency="0 4 * * *"
     if [[ $EUID -ne 0 ]]; then
-      local croncmd="devnull bash -c $APPDIR/install.sh &\n"
-      printf_green "\t\tAdding $APPNAME to $WHOAMI crontab"
-      crontab -l | grep -qv -F "$croncmd"
-      echo "$cronjob $croncmd" | tee | devnull crontab -
+      local croncmd="logr"
+      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
+      addtocrontab "$frequency" "$croncmd" "$additional"
+      printf_custom "2" "$file has been added to update automatically"
+      printf_custom "3" "To remove run $file --cron remove\n"
     else
-      local croncmd="devnull sudo bash -c $APPDIR/install.sh &"
-      printf_green "\t\tAdding $APPNAME to root crontab\n"
+      local croncmd="logr"
+      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
       sudo crontab -l | grep -qv -F "$croncmd"
-      echo "$cronjob $croncmd" | tee | devnull sudo crontab -
+      addtocrontab "$frequency" "$croncmd" "$additional"
+      printf_custom "2" "$file has been added to update automatically"
+      printf_custom "3" "To remove run $file --cron remove\n"
+    fi
+    ;;
+
+  *)
+    file="${file:-$1}"
+    local frequency="0 4 * * *"
+    if [[ $EUID -ne 0 ]]; then
+      local croncmd="logr"
+      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
+      addtocrontab "$frequency" "$croncmd" "$additional"
+      printf_custom "2" "$file has been added to update automatically"
+      printf_custom "3" "To remove run $file --cron remove\n"
+    else
+      local croncmd="logr"
+      local additional='bash -c "am_i_online && '$APPDIR'/install.sh &"'
+      printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
+      sudo crontab -l | grep -qv -F "$croncmd"
+      addtocrontab "$frequency" "$croncmd" "$additional"
+      printf_custom "2" "$file has been added to update automatically"
+      printf_custom "3" "To remove run $file --cron remove\n"
     fi
     ;;
   esac
@@ -1110,7 +1153,7 @@ user_installdirs() {
       export HOME="/usr/local/share/CasjaysDev/root"
       chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
     else
-      export HOME="/root"
+      export HOME="${HOME:-/root}"
     fi
     export BIN="$HOME/.local/bin"
     export CONF="$HOME/.config"
@@ -1323,12 +1366,18 @@ show_optvars() {
   fi
 
   if [ "$1" = "--cron" ]; then
-    crontab_add "$@"
+    shift 1
+    [ "$1" = "--help" ] && printf_help "Usage: $APPNAME --cron remove | add" && exit 0
+    [ "$1" = "--cron" ] && shift 1
+    [ "$1" = "cron" ] && shift 1
+    crontab_add "$*"
     exit "$?"
   fi
 
   if [ "$1" = "--stow" ]; then
-    config add "$@"
+    [ "$1" = "--help" ] && config --help
+    shift 1
+    config add "$*"
     exit "$?"
   fi
 
@@ -1349,6 +1398,7 @@ show_optvars() {
   fi
 
   if [ "$1" = "--remove" ] || [ "$1" = "--uninstall" ]; then
+    shift 1
     app_uninstall
     exit $?
   fi
@@ -1457,8 +1507,8 @@ show_optvars() {
 
 ##################################################################################################
 
-installer_noupdate() {
-  if [ -f "$SYSSHARE/CasjaysDev/apps/systemmgr/$APPNAME" ] || [ -d $APPDIR ]; then
+systemmgr_noupdate() {
+  if [ -f "$SYSSHARE/CasjaysDev/apps/$PREFIX/$APPNAME" ] || [ -d $APPDIR ]; then
     ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
     printf_warning "Updating of $APPNAME has been disabled"
     exit 0
@@ -1846,6 +1896,12 @@ run_exit() {
 }
 
 ##################################################################################################
+vdebug() {
+  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
+    HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+    printf_custom "4" $path
+  done
+}
 
 #set_trap "EXIT" "install_packages"
 #set_trap "EXIT" "install_required"

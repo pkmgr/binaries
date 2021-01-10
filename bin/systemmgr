@@ -40,12 +40,8 @@ systemmgr_install
 
 #---------------------------------------------------------------------------------------
 
-USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-
-#---------------------------------------------------------------------------------------
-
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--vdebug" ] && shift 1 && vdebug "$*"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if cmd_exists jq; then
@@ -193,14 +189,9 @@ install)
   done
   ;;
 
-cron)
+updater | cron)
   shift 1
-  if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-    file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
-    if [ -f "$file" ]; then
-      sudo -HE $file --cron
-    fi
-  fi
+  cron_updater "$*"
   ;;
 
 version)

@@ -44,13 +44,13 @@ printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 
 printf_green() { printf_color "$1" 2; }
 printf_red() { printf_color "$1" 1; }
 
-help() {
+__help() {
   printf_green "
 \t\tA simple logging utility
 \t\tUsage       : log mycommand
 \t\t--clean     : remove old logs
 \t\t--show      : will show all output
-\t\t--silent    : now output
+\t\t--silent    : no output
 \t\t--err       : show only error
 \t\t--noerr     : hide error mesaages
 \t\t--list      : list all logs
@@ -65,8 +65,9 @@ help() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-logdir="${LOGDIR:-$HOME/.local/log}"
-date=$(date +'%m%d%Y%H%M')
+APPNAME="${APPNAME:-$1}"
+logdir="${LOGDIR:-$HOME/.local/log}/logr"
+date=$(date +'%m%d%Y-%H%M')
 stdout="$1-$date.log"
 stderr="$1-$date.err"
 mkdir -p "$logdir"
@@ -75,13 +76,13 @@ mkdir -p "$logdir"
 
 case "$1" in
 --help | -h)
-  help
+  __help
   ;;
 --list | -l)
   ls "$logdir"
   ;;
 --open | -o)
-  vifm "$logdir"
+  myfilemanager "$logdir" || vifm "$logdir"
   ;;
 --clean | -c)
   rm -Rf "$logdir"
@@ -92,21 +93,20 @@ case "$1" in
   shift 1
   "$@"
   ;;
---silent | -si)
-  shift 1
-  "$@" >$logdir/$stdout 2>/$logdir/$stderr
-  ;;
 --err | -e)
   shift 1
-  "$@" >$logdir/$stdout
+  "$@" >$logdir/$APPNAME-$date.log
   ;;
 --noerr | -noe)
   shift 1
-  "$@" 2>/$logdir/$stderr
+  "$@" 2>/$logdir/$APPNAME-$date.err
+  ;;
+--silent | -si)
+  shift 1
+  "$@" >$logdir/$APPNAME-$date.log 2>/$logdir/$APPNAME-$date.err
   ;;
 *)
-  shift 0
-  "$@" >$logdir/$1-$date.log 2>/$logdir/$1-$date.err
+  "$@" >$logdir/$APPNAME-$date.log 2>/$logdir/$APPNAME-$date.err
   ;;
 esac
 

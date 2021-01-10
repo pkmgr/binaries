@@ -187,23 +187,9 @@ update)
   fi
   ;;
 
-cron)
+updater | cron)
   shift 1
-  if [[ $USER != "root" ]]; then
-    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR)" ]]; then
-      file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
-      if [ -f "$file" ]; then
-        $file --cron
-      fi
-    fi
-  else
-    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-      file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
-      if [ -f "$file" ]; then
-        sudo $file --cron
-      fi
-    fi
-  fi
+  cron_updater "$*"
   ;;
 
 version)

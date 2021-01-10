@@ -213,7 +213,7 @@ get_username_repo() {
   local url="$1"
   local exp="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
   local url="$(echo $exp | 's/\.[^.]*$//')"
-  if [[ $url =~ $re ]]; then
+  if [[ $url =~ $exp ]]; then
     protocol=${BASH_REMATCH[1]}
     separator=${BASH_REMATCH[2]}
     hostname=${BASH_REMATCH[3]}
@@ -231,6 +231,57 @@ notifications() {
   shift
   cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }
+##################################################################################################
+
+addtocrontab() {
+  [ "$1" = "--help" ] && printf_help "addtocrontab "0 0 1 * *" "echo hello""
+  local frequency="$1"
+  local command="$2"
+  local job="$frequency $command"
+  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+}
+
+cron_updater() {
+  [ "$*" = "--help" ] && printf_help "Usage: $APPNAME updater $APPNAME"
+  if [[ "$USER" = "root" ]]; then
+    if [ -z "$1" ] && [ -d "$SYSUPDATEDIR" ] && ls "$SYSUPDATEDIR"/* 1>/dev/null 2>&1; then
+      for upd in $(ls $SYSUPDATEDIR/); do
+        file="$(ls -A $SYSUPDATEDIR/$upd 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      done
+    else
+      if [ -d "$SYSUPDATEDIR" ] && ls "$SYSUPDATEDIR"/* 1>/dev/null 2>&1; then
+        file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      fi
+    fi
+  else
+    if [ -z "$1" ] && [ -d "$USRUPDATEDIR" ] && ls "$USRUPDATEDIR"/* 1>/dev/null 2>&1; then
+      for upd in $(ls $USRUPDATEDIR/); do
+        file="$(ls -A $USRUPDATEDIR/$upd 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      done
+    else
+      if [ -d "$USRUPDATEDIR" ] && ls "$USRUPDATEDIR"/* 1>/dev/null 2>&1; then
+        file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      fi
+    fi
+  fi
+}
+
 ##################################################################################################
 
 mkd() { if [ ! -e "$1" ]; then devnull mkdir -p "$@"; else return 0; fi; }
@@ -270,9 +321,9 @@ user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     export INSTALL_TYPE=user
     if [[ "$OSTYPE" =~ ^darwin ]]; then
-      export HOME="/usr/local/share/CasjaysDev/root"
+      export HOME="/usr/local/home/root"
     else
-      export HOME="/root"
+      export HOME="/usr/local/home/root"
     fi
     export BIN="$HOME/.local/bin"
     export CONF="$HOME/.config"
@@ -331,9 +382,9 @@ system_installdirs() {
     export INSTALL_TYPE=system
     export BACKUPDIR="$HOME/.local/backups/dotfiles"
     if [[ "$OSTYPE" =~ ^darwin ]]; then
-      export HOME="/usr/local/share/CasjaysDev/root"
+      export HOME="/usr/local/home/root"
     else
-      export HOME="/root"
+      export HOME="/usr/local/home/root"
     fi
     export BIN="/usr/local/bin"
     export CONF="/usr/local/etc"
@@ -936,174 +987,174 @@ show_spinner() {
 
 dfmgr_install() {
   user_installdirs
-  PREFIX="dfmgr"
-  REPO="${DFMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$CONF"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  export PREFIX="dfmgr"
+  export REPO="${DFMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$CONF"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
 ##################################################################################################
 
 dockermgr_install() {
   user_installdirs
-  PREFIX="dockermgr"
-  REPO="${DOCKERMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  export PREFIX="dockermgr"
+  export REPO="${DOCKERMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
 ##################################################################################################
 
 fontmgr_install() {
   system_installdirs
-  PREFIX="fontmgr"
-  REPO="${FONTMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$FONTDIR" "$HOMEDIR"
+  export PREFIX="fontmgr"
+  export REPO="${FONTMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  export FONTDIR="${FONTDIR:-$SHARE/fonts}"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$FONTDIR" "$HOMEDIR"
 }
 
 ##################################################################################################
 
 iconmgr_install() {
   system_installdirs
-  PREFIX="iconmgr"
-  REPO="${ICONMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  ICONDIR="${ICONDIR:-$SHARE/icons}"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
+  export PREFIX="iconmgr"
+  export REPO="${ICONMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  export ICONDIR="${ICONDIR:-$SHARE/icons}"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
 }
 
 ##################################################################################################
 
 pkmgr_install() {
-  PREFIX="pkmgr"
-  REPO="${PKMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  export PREFIX="pkmgr"
+  export REPO="${PKMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  export REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
 ##################################################################################################
 
 systemmgr_install() {
   system_installdirs
-  PREFIX="systemmgr"
-  REPO="${SYSTEMMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  CONF="/usr/local/etc"
-  SHARE="/usr/local/share"
-  HOMEDIR="/usr/local/etc"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
-  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  export PREFIX="systemmgr"
+  export REPO="${SYSTEMMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export CONF="/usr/local/etc"
+  export SHARE="/usr/local/share"
+  export HOMEDIR="/usr/local/etc"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
+  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
 ##################################################################################################
 
 thememgr_install() {
   system_installdirs
-  PREFIX="thememgr"
-  REPO="${THEMEMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
-  THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  export PREFIX="thememgr"
+  export REPO="${THEMEMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  export THEMEDIR="${THEMEDIR:-$SHARE/themes}"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
 }
 
 ##################################################################################################
 
 wallpapermgr_install() {
   system_installdirs
-  PREFIX="wallpapermgr"
-  REPO="${WALLPAPERMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers"
-  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
-  WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
+  export PREFIX="wallpapermgr"
+  export REPO="${WALLPAPERMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
+  export WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
+  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
   else
-    APPVERSION="N/A"
+    export APPVERSION="N/A"
   fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
 }
 
 ##################################################################################################
@@ -1171,7 +1222,7 @@ if_os_id() {
   unset distroname distroversion distro_id distro_version
   if [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
     local distroname="$(lsb_release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
-    local distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]'| sed 's#"##g')"
+    local distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
   elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
     local distroname="$(lsb-release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
     local distroversion="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
@@ -1185,39 +1236,47 @@ if_os_id() {
     return 1
   fi
   for id_like in "$@"; do
-      case "$1" in
-      arch* | arco*)
-        if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
-          distro_id=Arch
-          distro_version="$distroversion"
-          return 0
-        else
-          return 1
-        fi
-        ;;
-      RHEL* | rhel* | Fedora | fedora | CentOS | centos)
-        if [[ "$distroname" =~ "scientific" ]] || [[ "$distroname" =~ "redhat" ]] || [[ "$distroname" =~ "centos" ]] ||
-          [[ "$distroname" =~ "casjay" ]] || [[ "$distroname" =~ "fedora" ]]; then
-          distro_id=RHEL
-          distro_version="$distroversion"
-        else
-          return 1
-        fi
-        ;;
-      Debian* | debian* | Ubuntu* | ubuntu* | Mint* | mint*)
-        if [[ "$distroname" =~ "kali" ]] || [[ "$distroname" =~ "parrot" ]] || [[ "$distroname" =~ "debian" ]] || [[ "$distroname" =~ "raspbian" ]] ||
-          [[ "$distroname" =~ "ubuntu" ]] || [[ "$distroname" =~ "mint" ]] || [[ "$distroname" =~ "elementary" ]] || [[ "$distroname" =~ "kde" ]]; then
-          distro_id=Debian
-          distro_version="$distroversion"
-        else
-          return 1
-        fi
-        ;;
-      esac
+    case "$1" in
+    arch* | arco*)
+      if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
+        distro_id=Arch
+        distro_version="$distroversion"
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    RHEL* | rhel* | Fedora | fedora | CentOS | centos)
+      if [[ "$distroname" =~ "scientific" ]] || [[ "$distroname" =~ "redhat" ]] || [[ "$distroname" =~ "centos" ]] ||
+        [[ "$distroname" =~ "casjay" ]] || [[ "$distroname" =~ "fedora" ]]; then
+        distro_id=RHEL
+        distro_version="$distroversion"
+      else
+        return 1
+      fi
+      ;;
+    Debian* | debian* | Ubuntu* | ubuntu* | Mint* | mint*)
+      if [[ "$distroname" =~ "kali" ]] || [[ "$distroname" =~ "parrot" ]] || [[ "$distroname" =~ "debian" ]] || [[ "$distroname" =~ "raspbian" ]] ||
+        [[ "$distroname" =~ "ubuntu" ]] || [[ "$distroname" =~ "mint" ]] || [[ "$distroname" =~ "elementary" ]] || [[ "$distroname" =~ "kde" ]]; then
+        distro_id=Debian
+        distro_version="$distroversion"
+      else
+        return 1
+      fi
+      ;;
+    esac
   done
-  }
+}
 
+##################################################################################################
 
+vdebug() {
+  printf "\n\t\tARGS:$*\n"
+  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
+    HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+    printf_custom "4" $path
+  done
+}
 ##################################################################################################
 
 # end

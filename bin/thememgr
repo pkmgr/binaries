@@ -50,7 +50,9 @@ LIST="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/list)"
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-API="$(curl -s "https://api.github.com/orgs/thememgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+if cmd_exists jq; then
+  API="$(curl -s "https://api.github.com/orgs/thememgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+fi
 
 generate_theme_index() { true; }
 generate_icon_index() { true; }
@@ -198,23 +200,9 @@ install)
   done
   ;;
 
-cron)
+updater | cron)
   shift 1
-  if [[ $USER != "root" ]]; then
-    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR)" ]]; then
-      file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
-      if [ -f "$file" ]; then
-        $file --cron
-      fi
-    fi
-  else
-    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-      file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
-      if [ -f "$file" ]; then
-        sudo $file --cron
-      fi
-    fi
-  fi
+  cron_updater "$*"
   ;;
 
 version)
