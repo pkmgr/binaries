@@ -42,7 +42,7 @@ fi
 _blog_init() { devnull git pull -q; }
 _blog_publish() {
   devnull git add .
-  devnull git commit -m "New Blog Post"
+  devnull2 git commit -q -m "New Blog Post"
   devnull git push -q
 }
 _blog_site() { git remote show origin | grep Push | awk '{print $3}'; }

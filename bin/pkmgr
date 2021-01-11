@@ -507,7 +507,7 @@ fi
 
 #---------------------------------------------------------------------------------------
 if cmd_exists jq; then
-  API="$(devnull2 curl -s "https://api.github.com/orgs/pkmgr/repos?per_page=1000" | jq -r '.[] | .name')"
+  API="$(curl -s "https://api.github.com/orgs/pkmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
 case "$1" in
