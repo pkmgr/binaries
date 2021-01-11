@@ -329,7 +329,11 @@ ensure_dirs() {
 user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     INSTALL_TYPE=user
-    HOME="/usr/local/home/root"
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      export HOME="/usr/local/home/root"
+    else
+      export HOME="/root"
+    fi
     BIN="$HOME/.local/bin"
     CONF="$HOME/.config"
     SHARE="$HOME/.local/share"
@@ -385,6 +389,13 @@ system_installdirs() {
     #printf_info "Install Type: system - ${WHOAMI}"
     #printf_red "\t\tInstalling as root ❓\n"
     INSTALL_TYPE=system
+    export INSTALL_TYPE=system
+    export BACKUPDIR="$HOME/.local/backups/dotfiles"
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      export HOME="/usr/local/home/root"
+    else
+      export HOME="/root"
+    fi
     BACKUPDIR="$HOME/.local/backups/dotfiles"
     HOME="/usr/local/home/root"
     BIN="/usr/local/bin"
