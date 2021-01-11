@@ -245,7 +245,7 @@ else
 fi
 getexitcode "Successfully committed the changes"
 
-if [ "$@" != "--no" ] || [ "$push" != "--no" ]; then
+if [ "$*" != "--no" ] || [ "$push" != "--no" ]; then
   if [ "$repo" != "localdir" ]; then
     if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
