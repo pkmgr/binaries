@@ -59,7 +59,7 @@ else configsdate="$datever"; fi
 distro_version="$distro_version"
 
 messages_issue() {
-  local messages=$(devnull2 ls "/etc/casjaysdev/messages/issue/" | wc -l)
+  local messages=$(devnull2 ls /etc/casjaysdev/messages/issue/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
     cat /etc/casjaysdev/messages/issue/* | sed '/^$/d' | sed '1i\ ' | devnull sudo tee -a /etc/issue
     printf "\n" | devnull sudo tee -a /etc/issue
@@ -67,7 +67,7 @@ messages_issue() {
 }
 
 messages_motd() {
-  local messages=$(devnull2 ls "/etc/casjaysdev/messages/motd/" | wc -l)
+  local messages=$(devnull2 ls /etc/casjaysdev/messages/motd/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
     cat /etc/casjaysdev/messages/motd/* | sed '/^$/d' | devnull sudo tee -a /etc/motd
   fi
