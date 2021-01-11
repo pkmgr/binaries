@@ -369,7 +369,7 @@ ln_sf() {
 }
 mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
 mkd() { if [ ! -e "$1" ]; then devnull mkdir -p "$@"; else return 0; fi; }
-replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
+replace() { devnull find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; }
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
 urlcheck() { devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
