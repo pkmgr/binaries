@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-cd "$(dirname "${BASH_SOURCE[0]}")"
 
-TMPPATH="$(cd .. && pwd):"
 TMPPATH+="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
 TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
@@ -11,6 +9,9 @@ export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | s
 #trap '' err exit SIGINT SIGTERM
 export WHOAMI="${USER}"
 export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m" && echo)"
+
+export SCRIPTSDIR="$(dirname "${BASH_SOURCE[0]}" && cd ..)"
+export SCRIPTSFUNCTDIR="$SCRIPTSFUNCTDIR"
 
 TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
@@ -1299,5 +1300,11 @@ if [ "$1" = "--vdebug" ]; then
   }
 fi
 ##################################################################################################
+unload_vars_paths() {
+  unset APPDIR APPVERSION ARRAY BACKUPDIR BIN CASJAYSDEVSAPPDIR CASJAYSDEVSHARE COMPDIR CONF DEVENVMGR
+  unset DFMGRREPO DOCKERMGRREPO FONTCONF FONTDIR FONTMGRREPO HOMEDIR ICONDIR ICONMGRREPO INSTALL_TYPE
+  unset LIST PKMGRREPO PREFIX REPO REPODF REPORAW SHARE STARTUP SYSBIN SYSCONF SYSLOGDIR SYSSHARE SYSTEMMGRREPO
+  unset SYSSHARE SYSTEMMGRREPO SYSUPDATEDIR THEMEDIR THEMEMGRREPO USRUPDATEDIR WALLPAPERMGRREPO WALLPAPERS
+}
 
 # end
