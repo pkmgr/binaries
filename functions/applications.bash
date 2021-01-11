@@ -144,7 +144,7 @@ printf_readline() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
   while read line; do
-    printf_custom "$color" "$line"
+    printf_custom "$line" "$color"
   done
   set +o pipefail
 }

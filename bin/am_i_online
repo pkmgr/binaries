@@ -43,15 +43,15 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-site="$1"
+site="${1:-8.8.8.8}"
 
 test_ping() {
-  timeout 0.3 ping -c1 ${site:-8.8.8.8} &>/dev/null || return 1
+  timeout 1 ping -c1 $site &>/dev/null
   pingExit=$?
 }
 
 test_http() {
-  timeout 0.5 curl -LSIs --max-time 1 ${site:-https://1.1.1.1} | grep "HTTP/2 200" | head -n 1 &>/dev/null
+  timeout 1 curl --disable -LSIs --max-time 1 $site | grep "HTTP/2 200" | head -n 1 &>/dev/null
   httpExit=$?
 }
 
@@ -60,14 +60,14 @@ test_http() {
 test_ping || test_http
 
 if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-  message="you seem to be connected to the internet"
+  printf_green "$site is up: you seem to be connected to the internet"
   exitCode=0
 else
-  exitCode="you appear to not be connected to the internet"
-  return=1
+  printf_red "$site is down: you appear to not be connected to the internet"
+  exitCode=1
 fi
-printf_green "$message"
-exit $exitCode
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $exitCode
+
 # end
