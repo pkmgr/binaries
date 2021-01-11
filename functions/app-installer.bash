@@ -66,7 +66,7 @@ if [ "$*" = "--vdebug" ]; then
   mkdir -p "$LOGDIR/debug"
   touch "$LOGDIR/debug/$APPNAME.log" "$LOGDIR/debug/$APPNAME.err"
   chmod -Rf 755 "$LOGDIR/debug"
-  exec >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
+  "$@" >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
   devnull() {
     "$@" >>"$LOGDIR/debug/$APPNAME.log" 2>>"$LOGDIR/debug/$APPNAME.err"
   }
@@ -369,7 +369,7 @@ ln_sf() {
 }
 mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
 mkd() { if [ ! -e "$1" ]; then devnull mkdir -p "$@"; else return 0; fi; }
-replace() { devnull find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; }
+replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
 urlcheck() { devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
