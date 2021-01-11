@@ -43,23 +43,26 @@ fi
 
 # defaults
 
-USERNAME="$2"
+USERNAME="${GITHUB_USERNAME:-$2}"
 TOKEN="$GITHUB_ACCESS_TOKEN"
 REPO_URL="https://github.com/$USERNAME"
-PROJECT_DIR="${GITHUB_PROJECT_DIR:-$HOME/Projects/github}"
+PROJECT_BASE="$HOME/Projects"
+PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
 WTFLICENSE="${MYLICENSE:-https://github.com/casjay/resources/raw/master/license/wtfpl.md}"
 unset PREVREPO
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # cd into directory
 cd_into() {
-  cd "$1" && printf_green "Changing the directory to $1" &&
-    printf_green "Type exit to return to your previous directory" &&
-    exec bash || exit 1
+  if [ $PWD != $1 ]; then
+    cd "$1" && printf_green "Changing the directory to $1" &&
+      printf_green "Type exit to return to your previous directory" &&
+      exec bash || exit 1
+  fi
 }
 
 export -f cd_into
@@ -148,8 +151,8 @@ run_git_init() {
       read -r -n 1 confirm_repo && echo
       if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
         if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-        git push -q --set-upstream origin master -f >/dev/null 2>&1 &&
-          git push -q -f >/dev/null 2>&1 &&
+        devnull git push -q --set-upstream origin master -f &&
+          devnull git push -q -f &&
           printf_green "Successfully pushed to $repo" ||
           printf_red "Push to $repo has failed"
       else
@@ -184,8 +187,8 @@ run_git_setup() {
   date +"%m%d%Y%H%M-git" >version.txt
   ls README* 1>/dev/null 2>&1 || create_new_readme_template
   ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  git init . >/dev/null 2>&1 &&
-    git add . >/dev/null 2>&1 &&
+  devnull git init . &&
+    devnull git add . &&
     git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
     printf_green "Success: Repo has been initialized"
 
@@ -237,13 +240,13 @@ run_git_setup_automated() {
   date +"%m%d%Y%H%M-git" >version.txt
   ls README* 1>/dev/null 2>&1 || create_new_readme_template
   ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  git init >/dev/null 2>&1 &&
+  devnull git init &&
     git remote add origin $PREVREPO &&
     if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi &&
-    git add . >/dev/null 2>&1 &&
+    devnull git add . &&
     git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    git push -q --set-upstream origin master -f >/dev/null 2>&1 &&
-    git push -q -f >/dev/null 2>&1 &&
+    devnull git push -q --set-upstream origin master -f &&
+    devnull git push -q -f &&
     printf_green "Successfully pushed to: $PREVREPO" ||
     printf_red "Push to $PREVREPO has failed"
   echo ""
@@ -327,8 +330,8 @@ ghdelete() {
   printf_green "Deleting $REPONAME for user $USERNAME\n"
   devnull curl -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
   sleep 3
-  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true \
-    ghdelete-user
+  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
+  ghdelete-user
   getexitcode "$SUCCES" "$ERROR"
   return $EXIT
 }
@@ -373,9 +376,9 @@ ghsinglerepo() {
 # Reusable function for create
 
 ghcreate-user() {
-  devnull curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
+  devnull2 curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
   sleep 1
-  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i $REPONAME | grep -q "html_url" >/dev/null 2>&1 && true
+  devnull2 curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i $REPONAME | grep -q "html_url" && true
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -392,28 +395,6 @@ help() {
   printf_red "--help --org --user --push"
   printf_red "--clone --pull --create"
   printf_red "--delete --gist"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__run_cron() {
-  local frequency="0 4 * * 6"
-  local croncmd="$APPNAME cron run"
-  case $1 in
-  run)
-    logr bash -c "am_i_online && $(expr $RANDOM \% 300) && gitadmin --all-orgs && gitadmin --user"
-    ;;
-  remove)
-    shift 1
-    removecrontab "$frequency $croncmd"
-    ;;
-  add)
-    addtocrontab "$frequency $croncmd"
-    ;;
-  *)
-    addtocrontab "$frequency $croncmd"
-    ;;
-  esac
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -444,23 +425,151 @@ main() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+git_push_single() {
+  [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
+  if [ -d ./.git ]; then
+    printf_custom "4" "Updating the repo in $PWD"
+    git push -q
+    getexitcode $?
+  else
+    if [ -n "$1" ]; then
+      projdir="$1"
+      gitdirname="$(get_githost "$1")"
+      get_username_repo "$1"
+    else
+      projdir="$PROJECT_BASE/$gitdirname/$username/$userrepo"
+    fi
+    if [ -d "$projdir/.git" ]; then
+      printf_custom "4" "Cloning to $projdir"
+      git -C "$projdir" push -q
+      getexitcode $?
+    else
+      return 1
+    fi
+  fi
+  exit $?
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git_pull_single() {
+  [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
+  if [ -d ./.git ]; then
+    printf_custom "4" "$(git pull -q)"
+  else
+    get_username_repo "$1"
+    [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
+    if [ -d "$projdir/.git" ]; then
+      printf_custom "4" "$(git -C "$projdir" pull -q)"
+      cd_into "$projdir"
+    else
+      return 1
+    fi
+  fi
+  exit $?
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git_clone_single() {
+  [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
+  get_username_repo "$1"
+  [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
+  if [ -d "$projdir" ]; then
+    printf_custom "4" "$(git -C "$projdir" pull -q)"
+  else
+    printf_custom "4" "$(git clone "$1" "$projdir" -q)"
+    cd_into "$projdir"
+  fi
+  exit $?
+}
+
+git_update_loop() {
+  if [[ "$*" =~ "--while" ]]; then
+    while true; do
+      for project in $(ls -d ~/Projects/github/*/*); do
+        printf_green "Updating $project $(git -C $project pull -q)"
+      done && clear
+      printf_custom "3" "Sleeping for a minute $(sleep 60)"
+    done
+  else
+    for project in $(ls -d ~/Projects/github/*/*); do
+      printf_green "Updating $project $(git -C $project pull -q)"
+    done
+  fi
+}
+
+__run_cron() {
+  local frequency="0 4 * * 6"
+  local croncmd="$APPNAME cron run"
+  case $1 in
+  run)
+    logr bash -c "am_i_online && $(expr $RANDOM \% 300) && gitadmin --all-orgs && gitadmin --user"
+    ;;
+  remove)
+    shift 1
+    removecrontab "$frequency $croncmd"
+    ;;
+  add)
+    addtocrontab "$frequency $croncmd"
+    ;;
+  *)
+    addtocrontab "$frequency $croncmd"
+    ;;
+  esac
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 case "$1" in
 --help)
   help
   exit
   ;;
 
+updater | cron)
+  shift 1
+  __run_cron "$*"
+  ;;
+
+update)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME update | $APPNAME update --while | Run git pull on all repos"
+  shift 1
+  git_update_loop "$@"
+  ;;
+
+push)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME push | push the repo"
+  shift 1
+  git_push_single "$@"
+  ;;
+
+pull)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME update | pull the repos"
+  shift 1
+  git_pull_single "$@"
+  ;;
+
+clone)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME clone | clone the repos"
+  shift 1
+  git_clone_single "$@"
+  ;;
+
 --all-orgs)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --all-orgs | Clone/Pull all orgs owned by you"
   shift 1
   git_all_orgs
   ;;
 
 --single)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --single | clone a single repo"
   shift 1
-  ghsinglerepo $@
+  ghsinglerepo "$@"
   ;;
 
 --org)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --org | Clone/Pull all repos owned by org"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -477,6 +586,7 @@ case "$1" in
   ;;
 
 --user)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --user | Clone/Pull all repos owned by you"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -493,6 +603,7 @@ case "$1" in
   ;;
 
 --push)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --push | push all your repos repos"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -512,7 +623,7 @@ case "$1" in
       SUCCES="git push completed for $USERNAME/$i"
       cd "$PROJECT_DIR/$USERNAME/$i" || exit 1
       if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-      if (git status | grep "working tree clean") >/dev/null 2>&1; then
+      if (devnull2 git status | grep -q "working tree clean"); then
         getexitcode
       else
         date +"%m%d%Y%H%M-git" >version.txt
@@ -529,6 +640,7 @@ case "$1" in
   ;;
 
 --clone)
+  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --clone | clone the repos"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -732,11 +844,6 @@ setup)
 stow)
   shift 1
   dotfiles stow "$@"
-  ;;
-
-updater | cron)
-  shift 1
-  __run_cron "$*"
   ;;
 
 *)

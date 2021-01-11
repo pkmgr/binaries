@@ -211,14 +211,15 @@ get_githost() {
 get_username_repo() {
   unset protocol separator hostname username userrepo
   local url="$1"
-  local exp="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)$"
-  #local cleanurl="$(echo $exp | 's/\.[^.]*$//')"
-  if [[ $url =~ $exp ]]; then
+  local re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)$"
+  if [[ $url =~ $re ]]; then
     protocol=${BASH_REMATCH[1]}
     separator=${BASH_REMATCH[2]}
     hostname=${BASH_REMATCH[3]}
     username=${BASH_REMATCH[4]}
     userrepo=${BASH_REMATCH[5]}
+  else
+    return 1
   fi
 }
 
