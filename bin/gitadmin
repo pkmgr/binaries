@@ -481,13 +481,17 @@ git_pull_single() {
 
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
+  projdir="$2"
+  gitdirname="$(get_githost "$1")"
   get_username_repo "$1"
-  [ -n "$2" ] && local projdir="$2" || local projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
-  if [ -d "$projdir" ]; then
-    printf_custom "4" "$(git -C "$projdir" pull -q)"
+  if [ -d "$projdir/.git" ]; then
+    printf_custom "4" "Pulling the repo in $projdir"
+    git clone -q
+    getexitcode "Pulling has completed"
   else
-    printf_custom "4" "$(git clone "$1" "$projdir" -q)"
-    cd_into "$projdir"
+    printf_custom "4" "Cloning the repo to $projdir"
+    git -C "$projdir" clone -q
+    getexitcode "Pulling has completed"
   fi
   exit $?
 }
@@ -496,13 +500,13 @@ git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
       for project in $(ls -d ~/Projects/github/*/*); do
-        printf_green "Updating $project $(git -C $project pull -q)"
+        printf_green "Updating $project $(git -C $project pull -q) $(getexitcode)"
       done && clear
       printf_custom "3" "Sleeping for a minute $(sleep 60)"
     done
   else
     for project in $(ls -d ~/Projects/github/*/*); do
-      printf_green "Updating $project $(git -C $project pull -q)"
+      printf_green "Updating $project $(git -C $project pull -q) $(getexitcode)"
     done
   fi
 }
