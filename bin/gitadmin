@@ -481,17 +481,17 @@ git_pull_single() {
 
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
-  projdir="$2"
   gitdirname="$(get_githost "$1")"
   get_username_repo "$1"
+  projdir="${2:-$PROJECT_BASE/$gitdirname/$username/$userrepo}"
   if [ -d "$projdir/.git" ]; then
-    printf_custom "4" "Pulling the repo in $projdir"
-    git clone -q
-    getexitcode "Pulling has completed"
+    printf_custom "4" "Cloning the repo in $projdir"
+    git -C "$projdir" pull -q
+    getexitcode "Cloning has completed"
   else
     printf_custom "4" "Cloning the repo to $projdir"
     git -C "$projdir" clone -q
-    getexitcode "Pulling has completed"
+    getexitcode "Cloning has completed"
   fi
   exit $?
 }
