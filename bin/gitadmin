@@ -473,9 +473,7 @@ git_clone_single() {
 }
 
 git_update_loop() {
-  [[ "$*" =~ "--help" ]] && printf_help "This will autmatically pull all repos in your ~/Projects dir"
   if [[ "$*" =~ "--while" ]]; then
-    [[ "$*" =~ "--help" ]] && printf_help "This will autmatically pull all repos in your ~/Projects dir in a loop"
     while true; do
       for project in $(ls -d ~/Projects/github/*/*); do
         printf_green "Updating $project $(git -C $project pull -q)"
@@ -488,7 +486,6 @@ git_update_loop() {
     done
   fi
 }
-
 
 __run_cron() {
   local frequency="0 4 * * 6"
