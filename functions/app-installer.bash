@@ -59,14 +59,14 @@ cmd_exists() {
 }
 
 devnull() { "$@" >/dev/null 2>&1; }
-devnull2() { "$@" >/dev/null 2>&1; }
+devnull2() { "$@" 2>/dev/null; }
 
 if [ "$*" = "--vdebug" ]; then
   set -xveE
   mkdir -p "$LOGDIR/debug"
   touch "$LOGDIR/debug/$APPNAME.log" "$LOGDIR/debug/$APPNAME.err"
   chmod -Rf 755 "$LOGDIR/debug"
-  exec >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
+  "$@" >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
   devnull() {
     "$@" >>"$LOGDIR/debug/$APPNAME.log" 2>>"$LOGDIR/debug/$APPNAME.err"
   }
@@ -359,7 +359,9 @@ backupapp() {
 
 ##################################################################################################
 
-broken_symlinks() { devnull find "$@" -xtype l -exec rm {} \;; }
+broken_symlinks() {
+  devnull find "$@" -xtype l -exec rm {} \;
+}
 rm_rf() { if [ -e "$1" ]; then devnull rm -Rf "$@"; else return 0; fi; }
 cp_rf() { if [ -e "$1" ]; then devnull cp -Rfa "$@"; else return 0; fi; }
 ln_rm() { devnull find "$1" -xtype l -delete || return 0; }
@@ -369,7 +371,9 @@ ln_sf() {
 }
 mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
 mkd() { if [ ! -e "$1" ]; then devnull mkdir -p "$@"; else return 0; fi; }
-replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
+replace() {
+  find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \;
+}
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
 urlcheck() { devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
@@ -507,12 +511,17 @@ ask_for_confirmation() {
 ##################################################################################################
 
 __getip() {
-  if [[ "$OSTYPE" =~ ^darwin ]]; then
-    NETDEV="$(route get default | grep interface | awk '{print $2}')"
+  if cmd_exists route || cmd_exists ip || cmd_exists ifconfig; then
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      NETDEV="$(route get default | grep interface | awk '{print $2}')"
+    else
+      NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+    fi
+    CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
   else
-    NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+    NETDEV=lo
+    CURRIP4=127.0.0.1
   fi
-  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
 }
 __getip
 
@@ -1153,8 +1162,8 @@ user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     export INSTALL_TYPE=user
     if [[ "$OSTYPE" =~ ^darwin ]]; then
-      export HOME="/usr/local/share/CasjaysDev/root"
-      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
+      export HOME="/usr/local/home/root"
+      chmod -Rf 777 "/usr/local/home/root"
     else
       export HOME="${HOME:-/root}"
     fi
@@ -1216,8 +1225,8 @@ system_installdirs() {
     #printf_red "\t\tInstalling as root ?\n"
     export INSTALL_TYPE=system
     if [[ "$OSTYPE" =~ ^darwin ]]; then
-      export HOME="/usr/local/share/CasjaysDev/root"
-      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
+      export HOME="/usr/local/home/root"
+      chmod -Rf 777 "/usr/local/home/root"
     else
       export HOME="/root"
     fi
@@ -1900,8 +1909,7 @@ run_exit() {
 
 ##################################################################################################
 vdebug() {
-  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-    HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
     printf_custom "4" $path
   done
 }

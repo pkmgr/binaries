@@ -26,10 +26,7 @@ APPNAME="${APPNAME:-applications}"
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-devnull() {
-  "$@" >/dev/null 2>/dev/null
-  return $?
-}
+devnull() { "$@" >/dev/null 2>&1 && return 0 || return $?; }
 
 # fail if git is not installed
 
@@ -212,8 +209,8 @@ get_githost() {
 get_username_repo() {
   unset protocol separator hostname username userrepo
   local url="$1"
-  local exp="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
-  local url="$(echo $exp | 's/\.[^.]*$//')"
+  local exp="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)$"
+  #local cleanurl="$(echo $exp | 's/\.[^.]*$//')"
   if [[ $url =~ $exp ]]; then
     protocol=${BASH_REMATCH[1]}
     separator=${BASH_REMATCH[2]}
@@ -748,11 +745,7 @@ setexitstatus() {
 
 returnexitcode() {
   [ -z "$1" ] || EXIT=$1
-  if [ "$EXIT" -gt 5 ]; then
-    BG_EXIT="${BG_RED}"
-    PS_SYMBOL=" ⁉️ "
-    return $EXIT
-  elif [ "$EXIT" -eq 0 ]; then
+  if [ "$EXIT" -eq 0 ]; then
     BG_EXIT="${BG_GREEN}"
     PS_SYMBOL=" 😺 "
     return 0
@@ -792,12 +785,17 @@ getexitcode() {
 ##################################################################################################
 
 getlipaddr() {
-  if [[ "$OSTYPE" =~ ^darwin ]]; then
-    NETDEV="$(route get default | grep interface | awk '{print $2}')"
+  if cmd_exists route || cmd_exists ip || cmd_exists ifconfig; then
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      NETDEV="$(route get default | grep interface | awk '{print $2}')"
+    else
+      NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+    fi
+    CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
   else
-    NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+    NETDEV=lo
+    CURRIP4=127.0.0.1
   fi
-  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
 }
 
 ##################################################################################################
