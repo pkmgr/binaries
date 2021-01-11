@@ -59,7 +59,10 @@ cmd_exists() {
 }
 
 devnull() { "$@" >/dev/null 2>&1; }
-devnull2() { "$@" >/dev/null 2>&1; }
+devnull2() {
+  "$@" 2>/dev/null
+  return $?
+}
 
 if [ "$*" = "--vdebug" ]; then
   set -xveE
@@ -788,8 +791,8 @@ dotfilesreq() {
     for conf in ${LISTARRAY[*]}; do
       if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
         execute \
-        "dotfilesreqcmd" \
-        "Installing required dotfile $conf"
+          "dotfilesreqcmd" \
+          "Installing required dotfile $conf"
       fi
     done
     rm_rf $TEMP/*.inst.tmp
@@ -803,8 +806,8 @@ dotfilesreqadmin() {
     for conf in ${LISTARRAY[*]}; do
       if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
         execute \
-        "dotfilesreqadmincmd" \
-        "Installing required dotfile $conf"
+          "dotfilesreqadmincmd" \
+          "Installing required dotfile $conf"
       fi
     done
     rm_rf $TEMP/*.inst.tmp
