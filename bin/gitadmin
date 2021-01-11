@@ -428,9 +428,9 @@ main() {
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d ./.git ]; then
-    printf_custom "4" "Updating the repo in $PWD"
+    printf_custom "4" "Pushing the repo in $PWD"
     git push -q
-    getexitcode $?
+    getexitcode "Push has completed"
   else
     if [ -n "$1" ]; then
       projdir="$1"
@@ -440,9 +440,9 @@ git_push_single() {
       projdir="$PROJECT_BASE/$gitdirname/$username/$userrepo"
     fi
     if [ -d "$projdir/.git" ]; then
-      printf_custom "4" "Cloning to $projdir"
+      printf_custom "4" "Pushing the repo in $projdir"
       git -C "$projdir" push -q
-      getexitcode $?
+      getexitcode "Push has completed"
     else
       return 1
     fi
