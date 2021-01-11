@@ -25,7 +25,7 @@ APPNAME="${APPNAME:-applications}"
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
 # @Description : functions for installed apps
-#
+# @TODO        : Better error handling
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 devnull() { "$@" >/dev/null 2>&1 && return 0 || return $?; }
