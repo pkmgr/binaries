@@ -1153,10 +1153,10 @@ user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     INSTALL_TYPE=user
     if [[ "$OSTYPE" =~ ^darwin ]]; then
-      HOME="/usr/local/share/CasjaysDev/root"
-      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
+      export HOME="/usr/local/home/root"
+      chmod -Rf 777 "/usr/local/home/root"
     else
-      HOME="${HOME:-/root}"
+      export HOME="/root"
     fi
     BIN="$HOME/.local/bin"
     CONF="$HOME/.config"
@@ -1216,10 +1216,10 @@ system_installdirs() {
     #printf_red "\t\tInstalling as root ?\n"
     INSTALL_TYPE=system
     if [[ "$OSTYPE" =~ ^darwin ]]; then
-      HOME="/usr/local/share/CasjaysDev/root"
-      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
+      export HOME="/usr/local/home/root"
+      chmod -Rf 777 "/usr/local/home/root"
     else
-      HOME="/root"
+      export HOME="/root"
     fi
     BACKUPDIR="$HOME/.local/backups/dotfiles"
     BIN="/usr/local/bin"
