@@ -53,10 +53,9 @@ WTFLICENSE="${MYLICENSE:-https://github.com/casjay/resources/raw/master/license/
 unset PREVREPO
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # cd into directory
 cd_into() {
   if [ $PWD != $1 ]; then
@@ -519,6 +518,11 @@ case "$1" in
   exit
   ;;
 
+updater | cron)
+  shift 1
+  __run_cron "$*"
+  ;;
+
 update)
   [ "$*" == "--help" ] && printf_help "Usage: $APPNAME update | $APPNAME update --while | Run git pull on all repos"
   shift 1
@@ -831,11 +835,6 @@ setup)
 stow)
   shift 1
   dotfiles stow "$@"
-  ;;
-
-updater | cron)
-  shift 1
-  __run_cron "$*"
   ;;
 
 *)
