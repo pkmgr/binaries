@@ -53,6 +53,10 @@ WTFLICENSE="${MYLICENSE:-https://github.com/casjay/resources/raw/master/license/
 unset PREVREPO
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # cd into directory
 cd_into() {
   if [ $PWD != $1 ]; then
