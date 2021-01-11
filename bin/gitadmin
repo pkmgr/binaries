@@ -455,13 +455,21 @@ git_push_single() {
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d ./.git ]; then
-    printf_custom "4" "$(git pull -q)"
+    printf_custom "4" "Pulling the repo in $PWD"
+    git pull -q
+    getexitcode "Pulling has completed"
   else
-    get_username_repo "$1"
-    [ -n "$1" ] && projdir="$1" || projdir="$PROJECT_BASE/$(get_githost "$1")/$username/$userrepo"
+    if [ -n "$1" ]; then
+      projdir="$1"
+      gitdirname="$(get_githost "$1")"
+      get_username_repo "$1"
+    else
+      projdir="$PROJECT_BASE/$gitdirname/$username/$userrepo"
+    fi
     if [ -d "$projdir/.git" ]; then
-      printf_custom "4" "$(git -C "$projdir" pull -q)"
-      cd_into "$projdir"
+      printf_custom "4" "Pulling the repo in $projdir"
+      git -C "$projdir" pull -q
+      getexitcode "Pulling has completed"
     else
       return 1
     fi
