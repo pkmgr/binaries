@@ -218,7 +218,6 @@ esac
 oldpwd="$(pwd)"
 gitdir="$(echo $(git rev-parse --git-dir 2>/dev/null)/..)"
 repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null)"
-am_i_online || push="--no"
 
 [ ! -z "$repo" ] || repo="localdir"
 
@@ -245,7 +244,7 @@ else
 fi
 getexitcode "Successfully committed the changes"
 
-if [ "${2:-$1}" != "--no" ] || [ "$push" != "--no" ]; then
+if am_i_online || [ "$push" != "no" ]; then
   if [ "$repo" != "localdir" ]; then
     if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
@@ -266,5 +265,5 @@ fi
 cd "$oldpwd" || exit 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

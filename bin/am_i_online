@@ -43,6 +43,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+[ "${2:-$1}" = "--console" ] && console="--console" && shift 1
 site="${1:-8.8.8.8}"
 
 test_ping() {
@@ -60,10 +61,10 @@ test_http() {
 test_ping || test_http
 
 if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-  printf_green "$site is up: you seem to be connected to the internet"
+  [ -n "$console" ] && printf_green "$site is up: you seem to be connected to the internet"
   exitCode=0
 else
-  printf_red "$site is down: you appear to not be connected to the internet"
+  [ -n "$console" ] && printf_red "$site is down: you appear to not be connected to the internet"
   exitCode=1
 fi
 

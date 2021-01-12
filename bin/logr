@@ -146,22 +146,24 @@ if [ -d "$logdir" ] && [ -n "$(devnull2 ls -A $logdir/$logrname-$date.*)" ]; the
   done
 fi
 
-#if [ -s $logdir/$logrname-$date.err ] && [ -n "$EMAIL_ERROR" ] && cmd_exists mail; then
-MAILFROM="${MAILFROM:-root@$host}"
-MAILRECIP="${MAILRECIP:-$USER@$host}"
-MAILSUB="logr: $logrname"
-MAILHEADER="The $logrname script has been ran on $(hostname -s)"
-cat $logdir/$logrname-$date.err | devnull mail -r "$MAILFROM" -s "$MAILSUB" $MAILRECIP
-echo -e "
+if [ -s $logdir/$logrname-$date.err ] && [ -n "$EMAIL_ERROR" ] && cmd_exists mail; then
+  MAILFROM="${MAILFROM:-root@$host}"
+  MAILRECIP="${MAILRECIP:-$USER@$host}"
+  MAILSUB="logr: $logrname"
+  MAILHEADER="The $logrname script has been ran on $(hostname -s)"
+  cat $logdir/$logrname-$date.err | devnull mail -r "$MAILFROM" -s "$MAILSUB" $MAILRECIP
+  echo -e "
 Email Sent On: $(date +"%b %d, %Y at %H:%M")\n
 Mail From: $MAILFROM
 Mail Subject: $MAILSUB
 Mail To: $MAILRECIP
 Log File: $logdir/$logrname-$date.err
 " >$logdir/$logrname-$date.sent
-#fi
+fi
 
-[ -n "$DESKTOP_SESSION" ] && [ -s $logdir/$logrname-$date.err ] && notifications "$logrname completed" "The task has finished with errors: check the log"
+[ -n "$DESKTOP_SESSION" ] && [ -s $logdir/$logrname-$date.err ] &&
+  notifications "$logrname completed" "The task has finished with errors: check the log"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # end
