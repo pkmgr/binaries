@@ -21,9 +21,6 @@ export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | s
 export WHOAMI="${USER}"
 export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m" && echo)"
 
-export SCRIPTSDIR="$(echo $(dirname "${BASH_SOURCE[0]}"/..))"
-export SCRIPTSFUNCTDIR="$SCRIPTSDIR"
-
 TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
 
@@ -1275,7 +1272,7 @@ if [ "$1" = "--vdebug" ]; then
     printf_custom "4" "APP:$APPNAME - ARGS:$*"
     printf_custom "4" "FUNCTIONSDir:$DIR"
     for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR SCRIPTSDIR:$SCRIPTSDIR; do
+      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR SCRIPTSAPPFUNCTDIR:$SCRIPTSAPPFUNCTDIR; do
       printf_custom "4" $path
     done
     devnull() {

@@ -24,8 +24,6 @@ export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | s
 export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 export TMP="${TMP:-/tmp}"
 export TEMP="${TEMP:-/tmp}"
-export SCRIPTSDIR="$(echo $(dirname "${BASH_SOURCE[0]}"/..))"
-export SCRIPTSFUNCTDIR="$SCRIPTSDIR"
 
 export WHOAMI="${SUDO_USER:-$USER}"
 export HOME="${USER_HOME:-$HOME}"
@@ -391,6 +389,26 @@ symlink() { ln_sf "$1" "$2"; }
 
 ##################################################################################################
 
+am_i_online() {
+  test_ping() {
+    am_i_online && timeout 1 ping -c1 8.8.8.8 &>/dev/null
+    pingExit=$?
+  }
+  test_http() {
+    am_i_online && timeout 1 curl --disable -LSIs --max-time 1 1.1.1 2>/dev/null | grep "HTTP/2 200" | head -n 1 >/dev/null
+    httpExit=$?
+  }
+  test_ping || test_http
+  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
+    exitCode=0
+  else
+    exitCode=1
+  fi
+  return $exitCode
+}
+
+##################################################################################################
+
 cmd_exists() {
   local args="$*"
   for cmd in $args; do
@@ -725,7 +743,7 @@ scripts_check() {
     read -n 1 -s choice && echo ""
     if [[ $choice == "y" || $choice == "Y" ]]; then
       urlverify $REPO/scripts/raw/master/install.sh &&
-        sudo bash -c "$(curl -LSs $REPO/installer/raw/master/install.sh)" && echo
+        sudo bash -c "$(am_i_online && curl -LSs $REPO/installer/raw/master/install.sh)" && echo
     else
       touch ~/.noscripts
       exit 1
@@ -1359,19 +1377,20 @@ get_app_version() {
   fi
   local GITREPO=""$REPO/$APPNAME""
   local APPVERSION="${APPVERSION:-$REPORAW/master/version.txt}"
-  [ -n "$WHOAMI" ] && printf_info "WhoamI: $WHOAMI"
-  [ -n "$INSTALL_TYPE" ] && printf_info "Install Type: $INSTALL_TYPE"
-  [ -n "$APPNAME" ] && printf_info "APP name: $APPNAME"
-  [ -n "$APPDIR" ] && printf_info "APP dir: $APPDIR"
-  [ -n "$GITREPO" ] && printf_info "APP repo: $REPO/$APPNAME"
-  [ -n "$PLUGNAMES" ] && printf_info "Plugins: $PLUGNAMES"
-  [ -n "$PLUGDIR" ] && printf_info "PluginsDir: $PLUGDIR"
-  [ -n "$version" ] && printf_info "APP Version: $version"
-  [ -n "$APPVERSION" ] && printf_info "Git Version: $APPVERSION"
+  if [[ "$APPVERSION" =~ http* ]]; then APPVERSION=$version; fi
+  [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
+  [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
+  [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
+  [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
+  [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
+  [ -n "$PLUGNAMES" ] && printf_info "Plugins:                 $PLUGNAMES"
+  [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
+  [ -n "$version" ] && printf_info "APP Version:               $version"
+  [ -n "$APPVERSION" ] && printf_info "Git Version:               $APPVERSION"
   if [ "$version" = "$APPVERSION" ]; then
-    printf_info "Update Available: No"
+    printf_info "Update Available:          No"
   else
-    printf_info "Update Available: True"
+    printf_info "Update Available:          True"
   fi
 }
 
@@ -1525,7 +1544,7 @@ show_optvars() {
     printf_info "System Manager Repo:       $SYSTEMMGRREPO"
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
-    printf_info "SCRIPTSDIR:                $SCRIPTSDIR"
+    printf_info "SCRIPTSFUNCTDIR:           $SCRIPTSFUNCTDIR/functions"
     for PATHS in $(path_info); do
       printf_info "PATHS:                     $PATHS"
     done
@@ -1574,7 +1593,7 @@ dfmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(am_i_online && curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 dfmgr_run_post() {
@@ -1604,7 +1623,7 @@ fontmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(am_i_online && curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 fontmgr_run_post() {
@@ -1637,7 +1656,7 @@ iconmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(am_i_online && curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 iconmgr_run_post() {
@@ -1676,7 +1695,7 @@ pkmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(am_i_online && curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 pkmgr_run_postinst() {
@@ -1707,7 +1726,7 @@ systemmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(am_i_online && curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 systemmgr_run_postinst() {
@@ -1736,7 +1755,7 @@ thememgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(am_i_online && curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 generate_theme_index() {
@@ -1777,7 +1796,7 @@ wallpapermgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(am_i_online && curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 wallpapermgr_run_postinst() {
@@ -1938,7 +1957,7 @@ if [ "$1" = "--vdebug" ]; then
     printf_custom "4" "APP:$APPNAME - ARGS:$*"
     printf_custom "4" "FUNCTIONSDir:$DIR"
     for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR SCRIPTSDIR:$SCRIPTSDIR; do
+      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR SCRIPTSAPPFUNCTDIR:$SCRIPTSAPPFUNCTDIR; do
       printf_custom "4" $path
     done
     devnull() {

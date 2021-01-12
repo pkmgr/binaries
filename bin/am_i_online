@@ -44,7 +44,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ "${2:-$1}" = "--console" ] && console="--console" && shift 1
-site="${1:-8.8.8.8}"
+site="${1:-1.1.1.1}"
 
 test_ping() {
   timeout 1 ping -c1 $site &>/dev/null
