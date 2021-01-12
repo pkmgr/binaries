@@ -260,6 +260,8 @@ if am_i_online && [ -z "$push" ]; then
       fi
     fi
   fi
+else
+  printf_red "No internet connection. Skipping push"
 fi
 
 cd "$oldpwd" || exit 1
