@@ -10,8 +10,8 @@ export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | s
 export WHOAMI="${USER}"
 export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m" && echo)"
 
-export SCRIPTSDIR="$(echo $(dirname "${BASH_SOURCE[0]}" && cd ..))"
-export SCRIPTSFUNCTDIR="$SCRIPTSFUNCTDIR"
+export SCRIPTSDIR="$(echo $(dirname "${BASH_SOURCE[0]}"/..))"
+export SCRIPTSFUNCTDIR="$SCRIPTSDIR"
 
 TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
