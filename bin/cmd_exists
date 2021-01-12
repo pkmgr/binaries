@@ -58,17 +58,15 @@ help | --help)
 location | --location)
   shift 1
   for cmd in "$@"; do
-    unalias "$cmd" 2>/dev/null >&1
-    if command -v $cmd; then exit 0; else exit 1; fi
-    exitCode+=$?
+    unalias "$cmd" &>/dev/null
+    if command -v $cmd 2>/dev/null; then exitCode+=0; else exitCode+=1; fi
   done
   exit $exitCode
   ;;
 *)
   for cmd in "$@"; do
-    unalias "$cmd" 2>/dev/null >&1
-    if devnull2 type -P "$cmd" | grep -q "/"; then exit 0; else exit 1; fi
-    exitCode+=$?
+    unalias "$cmd" &>/dev/null
+    if devnull2 type -P "$cmd" | grep -q "/" &>/dev/null; then exitCode+=0; else exitCode+=1; fi
   done
   exit $exitCode
   ;;
