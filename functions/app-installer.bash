@@ -1525,6 +1525,7 @@ show_optvars() {
     printf_info "System Manager Repo:       $SYSTEMMGRREPO"
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
+    printf_info "SCRIPTSDIR:                $SCRIPTSDIR"
     for PATHS in $(path_info); do
       printf_info "PATHS:                     $PATHS"
     done
@@ -1937,7 +1938,7 @@ if [ "$1" = "--vdebug" ]; then
     printf_custom "4" "APP:$APPNAME - ARGS:$*"
     printf_custom "4" "FUNCTIONSDir:$DIR"
     for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR SCRIPTSDIR:$SCRIPTSDIR; do
       printf_custom "4" $path
     done
     devnull() {
