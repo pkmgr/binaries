@@ -1383,8 +1383,8 @@ get_app_version() {
   [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
   [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
   [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
-  [ -n "$PLUGNAMES" ] && printf_info "Plugins:                 $PLUGNAMES"
-  [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                 $PLUGDIR"
+  [ -n "$PLUGNAMES" ] && printf_info "Plugins:                   $PLUGNAMES"
+  [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
   [ -n "$version" ] && printf_info "APP Version:               $version"
   [ -n "$APPVERSION" ] && printf_info "Git Version:               $APPVERSION"
   if [ "$version" = "$APPVERSION" ]; then
