@@ -376,7 +376,7 @@ replace() {
 }
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
-urlcheck() { devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+urlcheck() { am_i_online && devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
 urlinvalid() { if [ -z "$1" ]; then
   printf_red "\t\tInvalid URL\n"
   failexitcode
@@ -804,7 +804,7 @@ dotfilesreqcmd() {
   if am_i_online; then
     local gitrepo="$REPO"
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
+      bash -c "$(am_i_online && curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
 }
 
@@ -812,7 +812,7 @@ dotfilesreqadmincmd() {
   if am_i_online; then
     local gitrepo="$REPO"
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      sudo bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
+      sudo bash -c "$(am_i_online && curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
 }
 
@@ -1384,7 +1384,7 @@ get_app_version() {
   [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
   [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
   [ -n "$PLUGNAMES" ] && printf_info "Plugins:                 $PLUGNAMES"
-  [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
+  [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                 $PLUGDIR"
   [ -n "$version" ] && printf_info "APP Version:               $version"
   [ -n "$APPVERSION" ] && printf_info "Git Version:               $APPVERSION"
   if [ "$version" = "$APPVERSION" ]; then
