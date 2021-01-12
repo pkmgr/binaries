@@ -62,7 +62,7 @@ systemmgr_install
 
 # Version
 
-APPVERSION="$(am_i_online && curl -LSs ${DOTFILESREPO:-https://github.com/dfmgr}/$APPNAME/raw/master/version.txt)"
+APPVERSION="$(curl -LSs ${DOTFILESREPO:-https://github.com/dfmgr}/$APPNAME/raw/master/version.txt)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
