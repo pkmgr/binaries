@@ -44,7 +44,7 @@ systemmgr_install
 [ "$1" = "--vdebug" ] && shift 1 && vdebug "$*"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if cmd_exists jq; then
+if am_i_online && cmd_exists jq; then
   API="$(curl -s "https://api.github.com/orgs/systemmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
@@ -196,6 +196,7 @@ updater | cron)
 
 version)
   shift 1
+  [ $# = 0 ] && $APPNAME --version
   ANAME="$1"
   if [ -d "$SYSUPDATEDIR" ] && [ -n "$(devnull2 ls -A $SYSUPDATEDIR/$1)" ]; then
     file="$(devnull2 ls -A $SYSUPDATEDIR/$1)"
