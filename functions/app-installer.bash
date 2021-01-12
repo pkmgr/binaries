@@ -1252,7 +1252,7 @@ user_installdirs() {
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
   git_repo_urls
-  printf_green "Installing to $APPDIR with install type: INSTALL_TYPE"
+  printf_green "Installing to $APPDIR with install type: $INSTALL_TYPE"
 }
 
 ##################################################################################################
@@ -1316,7 +1316,7 @@ system_installdirs() {
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
   git_repo_urls
-  printf_green "Installing to $APPDIR with install type: INSTALL_TYPE"
+  printf_green "Installing to $APPDIR with install type: $INSTALL_TYPE"
 }
 
 ##################################################################################################
