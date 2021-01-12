@@ -456,6 +456,7 @@ killpid() {
   return $?
 }
 hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1; }
+set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
 getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
 log() {
   mkdir -p "$HOME/.local/log"
@@ -952,8 +953,6 @@ requiresudo() {
 
 ##################################################################################################
 
-set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
-
 kill_all_subprocesses() {
   local i=""
   for i in $(jobs -p); do
@@ -961,6 +960,8 @@ kill_all_subprocesses() {
     wait "$i" &>/dev/null
   done
 }
+
+##################################################################################################
 
 execute() {
   local -r CMDS="$1"
@@ -981,6 +982,8 @@ execute() {
   rm -rf "$TMP_FILE"
   return $exitCode
 }
+
+##################################################################################################
 
 show_spinner() {
   local -r FRAMES='/-\|'
