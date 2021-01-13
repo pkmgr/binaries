@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -44,8 +44,8 @@ __help() {
 
 # variables
 
-hue_device="$(__hostname2ip ${HUE_DEVICE:-$1})"
-hue_api_key="${HUE_API_KEY}"
+hue_device="$(__hostname2ip ${HUE_HUB_DEVICE:-$1})"
+hue_api_key="${HUE_ACCESS_TOKEN}"
 
 [ -n "$hue_api_key" ] || printf_exit "HUE_API_KEY is not set"
 [ -n "$hue_device" ] || printf_exit "HUE_DEVICE is not set"
