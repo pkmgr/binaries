@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# _metric2imperial_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for metric2imperial
+
+_metric2imperial_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/metric2imperial/array)"
+
+  _init_completion || return
+
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _metric2imperial_completions -o default metric2imperial
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
