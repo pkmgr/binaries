@@ -61,29 +61,29 @@ create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -z "$TORRENT" ]; then
-  if [ -n "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
+  if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
     export TORRENT="transmission-remote-gtk"
-  elif [ -n "$(command -v transmission-remote-cli 2>/dev/null)" ]; then
+  elif [ -f "$(command -v transmission-remote-cli 2>/dev/null)" ]; then
     export TORRENT="transmission-remote-cli"
-  elif [ -n "$(command -v transmission-gtk 2>/dev/null)" ]; then
+  elif [ -f "$(command -v transmission-gtk 2>/dev/null)" ]; then
     export TORRENT="transmission-gtk"
-  elif [ -n "$(command -v transmission-qt 2>/dev/null)" ]; then
+  elif [ -f "$(command -v transmission-qt 2>/dev/null)" ]; then
     export TORRENT="transmission-qt"
-  elif [ -n "$(command -v deluge 2>/dev/null)" ]; then
+  elif [ -f "$(command -v deluge 2>/dev/null)" ]; then
     export TORRENT="deluge"
-  elif [ -n "$(command -v vuze 2>/dev/null)" ]; then
+  elif [ -f "$(command -v vuze 2>/dev/null)" ]; then
     export TORRENT="vuze"
-  elif [ -n "$(command -v qbittorrent)" ]; then
+  elif [ -f "$(command -v qbittorrent)" ]; then
     export TORRENT="qbittorrent"
-  elif [ -n "$(command -v ktorrent 2>/dev/null)" ]; then
+  elif [ -f "$(command -v ktorrent 2>/dev/null)" ]; then
     export TORRENT="ktorrent"
-  elif [ -n "$(command -v ctorrent 2>/dev/null)" ]; then
+  elif [ -f "$(command -v ctorrent 2>/dev/null)" ]; then
     export TORRENT="ctorrent"
-  elif [ -n "$(command -v unworkable 2>/dev/null)" ]; then
+  elif [ -f "$(command -v unworkable 2>/dev/null)" ]; then
     export TORRENT="unworkable"
-  elif [ -n "$(command -v rtorrent 2>/dev/null)" ]; then
+  elif [ -f "$(command -v rtorrent 2>/dev/null)" ]; then
     export TORRENT="rtorrent"
-  elif [ -n "$(command -v bitstormlite 2>/dev/null)" ]; then
+  elif [ -f "$(command -v bitstormlite 2>/dev/null)" ]; then
     export TORRENT="bitstormlite"
   elif [ -f "/Applications/Transmission.app/Contents/MacOS/Transmission" ]; then
     export TORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"

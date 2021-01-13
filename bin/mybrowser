@@ -61,35 +61,35 @@ create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -z "$BROWSER" ]; then
-  if [ -n "$(command -v garcon-url-handler 2>/dev/null)" ]; then
+  if [ -f "$(command -v garcon-url-handler 2>/dev/null)" ]; then
     export BROWSER="garcon-url-handler --url"
-  elif [ -n "$(command -v firefox 2>/dev/null)" ]; then
+  elif [ -f "$(command -v firefox 2>/dev/null)" ]; then
     export BROWSER="firefox"
-  elif [ -n "$(command -v chromium 2>/dev/null)" ]; then
+  elif [ -f "$(command -v chromium 2>/dev/null)" ]; then
     export BROWSER="chromium"
-  elif [ -n "$(command -v google-chrome 2>/dev/null)" ]; then
+  elif [ -f "$(command -v google-chrome 2>/dev/null)" ]; then
     export BROWSER="google-chrome"
-  elif [ -n "$(command -v opera 2>/dev/null)" ]; then
+  elif [ -f "$(command -v opera 2>/dev/null)" ]; then
     export BROWSER="opera"
-  elif [ -n "$(command -v epiphany-browser 2>/dev/null)" ]; then
+  elif [ -f "$(command -v epiphany-browser 2>/dev/null)" ]; then
     export BROWSER="epiphany-browser"
-  elif [ -n "$(command -v falkon 2>/dev/null)" ]; then
+  elif [ -f "$(command -v falkon 2>/dev/null)" ]; then
     export BROWSER="falkon"
-  elif [ -n "$(command -v midori 2>/dev/null)" ]; then
+  elif [ -f "$(command -v midori 2>/dev/null)" ]; then
     export BROWSER="midori"
-  elif [ -n "$(command -v netsurf 2>/dev/null)" ]; then
+  elif [ -f "$(command -v netsurf 2>/dev/null)" ]; then
     export BROWSER="netsurf"
-  elif [ -n "$(command -v surf 2>/dev/null)" ]; then
+  elif [ -f "$(command -v surf 2>/dev/null)" ]; then
     export BROWSER="surf"
-  elif [ -n "$(command -v arora 2>/dev/null)" ]; then
+  elif [ -f "$(command -v arora 2>/dev/null)" ]; then
     export BROWSER="arora"
   elif [ -f "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
     export BROWSER="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   elif [ -f "/Applications/Firefox.app/Contents/MacOS/firefox-bin" ]; then
     export BROWSER="/Applications/Firefox.app/Contents/MacOS/firefox-bin"
-  elif [ -n "$(command -v lynx 2>/dev/null)" ]; then
+  elif [ -f "$(command -v lynx 2>/dev/null)" ]; then
     export BROWSER="lynx"
-  elif [ -n "$(command -v links 2>/dev/null)" ]; then
+  elif [ -f "$(command -v links 2>/dev/null)" ]; then
     export BROWSER="links"
   fi
 fi

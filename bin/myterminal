@@ -61,19 +61,19 @@ create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -z "$TERMINAL" ]; then
-  if [ -n "$(command -v termite 2>/dev/null)" ]; then
+  if [ -f "$(command -v termite 2>/dev/null)" ]; then
     export TERMINAL="termite"
-  elif [ -n "$(command -v terminology 2>/dev/null)" ]; then
+  elif [ -f "$(command -v terminology 2>/dev/null)" ]; then
     export TERMINAL="terminology"
-  elif [ -n "$(command -v xfce4-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v xfce4-terminal 2>/dev/null)" ]; then
     export TERMINAL="xfce4-terminal"
-  elif [ -n "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
     export TERMINAL="qterminal-terminal"
-  elif [ -n "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
     export TERMINAL="qterminal-terminal"
-  elif [ -n "$(command -v xterm 2>/dev/null)" ]; then
+  elif [ -f "$(command -v xterm 2>/dev/null)" ]; then
     export TERMINAL="xterm"
-  elif [ -n "$(command -v uxterm 2>/dev/null)" ]; then
+  elif [ -f "$(command -v uxterm 2>/dev/null)" ]; then
     export TERMINAL="uxterm"
   elif [ -f "/Applications/iTerm.app/Contents/MacOS/iTerm" ]; then
     export TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"

@@ -63,29 +63,29 @@ create_link() {
 if [ -z "$FILEMANAGER" ] && [ ! -f "$HOME/.local/bin/myfilemanager" ]; then
   FILEMANAGER="HOME/.local/bin/myfilemanager"
   if [ -z $DESKTOP_SESSION ]; then
-    if [ -n "$(command -v vifm 2>/dev/null)" ]; then
+    if [ -f "$(command -v vifm 2>/dev/null)" ]; then
       export FILEMANAGER="vifm"
-    elif [ -n "$(command -v ranger 2>/dev/null)" ]; then
+    elif [ -f "$(command -v ranger 2>/dev/null)" ]; then
       export FILEMANAGER="ranger"
-    elif [ -n "$(command -v lf 2>/dev/null)" ]; then
+    elif [ -f "$(command -v lf 2>/dev/null)" ]; then
       export FILEMANAGER="lf"
-    elif [ -n "$(command -v cfiles 2>/dev/null)" ]; then
+    elif [ -f "$(command -v cfiles 2>/dev/null)" ]; then
       export FILEMANAGER="cfiles"
     fi
   else
-    if [ -n "$(command -v open 2>/dev/null)" ]; then
+    if [ -f "$(command -v open 2>/dev/null)" ]; then
       export FILEMANAGER="open"
-    elif [ -n "$(command -v dolphin 2>/dev/null)" ]; then
+    elif [ -f "$(command -v dolphin 2>/dev/null)" ]; then
       export FILEMANAGER="dolphin"
-    elif [ -n "$(command -v thunar 2>/dev/null)" ]; then
+    elif [ -f "$(command -v thunar 2>/dev/null)" ]; then
       export FILEMANAGER="thunar"
-    elif [ -n "$(command -v Thunar 2>/dev/null)" ]; then
+    elif [ -f "$(command -v Thunar 2>/dev/null)" ]; then
       export FILEMANAGER="thunar"
-    elif [ -n "$(command -v konqueror 2>/dev/null)" ]; then
+    elif [ -f "$(command -v konqueror 2>/dev/null)" ]; then
       export FILEMANAGER="konqueror"
-    elif [ -n "$(command -v spacefm 2>/dev/null)" ]; then
+    elif [ -f "$(command -v spacefm 2>/dev/null)" ]; then
       export FILEMANAGER="spacefm"
-    elif [ -n "$(command -v nemo 2>/dev/null)" ]; then
+    elif [ -f "$(command -v nemo 2>/dev/null)" ]; then
       export FILEMANAGER="nemo"
     elif [ -f "$(command -v pcmanfm 2>/dev/null)" ]; then
       export FILEMANAGER="pcmanfm"
