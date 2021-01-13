@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : applications.bash
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : functions for installed apps
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
 TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
@@ -14,17 +25,6 @@ TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
 
 APPNAME="${APPNAME:-applications}"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : install
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : functions for installed apps
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 devnull() {
   "$@" >/dev/null 2>/dev/null

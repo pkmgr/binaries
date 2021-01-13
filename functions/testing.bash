@@ -3,7 +3,7 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : install
+# @File        : applications.bash
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
@@ -37,16 +37,16 @@ Darwin) alias dircolors=gdircolors ;;
 esac
 
 #Set Main Repo for dotfiles
-export DOTFILESREPO="${DOTFILESREPO:-https://github.com/dfmgr}"
-export DFMGRREPO="${DFMGRREPO:-https://github.com/dfmgr}"
-export PKMGRREPO="${PKMGRREPO:-https://github.com/pkmgr}"
-export DEVENVMGR="${DEVENVMGR:-https://github.com/devenvmgr}"
-export ICONMGRREPO="${ICONMGRREPO:-https://github.com/iconmgr}"
-export FONTMGRREPO="${FONTMGRREPO:-https://github.com/fontmgr}"
-export THEMEMGRREPO="${THEMEMGRREPO:-https://github.com/thememgr}"
-export DOCKERMGRREPO="${DOCKERMGRREPO:-https://github.com/dockermgr}"
-export SYSTEMMGRREPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}"
-export WALLPAPERMGRREPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}"
+DOTFILESREPO="${DOTFILESREPO:-https://github.com/dfmgr}"
+DFMGRREPO="${DFMGRREPO:-https://github.com/dfmgr}"
+PKMGRREPO="${PKMGRREPO:-https://github.com/pkmgr}"
+DEVENVMGR="${DEVENVMGR:-https://github.com/devenvmgr}"
+ICONMGRREPO="${ICONMGRREPO:-https://github.com/iconmgr}"
+FONTMGRREPO="${FONTMGRREPO:-https://github.com/fontmgr}"
+THEMEMGRREPO="${THEMEMGRREPO:-https://github.com/thememgr}"
+DOCKERMGRREPO="${DOCKERMGRREPO:-https://github.com/dockermgr}"
+SYSTEMMGRREPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}"
+WALLPAPERMGRREPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}"
 
 #setup colors
 NC="$(tput sgr0 2>/dev/null)"
@@ -93,6 +93,13 @@ printf_execute_result() {
 
 printf_not_found() { if ! cmd_exists "$1"; then printf_exit "The $1 command is not installed"; fi; }
 printf_execute_error_stream() { while read -r line; do printf_execute_error "↳ ERROR: $line"; done; }
+#used for printing console notifications
+printf_console() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local msg="$*"
+  shift
+  printf_color "\n\n\t\t$msg\n\n" "$color"
+}
 
 printf_exit() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
@@ -414,11 +421,13 @@ __ln_sf() {
 ###################### url functions ######################
 __curl() { __urlverify && __devnull2 curl --disable -LSs ${1} "${2:-}"; }
 #curl_header "site" "code"
-__curl_header() { __urlverify && __devnull2 curl --disable -LSIs --max-time 1 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
+__curl_header() { __urlverify && __curl --disable -LSIs --max-time 1 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
-__curl_download() { __urlverify && __devnull2 curl --disable -LSs "$1" -o "$2"; }
+__curl_download() { __urlverify && __curl --disable -LSs "$1" -o "$2"; }
+#curl_version "url"
+__curl_version() { __urlverify && __curl --disable -LSs $REPORAW/master/version.txt; }
 #urlcheck "url"
-__urlcheck() { __devnull curl --disable --connect-timeout 1 --retry 2 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+__urlcheck() { __urlverify && __curl --disable --connect-timeout 1 --retry 2 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
 #urlverify "url"
 __urlverify() { __urlcheck $1 || __urlinvalid $1; }
 #urlinvalid "url"

@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : system-installer.bash
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : installer functions for system installers
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 export PATH="$(echo $PATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 
 set -o pipefail
@@ -9,17 +20,6 @@ export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") pas
 
 TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : install
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : installer functions for apps
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # fail if git is not installed
 

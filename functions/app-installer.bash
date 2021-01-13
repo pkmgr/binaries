@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
-TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
-TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:$PATH"
-
-APPNAME="${APPNAME:-app-installer}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
@@ -16,6 +10,12 @@ APPNAME="${APPNAME:-app-installer}"
 # @Description : installer functions for apps
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
+TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
+TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:$PATH"
+
+APPNAME="${APPNAME:-app-installer}"
 
 set -o pipefail
 trap '' ERR EXIT

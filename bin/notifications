@@ -4,7 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
+##@Version     : 011320210202-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : notifications
@@ -12,6 +12,7 @@ USER="${SUDO_USER:-${USER}}"
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
 # @Description : send a notification to user
+# @
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -19,7 +20,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -36,12 +37,21 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ -z "$1" ] && [ -z "$2" ] && printf_exit 'Usage: notifications "title" "message"'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-check_app notify-send
+__check_app notify-send
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+notifications() {
+  local title="$1"
+  shift 1
+  local msg="$*"
+  shift
+  __cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
+}
 
 send-to-all() {
   shift 1
@@ -60,12 +70,16 @@ send-to-all() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ -z "$1" ] && [ -z "$2" ] && printf_exit 'Usage: notifications "title" "message"'
+if [ "$1" = "--all" ]; then
+  send-to-all "$@"
+  __cmd_exists wall && echo "$@" | wall
+  printf_console "4" "$@" >/dev/fd/0
+else
+  __cmd_exists wall && echo "$@" | wall
+  notifications "$@"
+  printf_console "3" "$@" >/dev/fd/0
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--all" ] && send-to-all "$@" || notifications "$@"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
