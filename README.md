@@ -28,6 +28,16 @@ yay -S tinyfugue
 ```shell
 export PATH="$PATH:/usr/local/share/CasjaysDev/scripts/bin"
 sudo git clone https://github.com/systemmgr/installer "/usr/local/share/CasjaysDev/scripts"
+
+for f in $(ls /usr/local/share/CasjaysDev/scripts/completions/); do 
+sudo ln -sf /usr/local/share/CasjaysDev/scripts/completions/$f /etc/bash_completion.d/$f
+done
+
+for f in $(ls /usr/local/share/CasjaysDev/scripts/bin/); do 
+sudo ln -sf /usr/local/share/CasjaysDev/scripts/bin/$f /usr/local/bin/$f
+done
+
+sudo ln -sf /usr/local/share/CasjaysDev/scripts /usr/local/share/CasjaysDev/installer
 ```
 
 Manual update:
