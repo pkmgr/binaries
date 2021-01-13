@@ -61,6 +61,9 @@ else configsdate="$datever"; fi
 distro_version="$distro_version"
 
 messages_issue() {
+  if [ -f "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/issue/legal.txt ]; then
+    __cp_rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/issue/legal.txt"
+  fi
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/issue/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
     cat /etc/casjaysdev/messages/issue/* | sed '/^$/d' | sed '1i\ ' | __devnull __requiresudo tee -a /etc/issue
