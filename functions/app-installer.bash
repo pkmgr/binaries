@@ -1147,7 +1147,7 @@ if_os() {
 
 if_os_id() {
   if [ -f "/etc/os-release" ]; then
-    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##')
+    local distroname=$(grep ID_LIKE= /etc/os-release | sed 's#ID_LIKE=##g')
   elif [ -f "/etc/redhat-release" ]; then
     local distroname=$(cat /etc/redhat-release)
   elif [ -f "$(command -v lsb_release)" ]; then

@@ -52,7 +52,7 @@ test_ping() {
 }
 
 test_http() {
-  timeout 1 curl --disable -LSIs --max-time 1 $site | grep "HTTP/2 200" | head -n 1 &>/dev/null
+  timeout 1 curl --disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
   httpExit=$?
 }
 
