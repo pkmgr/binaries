@@ -397,9 +397,9 @@ __while_true() { while true; do ${*} && sleep .3; done; }
 #for_each "option" "command"
 __for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
 #hostname ""
-__hostname() { hostname "$@"; }
+__hostname() { __devnull2 hostname "$@"; }
 #domainname ""
-__domainname() { hostname -d "$@"; }
+__domainname() { hostname -d "$@" 2>/dev/null || hostname -f "$@" 2>/dev/null; }
 #hostname2ip "hostname"
 __hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
 #timeout "time" "command"
@@ -953,7 +953,7 @@ __if_os_id() {
   elif [ -f "/etc/redhat-release" ]; then
     local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
     local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
-  elif [ -f "$(command -v sw_vers 2>/dev/null)"]; then
+  elif [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
     distroname="MacOS"
     distroversion="$(sw_vers -productVersion)"
   else

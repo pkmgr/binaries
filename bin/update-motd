@@ -112,6 +112,7 @@ conf_versions() {
 
 finalize() {
   __requiresudo touch /etc/issue /etc/motd
+  __requiresudo update-ip
   cat /etc/motd | __devnull __requiresudo tee -a /etc/motd.net
   cat /etc/issue | __devnull __requiresudo tee -a /etc/issue.net
   if [ "$1" = "--console" ]; then
