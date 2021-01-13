@@ -80,7 +80,7 @@ printf_cyan() { printf_color "\t\t$1\n" 6; }
 printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
 printf_read() { printf_color "\t\t$1" 5; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
-printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
+printf_error() { printf_color "\n\t\t$ICON_ERROR $1 $2\n\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
 printf_question() { printf_color "\t\t$ICON_QUESTION $1 " 6; }
 printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
@@ -114,7 +114,8 @@ printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
-  printf_color "\t\t$msg" "$color"
+  echo ""
+  printf_color "\t\t$msg\n" "$color"
   echo ""
   exit 0
 }
@@ -395,6 +396,10 @@ __tar_extract() { tar xfvz $@; }
 __while_true() { while true; do ${*} && sleep .3; done; }
 #for_each "option" "command"
 __for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
+#hostname ""
+__hostname() { hostname "$@"; }
+#domainname ""
+__domainname() { hostname -d "$@"; }
 #hostname2ip "hostname"
 __hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
 #timeout "time" "command"
@@ -419,17 +424,19 @@ __ln_sf() {
   __devnull ln -sf "$@"
 }
 ###################### url functions ######################
-__curl() { __urlverify && __devnull2 curl --disable -LSs ${1} "${2:-}"; }
+__curl() { __devnull2 curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
 #curl_header "site" "code"
-__curl_header() { __urlverify && __curl --disable -LSIs --max-time 1 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
+__curl_header() { __urlverify "$1" && __devnull2 __curl --disable -LSIs --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
-__curl_download() { __urlverify && __curl --disable -LSs "$1" -o "$2"; }
+__curl_download() { __urlverify "$1" && __curl --disable -LSs "$1" -o "$2"; }
 #curl_version "url"
-__curl_version() { __urlverify && __curl --disable -LSs $REPORAW/master/version.txt; }
+__curl_version() { __urlverify "$1" && __curl --disable -LSs "$REPORAW/master/version.txt"; }
+#curl_upload "file" "url"
+__curl_upload() { __curl --upload-file "$1" "$2"; }
 #urlcheck "url"
-__urlcheck() { __urlverify && __curl --disable --connect-timeout 1 --retry 2 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+__urlcheck() { __curl --disable --connect-timeout 1 --retry 1 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
 #urlverify "url"
-__urlverify() { __urlcheck $1 || __urlinvalid $1; }
+__urlverify() { __urlcheck "$1" || __urlinvalid "$1"; }
 #urlinvalid "url"
 __urlinvalid() {
   if [ -z "$1" ]; then
@@ -437,7 +444,16 @@ __urlinvalid() {
   else
     printf_red "Can't find $1"
   fi
-  exit 1
+  return 1
+}
+#very simple function to ensure connection
+__api_test() {
+  if __am_i_online; then
+    return 0
+  else
+    printf "\n"
+    printf_exit "1" "Unable to connect to the server\n"
+  fi
 }
 #do_not_add_a_url "url"
 __do_not_add_a_url() {
@@ -680,7 +696,7 @@ __sudoask() {
 }
 
 __sudoexit() {
-  if can_i_sudo; then
+  if __can_i_sudo; then
     __sudoask || printf_green "Getting privileges successfull continuing"
   else
     printf_red "Failed to get privileges\n"
@@ -688,7 +704,7 @@ __sudoexit() {
 }
 
 __requiresudo() {
-  if can_i_sudo; then
+  if __can_i_sudo; then
     __sudoask && __sudoexit && sudo "$@" 2>/dev/null
   else
     printf_red "You dont have access to sudo\n\t\tPlease contact the syadmin for access"
@@ -937,6 +953,9 @@ __if_os_id() {
   elif [ -f "/etc/redhat-release" ]; then
     local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
     local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+  elif [ -f "$(command -v sw_vers 2>/dev/null)"]; then
+    distroname="MacOS"
+    distroversion="$(sw_vers -productVersion)"
   else
     return 1
   fi
@@ -974,7 +993,7 @@ __if_os_id() {
       darwin | mac | macos)
         if [[ "$distroname" =~ ^mac ]] || [[ "$distroname" =~ ^darwin ]]; then
           distro_id="Mac"
-          distro_version=""
+          distro_version="$distroversion"
           return 0
         else
           return 1

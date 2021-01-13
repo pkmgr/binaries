@@ -123,7 +123,8 @@ printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
-  printf_color "\t\t$msg" "$color"
+  echo ""
+  printf_color "\t\t$msg\n" "$color"
   echo ""
   exit 0
 }

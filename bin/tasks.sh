@@ -63,23 +63,25 @@ FIELD_IFS=\|            # IFS for splitting lines into fields
 
 ### FUNCTIONS
 
-usage() {
-  printf_green "Usage: tasks.sh [task_num] [command] ..."
-  printf_green "list [all|complete]       - shows a list of tasks"
-  printf_green "add [@project] desc       - adds a task to the given project"
-  printf_green "<task_num> delete         - deletes a task and all its sessions"
-  printf_green "<task_num> start          - starts a session for the given task"
-  printf_green "[task_num] stop [durn]    - stops session(s) with optional duration"
-  printf_green "<task_num> session <durn> - creates a session"
-  printf_green "<task_num> switch [durn]  - switches session to a new task"
-  printf_green "<task_num> done [durn]    - marks a task as complete"
-  printf_green "<task_num> [info]         - shows information for the given task"
-  printf_green "report [week]             - generate a weekly report"
-  printf_green "cleanup                   - discard all completed tasks"
+__help() {
+  echo ""
+  printf_custom "4" "Usage: tasks.sh [task_num] [command] ..."
+  printf_custom "4" "list [all|complete]       - shows a list of tasks"
+  printf_custom "4" "add [@project] desc       - adds a task to the given project"
+  printf_custom "4" "<task_num> delete         - deletes a task and all its sessions"
+  printf_custom "4" "<task_num> start          - starts a session for the given task"
+  printf_custom "4" "[task_num] stop [durn]    - stops session(s) with optional duration"
+  printf_custom "4" "<task_num> session <durn> - creates a session"
+  printf_custom "4" "<task_num> switch [durn]  - switches session to a new task"
+  printf_custom "4" "<task_num> done [durn]    - marks a task as complete"
+  printf_custom "4" "<task_num> [info]         - shows information for the given task"
+  printf_custom "4" "report [week]             - generate a weekly report"
+  printf_custom "4" "cleanup                   - discard all completed tasks"
+  echo ""
   exit
 }
 
-[ "$1" = "--help" ] && usage
+[ "$1" = "--help" ] && __help
 
 init_db() {
   $SQLITE $DATABASE <<-SQL
@@ -1103,11 +1105,11 @@ case "$COMMAND" in
   cmd_list_tasks "$PARAM"
   ;;
 "help" | "-?" | "-h")
-  usage
+  __help
   ;;
 *)
   echo "Error: Unknown command '$COMMAND'"
-  usage
+  __help
   ;;
 esac
 

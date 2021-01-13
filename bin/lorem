@@ -4,7 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
+##@Version     : 011320210241-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : lorem
@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,6 +42,10 @@ fi
 __help() {
   printf_help "Usage: lorem [paragraphs, sentences] [integer]    |    lorem paragraphs 10"
 }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+API="https://lorum.casjay.now.sh"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -75,7 +79,12 @@ case $2 in
   ;;
 esac
 
-curl -s https://lorum.casjay.now.sh/"${type}"/"${amount}" && printf "\n"
+printf "\n"
+if __am_i_online; then
+  __curl $API/${type}/${amount}
+else
+  printf_red "Unable to connect to the API server\n"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

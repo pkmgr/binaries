@@ -21,7 +21,7 @@ PATH="/usr/games:$PATH"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -37,34 +37,38 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
+__help() { printf_help "Usage: $APPNAME"; }
 
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help" ] && __help
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-HOST=$(hostname -f)
-HOSTNAME=$(hostname -f)
-HOSTSHORT=$(hostname -s)
+HOST=$(__hostname -f)
+HOSTNAME=$(__hostname -f)
+HOSTSHORT=$(__hostname -s)
 
-getlipaddr
-
+__getlipaddr
+__requiresudo true
 if [ -d "/etc/casjaysdev/messages" ]; then
-  devnull sudo find "/etc/casjaysdev/messages" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/casjaysdev/messages" -type f -exec sed -i "s#Welcome to .*!#Welcome to $HOSTNAME!#g" {} \;
+  __requiresudo find "/etc/casjaysdev/messages" -type f -exec sed -i "s#MY Hostname is.*#MY Hostname is:    $HOSTSHORT#g" {} \;
+  __requiresudo find "/etc/casjaysdev/messages" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \;
 fi
 
 if [ -f "/etc/issue" ]; then
-  devnull sudo find "/etc/issue" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/issue" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \;
 fi
 
 if [ -f "/etc/motd" ]; then
-  devnull sudo find "/etc/motd" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/motd" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \;
 fi
 
 if [ -f "/etc/issue.net" ]; then
-  devnull sudo find "/etc/issue.net" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/issue.net" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \;
 fi
 
 if [ -f "/etc/motd.net" ]; then
-  devnull sudo find "/etc/motd.net" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/motd.net" -type f -exec sed -i "s#MY IP Adress is.*#MY IP Adress is:   $CURRIP4#g" {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

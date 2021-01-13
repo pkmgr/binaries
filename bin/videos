@@ -50,7 +50,7 @@ xine-ui() { xine || xine-ui; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__help() { printf_custom "84" "Usage: videos  |  a video menu" && exit 1; }
+__help() { printf_help "84" "Usage: videos  |  a video menu" && exit 1; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

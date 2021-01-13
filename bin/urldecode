@@ -20,7 +20,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,13 +40,17 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+__help() { printf_help "Usage: urldecode myurl"; }
+
 url="$1"
-[ "$1" = "--help" ] && printf_help "Usage: urldecode myurl"
-[[ -z "$url" ]] && url=$(cat -)
+[ "$1" = "--help" ] && __help
+[ -n "$url" ] || __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-printf_green "$(perl -MURI::Escape -e 'print uri_unescape($ARGV[0]);' "$url")\n"
+if __api_test; then
+  printf_green "$(perl -MURI::Escape -e 'print uri_unescape($ARGV[0]);' "$url")\n"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

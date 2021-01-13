@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,9 +42,8 @@ fi
 #printf_red "Work in progress" && exit
 
 __help() {
-  printf_green "Lookup definition "
-  printf_green "Usage: define WordToLookUP"
-  exit 0
+  printf_custom "4" "Lookup definition "
+  printf_help "Usage: define WordToLookUP"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -54,7 +53,7 @@ __help() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-check_app dict
+__check_app dict
 
 dict -d moby-thesaurus "$1" | sed '/^$/d' | sed 's#From Moby Thesaurus.*##g' | printf_newline "2"
 

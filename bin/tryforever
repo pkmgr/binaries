@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,20 +39,22 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-check_app curl
+__check_app curl
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 trap exit SIGINT
 
-if [ ! $1 ]; then
-  printf_red "Usage: $0 <command> <args...> "
+__help() {
+  printf_custom "4" "Usage: $0 <command> <args...> "
   printf_help "Keep trying command until it succeeds. Useful for trainternets."
-fi
+}
+
+[ -z "$1" ] && __help
 
 while sleep 1; do
   "$@" && exit 0
-  echo -e "\033[31m$1 command failed, trying again...\033[0m"
+  printf_info "$1 command failed, trying again..."
 done
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,12 +39,12 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#check_app
+#__check_app
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Get Device
-getlipaddr
+__getlipaddr
 
 # Get IP4 address
 NEWIP4="$(/sbin/ifconfig "$NETDEV" | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1)"
@@ -63,7 +63,7 @@ else
 fi
 
 # DOMAIN
-NEWDOM="$(domainname -d)"
+NEWDOM="$(__domainname | grep -v none || echo .local)"
 if [ -f "/var/lib/system-scripts/checkip/mydomain.txt" ]; then
   OLDDOM="$(cat /var/lib/system-scripts/checkip/mydomain.txt)"
 else
@@ -71,7 +71,7 @@ else
 fi
 
 # ShortHostname
-NEWSHORT="$(hostname -s)"
+NEWSHORT="$(__hostname -s)"
 if [ -f "/var/lib/system-scripts/checkip/myhostname.txt" ]; then
   OLDSHORT="$(cat /var/lib/system-scripts/checkip/myhostname.txt)"
 else
@@ -80,7 +80,31 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-devnull requiresudo mkdir -p /var/lib/system-scripts/checkip /etc/casjaysdev
+__requiresudo mkdir -p /var/lib/system-scripts/checkip /etc/casjaysdev
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+#Change IPV6
+if [ -z "$NEWIP6" ]; then
+  printf_red "no ipv6 address found"
+else
+  printf_green "ipv6 works so continuing with IPV6 changes"
+  __requiresudo sh -c "echo "$NEWIP6" > /var/lib/system-scripts/checkip/myip6.txt"
+  __requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /root -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/postfix -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/proftpd* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/named -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /var/named -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /var/www -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/hosts* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/issue* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/motd* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/webmin -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /var/lib/system-scripts -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -89,81 +113,57 @@ if [ -z "$NEWIP4" ]; then
   printf_red "no ipv4"
 else
   printf_green "ipv4 works so continuing with IPV4 changes"
-  devnull requiresudo sh -c "echo "$NEWIP4" > /var/lib/system-scripts/checkip/myip4.txt"
-  devnull requiresudo find /root -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/proftpd* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/postfix -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/hosts* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/issue* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/motd* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/named -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /var/www -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /var/named -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/webmin -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  #devnull requiresudo  find /etc/usermin -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;  > /dev/null 2>&1
-  devnull requiresudo find /var/lib/system-scripts -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  devnull requiresudo find /etc/casjaysdev/system-scripts -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
-fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#Change IPV6
-if [ -z "$NEWIP6" ]; then
-  printf_red "no ipv6"
-else
-  printf_green "ipv6 works so continuing with IPV6 changes"
-  devnull requiresudo sh -c "echo "$NEWIP6" > /var/lib/system-scripts/checkip/myip6.txt"
-  devnull requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#\[2604:6000:ffc0:1:7dbc:544f:bf02:c93a\]:443##g" {} \;
-  devnull requiresudo find /root -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/postfix -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/proftpd* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/named -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /var/named -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /var/www -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/hosts* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/issue* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/motd* -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/webmin -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  devnull requiresudo find /var/lib/system-scripts -type f -exec sed -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo sh -c "echo "$NEWIP4" > /var/lib/system-scripts/checkip/myip4.txt"
+  __requiresudo find /root -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/proftpd* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/postfix -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/hosts* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/issue* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/motd* -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/named -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /var/www -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /var/named -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/webmin -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  # __requiresudo  find /etc/usermin -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;  > /dev/null 2>&1
+  __requiresudo find /var/lib/system-scripts -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /etc/casjaysdev/system-scripts -type f -exec sed -i "s#$OLDIP4#$NEWIP4#g" {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #Change Domain
-if [ ! "$(domainname | grep -v none)" = "" ]; then
-  devnull requiresudo sh -c "echo "$NEWDOM" > /var/lib/system-scripts/checkip/mydomain.txt"
-  devnull requiresudo find /root -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/postfix -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/proftpd* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/named -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /var/named -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /var/www -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/hosts* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/issue* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/motd* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/munin -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/rc.d/rc.local -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/cron* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/webmin -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/webalizer* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/uptimed.conf -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  devnull requiresudo find /var/lib/system-scripts -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+if [ ! "$(echo $NEWDOM | grep -v none)" = "" ]; then
+  __requiresudo sh -c "echo "$NEWDOM" > /var/lib/system-scripts/checkip/mydomain.txt"
+  __requiresudo find /root -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/postfix -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/proftpd* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/named -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /var/named -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /var/www -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/hosts* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/issue* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/motd* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/munin -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/rc.d/rc.local -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/cron* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/webmin -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/webalizer* -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/uptimed.conf -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /var/lib/system-scripts -type f -exec sed -i "s#$OLDDOM#$NEWDOM#g" {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Change Short HostName
-if [ ! "$(hostname)" = "" ]; then
-  devnull requiresudo sh -c "echo "$NEWSHORT" > /var/lib/system-scripts/checkip/myhostname.txt"
-  devnull requiresudo find /root -type f -exec sed -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
-  devnull requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
-  devnull requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
+if [ ! "$(echo $NEWSHORT)" = "" ]; then
+  __requiresudo sh -c "echo "$NEWSHORT" > /var/lib/system-scripts/checkip/myhostname.txt"
+  __requiresudo find /root -type f -exec sed -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec sed -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec sed -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -174,10 +174,10 @@ fi
 if [ ! -z "$NEWIP6" ]; then
   printf_green "Changed the IP6 from $OLDIP6 to $NEWIP6"
 fi
-if [ ! "$(domainname | grep -v none)" = "" ]; then
+if [ ! -z "$NEWDOM" ]; then
   printf_green "Changed the DOMAIN from $OLDDOM to $NEWDOM"
 fi
-if [ ! "$(hostname)" = "" ]; then
+if [ ! -z "$NEWSHORT" ]; then
   printf_green "Changed the HOSTNAME from $OLDSHORT to $NEWSHORT"
 fi
 

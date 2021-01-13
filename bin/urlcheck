@@ -43,7 +43,7 @@ fi
 # Setup the help function
 
 __help() {
-  printf_green "Usage: urlcheck URL  |  return 0 if ok and 1 if invalid"
+  printf_help "Usage: urlcheck URL  |  return 0 if ok and 1 if invalid"
   exit
 }
 
@@ -51,7 +51,7 @@ __help() {
 
 # Set options
 
-[ "$1" = "--help" ] && __help && exit
+[ "$1" = "--help" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

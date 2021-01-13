@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,16 +39,17 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--help" ] && printf_help "Usage: urlencode url"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__help() { printf_help "Usage: urlencode url"; }
 
 url="$1"
-[[ -z "$url" ]] && url=$(cat -)
+[ "$1" = "--help" ] && __help
+[ -n "$url" ] || __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-printf_green "$(perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' "$url")"
+if __api_test; then
+  printf_green "$(perl -MURI::Escape -e 'print uri_unescape($ARGV[0]);' "$url")\n"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

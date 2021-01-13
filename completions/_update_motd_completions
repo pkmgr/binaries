@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# _update-motd_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for update-motd
+
+_update-motd_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/update-motd/array)"
+
+  _init_completion || return
+
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _update-motd_completions -o default update-motd
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

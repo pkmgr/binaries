@@ -50,8 +50,7 @@ fi
 # Setup the help function
 
 __help() {
-  printf_help "\n
-\t\t              A Wallpaper Manager for all systems   |   Usage: wallpapermgr command
+  printf_help "\t\t              A Wallpaper Manager for all systems   |   Usage: wallpapermgr command
 \t\twallpapermgr version              - show the version info           | IE: wallpapermgr version casjay
 \t\twallpapermgr remove               - remove wallpaper pack           | IE: wallpapermgr remove casjay
 \t\twallpapermgr install              - install wallpaper pack          | IE: wallpapermgr install dwt1

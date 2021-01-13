@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -29,30 +29,32 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 else
   mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  __curl "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
   . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__help() { printf_help "Usage: command | transfer.sh or transfer.sh filename"; }
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--help" ] && printf_help "Usage: command | transfer.sh or transfer.sh filename"
+[ "$1" = "--help" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-tmpfile=$(mktemp -t transferXXX)
-if tty -s; then
-  basefile=$(basename "$1" | sed -e 's/[^a-zA-Z0-9._-]/-/g')
-  curl -LSs --upload-file "$1" "https://transfer.sh/$basefile" >>$tmpfile
-else
-  curl -LSs --upload-file "-" "https://transfer.sh/$1" >>$tmpfile
+if __api_test; then
+  tmpfile=$(mktemp -t transferXXX)
+  if tty -s; then
+    basefile=$(basename "$1" | sed -e 's/[^a-zA-Z0-9._-]/-/g')
+    __curl_upload "$1" "https://transfer.sh/$basefile" >>"$tmpfile"
+  else
+    __curl_upload "-" "https://transfer.sh/$1" >>"$tmpfile"
+  fi
+  printf_green "$(cat $tmpfile)\n"
+  __rm_rf "$tmpfile"
 fi
-
-printf_green "$(cat $tmpfile)\n"
-rm -f $tmpfile
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

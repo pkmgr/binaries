@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -58,24 +58,29 @@ __help() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 LOCID="${MYLOCATIONID:-$2}"
+API="http://wttr.in"
+API2="http://v2.wttr.in"
+APIACCU="http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 report() { printf_color "Weather report for $LOCID\n" "21"; }
 grep_v() { grep -v "Weather report" | grep -v "Location"; }
-wttrin() { curl -LSs "http://wttr.in/$LOCID?AFu$2" | grep_v && report; }
-wttrin2() { curl -LSs "http://v2.wttr.in/$LOCID?AFu$2" | grep_v && report; }
-wttrimage() { curl -LSsq "http://wttr.in/$LOCID?AFuw.png" -o "$HOME/.local/tmp/weather.png"; }
-wttrcity() { curl -LSsq "http://wttr.in/$MYLOCATIONZIP?AFu$2" | grep -v "Weather report" | head -n 6 && echo ""; }
-wttrmoon() { curl -LSs "http://wttr.in/moon?AFu$2"; }
-wttrsimple() { curl -LSs http://wttr.in/$LOCID?format=3; }
-wttraccuweather() { curl -s "http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=${*:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
+wttrin() { __curl "$API/$LOCID?AFu$2" | grep_v && report; }
+wttrin2() { __curl -LSs "$API2/$LOCID?AFu$2" | grep_v && report; }
+wttrimage() { __curl -LSsq "$API/$LOCID?AFuw.png" -o "$HOME/.local/tmp/weather.png"; }
+wttrcity() { __curl -LSsq "$API/$MYLOCATIONZIP?AFu$2" | grep -v "Weather report" | head -n 6 && echo ""; }
+wttrmoon() { __curl -LSs "$API/moon?AFu$2"; }
+wttrsimple() { __curl -LSs "$API/$LOCID?format=3"; }
+wttraccuweather() { __curl -s "$APIACCU?query=${*:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-mkd "$HOME/.local/tmp"
+__mkd "$HOME/.local/tmp"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__api_test
 
 case "$1" in
 help | -h | --help)

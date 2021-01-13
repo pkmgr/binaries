@@ -55,10 +55,10 @@ URL="https://api.urbandictionary.com/v0/tooltip?term=$1"
 [ "$1" = "--help" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-printf_green "Definition of $1 is: \n\t\t$(curl -s "$URL" |
-  python3 -c "import sys, json, html; print(html.unescape(json.load(sys.stdin)['string']).split('\n',2)[1])")"
-
+if __api_test; then
+  printf_green "Definition of $1 is: \n\t\t$(curl -s "$URL" |
+    python3 -c "import sys, json, html; print(html.unescape(json.load(sys.stdin)['string']).split('\n',2)[1])")"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # end

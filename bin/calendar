@@ -12,6 +12,7 @@ USER="${SUDO_USER:-${USER}}"
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
 # @Description : A calendar written in bash
+# @TODO        :
 # @Source      : https://github.com/coreymwamba/estonta
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -19,7 +20,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -75,7 +76,6 @@ containsElement() {
 initialise() {
   if [[ ! -s "$eventpath" ]]; then
     mkdir -p "$eventpath" 2>/dev/null
-    echo "New directory created at $eventpath."
   fi
 }
 
@@ -129,9 +129,9 @@ list_appointment() {
   tail -n +7 "$found" >"$LERTA"
   generate_fields
   if [[ -n "${FULL+set}" ]]; then
-    echo -e "$FULL"
+    printf_green "$FULL"
   else
-    echo -e "$TERSE"
+    printf_green "$TERSE"
   fi
 }
 
@@ -144,7 +144,7 @@ list_all() {
   for file in $eventpath/*.ics; do
     tail -n +7 $file >$LERTA
     generate_fields
-    echo -e "$TERSE"
+    printf_green "$TERSE"
   done
 }
 
