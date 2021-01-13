@@ -1,8 +1,4 @@
-#!/usr/bin/env bash
-
-export PATH="$(echo $PATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
-
-export systemdate="$(date +%Y-%m-%d)-$(date +%H-%m)"
+#!/bin/bash
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
@@ -11,19 +7,48 @@ export systemdate="$(date +%Y-%m-%d)-$(date +%H-%m)"
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : Application Functions
-#
+# @Description : functions for installed apps
+# @TODO        : Better error handling/refactor code
+# @
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# fail if git is not installed
+#setup paths
+TMP="${TMP:-/tmp}"
+TEMP="${TEMP:-/tmp}"
+APPNAME="${APPNAME:-applications}"
 
+TMPPATH+="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
+TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
+TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
+
+export WHOAMI="${USER}"
+export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
+export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m" && echo)"
+
+#fail if git is not installed
 if ! command -v "git" >/dev/null 2>&1; then
-  echo -e "\t\t\033[0;31mGit is not installed\033[0m"
+  echo -e "\n\n\t\t\033[0;31mGit is not installed\033[0m\n"
   exit 1
 fi
 
-##################################################################################################
+#macos fix
+case "$(uname -s)" in
+Darwin) alias dircolors=gdircolors ;;
+esac
 
+#Set Main Repo for dotfiles
+export DOTFILESREPO="${DOTFILESREPO:-https://github.com/dfmgr}"
+export DFMGRREPO="${DFMGRREPO:-https://github.com/dfmgr}"
+export PKMGRREPO="${PKMGRREPO:-https://github.com/pkmgr}"
+export DEVENVMGR="${DEVENVMGR:-https://github.com/devenvmgr}"
+export ICONMGRREPO="${ICONMGRREPO:-https://github.com/iconmgr}"
+export FONTMGRREPO="${FONTMGRREPO:-https://github.com/fontmgr}"
+export THEMEMGRREPO="${THEMEMGRREPO:-https://github.com/thememgr}"
+export DOCKERMGRREPO="${DOCKERMGRREPO:-https://github.com/dockermgr}"
+export SYSTEMMGRREPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}"
+export WALLPAPERMGRREPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}"
+
+#setup colors
 NC="$(tput sgr0 2>/dev/null)"
 RESET="$(tput sgr0 2>/dev/null)"
 BLACK="\033[0;30m"
@@ -38,8 +63,11 @@ ORANGE="\033[0;33m"
 LIGHTRED='\033[1;31m'
 BG_GREEN="\[$(tput setab 2 2>/dev/null)\]"
 BG_RED="\[$(tput setab 9 2>/dev/null)\]"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ICON_INFO="[ ℹ️ ]"
+ICON_GOOD="[ ✔ ]"
+ICON_WARN="[ ❗ ]"
+ICON_ERROR="[ ✖ ]"
+ICON_QUESTION="[ ❓ ]"
 
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
@@ -49,288 +77,246 @@ printf_purple() { printf_color "\t\t$1\n" 5; }
 printf_yellow() { printf_color "\t\t$1\n" 3; }
 printf_blue() { printf_color "\t\t$1\n" 4; }
 printf_cyan() { printf_color "\t\t$1\n" 6; }
-printf_info() { printf_color "\t\t[ ℹ️ ] $1\n" 3; }
-printf_exit() {
-  printf_color "\t\t$1\n" 1
-  exit 1
-}
-printf_help() { printf_color "\t\t$1\n" 1; }
+printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
 printf_read() { printf_color "\t\t$1" 5; }
-printf_success() { printf_color "\t\t[ ✔ ] $1\n" 2; }
-printf_error() { printf_color "\t\t[ ✖ ] $1 $2\n" 1; }
-printf_warning() { printf_color "\t\t[ ❗ ] $1\n" 3; }
-printf_question() { printf_color "\t\t[ ❓ ] $1 - [y/N] [❓] " 6; }
+printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
+printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
+printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
+printf_question() { printf_color "\t\t$ICON_QUESTION $1 " 6; }
 printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
-printf_execute_success() { printf_color "\t\t[ ✔ ] $1 [ ✔ ] \n" 2; }
-printf_execute_error() { printf_color "\t\t[ ✖ ] $1 $2 [ ✖ ] \n" 1; }
+printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
+printf_execute_error() { printf_color "\t\t$ICON_WARN $1 $2\n" 1; }
 printf_execute_result() {
-  if [ "$1" -eq 0 ]; then printf_execute_success "$2"; else printf_execute_error "$2"; fi
+  if [ "$1" -eq 0 ]; then printf_execute_success "$2"; else printf_execute_error "${3:-$2}"; fi
   return "$1"
 }
+
+printf_not_found() { if ! cmd_exists "$1"; then printf_exit "The $1 command is not installed"; fi; }
 printf_execute_error_stream() { while read -r line; do printf_execute_error "↳ ERROR: $line"; done; }
 
-##################################################################################################
+printf_exit() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg" "$color"
+  echo ""
+  exit 0
+}
+
+printf_help() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg" "$color"
+  echo ""
+  exit 0
+}
+
+printf_custom() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg" "$color"
+  echo ""
+}
+
+printf_readline() {
+  set -o pipefail
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
+  while read line; do
+    printf_custom "$line" "$color"
+  done
+  set +o pipefail
+}
+
+printf_newline() {
+  set -o pipefail
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
+  while read line; do
+    printf_color "\t\t$line\n" "$color"
+  done
+  set +o pipefail
+}
+
+printf_custom_question() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg " "$color"
+}
+
+answer_is_yes() { [[ "$__QUESTION_REPLY" =~ ^[Yy]$ ]] && return 0 || return 1; }
+
+printf_read_question() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
+  local msg="$*"
+  shift
+  printf_custom_question "$1 is not installed Would you like install it" "$color"
+  read -r -n 1 __QUESTION_REPLY
+}
+
+ask_for_confirmation() {
+  printf_question "$1 (y/n) "
+  read -r -n 1 __QUESTION_REPLY
+  printf "\n"
+}
+
+printf_head() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
+  local msg="$*"
+  shift
+  printf_color "
+\t\t##################################################
+\t\t$msg
+\t\t##################################################\n" "$color"
+}
 
 printf_result() {
+  PREV="$4"
   [ ! -z "$1" ] && EXIT="$1" || EXIT="$?"
   [ ! -z "$2" ] && local OK="$2" || local OK="Command executed successfully"
-  [ ! -z "$2" ] && local FAIL="$2" || local FAIL="Command has failed"
+  [ ! -z "$3" ] && local FAIL="$3" || local FAIL="The previous command has failed"
+  [ ! -z "$4" ] && local FAIL="$3" || local FAIL="$3"
   if [ "$EXIT" -eq 0 ]; then
     printf_success "$OK"
-    exit 0
+    return 0
   else
-    printf_error "$FAIL"
-    exit 1
-  fi
-}
-
-##################################################################################################
-
-devnull() { "$@" >/dev/null 2>&1; }
-killpid() { devnull kill -9 $(pidof "$1"); }
-hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1; }
-cmd_exists() {
-  local pkg LISTARRAY
-  declare -a LISTARRAY="$*"
-  for cmd in $LISTARRAY; do
-    type -P "$1" | grep -q "/" 2>/dev/null
-  done
-}
-set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
-getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
-
-##################################################################################################
-
-xfce4() { cmd_exists xfce4-about; }
-imagemagick() { cmd_exists convert; }
-emacs() { cmd_exists emacs26 || cmd_exists emacs; }
-firefox() { cmd_exists firefox-esr || cmd_exists firefox; }
-chromium() { cmd_exists chromium || cmd_exists chromium-browser; }
-speedtest() { cmd_exists speedtest-cli || cmd_exists speedtest; }
-gtk-2.0() { devnull find /lib* /usr* -iname "*libgtk*2*.so*" -type f | grep -q . && return 0 || return 1; }
-gtk-3.0() { devnull find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . && return 0 || return 1; }
-
-##################################################################################################
-
-backupfile() {
-  local myappname="${APPNAME:-$USER}"
-  local date="$systemdate"
-  local backupdir="${BACKUPS:-$HOME/.local/backups/dotfiles}"
-  local filename="$myappname-$date.tar.gz"
-  declare -a args="$@"
-  for f in $args; do
-    [ ! -f "$backupdir/$filename" ] && tar cfzv "$backupdir/$filename" "$f" >>"$backupdir/$myappname.log"
-    if [ -L "$f" ]; then
-      [ ! -L "$(ls -ltra $f | grep '\->' | awk '{print $11}')" ] &&
-        [ -e "$(ls -ltra $f | grep '\->' | awk '{print $11}')" ] &&
-        tar ufzv "$backupdir/$filename" "$f" >>"$backupdir/$myappname.log" >>"$backupdir/$myappname.log" &&
-        tar ufzv "$backupdir/$filename" "$(ls -ltra $f | grep '\->' | sed "s#.*-.##g" | sed "s# ##g")" >>"$backupdir/$myappname.log"
+    if [ -z "$4" ]; then
+      printf_error "$FAIL"
     else
-      tar ufzv "$backupdir/$filename" "$f" >>"$backupdir/$myappname.log"
+      printf_error "$FAIL: $PREV"
     fi
-  done
-  return 0
-}
-
-##################################################################################################
-
-backupapp() {
-  local myappdir="$APPDIR"
-  local myappname="${APPNAME:-$USER}"
-  local date="$systemdate"
-  local backupdir="${BACKUPS:-$HOME/.local/backups/dotfiles}"
-  local count="$(cat $backupdir/$myappname.txt 2>/dev/null | wc -l)"
-  local filename="$myappname-$date.tar.gz"
-  local prev3backup="$(ls -tr1dQ $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 3)"
-  local rmpre4vbackup"$(ls -t1dQ $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
-  touch "$backupdir/$myappname.txt"
-  if [ -e "$myappdir" ] && [ ! -d $myappdir/.git ]; then
-    echo "#################################" >>"$backupdir/$myappname.log"
-    echo "# $(date +'%A, %B %d, %Y')" >>"$backupdir/$myappname.log"
-    echo "# $backupdir/$filename $myappdir" >>"$backupdir/$myappname.log"
-    echo "#################################" >>"$backupdir/$myappname.log"
-    tar cfzv "$backupdir/$filename" "$myappdir" >>"$backupdir/$myappname.log"
-    echo "$prev3backup" >"$backupdir/$myappname.txt"
+    return 1
   fi
-  [ "$count" -gt "3" ] && rm_rf $rmpre4vbackup
-  rm_rf "$myappdir"
-  return 0
 }
 
-##################################################################################################
-
-runapp() {
-  local logdir="${LOGDIR:-$HOME/.local/logs}"
-  mkdir -p "$logdir"
+###################### error handling ######################
+#no output
+__devnull() { $@ >/dev/null 2>&1; }
+#error output
+__devnull1() { $@ 1>/dev/null 2>&0; }
+#standart output
+__devnull2() { $@ 2>/dev/null; }
+#err "commands"
+_err() {
+  local COMMAND="${*:-$(false)}"
+  local TMP_FILE="$(mktemp "${TMP:-/tmp}"/error/_rr-XXXXX.err)"
+  __mkd "${TMP:-/tmp}"/error
+  bash -c "${COMMAND}" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=$?
+  [ ! -s "$TMP_FILE" ] || return_error "$EXIT" "$COMMAND" "$TMP_FILE"
+  #rm -rf "$TMP_FILE"
+  return $EXIT
+}
+return_error() {
+  CODE="$1"
+  PREV="$2"
+  ERRL="$3"
+  [ ! -s "$TMP_FILE" ] || printf_red "$PREV has failed with errors"
+  cat "$ERRL" | printf_readline "3"
+  [ -f "$ERRL" ] && __rm_rf "$ERRL"
+}
+#runapp "app"
+__runapp() {
+  local logdir="${LOGDIR:-$HOME/.local/log}/runapp"
+  local COMMAND="${*:-$(false)}"
+  __mkd "$logdir"
   if [ "$1" = "--bg" ]; then
     local logname="$2"
     shift 2
     echo "#################################" >>"$logdir/$logname.log"
     echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
-    echo "#################################" >>"$logdir/$logname.err"
-    "$@" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &
+    echo "#################################" >>"$logdir/$logname.log"
+    bash -c "$COMMAND" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &
   elif [ "$1" = "--log" ]; then
     local logname="$2"
     shift 2
     echo "#################################" >>"$logdir/$logname.log"
     echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
-    echo "#################################" >>"$logdir/$logname.err"
-    "$@" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err"
+    echo "#################################" >>"$logdir/$logname.log"
+    bash -c "$COMMAND" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err"
   else
     echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
     echo "$(date +'%A, %B %d, %Y')" >>"$logdir/${APPNAME:-$1}.log"
-    echo "#################################" >>"$logdir/${APPNAME:-$1}.err"
-    "$@" >>"$logdir/${APPNAME:-$1}.log" 2>>"$logdir/${APPNAME:-$1}.err"
+    echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
+    bash -c "$COMMAND" >>"$logdir/${APPNAME:-$1}.log" 2>>"$logdir/${APPNAME:-$1}.err"
   fi
 }
-
-##################################################################################################
-
-cmdif() {
+#runpost "program"
+__run_post() {
+  local e="$1"
+  local m="${e//__devnull//}"
+  execute "$e" "executing: $m"
+  setexitstatus
+  set --
+}
+###################### checks ######################
+#__cmd_exists command
+__cmd_exists() {
+  [ $# -eq 0 ] && return 1
+  local args=$*
+  local exitCode
+  for cmd in $args; do
+    if find "$(command -v $cmd 2>/dev/null)" &>/dev/null || find "$(which --skip-alias --skip-functions $cmd 2>/dev/null)" &>/dev/null; then exitCode=0; else exitCode=1; fi
+    local exitCode+="$exitCode"
+  done
+  [ "$exitCode" -eq 0 ] && return 0 || return 1
+}
+#system_service_exists "servicename"
+__system_service_exists() {
+  if sudo systemctl list-units --full -all | grep -Fq "$1.service" || sudo systemctl list-units --full -all | grep -Fq "$1.socket"; then return 0; else return 1; fi
+  setexitstatus
+  set --
+}
+#system_service_enable "servicename"
+__system_service_enable() {
+  if __system_service_exists; then __devnull "sudo systemctl enable -f $1"; fi
+  setexitstatus
+  set --
+}
+#system_service_disable "servicename"
+__system_service_disable() {
+  if __system_service_exists; then __devnull "sudo systemctl disable --now $1"; fi
+  setexitstatus
+  set --
+}
+#perl_exists "perlpackage"
+__perl_exists() {
   local package=$1
-  devnull unalias "$package"
-  if devnull command -v "$package"; then return 0; else return 1; fi
+  if devnull2 perl -M$package -le 'print $INC{"$package/Version.pm"}'; then return 0; else return 1; fi
 }
-perlif() {
+#python_exists "pythonpackage"
+__python_exists() {
+  __getpythonver
   local package=$1
-  if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}'; then return 0; else return 1; fi
+  if devnull2 "$PYTHONVER" -c "import $package"; then return 0; else return 1; fi
 }
-pythonif() {
-  local package=$1
-  if devnull $PYTHONVER -c "import $package"; then return 0; else return 1; fi
+#gem_exists "gemname"
+__gem_exists() {
+  local package="$1"
+  if __cmd_exists "$package" || devnull gem query -i -n "$package"; then return 0; else return 1; fi
 }
-
-##################################################################################################
-
-cmd_missing() { cmdif "$1" || MISSING+="$1 "; }
-perl_missing() { perlif $1 || MISSING+="perl-$1 "; }
-python_missing() { pythonif "$1" || MISSING+="$PYTHONVER-$1 "; }
-
-##################################################################################################
-
-ln_rm() { devnull find "$1" -xtype l -delete; }
-rm_rf() { if [ -e "$1" ]; then backupfile "$@" && devnull rm -Rf "$@"; fi; }
-cp_rf() { if [ -e "$1" ]; then backupfile "$2" && devnull cp -Rfa "$@"; fi; }
-ln_sf() {
-  backupfile "$@"
-  [ -L "$2" ] && rm_rf "$2"
-  devnull ln -sf "$@"
-}
-mv_f() { if [ -e "$1" ]; then
-  backupfile "$2"
-  devnull mv -f "$@"
-fi; }
-mkd() { devnull mkdir -p "$@"; }
-replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
-rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
-countwd() { cat $@ | wc-l | rmcomments; }
-urlcheck() { devnull curl --output /dev/null --silent --head --fail "$1"; }
-urlinvalid() { if [ -z "$1" ]; then printf_red "Invalid URL\n"; else
-  printf_red "Can't find $1\n"
-  exit 1
-fi; }
-urlverify() { urlcheck $1 || urlinvalid $1; }
-symlink() { ln_sf "$1" "$2"; }
-
-##################################################################################################
-
-__getpythonver() {
-  if [[ "$(python3 -V 2>/dev/null)" =~ "Python 3" ]]; then
-    PYTHONVER="python3"
-    PIP="pip3"
-    PATH="${PATH}:$(python3 -c 'import site; print(site.USER_BASE)')/bin"
-  elif [[ "$(python2 -V 2>/dev/null)" =~ "Python 2" ]]; then
-    PYTHONVER="python"
-    PIP="pip"
-    PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
-  fi
-  if [ "$(cmdif yay)" ] || [ "$(cmdif pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
-}
-__getpythonver
-
-##################################################################################################
-
-setexitstatus() {
-  [ ! -z "$EXIT" ] && local EXIT="$?"
-  export EXITSTATUS+="$EXIT"
-  if [ -z "$EXITSTATUS" ] || [ "$EXITSTATUS" -ne 0 ]; then
-    BG_EXIT="${BG_RED}"
-    return 1
-  else
-    BG_EXIT="${BG_GREEN}"
-    return 0
-  fi
-}
-
-##################################################################################################
-
-returnexitcode() {
-  if [ "$EXIT" -eq 0 ]; then
-    BG_EXIT="${BG_GREEN}"
-    return 0
-  else
-    BG_EXIT="${BG_RED}"
-    return 1
-  fi
-}
-
-##################################################################################################
-
-getexitcode() {
-  EXIT="$?"
-  if [ ! -z "$1" ]; then
-    local PSUCCES="$1"
-  elif [ ! -z "$SUCCES" ]; then
-    local PSUCCES="$SUCCES"
-  else
-    local PSUCCES="Command successful"
-  fi
-  if [ ! -z "$2" ]; then
-    local PERROR="$2"
-  elif [ ! -z "$ERROR" ]; then
-    local PERROR="$ERROR"
-  else
-    local PERROR="Command failed"
-  fi
-  if [ "$EXIT" -eq 0 ]; then
-    printf_cyan "$PSUCCES"
-  else
-    printf_red "$PERROR"
-  fi
-  unset ERROR SUCCES
-  returnexitcode
-}
-
-##################################################################################################
-
-getlipaddr() {
-  NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
-  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s#addr:##g | head -n1)"
-}
-
-##################################################################################################
-
-check_app() {
+#check_app "app"
+__check_app() {
+  local ARGS="$*"
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
-  if [ ! -z "$MISSING" ]; then
+  for cmd in "$ARGS"; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
+  if [ -n "$MISSING" ]; then
     printf_question "$cmd is not installed Would you like install it" [y/N]
-    read -n 1 -s choice
+    read -n 1 -s choice && echo
     if [[ $choice == "y" || $choice == "Y" ]]; then
       for miss in $MISSING; do
-        execute "pkmgr install $miss" "Installing $miss"
+        execute "pkmgr silent-install $miss" "Installing $miss" || return 1
       done
+    else
+      return 1
     fi
-  else
-    return 1
   fi
 }
-
-##################################################################################################
-
-check_pip() {
+#check_pip "pipname"
+__check_pip() {
+  local ARGS="$*"
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  for cmd in "$ARGS"; do __cmd_exists $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
     printf_question "$1 is not installed Would you like install it" [y/N]
     read -n 1 -s choice
@@ -343,12 +329,10 @@ check_pip() {
     return 1
   fi
 }
-
-##################################################################################################
-
-check_cpan() {
+#check_cpan "cpanname"
+__check_cpan() {
   local MISSING=""
-  for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
+  for cmd in "$@"; do __cmd_exists $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
     printf_question "$1 is not installed Would you like install it" [y/N]
     read -n 1 -s choice
@@ -360,103 +344,371 @@ check_cpan() {
   else
     return 1
   fi
-
 }
 
-##################################################################################################
+###################### get versions ######################
+__getpythonver() {
+  if [[ "$(python3 -V 2>/dev/null)" =~ "Python 3" ]]; then
+    PYTHONVER="python3"
+    PIP="pip3"
+    PATH="${PATH}:$(python3 -c 'import site; print(site.USER_BASE)')/bin"
+  elif [[ "$(python2 -V 2>/dev/null)" =~ "Python 2" ]]; then
+    PYTHONVER="python"
+    PIP="pip"
+    PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
+  fi
+  if [ "$(__cmd_exists yay)" ] || [ "$(__cmd_exists pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
+}
 
-can_i_sudo() {
+__getphpver() {
+  if __cmd_exists php; then
+    PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
+  else
+    PHPVER=""
+  fi
+  echo $PHPVER
+}
+
+###################### tools ######################
+#cat file | rmcomments
+__rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
+#countwd file
+__countwd() { cat "$@" | wc -l | __rmcomments; }
+#getuser "username" "grep options"
+__getuser() { if [ -n "$1" ]; then cut -d: -f1 /etc/passwd | grep "${1:-USER}" | cut -d: -f1 /etc/passwd | grep "${1:-USER}" ${2:-}; fi; }
+
+###################### Apps ######################
+#mkd dir
+__mkd() { if [ ! -e "$1" ]; then mkdir -p "$@"; else return 0; fi; }
+#tar "filename dir"
+__tar_create() { tar cfvz $@; }
+#tar filename
+__tar_extract() { tar xfvz $@; }
+#while_true "command"
+__while_true() { while true; do ${*} && sleep .3; done; }
+#for_each "option" "command"
+__for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
+#hostname2ip "hostname"
+__hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
+#timeout "time" "command"
+__timeout() { timeout ${1} bash -c "${2}"; }
+#count_files "dir"
+__count_files() { __devnull2 find "${1:-.}" -maxdepth 1 | wc -l; }
+#symlink "file" "dest"
+__symlink() { if [ -e "$1" ]; then __devnull ln -sf "${1}" "${2}"; fi; }
+#mv_f "file" "dest"
+__mv_f() { if [ -e "$1" ]; then __devnull mv -f "$@"; fi; }
+#cp_rf "file" "dest"
+__cp_rf() { if [ -e "$1" ]; then __devnull cp -Rfa "$1" "$2"; fi; }
+#rm_rf "file"
+__rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@"; fi; }
+#ln_rm "file"
+__ln_rm() { if [ -e "$1" ]; then __devnull find "${1:-.}" -maxdepth 1 -xtype l -delete; fi; }
+#ln_sf "file"
+__ln_sf() {
+  if [ -L "$2" ]; then
+    rm_rf "$2"
+  fi
+  __devnull ln -sf "$@"
+}
+###################### url functions ######################
+__curl() { __urlverify && __devnull2 curl --disable -LSs ${1} "${2:-}"; }
+#curl_header "site" "code"
+__curl_header() { __urlverify && __devnull2 curl --disable -LSIs --max-time 1 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
+#curl_download "url" "file"
+__curl_download() { __urlverify && __devnull2 curl --disable -LSs "$1" -o "$2"; }
+#urlcheck "url"
+__urlcheck() { __devnull curl --disable --connect-timeout 1 --retry 2 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+#urlverify "url"
+__urlverify() { __urlcheck $1 || __urlinvalid $1; }
+#urlinvalid "url"
+__urlinvalid() {
+  if [ -z "$1" ]; then
+    printf_red "Invalid URL"
+  else
+    printf_red "Can't find $1"
+  fi
+  exit 1
+}
+#do_not_add_a_url "url"
+__do_not_add_a_url() {
+  regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  string="$1"
+  if [[ "$string" =~ $regex ]]; then
+    printf_exit "Do not provide the full url: only provide the username/repo"
+  fi
+}
+###################### git commands ######################
+#git "commands"
+__git() {
+  __devnull1 git "$@"
+  __setexitstatus "$?"
+}
+#git_clone "url" "dir"
+__git_clone() {
+  __git_username_repo "$1"
+  local repo="$1"
+  [ ! -z "$2" ] && local myappdir="$2" || local myappdir="$APPDIR"
+  [ ! -d "$myappdir" ] || rm_rf "$myappdir"
+  __git -C "$myappdir" clone -q --recursive "$1" "${2}"
+}
+#git_pull "dir"
+__git_update() {
+  [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
+  local repo="$(git -C "$myappdir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
+  __git -C "$myappdir" reset --hard &&
+    __git -C "$myappdir" pull --recurse-submodules -fq &&
+    __git -C "$myappdir" submodule update --init --recursive -q &&
+    __git -C "$myappdir" reset --hard -q
+  if [ "$?" -ne "0" ]; then
+    __backupapp "$myappdir" "$myappdir" &&
+      rm_rf "$myappdir" &&
+      __git clone -q "$repo" "$myappdir"
+  fi
+}
+#git_commit "dir"
+__git_commit() {
+  if [ ! -d "$1" ]; then
+    __mkd "$1"
+    __git -C "$1" init -q
+  fi
+  touch "$1/README.md"
+  __git -C "${1:-.}" add -A .
+  __git -C "${1:-.}" commit -m "Updated Files" -q
+}
+#set folder name based on githost
+__git_hostname() {
+  echo "$@" | sed -e "s/[^/]*\/\/\([^@]*@\)\?\([^:/]*\).*/\2/" | awk -F. '{print $(NF-1) "." $NF}' | sed 's#\..*##g'
+}
+#setup directory structure
+__git_username_repo() {
+  unset protocol separator hostname username userrepo
+  local url="$1"
+  local re="^(https?|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)$"
+  local githostname="$(__git_hostname $url)"
+  if [[ $url =~ $re ]]; then
+    protocol=${BASH_REMATCH[1]}
+    separator=${BASH_REMATCH[2]}
+    hostname=${BASH_REMATCH[3]}
+    username=${BASH_REMATCH[4]}
+    userrepo=${BASH_REMATCH[5]}
+    folder=${githostname}
+  else
+    return 1
+  fi
+}
+###################### crontab functions ######################
+
+setupcrontab() {
+  local croncmd="logr"
+  local additional='bash -c "am_i_online && '$2' &"'
+}
+
+addtocrontab() {
+  [ "$1" = "--help" ] && printf_help "addtocrontab "0 0 1 * *" "echo hello""
+  local frequency="$1"
+  local command="am_i_online && && sleep $(expr $RANDOM \% 300) && $2"
+  local job="$frequency $command"
+  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | devnull2 crontab -
+}
+
+removecrontab() {
+  crontab -l | grep -v -F "$command" | devnull2 crontab -
+}
+
+cron_updater() {
+  [ "$*" = "--help" ] && printf_help "Usage: $APPNAME updater $APPNAME"
+  if [[ "$USER" = "root" ]]; then
+    if [ -z "$1" ] && [ -d "$SYSUPDATEDIR" ] && ls "$SYSUPDATEDIR"/* 1>/dev/null 2>&1; then
+      for upd in $(ls $SYSUPDATEDIR/); do
+        file="$(ls -A $SYSUPDATEDIR/$upd 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      done
+    else
+      if [ -d "$SYSUPDATEDIR" ] && ls "$SYSUPDATEDIR"/* 1>/dev/null 2>&1; then
+        file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      fi
+    fi
+  else
+    if [ -z "$1" ] && [ -d "$USRUPDATEDIR" ] && ls "$USRUPDATEDIR"/* 1>/dev/null 2>&1; then
+      for upd in $(ls $USRUPDATEDIR/); do
+        file="$(ls -A $USRUPDATEDIR/$upd 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      done
+    else
+      if [ -d "$USRUPDATEDIR" ] && ls "$USRUPDATEDIR"/* 1>/dev/null 2>&1; then
+        file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
+        if [ -f "$file" ]; then
+          appname="$(basename $file)"
+          sudo file=$file bash -c "$file --cron $*"
+        fi
+      fi
+    fi
+  fi
+}
+
+###################### backup functions ######################
+#backupapp "filename" "directory"
+__backupapp() {
+  local filename count backupdir rmpre4vbackup
+  [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
+  [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
+  local logdir="$HOME/.local/log/backupapp"
+  local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
+  local filename="$myappname-$curdate.tar.gz"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${PREFIX:-apps}/"
+  local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
+  local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
+  __mkd "$backupdir" "$logdir"
+  if [ -e "$myappdir" ] && [ ! -d $myappdir/.git ]; then
+    echo -e "#################################" >>"$logdir/$myappname.log"
+    echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
+    echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
+    echo -e "#################################\n" >>"$logdir/$myappname.log"
+    tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>&1
+    echo -e "\n#################################" >>"$logdir/$myappname.log"
+    echo -e "# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
+    echo -e "#################################\n\n" >>"$logdir/$myappname.log"
+    rm -Rf "$myappdir"
+  fi
+  if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
+}
+###################### menu functions ######################
+#attemp_install_menus "programname"
+__attemp_install_menus() {
+  local prog="$1"
+  if (dialog --timeout 10 --trim --cr-wrap --colors --title "install $1" --yesno "$prog in not installed! \nshould I try to install it?" 15 40); then
+    sleep 2
+    clear
+    printf_custom "191" "\n\n\n\n\t\tattempting install of $prog\n\t\tThis could take a bit...\n\n\n"
+    __devnull pkmgr silent "$1"
+    [ "$?" -ne 0 ] && dialog --timeout 10 --trim --cr-wrap --colors --title "failed" --msgbox "$1 failed to install" 10 41
+    clear
+  fi
+}
+
+__custom_menus() {
+  printf_custom_question "6" "Enter your custom program : "
+  read custom
+  printf_custom_question "6" "Enter any additional options [type file to choose] : "
+  read opts
+  if [ "$opts" = "file" ]; then opts="$(open_file_menus $custom)"; fi
+  $custom "$opts" >/dev/null 2>&1 || clear
+  printf_red "$custom is an invalid program"
+}
+
+#run_prog_menus
+__run_prog_menus() {
+  local prog="$1"
+  shift 1
+  local args="$*"
+  if __cmd_exists }; then
+    __devnull2 "$prog $@" || clear printf_red "An error has occured"
+  else
+    attemp_install_menus "$prog" &&
+      __devnull2 "$prog" "$args" || return 1
+  fi
+}
+#open_file_menus
+__open_file_menus() {
+  local prog="$1"
+  shift 1
+  local args="$*"
+  if __cmd_exists "$prog"; then
+    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48)
+    [ -z "$file" ] && __devnull2 "$prog" "$file" || clear
+    printf_red "No file selected"
+  else
+    attemp_install_menus "$prog" &&
+      __devnull2 "$prog" "$args" || return 1
+  fi
+}
+
+##################### sudo functions ####################
+sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null && return 0 || return 1; }
+
+sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
+
+sudorerun() {
+  local ARGS="$ARGS"
+  if [[ $UID != 0 ]]; then if sudoif; then sudo "$APPNAME" "$ARGS" && exit $?; else sudoreq; fi; fi
+}
+
+sudoreq() { if [[ $UID != 0 ]]; then
+  echo "" && printf_error "Please run this script with sudo"
+  returnexitcode
+  exit 1
+fi; }
+
+__can_i_sudo() {
   (
-    ISINDSUDO=$(sudo grep -Re "$MYUSER" /etc/sudoers* | grep "ALL" >/dev/null)
+    ISINDSUDO=$(sudo grep -Re "$USER" /etc/sudoers* | grep "ALL" >/dev/null)
     sudo -vn && sudo -ln
   ) 2>&1 | grep -v 'may not' >/dev/null
 }
 
-##################################################################################################
-
-sudoask() {
+__sudoask() {
   if [ ! -f "$HOME/.sudo" ]; then
-    sudo true &>/dev/null
+    sudo true &>/dev/null && return 0 || return 1
     while true; do
       echo "$$" >"$HOME/.sudo"
       sudo -n true
       sleep 10
       rm -Rf "$HOME/.sudo"
       kill -0 "$$" || return
-    done &>/dev/null &
+    done &>/dev/null 2>/dev/null &
   fi
 }
 
-##################################################################################################
-
-git_clone() {
-  local repo="$1"
-  rm_rf "$2"
-  devnull git clone -q --recursive "$@"
-  setexitstatus
-}
-
-##################################################################################################
-
-git_update() {
-  local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-  devnull git reset --hard &&
-    devnull git pull --recurse-submodules -fq &&
-    devnull git submodule update --init --recursive -q &&
-    devnull git reset --hard -q
-  if [ "$?" -ne "0" ]; then
-    cd "$HOME"
-    devnull git_clone "$repo" "$PROJECT_DIR/$USERNAME/$i"
-  fi
-  setexitstatus
-}
-
-##################################################################################################
-
-sudoexit() {
-  if [ $? -eq 0 ]; then
-    sudoask || printf_green "Getting privileges successfull continuing"
+__sudoexit() {
+  if can_i_sudo; then
+    __sudoask || printf_green "Getting privileges successfull continuing"
   else
     printf_red "Failed to get privileges\n"
   fi
 }
 
-##################################################################################################
-
-requiresudo() {
-  if [ -f "$(command -v sudo 2>/dev/null)" ]; then
-    if (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; then
-      sudoask
-      sudoexit
-      sudo "$@" 2>/dev/null
-    fi
+__requiresudo() {
+  if can_i_sudo; then
+    __sudoask && __sudoexit && sudo "$@" 2>/dev/null
   else
     printf_red "You dont have access to sudo\n\t\tPlease contact the syadmin for access"
+    return 1
   fi
 }
 
-##################################################################################################
-
-kill_all_subprocesses() {
+###################### spinner and execute funtion ######################
+#
+__set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
+#
+__kill_all_subprocesses() {
   local i=""
   for i in $(jobs -p); do
     kill "$i"
     wait "$i" &>/dev/null
   done
 }
-
-##################################################################################################
-
-execute() {
+#
+__execute() {
   local -r CMDS="$1"
   local -r MSG="${2:-$1}"
   local -r TMP_FILE="$(mktemp /tmp/XXXXX)"
   local exitCode=0
   local cmdsPID=""
-  set_trap "EXIT" "kill_all_subprocesses"
+  __set_trap "EXIT" "__kill_all_subprocesses"
   eval "$CMDS" &>/dev/null 2>"$TMP_FILE" &
   cmdsPID=$!
-  show_spinner "$cmdsPID" "$CMDS" "$MSG"
+  __show_spinner "$cmdsPID" "$CMDS" "$MSG"
   wait "$cmdsPID" &>/dev/null
   exitCode=$?
   printf_execute_result $exitCode "$MSG"
@@ -466,7 +718,7 @@ execute() {
   rm -rf "$TMP_FILE"
   return $exitCode
 }
-##################################################################################################
+#
 show_spinner() {
   local -r FRAMES='/-\|'
   local -r NUMBER_OR_FRAMES=${#FRAMES}
@@ -475,28 +727,628 @@ show_spinner() {
   local -r PID="$1"
   local i=0
   local frameText=""
-  if [ "$TRAVIS" != "true" ]; then
-    printf "\n\n\n"
-    tput cuu 3
-    tput sc
-  fi
   while kill -0 "$PID" &>/dev/null; do
-    frameText="                [ ${FRAMES:i++%NUMBER_OR_FRAMES:1} ] $MSG"
-    if [ "$TRAVIS" != "true" ]; then
-      printf "%s\n" "$frameText"
-    else
-      printf "%s" "$frameText"
-    fi
+    frameText="                [${FRAMES:i++%NUMBER_OR_FRAMES:1}] $MSG"
+    printf "%s" "$frameText"
     sleep 0.2
-    if [ "$TRAVIS" != "true" ]; then
-      tput rc
-    else
-      printf "\r"
-    fi
+    printf "\r"
   done
 }
 
-##################################################################################################
+###################### exitcode functions ######################
+#setexitstatus || setexitstatus $?
+__setexitstatus() {
+  local EXIT="$?"
+  if [ -z "$EXIT" ] || [ -n "$1" ]; then local EXIT="$1"; fi
+  local EXITSTATUS="$EXIT"
+  if [ "$EXITSTATUS" -eq 0 ]; then
+    BG_EXIT="${BG_GREEN}"
+    return 0
+  else
+    BG_EXIT="${BG_RED}"
+    return 1
+  fi
+  unset local EXIT
+}
+#returnexitcode $?
+__returnexitcode() {
+  local EXIT=$?
+  [ -z "$1" ] || EXIT=$1
+  if [ "$EXIT" -eq 0 ]; then
+    BG_EXIT="${BG_GREEN}"
+    PS_SYMBOL=" 😺 "
+    return 0
+  else
+    BG_EXIT="${BG_RED}"
+    PS_SYMBOL=" 😟 "
+    return "$EXIT"
+  fi
+  unset local EXIT
+}
+#getexitcode "OK Message" "Error Message"
+__getexitcode() {
+  local EXIT="$?"
+  if [ ! -z "$1" ]; then
+    local PSUCCES="$1"
+  elif [ ! -z "$SUCCES" ]; then
+    local PSUCCES="$SUCCES"
+  else
+    local PSUCCES="Command successful"
+  fi
+  if [ ! -z "$2" ]; then
+    local PERROR="$2"
+  elif [ ! -z "$ERROR" ]; then
+    local PERROR="$ERROR"
+  else
+    local PERROR="Last command failed to complete"
+  fi
+  if [ "$EXIT" -eq 0 ]; then
+    printf_cyan "$PSUCCES"
+  else
+    printf_red "$PERROR"
+  fi
+  returnexitcode $EXIT
+}
+###################### OS Functions ######################
+#alternative names
+mlocate() { cmd_exists locate || cmd_exists mlocate || return 1; }
+xfce4() { cmd_exists xfce4-about || return 1; }
+imagemagick() { cmd_exists convert || return 1; }
+fdfind() { cmd_exists fdind || cmd_exists fd || return 1; }
+speedtest() { cmd_exists speedtest-cli || cmd_exists speedtest || return 1; }
+neovim() { cmd_exists nvim || cmd_exists neovim || return 1; }
+chromium() { cmd_exists chromium || cmd_exists chromium-browser || return 1; }
+firefox() { cmd_exists firefox-esr || cmd_exists firefox || return 1; }
+gtk-2.0() { find /lib* /usr* -iname "*libgtk*2*.so*" -type f | grep -q . || return 0; }
+gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || return 0; }
+httpd() { cmd_exists httpd || cmd_exists apache2 || return 1; }
 
-# end
-# vi: set expandtab ts=4 fileencoding=utf-8 filetype=sh noai
+#export -f mlocate xfce4 imagemagick fdfind speedtest neovim chromium firefox gtk-2.0 gtk-3.0 httpd
+
+#notifications "title" "message"
+notifications() {
+  local title="$1"
+  shift 1
+  local msg="$*"
+  shift
+  cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
+}
+#connection test
+__am_i_online() {
+  return_code() {
+    if [ "$1" = 0 ]; then
+      return 0
+    else
+      return 1
+    fi
+  }
+  __test_ping() {
+    timeout 0.3 ping -c1 8.8.8.8 &>/dev/null
+    local pingExit=$?
+    return_code $pingExit
+  }
+  __test_http() {
+    curl -LSIs --max-time 1 http://1.1.1.1" | grep -e "HTTP/[0123456789]" | grep "200 -n1 &>/dev/null
+    local httpExit=$?
+    return_code $httpExit
+  }
+  __test_ping || __test_http
+}
+#setup clipboard
+if [[ "$OSTYPE" =~ ^darwin ]]; then
+  printclip() { __cmd_exists pbpaste && LC_CTYPE=UTF-8 tr -d "\n" | pbpaste || return 1; }
+  putclip() { __cmd_exists pbcopy && LC_CTYPE=UTF-8 tr -d "\n" | pbcopy || return 1; }
+fi
+if [[ "$OSTYPE" =~ ^linux ]]; then
+  printclip() { __cmd_exists xclip && xclip -o -s; }
+  putclip() { __cmd_exists xclip && xclip -i -sel c || return 1; }
+fi
+#function to get network device
+__getlipaddr() {
+  if cmd_exists route || cmd_exists ip || cmd_exists ifconfig; then
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      NETDEV="$(route get default | grep interface | awk '{print $2}')"
+    else
+      NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+    fi
+    CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
+  else
+    NETDEV=lo
+    CURRIP4=127.0.0.1
+  fi
+}
+#os_support oses
+__os_support() {
+  if [ -n "$1" ]; then
+    OSTYPE="$(echo $1 | tr '[:upper:]' '[:lower:]')"
+  else
+    OSTYPE="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  fi
+  case "$OSTYPE" in
+  linux*) echo "Linux" ;;
+  mac* | darwin*) echo "MacOS" ;;
+  win* | msys* | mingw* | cygwin*) echo "Windows" ;;
+  bsd*) echo "BSD" ;;
+  solaris*) echo "Solaris" ;;
+  *) echo "Unknown OS" ;;
+  esac
+}
+#supported_oses oses
+__supported_oses() {
+  if [[ $# -eq 0 ]]; then return 1; fi
+  local ARGS="$*"
+  for os in $ARGS; do
+    UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    case "$os" in
+    linux)
+      if [[ "$UNAME" =~ ^linux ]]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    mac*)
+      if [[ "$UNAME" =~ ^darwin ]]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    win*)
+      if [[ "$UNAME" =~ ^ming ]]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    *) return ;;
+    esac
+  done
+}
+#unsupported_oses oses
+__unsupported_oses() {
+  for os in "$@"; do
+    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $(os_support) ]]; then
+      printf_red "\t\t$(os_support $os) is not supported\n"
+      exit 1
+    fi
+  done
+}
+__if_os_id() {
+  unset distroname distroversion distro_id distro_version
+  if [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
+    local distroname="$(lsb_release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+    local distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+  elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
+    local distroname="$(lsb-release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+    local distroversion="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+  elif [ -f "/etc/os-release" ]; then
+    local distroname=$(grep "ID_LIKE=" /etc/os-release | sed 's#ID_LIKE=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+    local distroversion=$(grep "ID_LIKE=" /etc/os-release | sed 's#VERSION_ID=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+  elif [ -f "/etc/redhat-release" ]; then
+    local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+    local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+  else
+    return 1
+  fi
+  for id_like in "$@"; do
+    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
+      case "$1" in
+      arch* | arch*)
+        if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
+          distro_id=Arch
+          distro_version="$distroversion"
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      rhel* | centos* | fedora*)
+        if [[ "$distroname" =~ ^scientific ]] || [[ "$distroname" =~ ^redHat ]] || [[ "$distroname" =~ ^centOS ]] || [[ "$distroname" =~ ^casjay ]] || [[ "$distroname" =~ ^fedora ]]; then
+          distro_id=RHEL
+          distro_version="$distroversion"
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      debian* | ubuntu*)
+        if [[ "$distroname" =~ ^kali ]] || [[ "$distroname" =~ ^parrot ]] || [[ "$distroname" =~ ^debian ]] || [[ "$distroname" =~ ^raspbian ]] ||
+          [[ "$distroname" =~ ^ubuntu ]] || [[ "$distroname" =~ ^linuxmint ]] || [[ "$distroname" =~ ^elementary ]] || [[ "$distroname" =~ ^kde ]]; then
+          distro_id=Debian
+          distro_version="$distroversion"
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      darwin | mac | macos)
+        if [[ "$distroname" =~ ^mac ]] || [[ "$distroname" =~ ^darwin ]]; then
+          distro_id="Mac"
+          distro_version=""
+          return 0
+        else
+          return 1
+        fi
+        ;;
+      *)
+        return
+        ;;
+      esac
+    else
+      return 1
+    fi
+  done
+  [ -z $distro_id ] || distro_id="Unknown"
+  [ -z $distro_version ] || distro_version="Unknown"
+  #echo $id_like $distroname $distroversion
+}
+
+##
+###################### create directories ######################
+ensure_dirs() {
+  if [[ $EUID -ne 0 ]] || [[ "$WHOAMI" != "root" ]]; then
+    __mkd "$BIN"
+    __mkd "$SHARE"
+    __mkd "$LOGDIR"
+    __mkd "$LOGDIR/dfmgr"
+    __mkd "$LOGDIR/fontmg"
+    __mkd "$LOGDIR/iconmgr"
+    __mkd "$LOGDIR/systemmgr"
+    __mkd "$LOGDIR/thememgr"
+    __mkd "$LOGDIR/wallpapermgr"
+    __mkd "$COMPDIR"
+    __mkd "$STARTUP"
+    __mkd "$BACKUPDIR"
+    __mkd "$FONTDIR"
+    __mkd "$ICONDIR"
+    __mkd "$THEMEDIR"
+    __mkd "$FONTCONF"
+    __mkd "$CASJAYSDEVSHARE"
+    __mkd "$CASJAYSDEVSAPPDIR"
+    __mkd "$USRUPDATEDIR"
+    __mkd "$SYSUPDATEDIR"
+    __mkd "$SHARE/applications"
+    __mkd "$SHARE/CasjaysDev/functions"
+    __mkd "$SHARE/wallpapers/system"
+  fi
+  return 0
+}
+
+###################### setup folders ######################
+user_installdirs() {
+  touch "$TEMP/$APPNAME.inst.tmp"
+  APPNAME="${APPNAME:-installer}"
+
+  if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
+    export INSTALL_TYPE=user
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      export HOME="/usr/local/share/CasjaysDev/root"
+      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
+    else
+      export HOME="${HOME:-/root}"
+    fi
+    export BIN="$HOME/.local/bin"
+    export CONF="$HOME/.config"
+    export SHARE="$HOME/.local/share"
+    export LOGDIR="$HOME/.local/log"
+    export STARTUP="$HOME/.config/autostart"
+    export SYSBIN="/usr/local/bin"
+    export SYSCONF="/usr/local/etc"
+    export SYSSHARE="/usr/local/share"
+    export SYSLOGDIR="/usr/local/log"
+    export BACKUPDIR="$HOME/.local/backups/dotfiles"
+    export COMPDIR="$HOME/.local/share/bash-completion/completions"
+    export THEMEDIR="$SHARE/themes"
+    export ICONDIR="$SHARE/icons"
+    export FONTDIR="$SHARE/fonts"
+    export FONTCONF="$SYSCONF/fontconfig/conf.d"
+    export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
+    export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
+    export WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
+    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+  else
+    export INSTALL_TYPE=user
+    export HOME="${HOME}"
+    export BIN="$HOME/.local/bin"
+    export CONF="$HOME/.config"
+    export SHARE="$HOME/.local/share"
+    export LOGDIR="$HOME/.local/log"
+    export STARTUP="$HOME/.config/autostart"
+    export SYSBIN="$HOME/.local/bin"
+    export SYSCONF="$HOME/.config"
+    export SYSSHARE="$HOME/.local/share"
+    export SYSLOGDIR="$HOME/.local/log"
+    export BACKUPDIR="$HOME/.local/backups/dotfiles"
+    export COMPDIR="$HOME/.local/share/bash-completion/completions"
+    export THEMEDIR="$SHARE/themes"
+    export ICONDIR="$SHARE/icons"
+    export FONTDIR="$SHARE/fonts"
+    export FONTCONF="$SYSCONF/fontconfig/conf.d"
+    export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
+    export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
+    export WALLPAPERS="$HOME/.local/share/wallpapers"
+    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+  fi
+  git_repo_urls
+  printf_green "Installing to $APPDIR with install type: $INSTALL_TYPE"
+}
+
+system_installdirs() {
+  touch "$TEMP/$APPNAME.inst.tmp"
+  APPNAME="${APPNAME:-installer}"
+
+  if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
+    #printf_info "Install Type: system - ${WHOAMI}"
+    #printf_red "\t\tInstalling as root ?\n"
+    export INSTALL_TYPE=system
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      export HOME="/usr/local/share/CasjaysDev/root"
+      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
+    else
+      export HOME="/root"
+    fi
+    export BACKUPDIR="$HOME/.local/backups/dotfiles"
+    export BIN="/usr/local/bin"
+    export CONF="/usr/local/etc"
+    export SHARE="/usr/local/share"
+    export LOGDIR="/usr/local/log"
+    export STARTUP="/dev/null"
+    export SYSBIN="/usr/local/bin"
+    export SYSCONF="/usr/local/etc"
+    export SYSSHARE="/usr/local/share"
+    export SYSLOGDIR="/usr/local/log"
+    export COMPDIR="/etc/bash_completion.d"
+    export THEMEDIR="/usr/local/share/themes"
+    export ICONDIR="/usr/local/share/icons"
+    export FONTDIR="/usr/local/share/fonts"
+    export FONTCONF="/usr/local/share/fontconfig/conf.d"
+    export CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
+    export CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
+    export WALLPAPERS="/usr/local/share/wallpapers"
+    #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+  else
+    export INSTALL_TYPE=system
+    export HOME="${HOME:-/home/$WHOAMI}"
+    export BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
+    export BIN="$HOME/.local/bin"
+    export CONF="$HOME/.config"
+    export SHARE="$HOME/.local/share"
+    export LOGDIR="$HOME/.local/log"
+    export STARTUP="$HOME/.config/autostart"
+    export SYSBIN="$HOME/.local/bin"
+    export SYSCONF="$HOME/.local/etc"
+    export SYSSHARE="$HOME/.local/share"
+    export SYSLOGDIR="$HOME/.local/log"
+    export COMPDIR="$HOME/.local/share/bash-completion/completions"
+    export THEMEDIR="$HOME/.local/share/themes"
+    export ICONDIR="$HOME/.local/share/icons"
+    export FONTDIR="$HOME/.local/share/fonts"
+    export FONTCONF="$HOME/.local/share/fontconfig/conf.d"
+    export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
+    export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
+    export WALLPAPERS="$HOME/.local/share/wallpapers"
+    #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
+    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+  fi
+  git_repo_urls
+  printf_green "Installing to $APPDIR with install type: $INSTALL_TYPE"
+}
+
+###################### dfmgr settings ######################
+
+dfmgr_install() {
+  user_installdirs
+  PREFIX="dfmgr"
+  REPO="${DFMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$CONF"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR"
+}
+
+###################### dockermgr settings ######################
+
+dockermgr_install() {
+  user_installdirs
+  PREFIX="dockermgr"
+  REPO="${DOCKERMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR"
+}
+
+###################### fontmgr settings ######################
+
+fontmgr_install() {
+  system_installdirs
+  PREFIX="fontmgr"
+  REPO="${FONTMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SHARE/CasjaysDev/$PREFIX"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  FONTDIR="${FONTDIR:-$SHARE/fonts}"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR" "$FONTDIR" "$HOMEDIR"
+}
+
+###################### iconmgr settings ######################
+
+iconmgr_install() {
+  system_installdirs
+  PREFIX="iconmgr"
+  REPO="${ICONMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  ICONDIR="${ICONDIR:-$SHARE/icons}"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
+}
+
+###################### pkmgr settings ######################
+
+pkmgr_install() {
+  PREFIX="pkmgr"
+  REPO="${PKMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR"
+}
+
+###################### systemmgr settings ######################
+
+systemmgr_install() {
+  system_installdirs
+  PREFIX="systemmgr"
+  REPO="${SYSTEMMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  CONF="/usr/local/etc"
+  SHARE="/usr/local/share"
+  HOMEDIR="/usr/local/etc"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR"
+}
+
+###################### thememgr settings ######################
+
+thememgr_install() {
+  system_installdirs
+  PREFIX="thememgr"
+  REPO="${THEMEMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/$PREFIX"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$PREFIX"
+  THEMEDIR="${THEMEDIR:-$SHARE/themes}"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR"
+}
+
+###################### wallpapermgr settings ######################
+
+wallpapermgr_install() {
+  system_installdirs
+  PREFIX="wallpapermgr"
+  REPO="${WALLPAPERMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
+  WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
+}
+
+###################### call functions ######################
+user_installdirs
+__getpythonver
+
+###################### debugging tool ######################
+
+if [ "$1" = "--vdebug" ]; then
+  vdebug() {
+    if [ -f ./applications.debug ]; then . ./applications.debug; fi
+    DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+    printf_custom "4" "APP:$APPNAME - ARGS:$*"
+    printf_custom "4" "FUNCTIONSDir:$DIR"
+    for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
+      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR SCRIPTSAPPFUNCTDIR:$SCRIPTSAPPFUNCTDIR; do
+      printf_custom "4" $path
+    done
+    devnull() {
+      TMP_FILE="$(mktemp "${TMP:-/tmp}"/_XXXXXXX.err)"
+      eval "$@" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=1
+      [ ! -s "$TMP_FILE" ] || return_error "$1" "$TMP_FILE"
+      #rm -rf "$TMP_FILE"
+      return $EXIT
+    }
+    return_error() {
+      PREV="$1"
+      ERRL="$2"
+      printf_red "Command $PREV failed"
+      cat "$ERRL" | printf_readline "3"
+    }
+  }
+fi
+###################### unload variables ######################
+unload_var_path() {
+  unset APPDIR APPVERSION ARRAY BACKUPDIR BIN CASJAYSDEVSAPPDIR CASJAYSDEVSHARE COMPDIR CONF DEVENVMGR
+  unset DFMGRREPO DOCKERMGRREPO FONTCONF FONTDIR FONTMGRREPO HOMEDIR ICONDIR ICONMGRREPO INSTALL_TYPE
+  unset LIST PKMGRREPO PREFIX REPO REPODF REPORAW SHARE STARTUP SYSBIN SYSCONF SYSLOGDIR SYSSHARE SYSTEMMGRREPO
+  unset SYSSHARE SYSTEMMGRREPO SYSUPDATEDIR THEMEDIR THEMEMGRREPO USRUPDATEDIR WALLPAPERMGRREPO WALLPAPERS
+}
+
+###################### end application functions ######################

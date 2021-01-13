@@ -435,7 +435,7 @@ git_push_single() {
     if [ -n "$1" ]; then
       projdir="$1"
       gitdirname="$(get_githost "$1")"
-      get_username_repo "$1"
+      git_username_repo "$1"
     else
       projdir="$PROJECT_BASE/$gitdirname/$username/$userrepo"
     fi
@@ -461,8 +461,8 @@ git_pull_single() {
   else
     if [ -n "$1" ]; then
       projdir="$1"
-      gitdirname="$(get_githost "$1")"
-      get_username_repo "$1"
+      gitdirname="$(git_hostname "$1")"
+      git_username_repo "$1"
     else
       projdir="$PROJECT_BASE/$gitdirname/$username/$userrepo"
     fi

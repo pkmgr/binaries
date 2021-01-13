@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing_functs.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -39,7 +39,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--help" ] && printf_help "Usage: $APPNAME"
+[ "$1" = "--help" ] && printf_help "Usage: $APPNAME\n\t\t$APPNAME --console for output\n\t\t$APPNAME --help this message"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
