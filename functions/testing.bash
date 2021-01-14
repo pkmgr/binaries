@@ -177,7 +177,7 @@ printf_exit() {
   shift
   printf_color "\t\t$msg" "$color"
   echo ""
-  exit 0
+  exit 1
 }
 
 printf_help() {
@@ -1347,14 +1347,23 @@ wallpapermgr_install() {
 ###################### help ######################
 
 __help() {
-  [ -f "$SCRIPTSFUNCTDIR/helpers/man/.functions" ] && source "$SCRIPTSFUNCTDIR/helpers/man/.functions"
-  echo ""
-  if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
+  #----------------
+  printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
+  printf_help() {
+    test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+    local msg="$*"
+    shift
+    printf_color "\t\t$msg\n" "$color"
+  }
+  #----------------
+  printf "\n"
+  if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ] && [ -s "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
     source "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
   else
-    printf_help "4" "There is no man page in for this app"
-    printf_help "4" "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+    printf_help "1" "There is no man page for this app in: "
+    printf_help "1" "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
   fi
+  printf "\n"
   exit 0
 }
 
