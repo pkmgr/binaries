@@ -40,25 +40,25 @@ HOSTSHORT="$(__hostname -s)"
 __getlipaddr
 __requiresudo true
 if [ -d "/etc/casjaysdev/messages" ]; then
-  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#Welcome to .*!#Welcome to '$HOSTNAME'!#g' {} \;
-  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:    '$HOSTSHORT'#g' {} \;
-  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
+  __devnull __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#Welcome to .*!#Welcome to '$HOSTNAME'!#g' {} \;
+  __devnull __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:    '$HOSTSHORT'#g' {} \;
+  __devnull __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
 fi
 
 if [ -f "/etc/issue" ]; then
-  __requiresudo find "/etc/issue" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
+  __devnull __requiresudo find "/etc/issue" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
 fi
 
 if [ -f "/etc/motd" ]; then
-  __requiresudo find "/etc/motd" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
+  __devnull __requiresudo find "/etc/motd" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
 fi
 
 if [ -f "/etc/issue.net" ]; then
-  __requiresudo find "/etc/issue.net" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
+  __devnull __requiresudo find "/etc/issue.net" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
 fi
 
 if [ -f "/etc/motd.net" ]; then
-  __requiresudo find "/etc/motd.net" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
+  __devnull __requiresudo find "/etc/motd.net" -type f -exec sed -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,4 +68,6 @@ if [ "$1" = "--console" ]; then
   printf_green "Current IP 4   : $CURRIP4"
   printf_green "Current IP 6   : $CURRIP6"
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# end
