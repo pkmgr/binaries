@@ -41,7 +41,7 @@ __getlipaddr
 __requiresudo true
 if [ -d "/etc/casjaysdev/messages" ]; then
   __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#Welcome to .*#Welcome to '$HOSTNAME'#g' {} \; &>/dev/null
-  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MYFULLHOSTNAME#g'{} \; &>/dev/null
+  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MYFULLHOSTNAME#'$HOSTNAME'#g'{} \; &>/dev/null
   __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:    '$HOSTSHORT'#g' {} \; &>/dev/null
   __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \; &>/dev/null
 fi
