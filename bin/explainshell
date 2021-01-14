@@ -27,28 +27,7 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "Usage: explainshell ls -ltrsa"
-  printf_green "list directory contents"
-  printf_green "-l   use a long listing format"
-  printf_green "-t   sort by modification time, newest first"
-  printf_green "-r   reverse order while sorting"
-  printf_green "-s   print the allocated size of each file, in blocks"
-  printf_green "-a   do not ignore entries starting with ."
-  exit
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

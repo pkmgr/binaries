@@ -28,10 +28,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,16 +45,6 @@ HELP+="\t\trun dotfiles update to get the latest release!\n"
 HELP+="\t\tavailable options are as follows:\n"
 HELP+="\t\t$APPNAME admin --all $ADMIN\n"
 HELP+="\t\t$APPNAME install $LIST\n"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-printf_red "This will become obsolete in the next stable release"
-printf_green "Use dfmgr to update your dotfiles and systemmgr to update system configs"
-#printf_exit  "The stow option is now handled by config or dfmgr stow"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

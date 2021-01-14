@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 APPNAME="update-motd"
-USER="${SUDO_USER:-${USER}}"
+USER="${__requiresudo_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 PATH="/usr/games:$PATH"
 
@@ -37,9 +37,8 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__help() { printf_help "Usage: update-motd"; }
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-[ "$1" = "--help" ] && __help
+sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
+__getlipaddr
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __requiresudo true
@@ -60,77 +59,87 @@ if [ -f /etc/casjaysdev/updates/versions/date.configs.txt ]; then
 else configsdate="$datever"; fi
 distro_version="$distro_version"
 
+HOSTNAME="$(hostname -f)"
+HOSTSHORT="$(hostname -s)"
+
 messages_issue() {
   if [ -f "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/issue/legal.txt ]; then
     __cp_rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/issue/legal.txt"
   fi
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/issue/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
-    cat /etc/casjaysdev/messages/issue/* | sed '/^$/d' | sed '1i\ ' | __devnull __requiresudo tee -a /etc/issue
-    printf "\n" | __devnull __requiresudo tee -a /etc/issue
+    __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#Welcome to .*!#Welcome to '$HOSTNAME'!#g' {} \;
+    __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:    '$HOSTSHORT'#g' {} \;
+    __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \;
+    cat /etc/casjaysdev/messages/issue/* | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue
+    printf "\n" | __requiresudo tee -a /etc/issue
   fi
 }
 
 messages_motd() {
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/motd/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
-    cat /etc/casjaysdev/messages/motd/* | sed '/^$/d' | __devnull __requiresudo tee -a /etc/motd
+    cat /etc/casjaysdev/messages/motd/* | "$sed" '/^$/d' | __requiresudo tee -a /etc/motd
   fi
 }
 
 motd_fortune() {
   if [ "$(__devnull2 command -v fortune)" ] && [ -n "$(__devnull2 command -v cowsay)" ]; then
-    printf "\n" | __devnull __requiresudo tee -a /etc/motd
-    fortune | cowsay | __devnull __requiresudo tee -a /etc/motd
-    printf "\n" | __devnull __requiresudo tee -a /etc/motd
+    printf "\n" | __requiresudo tee -a /etc/motd
+    fortune | cowsay | __requiresudo tee -a /etc/motd
+    printf "\n" | __requiresudo tee -a /etc/motd
   else
-    printf "\n" | __devnull __requiresudo tee -a /etc/motd
+    printf "\n" | __requiresudo tee -a /etc/motd
   fi
 }
 
 conf_versions() {
   if __if_os_id debian; then
-    printf "Debian version: $distro_version\n" | __devnull __requiresudo tee -a /etc/motd
-    printf "Config version: $configsversion\n" | __devnull __requiresudo tee -a /etc/motd
+    printf "Debian version: $distro_version\n" | __requiresudo tee -a /etc/motd
+    printf "Config version: $configsversion\n" | __requiresudo tee -a /etc/motd
   fi
 
   if __if_os_id rhel; then
-    printf "RHEL version: $distro_version\n" | __devnull __requiresudo tee -a /etc/motd
-    printf "Config version: $configsversion\n" | __devnull __requiresudo tee -a /etc/motd
+    printf "RHEL version: $distro_version\n" | __requiresudo tee -a /etc/motd
+    printf "Config version: $configsversion\n" | __requiresudo tee -a /etc/motd
   fi
 
   if __if_os_id arch; then
-    printf "Arch version: $distro_version\n" | __devnull __requiresudo tee -a /etc/motd
-    printf "Config version: $configsversion\n" | __devnull __requiresudo tee -a /etc/motd
+    printf "Arch version: $distro_version\n" | __requiresudo tee -a /etc/motd
+    printf "Config version: $configsversion\n" | __requiresudo tee -a /etc/motd
   fi
   if __if_os_id mac; then
-    printf "Mac version: $distro_version\n" | __devnull __requiresudo tee -a /etc/motd
-    printf "Config version: $configsversion\n" | __devnull __requiresudo tee -a /etc/motd
+    printf "Mac version: $distro_version\n" | __requiresudo tee -a /etc/motd
+    printf "Config version: $configsversion\n" | __requiresudo tee -a /etc/motd
   fi
-  printf "Scripts version $scriptsversion\n" | __devnull __requiresudo tee -a /etc/motd
-  printf "configs were last updated on: $configsdate\n" | __devnull __requiresudo tee -a /etc/motd
-  printf "scripts package was last updated on: $scriptsdate\n" | __devnull __requiresudo tee -a /etc/motd
-  printf "Messages were last updated on: $(date +"%b %d, %Y at %H:%M")\n\n" | __devnull __requiresudo tee -a /etc/motd
+  printf "Scripts version $scriptsversion\n" | __requiresudo tee -a /etc/motd
+  printf "configs were last updated on: $configsdate\n" | __requiresudo tee -a /etc/motd
+  printf "scripts package was last updated on: $scriptsdate\n" | __requiresudo tee -a /etc/motd
+  printf "Messages were last updated on: $(date +"%b %d, %Y at %H:%M")\n\n" | __requiresudo tee -a /etc/motd
 }
 
 finalize() {
   __requiresudo touch /etc/issue /etc/motd
   __requiresudo update-ip
-  cat /etc/motd | __devnull __requiresudo tee -a /etc/motd.net
-  cat /etc/issue | __devnull __requiresudo tee -a /etc/issue.net
+  cat /etc/motd | __requiresudo tee -a /etc/motd.net
+  cat /etc/issue | __requiresudo tee -a /etc/issue.net
   if [ "$1" = "--console" ]; then
     shift 1
     cat /etc/issue /etc/motd
   fi
-  if [ "$1" = "--vdebug" ]; then
+  if [ "$1" = "--debug" ]; then
     shift 1
     cat /etc/issue /etc/motd
-    printf_green "dategit: $dategit"
-    printf_green "datever: $datever"
+    printf_green "dategit:        $dategit"
+    printf_green "datever:        $datever"
     printf_green "scriptsversion: $scriptsversion"
     printf_green "configsversion: $configsversion"
-    printf_green "scriptsdate: $scriptsdate"
-    printf_green "configsdate: $configsdate"
+    printf_green "scriptsdate:    $scriptsdate"
+    printf_green "configsdate:    $configsdate"
+    printf_green "hostname:       $HOSTSHORT"
+    printf_green "full hostname:  $HOSTNAME"
+    printf_green "current ip:     $CURRIP4"
+
   fi
 }
 

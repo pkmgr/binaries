@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -27,15 +27,11 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ -z "$1" ] && __help
 if [ $# -ne 1 ]; then
   printf_info 'You must quote your params IE: calc "2 + 4" or "2*2"'
   exit 1
@@ -43,35 +39,21 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ARG="$(echo "$*" | sed '/^$/d;s/[[:blank:]]//g' && set --)"
+ARG="$(echo "$*" | sed '/^$/d;s/[[:blank:]]//g')"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "Console Based calculator"
-  printf_green "Usage: calc 20*4/2+23-14"
-  printf_green "Addition:       calc 1+1"
-  printf_green "Subtraction:    calc 1-1"
-  printf_green "Multiplication: calc 1*1"
-  printf_green "Division:       calc 1/1"
-  exit 1
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ -z "$1" ] && __help
-[ "$1" = "--help" ] && __help && exit
 
 if cmd_exists qalc; then
-  qalc_app() { qalc "$ARG"; }
+  calc_app() { qalc "$ARG"; }
 elif cmd_exists bc; then
-  qalc_app() { echo "$ARG = $(echo "$ARG" | bc -q)"; }
+  calc_app() { echo "$ARG = $(echo "$ARG" | bc -q)"; }
 else
   printf_exit "Can't find a calculator app!"
 fi
 
 if [ "$1" = "--term" ]; then
-  echo -e "\n\n\n"
+  clear
+  echo -e "\n\n"
   printf_cyan "Usage: 20*4/2+23-14"
   printf_red "press q or ctrl + c to exit"
   while :; do
@@ -80,12 +62,12 @@ if [ "$1" = "--term" ]; then
     if [ "$ARG" = "q" ]; then
       exit 0
     else
-      printf_green "$(qalc_app)"
+      printf_custom "5" "  Your answer is: $(calc_app)"
     fi
   done
+else
+  printf_green "$(calc_app)"
 fi
-
-printf_green "$(qalc_app)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

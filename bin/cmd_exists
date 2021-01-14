@@ -27,34 +27,23 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__help() {
-  printf_green "Usage: $APPNAME location $APPNAME : Show app location"
-  printf_green "Will return 0 if found and will add a 1 for each not found"
-  exit
-}
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$1" ] || __help
+[ -z "$1" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 exitCode=""
 LISTARRAY=""
+
 case $1 in
+
 help | --help)
   __help
   ;;
+
 location | --location)
   shift 1
   for cmd in "$@"; do
@@ -63,6 +52,7 @@ location | --location)
   done
   exit $exitCode
   ;;
+
 *)
   for cmd in "$@"; do
     unalias "$cmd" &>/dev/null
@@ -70,6 +60,7 @@ location | --location)
   done
   exit $exitCode
   ;;
+
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

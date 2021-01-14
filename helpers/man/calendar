@@ -1,0 +1,2 @@
+printf_help "A calendar written in bash"
+printf_help "Usage: calander"

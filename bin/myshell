@@ -36,17 +36,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ -f /etc/shells ] || exit 1
-
-__help() {
-  printf_green "Usage: myshell ShellName    |   IE: myshell fish"
-  exit
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ ! -z "$1" ] || __help
-[ "$1" = "--help" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications

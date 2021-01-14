@@ -507,12 +507,24 @@ ask_for_confirmation() {
 ##################################################################################################
 
 __getip() {
-  if [[ "$OSTYPE" =~ ^darwin ]]; then
-    NETDEV="$(route get default | grep interface | awk '{print $2}')"
+  if cmd_exists route || cmd_exists ip; then
+    if [[ "$OSTYPE" =~ ^darwin ]]; then
+      NETDEV="$(route get default | grep interface | awk '{print $2}')"
+    else
+      NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+    fi
+    if __cmd_exists ifconfig; then
+      CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
+      CURRIP6="$(/sbin/ifconfig "$NETDEV" | grep -E "venet|inet" | grep 'inet6' | grep -i global | awk '{print $2}' | head -n1)"
+    else
+      CURRIP4="$(ip addr | grep inet | grep -vE "127|inet6" | tr '/' ' ' | awk '{print $2}' | head -n 1)"
+      CURRIP6="$(ip addr | grep inet6 | grep -v "::1/" -v | tr '/' ' ' | awk '{print $2}' | head -n 1)"
+    fi
   else
-    NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+    NETDEV="lo"
+    CURRIP4="127.0.0.1"
+    CURRIP6="::1"
   fi
-  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
 }
 __getip
 

@@ -12,14 +12,14 @@ USER="${SUDO_USER:-${USER}}"
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
 # @Description : add config files to git repo - https://www.atlassian.com/git/tutorials/dotfiles
-#
+# @TODO        :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Set functions
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -27,10 +27,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -41,12 +37,12 @@ HELP="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/conf
 
 if [[ $EUID -eq 0 ]]; then
   printf_head "You are running as root as such this will allow full system access"
-  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles/system}"
+  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
   backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
   logdir="${LOGDIR:-$HOME/.local/log}"
   HOME="/"
 else
-  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles/system}"
+  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
   backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
   logdir="${LOGDIR:-$HOME/.local/log}"
 fi
@@ -59,15 +55,8 @@ echo "$(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/config.log"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__help() {
-  printf_help "Add your dotfiles to your local git repo"
-  printf_help "Usage: $ARRAY"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 _git() {
-  command -p git "$@"
+  command -p git "$@" | printf_readline "6"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -86,7 +75,7 @@ _backup() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_checkout() { devnull _stow checkout "$@" || devnull _backup; }
+_checkout() { _stow checkout "$@" || _backup "$@"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -108,21 +97,21 @@ git_init() {
   else
     grep -q "$gitdir" .gitignore 2>/dev/null && echo "$gitdir" >>.gitignore
   fi
-  printf_question "Do you already have a dotfiles repo" [y/N]
+  printf_question "4" "Do you already have a dotfiles repo:  [y/N]"
   read -n 1 -s choice
   echo ""
   if [[ $choice == "y" || $choice == "Y" ]]; then
     printf_read "What is the repo url: "
     read url
-    devnull _git clone --bare "$url" "$gitdir"
+    __devnull _git clone --bare "$url" "$gitdir"
     _checkout
-    devnull _stow config --local status.showUntrackedFiles no
+    __devnull _stow config --local status.showUntrackedFiles no
   else
     mkdir -p "$gitdir"
-    devnull _git init --bare "$gitdir"
-    devnull _stow config --local status.showUntrackedFiles no
-    devnull _stow config --local commit.gpgSign false
-    printf_question "Would you like to add a remote git repo" [y/N]
+    __devnull _git init --bare "$gitdir"
+    __devnull _stow config --local status.showUntrackedFiles no
+    __devnull _stow config --local commit.gpgSign false
+    printf_question "Would you like to add a remote git repo:  [y/N]"
     read -n 1 -s choice
     echo ""
     if [[ $choice == "y" || $choice == "Y" ]]; then
@@ -138,18 +127,11 @@ git_init() {
     read email
     _stow config user.name "$name"
     _stow config user.email "$email"
-    devnull _stow add .gitignore
-    devnull _stow commit -m " 🏠🐜❗ Added .gitignore"
+    __devnull _stow add .gitignore
+    _stow commit -q -m " 🏠🐜❗ Added .gitignore "
   fi
   exit "$?"
 }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-[ "$1" = "--help" ] && __help
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
 --system)
@@ -159,10 +141,9 @@ case "$1" in
     printf_green "Usage: config --system commands"
     printf_exit "See config help for commands"
     __help
-    exit
   fi
   requiresudo
-  gitdir="/root/.local/dotfiles/$(hostname -s)/system"
+  gitdir="/root/.local/dotfiles/system/$(hostname -s)"
   ;;
 
 --name)
@@ -174,14 +155,13 @@ case "$1" in
     exit 1
   fi
   name="$1"
-  gitdir="$HOME/.local/dotfiles/$(hostname -s)/$name"
+  gitdir="$HOME/.local/dotfiles/system/$name"
   if [ -d "$gitdir" ]; then
     printf_red "Error: $gitdir already in use"
     exit 1
   fi
   shift
   ;;
-esac
 
 --custom)
   shift 1
@@ -189,7 +169,6 @@ esac
     printf_custom "41" "This allows the use of a custom git dir and home dir"
     printf_green "Usage: config --custom gitdir homedir commands"
     printf_exit "See config help for commands"
-    exit 1
   fi
   gitdir="${CONFIG_CUSTOM_REPO:-$1}"
   shift
@@ -201,7 +180,7 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -d "$gitdir" ] && [ ! -f "$gitdir/config" ]; then
-git_init
+  git_init
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -231,12 +210,12 @@ add | stow)
       _stow add "$f"
     fi
   done
-  _stow commit -m " 🏠🐜❗ Added $args"
+  _stow commit -m " 🏠🐜❗ Added $args" -q
   ;;
 
 commit)
   shift 1
-  _stow commit " 🏠🐜❗ $@ 🏠🐜❗ "
+  _stow commit " 🏠🐜❗ $@ 🏠🐜❗ " -q
   ;;
 
 checkout)
@@ -281,7 +260,7 @@ help | -h* | --h*)
 
 *)
   shift 0
-  [ ! -z "$1" ] || echo "$HELP"
+  [ -z "$1" ] && __help
   exit 0
   ;;
 

@@ -37,15 +37,7 @@ fi
 
 check_app curl
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "Generate a license file"
-  printf_green "Options are: $(cat ${SCRIPTSFUNCTDIR}/helpers/gen-license/array)"
-  exit 1
-}
 
 get_lic() { curl -LSsq "$1" >LICENSE.md 2>/dev/null || printf_exit "Failed to get the license file"; }
 
@@ -103,6 +95,11 @@ apache)
 bds3)
   shift
   get_lic "$license_url/gnu-fdl-v1.3.md"
+  ;;
+
+list)
+  shift 1
+  cat ${SCRIPTSFUNCTDIR}/helpers/gen-license/array | printf_readline "2"
   ;;
 
 *)

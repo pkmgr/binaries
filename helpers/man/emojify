@@ -1,0 +1,2 @@
+printf_help "  emojify - emoji on the command line 😱"
+printf_help "USAGE: emojify [-h|--help] [-l|--list] TEXT"

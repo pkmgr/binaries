@@ -1,0 +1,5 @@
+printf_help "Generate a human-readable change log from a git repo"
+printf_help "Usage:"
+printf_help "git-changelog [options]"
+printf_help "git-changelog --help | -h"
+printf_help "git-changelog --version | -v"

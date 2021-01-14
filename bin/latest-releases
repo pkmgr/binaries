@@ -31,10 +31,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -56,24 +52,6 @@ if [ ! -f "${github_path}" ]; then
   nodejs/node
   " >"${github_path}"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "Add these 2 lines to ${auth_path}, modify the values for your info and save it:"
-  printf_green 'export GITHUB_USERNAME="yourname"'
-  printf_green 'export GITHUB_PERSONAL_ACCESS_TOKEN="youraccesstoken"'
-  printf_green "Add your list of GitHub repos to ${github_path}."
-  printf_green "Separate out each entry on a new line and only include the owner/repo."
-  printf_green "Here's an example of what that file could look like:"
-  printf_green "pallets/flask"
-  printf_green "phoenixframework/phoenix"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-[ "$1" = "--help" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

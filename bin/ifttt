@@ -35,31 +35,9 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "If This Then That - run webhooks from command"
-  printf_green "The way I use this is webhook_name message address/link"
-  printf_green "Usage: $APPNAME webhook_name webhook_value1 webhook_value2"
-  exit 0
-}
-
-__help_api() {
-  printf_red "This requires an api key and the enviroment variable IFTTT_ACCESS_TOKEN to be set"
-  printf_green "Get an API key from ifttt maker site: https://ifttt.com/maker_webhooks/settings"
-  exit 1
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # set variables
 
-[ "$1" = "--help" ] && __help
-[ "$1" = "--help-api" ] && __help
-[ -n $IFTTT_ACCESS_TOKEN ] || __help_api
-
+[ -n $IFTTT_ACCESS_TOKEN ] || __help
 [ $# -ne 3 ] && __help
 
 webhook_name="$1"

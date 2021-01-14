@@ -1,0 +1,1 @@
+printf_help "Usage: run_commands mycommand    |    Run command in the background with logs"

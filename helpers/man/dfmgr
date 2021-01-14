@@ -1,0 +1,8 @@
+printf_help "A DotFiles Manager for all systems   |   Usage: dfmgr command"
+printf_help "dfmgr version              - show the version info           | IE: dfmgr version bash"
+printf_help "dfmgr available            - list available dotfiles         | IE: dfmgr available"
+printf_help "dfmgr list                 - list installed dotfiles         | IE: dfmgr list"
+printf_help "dfmgr search               - find a dotfile                  | IE: dfmgr search geany"
+printf_help "dfmgr install              - install a dotfile               | IE: dfmgr install vim"
+printf_help "dfmgr update               - update the dotfiles             | IE: dfmgr update"
+printf_help "dfmgr personal             - update personal dotfiles        | IE: dfmgr personal"

@@ -1,0 +1,6 @@
+printf_help "If This Then That - run webhooks from command"
+printf_help "The way I use this is webhook_name message address/link"
+printf_help "Usage: $APPNAME webhook_name webhook_value1 webhook_value2"
+
+printf_help "This requires an api key and the enviroment variable IFTTT_ACCESS_TOKEN to be set"
+printf_help "Get an API key from ifttt maker site: https://ifttt.com/maker_webhooks/settings"

@@ -1,0 +1,7 @@
+printf_help "A Package Manager for all systems   |   Usage: sudo systemmgr command"
+printf_help "systemmgr version              - show the version info      | IE: systemmgr version tor"
+printf_help "systemmgr list                 - list installed packages    | IE: systemmgr list"
+printf_help "systemmgr search               - search for a package       | IE: systemmgr search postfix"
+printf_help "systemmgr install              - install a package          | IE: systemmgr install cron"
+printf_help "systemmgr remove               - remove a package           | IE: systemmgr remove tor"
+printf_help "systemmgr update               - update a package           | IE: systemmgr update"

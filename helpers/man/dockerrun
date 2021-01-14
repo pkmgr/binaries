@@ -1,0 +1,2 @@
+printf_help "Usage: dockerrun imageName"
+printf_help "See http://hub.docker.com for images"

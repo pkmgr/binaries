@@ -1,0 +1,4 @@
+  printf_help "Generate a dns zone"
+  printf_help "This will look for a"
+  printf_help "$HOME/templates/dns-zone.txt"
+  printf_help "Usage: $APPNAME Domain"

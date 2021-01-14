@@ -1,0 +1,2 @@
+printf_help "Lookup definition "
+printf_help "Usage: spellcheck Word"

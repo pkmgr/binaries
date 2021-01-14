@@ -31,6 +31,77 @@ if ! command -v "git" >/dev/null 2>&1; then
   exit 1
 fi
 
+###################### error handling ######################
+#used for debugging
+export DEBUGARGS="$*"
+#no output
+__devnull() {
+  args="$*"
+  bash -c "$args" >/dev/null 2>&1
+}
+#error output
+__devnull1() {
+  args="$*"
+  bash -c "$args" 1>/dev/null 2>&0
+}
+#standart output
+__devnull2() {
+  args="$*"
+  bash -c "$args" 2>/dev/null
+}
+#err "commands"
+_err() {
+  local COMMAND="${*:-$(false)}"
+  local TMP_FILE="$(mktemp "${TMP:-/tmp}"/error/_rr-XXXXX.err)"
+  __mkd "${TMP:-/tmp}"/error
+  bash -c "${COMMAND}" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=$?
+  [ ! -s "$TMP_FILE" ] || return_error "$EXIT" "$COMMAND" "$TMP_FILE"
+  #rm -rf "$TMP_FILE"
+  return $EXIT
+}
+return_error() {
+  CODE="$1"
+  PREV="$2"
+  ERRL="$3"
+  [ ! -s "$TMP_FILE" ] || printf_red "$PREV has failed with errors"
+  cat "$ERRL" | printf_readline "3"
+  [ -f "$ERRL" ] && __rm_rf "$ERRL"
+}
+#runapp "app"
+__runapp() {
+  local logdir="${LOGDIR:-$HOME/.local/log}/runapp"
+  local COMMAND="${*:-$(false)}"
+  __mkd "$logdir"
+  if [ "$1" = "--bg" ]; then
+    local logname="$2"
+    shift 2
+    echo "#################################" >>"$logdir/$logname.log"
+    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
+    echo "#################################" >>"$logdir/$logname.log"
+    bash -c "$COMMAND" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &
+  elif [ "$1" = "--log" ]; then
+    local logname="$2"
+    shift 2
+    echo "#################################" >>"$logdir/$logname.log"
+    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
+    echo "#################################" >>"$logdir/$logname.log"
+    bash -c "$COMMAND" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err"
+  else
+    echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
+    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/${APPNAME:-$1}.log"
+    echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
+    bash -c "$COMMAND" >>"$logdir/${APPNAME:-$1}.log" 2>>"$logdir/${APPNAME:-$1}.err"
+  fi
+}
+#runpost "program"
+__run_post() {
+  local e="$1"
+  local m="${e//__devnull//}"
+  execute "$e" "executing: $m"
+  __setexitstatus
+  set --
+}
+
 #macos fix
 case "$(uname -s)" in
 Darwin) alias dircolors=gdircolors ;;
@@ -82,7 +153,6 @@ printf_read() { printf_color "\t\t$1" 5; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_error() { printf_color "\n\t\t$ICON_ERROR $1 $2\n\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
-printf_question() { printf_color "\t\t$ICON_QUESTION $1 " 6; }
 printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
 printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_execute_error() { printf_color "\t\t$ICON_WARN $1 $2\n" 1; }
@@ -130,9 +200,9 @@ printf_custom() {
 
 printf_readline() {
   set -o pipefail
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   while read line; do
-    printf_custom "$line" "$color"
+    printf_color "\t\t$line\n" "$color"
   done
   set +o pipefail
 }
@@ -144,6 +214,13 @@ printf_newline() {
     printf_color "\t\t$line\n" "$color"
   done
   set +o pipefail
+}
+
+printf_question() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local msg="$*"
+  shift
+  printf_color "\t\t$ICON_QUESTION $msg " "$color"
 }
 
 printf_custom_question() {
@@ -198,65 +275,6 @@ printf_result() {
   fi
 }
 
-###################### error handling ######################
-#no output
-__devnull() { $@ >/dev/null 2>&1; }
-#error output
-__devnull1() { $@ 1>/dev/null 2>&0; }
-#standart output
-__devnull2() { $@ 2>/dev/null; }
-#err "commands"
-_err() {
-  local COMMAND="${*:-$(false)}"
-  local TMP_FILE="$(mktemp "${TMP:-/tmp}"/error/_rr-XXXXX.err)"
-  __mkd "${TMP:-/tmp}"/error
-  bash -c "${COMMAND}" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=$?
-  [ ! -s "$TMP_FILE" ] || return_error "$EXIT" "$COMMAND" "$TMP_FILE"
-  #rm -rf "$TMP_FILE"
-  return $EXIT
-}
-return_error() {
-  CODE="$1"
-  PREV="$2"
-  ERRL="$3"
-  [ ! -s "$TMP_FILE" ] || printf_red "$PREV has failed with errors"
-  cat "$ERRL" | printf_readline "3"
-  [ -f "$ERRL" ] && __rm_rf "$ERRL"
-}
-#runapp "app"
-__runapp() {
-  local logdir="${LOGDIR:-$HOME/.local/log}/runapp"
-  local COMMAND="${*:-$(false)}"
-  __mkd "$logdir"
-  if [ "$1" = "--bg" ]; then
-    local logname="$2"
-    shift 2
-    echo "#################################" >>"$logdir/$logname.log"
-    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
-    echo "#################################" >>"$logdir/$logname.log"
-    bash -c "$COMMAND" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &
-  elif [ "$1" = "--log" ]; then
-    local logname="$2"
-    shift 2
-    echo "#################################" >>"$logdir/$logname.log"
-    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
-    echo "#################################" >>"$logdir/$logname.log"
-    bash -c "$COMMAND" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err"
-  else
-    echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
-    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/${APPNAME:-$1}.log"
-    echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
-    bash -c "$COMMAND" >>"$logdir/${APPNAME:-$1}.log" 2>>"$logdir/${APPNAME:-$1}.err"
-  fi
-}
-#runpost "program"
-__run_post() {
-  local e="$1"
-  local m="${e//__devnull//}"
-  execute "$e" "executing: $m"
-  setexitstatus
-  set --
-}
 ###################### checks ######################
 #__cmd_exists command
 __cmd_exists() {
@@ -413,7 +431,7 @@ __mv_f() { if [ -e "$1" ]; then __devnull mv -f "$@"; fi; }
 #cp_rf "file" "dest"
 __cp_rf() { if [ -e "$1" ]; then __devnull cp -Rfa "$1" "$2"; fi; }
 #rm_rf "file"
-__rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@"; fi; }
+__rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$*"; fi; }
 #ln_rm "file"
 __ln_rm() { if [ -e "$1" ]; then __devnull find "${1:-.}" -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
@@ -424,13 +442,16 @@ __ln_sf() {
   __devnull ln -sf "$@"
 }
 ###################### url functions ######################
-__curl() { __devnull2 curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
+__curl() {
+  __devnull2 curl --disable -LSs --connect-timeout 3 --retry 0 "$@"
+  __setexitstatus
+}
 #curl_header "site" "code"
-__curl_header() { __urlverify "$1" && __devnull2 __curl --disable -LSIs --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
+__curl_header() { __curl --disable -LSIs --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
-__curl_download() { __urlverify "$1" && __curl --disable -LSs "$1" -o "$2"; }
+__curl_download() { __curl --disable -LSs "$1" -o "$2"; }
 #curl_version "url"
-__curl_version() { __urlverify "$1" && __curl --disable -LSs "$REPORAW/master/version.txt"; }
+__curl_version() { __curl --disable -LSs "$REPORAW/master/version.txt"; }
 #curl_upload "file" "url"
 __curl_upload() { __curl --upload-file "$1" "$2"; }
 #urlcheck "url"
@@ -499,7 +520,7 @@ __git_commit() {
   fi
   touch "$1/README.md"
   __git -C "${1:-.}" add -A .
-  __git -C "${1:-.}" commit -m "Updated Files" -q
+  __git -C "${1:-.}" commit -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" -q | printf_readline "3"
 }
 #set folder name based on githost
 __git_hostname() {
@@ -870,18 +891,26 @@ if [[ "$OSTYPE" =~ ^linux ]]; then
 fi
 #function to get network device
 __getlipaddr() {
-  if cmd_exists route || cmd_exists ip || cmd_exists ifconfig; then
+  if cmd_exists route || cmd_exists ip; then
     if [[ "$OSTYPE" =~ ^darwin ]]; then
       NETDEV="$(route get default | grep interface | awk '{print $2}')"
     else
       NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
     fi
-    CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
+    if __cmd_exists ifconfig; then
+      CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
+      CURRIP6="$(/sbin/ifconfig "$NETDEV" | grep -E "venet|inet" | grep 'inet6' | grep -i global | awk '{print $2}' | head -n1)"
+    else
+      CURRIP4="$(ip addr | grep inet | grep -vE "127|inet6" | tr '/' ' ' | awk '{print $2}' | head -n 1)"
+      CURRIP6="$(ip addr | grep inet6 | grep -v "::1/" -v | tr '/' ' ' | awk '{print $2}' | head -n 1)"
+    fi
   else
-    NETDEV=lo
-    CURRIP4=127.0.0.1
+    NETDEV="lo"
+    CURRIP4="127.0.0.1"
+    CURRIP6="::1"
   fi
 }
+
 #os_support oses
 __os_support() {
   if [ -n "$1" ]; then
@@ -1045,17 +1074,8 @@ ensure_dirs() {
 
 ###################### setup folders ######################
 user_installdirs() {
-  touch "$TEMP/$APPNAME.inst.tmp"
   APPNAME="${APPNAME:-installer}"
-
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
-    INSTALL_TYPE=user
-    if [[ "$OSTYPE" =~ ^darwin ]]; then
-      HOME="/usr/local/share/CasjaysDev/root"
-      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
-    else
-      HOME="${HOME:-/root}"
-    fi
     BIN="$HOME/.local/bin"
     CONF="$HOME/.config"
     SHARE="$HOME/.local/share"
@@ -1077,7 +1097,6 @@ user_installdirs() {
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   else
-    INSTALL_TYPE=user
     HOME="${HOME}"
     BIN="$HOME/.local/bin"
     CONF="$HOME/.config"
@@ -1100,24 +1119,11 @@ user_installdirs() {
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
-  git_repo_urls
-  printf_green "Installing to $APPDIR with install type: $INSTALL_TYPE"
 }
 
 system_installdirs() {
-  touch "$TEMP/$APPNAME.inst.tmp"
   APPNAME="${APPNAME:-installer}"
-
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
-    #printf_info "Install Type: system - ${WHOAMI}"
-    #printf_red "\t\tInstalling as root ?\n"
-    INSTALL_TYPE=system
-    if [[ "$OSTYPE" =~ ^darwin ]]; then
-      HOME="/usr/local/share/CasjaysDev/root"
-      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
-    else
-      HOME="/root"
-    fi
     BACKUPDIR="$HOME/.local/backups/dotfiles"
     BIN="/usr/local/bin"
     CONF="/usr/local/etc"
@@ -1162,8 +1168,6 @@ system_installdirs() {
     #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
-  git_repo_urls
-  printf_green "Installing to $APPDIR with install type: $INSTALL_TYPE"
 }
 
 ###################### dfmgr settings ######################
@@ -1340,36 +1344,59 @@ wallpapermgr_install() {
   __mkd "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
 }
 
+###################### help ######################
+
+__help() {
+  printf_help() { printf_custom "4" "$1"; }
+  printf_custom ""
+  if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
+    . "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+  else
+    printf_custom "4" "There is no man page in for this app"
+    printf_custom "4" "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+  fi
+  printf_exit
+}
+
+[ "$1" = "--help" ] && __help
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+
 ###################### call functions ######################
 
 __getpythonver
 
 ###################### debugging tool ######################
-
-if [ "$1" = "--vdebug" ]; then
-  vdebug() {
-    if [ -f ./applications.debug ]; then . ./applications.debug; fi
-    DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-    printf_custom "4" "APP:$APPNAME - ARGS:$*"
-    printf_custom "4" "FUNCTIONSDir:$DIR"
-    for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-      HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR SCRIPTSAPPFUNCTDIR:$SCRIPTSAPPFUNCTDIR; do
-      printf_custom "4" $path
-    done
-    devnull() {
-      TMP_FILE="$(mktemp "${TMP:-/tmp}"/_XXXXXXX.err)"
-      eval "$@" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=1
-      [ ! -s "$TMP_FILE" ] || return_error "$1" "$TMP_FILE"
-      #rm -rf "$TMP_FILE"
-      return $EXIT
-    }
-    return_error() {
-      PREV="$1"
-      ERRL="$2"
-      printf_red "Command $PREV failed"
-      cat "$ERRL" | printf_readline "3"
-    }
+__load_debug() {
+  systemmgr_install
+  user_installdirs
+  if [ -f ./applications.debug ]; then . ./applications.debug; fi
+  DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+  printf_info ""$(dirname $0)/$APPNAME""
+  printf_custom "4" "ARGS: $DEBUGARGS"
+  printf_custom "4" "FUNCTIONSDir: $DIR"
+  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX CONF:$CONF SHARE:$SHARE \
+    HOMEDIR:$HOMEDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+    [ -z "$path" ] || printf_custom "4" $path
+  done
+  __devnull() {
+    TMP_FILE="$(mktemp "${TMP:-/tmp}"/_XXXXXXX.err)"
+    eval "$@" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=1
+    [ ! -s "$TMP_FILE" ] || return_error "$1" "$TMP_FILE"
+    rm -rf "$TMP_FILE"
+    return $EXIT
   }
+  __devnull1() { __devnull "$@"; }
+  __devnull2() { __devnull "$@"; }
+  return_error() {
+    PREV="$1"
+    ERRL="$2"
+    printf_red "Command $PREV failed"
+    cat "$ERRL" | printf_readline "3"
+  }
+}
+if [ "$1" = "--vdebug" ]; then
+  shift 1
+  __load_debug
 fi
 ###################### unload variables ######################
 unload_var_path() {

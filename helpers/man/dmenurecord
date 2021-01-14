@@ -1,0 +1,7 @@
+  printf_help "Usage:"
+  printf_help "$($0)            | Ask for recording type via dmenu"
+  printf_help "$($0 screencast) | Record both audio and screen"
+  printf_help "$($0 video)      | Record only screen"
+  printf_help "$($0 audio)      | Record only audio"
+  printf_help "$($0 kill)       | Kill existing recording"
+  printf_help "If there is already a running instance, user will be prompted to end it."

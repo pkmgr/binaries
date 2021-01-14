@@ -27,15 +27,7 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -90,15 +82,6 @@ _newpage_template() {
     _blog_page_header >"$file"
   fi
   vim -c ":setlocal ft=notes syntax=markdown" "$file"
-}
-
-__help() {
-  printf_green '
-  \t\tUsage:
-  \t\tblog page "path_to_page" "title_of_page"
-  \t\tblog post "title_of_post"
-  '
-  return 0
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

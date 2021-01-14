@@ -1,0 +1,2 @@
+  printf_help "Run with --notify to get a popup notification"
+  printf_help "Check and report updates"

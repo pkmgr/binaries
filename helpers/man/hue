@@ -1,0 +1,3 @@
+printf_help "Usage: hue hostname command\n"
+printf_help "IE: hue hostname on / off\n"
+printf_help "See http://hkionline.net/posts/using-phillips-hue-from-the-command-line for a full list of commands"

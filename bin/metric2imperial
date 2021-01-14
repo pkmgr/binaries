@@ -27,27 +27,9 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_custom "4" "Convert metric to imperial measurements"
-  printf_green "Convert celcius to fahrenheit     | $APPNAME f 20 "
-  printf_green "Convert millimeter to inches      | $APPNAME mm 20 "
-  printf_green "Convert centimeter to inches      | $APPNAME cm 20 "
-  printf_green "Convert meter to feet             | $APPNAME m 20 "
-  printf_green "Convert kilometer to miles        | $APPNAME km 20 "
-  exit
-}
 
 if [ -z "$1" ] || [ $# -lt 2 ]; then
   __help

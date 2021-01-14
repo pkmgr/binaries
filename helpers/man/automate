@@ -1,0 +1,2 @@
+  printf_help "Usage: automate tv start"
+  printf_help "Usage: automate tv stop"

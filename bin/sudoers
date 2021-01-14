@@ -27,29 +27,7 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_help "
-\t\tUsage:
-\t\tsudoers insults        |   Create insults file
-\t\tsudoers adduser user   |   add user to sudo
-\t\tsudoers remuser user   |   remove user from sudo
-\t\tsudoers remove         |   remove yourself from sudo
-\t\tsudoers pass           |   require password for sudo
-\t\tsudoers nopass         |   don't require a password for sudo
-"
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

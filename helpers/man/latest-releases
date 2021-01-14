@@ -1,0 +1,8 @@
+printf_help "Add these 2 lines to ${auth_path}, modify the values for your info and save it:"
+printf_help 'export GITHUB_USERNAME="yourname"'
+printf_help 'export GITHUB_PERSONAL_ACCESS_TOKEN="youraccesstoken"'
+printf_help "Add your list of GitHub repos to ${github_path}."
+printf_help "Separate out each entry on a new line and only include the owner/repo."
+printf_help "Here's an example of what that file could look like:"
+printf_help "pallets/flask"
+printf_help "phoenixframework/phoenix"

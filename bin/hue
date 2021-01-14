@@ -28,24 +28,13 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
-
-__help() {
-  printf_green "\t\tUsage: hue hostname command\n"
-  printf_green "\t\tIE: hue hostname on / off\n"
-  printf_green "\t\tSee http://hkionline.net/posts/using-phillips-hue-from-the-command-line for a full list of commands"
-  return 0
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
+hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # variables
 

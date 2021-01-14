@@ -1,0 +1,3 @@
+printf_help "Usage: $APPNAME"
+printf_help "$APPNAME --console for output"
+printf_help "$APPNAME --help this message"

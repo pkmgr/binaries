@@ -1,0 +1,8 @@
+printf_help "-a         Show hidden files/directories."
+printf_help "-r         Show file content in the right."
+printf_help "-u         Show file content under the list."
+printf_help "-d         Show content of the directory."
+printf_help "-D         Do not show content of the directory."
+printf_help "-n         No preview."
+printf_help "-C         No confirmation at deletion."
+printf_help "-h         print this help and exit.""

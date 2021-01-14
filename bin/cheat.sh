@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1117,SC2001
-#
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
 # @Author      : Jason
@@ -12,6 +14,20 @@
 # @Description : Get help with commands
 # @Source      : github.com/chubin/cheat.sh
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
 
 # [X] open section
 # [X] one shot mode
@@ -41,9 +57,9 @@ __CHTSH_DATETIME="2020-08-05 09:30:30 +0200"
 
 # cht.sh configuration loading
 #
-# configuration is stored in ~/.config/.cht.sh/ (can be overridden by CHTSH_HOME)
+# configuration is stored in ~/.config/cheat.sh/ (can be overridden by CHTSH_HOME)
 #
-CHTSH_HOME=${CHTSH:-"$HOME"/.config/.cht.sh}
+CHTSH_HOME=${CHTSH:-~/.config/cheat.sh}
 [ -z "$CHTSH_CONF" ] && CHTSH_CONF=$CHTSH_HOME/cht.sh.conf
 # shellcheck disable=SC1090,SC2002
 [ -e "$CHTSH_CONF" ] && source "$CHTSH_CONF"
@@ -348,8 +364,8 @@ do_query() {
   local b_opts=
   local uri="${CHTSH_URL}/\"\$(get_query_options $query)\""
 
-  if [ -e "$HOME/.config/.cht.sh/id" ]; then
-    b_opts="-b \"\$HOME/.config/.cht.sh/id\""
+  if [ -e "$HOME/.config/cheat.sh/id" ]; then
+    b_opts="-b \"\$HOME/.config/cheat.sh/id\""
   fi
 
   eval curl "$b_opts" -s "$uri" >"$TMP1"
@@ -547,7 +563,7 @@ command -v rlwrap >/dev/null || {
   exit 1
 }
 
-mkdir -p "$HOME/.config/.cht.sh/"
+mkdir -p "$HOME/.config/cheat.sh/"
 lines=$(tput lines)
 
 if command -v less >/dev/null; then
@@ -644,11 +660,11 @@ EOF
 }
 
 cmd_hush() {
-  mkdir -p "$HOME/.config/.cht.sh/" && touch "$HOME/.config/.cht.sh/.hushlogin" && echo "Initial 'use help' message was disabled"
+  mkdir -p "$HOME/.config/cheat.sh/" && touch "$HOME/.config/cheat.sh/.hushlogin" && echo "Initial 'use help' message was disabled"
 }
 
 cmd_id() {
-  id_file="$HOME/.config/.cht.sh/id"
+  id_file="$HOME/.config/cheat.sh/id"
 
   if [ id = "$input" ]; then
     new_id=""
@@ -689,7 +705,7 @@ cmd_id() {
     if ! [ -e "$id_file" ]; then
       printf '#\n\n' >"$id_file"
     fi
-    printf ".config/.cht.sh\tTRUE\t/\tTRUE\t0\tid\t$new_id\n" >>"$id_file"
+    printf ".config/cheat.sh\tTRUE\t/\tTRUE\t0\tid\t$new_id\n" >>"$id_file"
   fi
   echo "$new_id"
 }
@@ -777,7 +793,7 @@ TMP1=$(mktemp /tmp/cht.sh.XXXXXXXXXXXXX)
 trap 'rm -f $TMP1 $TMP2' EXIT
 trap 'true' INT
 
-if ! [ -e "$HOME/.config/.cht.sh/.hushlogin" ] && [ -z "$this_query" ]; then
+if ! [ -e "$HOME/.config/cheat.sh/.hushlogin" ] && [ -z "$this_query" ]; then
   echo "type 'help' for the cht.sh shell help"
 fi
 
@@ -789,7 +805,7 @@ while true; do
   fi
 
   input=$(
-    rlwrap -H "$HOME/.config/.cht.sh/history" -pgreen -C cht.sh -S "$full_prompt" bash "$0" --read | sed 's/ *#.*//'
+    rlwrap -H "$HOME/.config/cheat.sh/history" -pgreen -C cht.sh -S "$full_prompt" bash "$0" --read | sed 's/ *#.*//'
   )
 
   cmd_name=${input%% *}

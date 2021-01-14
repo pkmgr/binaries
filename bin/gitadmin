@@ -29,15 +29,7 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -382,22 +374,6 @@ ghcreate-user() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Help
-
-help() {
-  printf_red "The Default action is to clone/pull\n"
-  printf_red "Usage:"
-  printf_red "--single username reponame"
-  printf_red "--org username"
-  printf_red "--user usename"
-  printf_red "--push to push the repos or"
-  printf_red "--clone to clone/update local repos"
-  printf_red "--help --org --user --push"
-  printf_red "--clone --pull --create"
-  printf_red "--delete --gist"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main program
 
 main() {
@@ -535,7 +511,7 @@ __run_cron() {
 
 case "$1" in
 --help)
-  help
+  __help
   exit
   ;;
 

@@ -1,0 +1,1 @@
+printf_help "Usage: urlcheck URL  |  return 0 if ok and 1 if invalid"

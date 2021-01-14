@@ -28,10 +28,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,25 +36,9 @@ dfmgr_install
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if am_i_online && cmd_exists jq; then
   API="$(curl -s "https://api.github.com/orgs/dfmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
-
-__help() {
-  printf_help "\n
-\t\tA DotFiles Manager for all systems   |   Usage: dfmgr command
-\t\tdfmgr version              - show the version info           | IE: dfmgr version bash
-\t\tdfmgr available            - list available dotfiles         | IE: dfmgr available
-\t\tdfmgr list                 - list installed dotfiles         | IE: dfmgr list
-\t\tdfmgr search               - find a dotfile                  | IE: dfmgr search geany
-\t\tdfmgr install              - install a dotfile               | IE: dfmgr install vim
-\t\tdfmgr update               - update the dotfiles             | IE: dfmgr update
-\t\tdfmgr personal             - update personal dotfiles        | IE: dfmgr personal
-"
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

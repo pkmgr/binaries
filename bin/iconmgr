@@ -28,10 +28,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,24 +45,6 @@ fi
 
 generate_theme_index() { true; }
 generate_icon_index() { true; }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "\n
-\t\tA Package Manager for all systems   |   Usage: sudo iconmgr command
-\t\ticonmgr version              - show the version info          | IE: iconmgr version N.I.B.
-\t\ticonmgr makecache            - update icon cache              | IE: iconmgr makecache
-\t\ticonmgr list                 - list all installable icons     | IE: iconmgr list
-\t\ticonmgr list-installed       - list installed icons           | IE: iconmgr list-installed
-\t\ticonmgr search               - find icon                      | IE: iconmgr search icon
-\t\ticonmgr search-installed     - search installed icons         | IE: iconmgr search-installed icon
-\t\ticonmgr install              - install a icon                 | IE: iconmgr install icon
-\t\ticonmgr remove               - remove a icon                  | IE: iconmgr remove icon
-\t\ticonmgr update               - update the icons               | IE: iconmgr update
-"
-  return
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

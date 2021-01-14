@@ -28,10 +28,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,9 +43,6 @@ LIST="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/list)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if am_i_online cmd_exists jq; then
   API="$(curl -s "https://api.github.com/orgs/thememgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
@@ -61,22 +54,6 @@ generate_icon_index() { true; }
 
 mkd "$HOMEDIR"
 mkd "$THEMEDIR"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_help "\n
-\t\tA Package Manager for all systems   |   Usage: sudo thememgr command
-\t\tthememgr makecache            - update theme cache              | IE: thememgr makecache
-\t\tthememgr list                 - list all installable themes     | IE: thememgr list
-\t\tthememgr list-installed       - list installed themes           | IE: thememgr list-installed
-\t\tthememgr search               - find theme                      | IE: thememgr search theme
-\t\tthememgr search-installed     - search installed themes         | IE: thememgr search-installed theme
-\t\tthememgr install              - install a theme                 | IE: thememgr install theme
-\t\tthememgr remove               - remove a theme                  | IE: thememgr remove theme
-\t\tthememgr update               - update the themes               | IE: thememgr update
-"
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

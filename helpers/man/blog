@@ -1,0 +1,3 @@
+printf_help  "Usage:"
+printf_help  "blog page "path_to_page" "title_of_page""
+printf_help  "blog post "title_of_post""

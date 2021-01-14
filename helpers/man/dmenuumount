@@ -1,0 +1,3 @@
+  printf_help "A dmenu prompt to unmount drives."
+  printf_help "Provides you with mounted partitions, select one to unmount."
+  printf_help "Drives mounted at /, /boot and /home will not be options to unmount."

@@ -27,15 +27,7 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -61,14 +53,7 @@ fi
 
 case $1 in
 help)
-  printf_green "Usage:"
-  printf_green "myip              |   print current ip addresses"
-  printf_green "myip local        |   print current local ip address"
-  printf_green "myip public       |   print current public ip address"
-  printf_green "myip local 4      |   print current local ip 4 address"
-  printf_green "myip local 6      |   print current local ip 6 address"
-  printf_green "myip public 4     |   print current public ip 4 address"
-  printf_green "myip public 4     |   print current public ip 4 address"
+  __help
   ;;
 local)
   case $2 in

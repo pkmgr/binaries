@@ -1,0 +1,3 @@
+  printf_help 'Usage: post2social "Your message"'
+  printf_help 'post2social twitter "Your message"'
+  printf_help 'post2social mastodon "Your message"'

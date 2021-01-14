@@ -27,19 +27,11 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#__check_app
+__check_app ifconfig
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -47,7 +39,7 @@ fi
 __getlipaddr
 
 # Get IP4 address
-NEWIP4="$(/sbin/ifconfig "$NETDEV" | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1)"
+NEWIP4="$CURRIP4"
 if [ -f "/var/lib/system-scripts/checkip/myip4.txt" ]; then
   OLDIP4="$(cat /var/lib/system-scripts/checkip/myip4.txt)"
 else
@@ -55,7 +47,7 @@ else
 fi
 
 # Get IP6 address
-NEWIP6="$(/sbin/ifconfig "$NETDEV" | grep -E "venet|inet" | grep 'inet6' | grep -i global | awk '{print $2}' | head -n1)"
+NEWIP6="$CURRIP6"
 if [ -f "/var/lib/system-scripts/checkip/mydomain.txt" ]; then
   OLDIP6="$(cat /var/lib/system-scripts/checkip/mydomain.txt)"
 else

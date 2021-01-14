@@ -1,0 +1,1 @@
+printf_exit 'Usage: notifications "title" "message"'

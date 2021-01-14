@@ -1,5 +1,6 @@
 #!/bin/sh
 #
+
 # pb; a command line pastebin service helper
 #    {kopimi,CC0} MMXVIII . syntax samurai
 #         ▟▙

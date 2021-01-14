@@ -1,0 +1,7 @@
+printf_help "Usage:"
+printf_help "sudoers insults        |   Create insults file"
+printf_help "sudoers adduser user   |   add user to sudo"
+printf_help "sudoers remuser user   |   remove user from sudo"
+printf_help "sudoers remove         |   remove yourself from sudo"
+printf_help "sudoers pass           |   require password for sudo"
+printf_help "sudoers nopass         |   don't require a password for sudo"

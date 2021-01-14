@@ -1,0 +1,2 @@
+  printf_help "Get a random joke "
+  printf_help "Usage: tell-joke"

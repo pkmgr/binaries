@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# indent type=tab
-# tab size=4
+# indent type=spaces
+# tab size=2
 # shellcheck disable=SC2034 #Unused variables
 # shellcheck disable=SC2068 #Double quote array warning
 # shellcheck disable=SC2086 # Double quote warning

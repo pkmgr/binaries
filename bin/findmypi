@@ -27,23 +27,9 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "Find a raspberry pi on your network"
-  printf_green "Usage: findmypi iprange netmask   |  IE findmypi 192.168.1.0 24"
-  exit 0
-}
 
 __gethostname() {
   rasppi="$(echo $device)"
@@ -51,8 +37,6 @@ __gethostname() {
   echo "$rasppi    $sethost" >>"$HOME/Documents/raspis.txt" 2>/dev/null
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--help" ] && __help
 
 [ -z "$1" ] && ip="10.0.0.0" || ip="$1"
 [ -z "$2" ] && nm="16" || nm="$2"

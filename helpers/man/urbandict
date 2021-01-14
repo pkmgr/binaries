@@ -1,0 +1,2 @@
+  printf_help "Lookup definition on urbandictionary"
+  printf_help "Usage: urbandict WordToLookUP"

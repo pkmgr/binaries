@@ -27,52 +27,44 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 printf_red "Cleaning old logs"
 if [ "$1" = "" ]; then
-  devnull requiresudo rm -f /etc/cron.*/*logrotate*
-  devnull requiresudo logrotate -f /etc/logrotate.conf
-  devnull requiresudo rm -Rf /var/log/bandwidth
-  devnull requiresudo rm -Rf /var/log/*.{0,1,2,3,4,5,6,7,8,9}
-  devnull requiresudo rm -Rf /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
-  devnull requiresudo rm -Rf /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
-  devnull requiresudo rm -Rf /var/log/*.gz
-  devnull requiresudo rm -Rf /var/log/*/*.gz
-  devnull requiresudo rm -Rf /var/log/*/*/*.gz
-  devnull requiresudo rm -Rf /var/log/*.old
-  devnull requiresudo rm -Rf /var/log/*/*.old
-  devnull requiresudo rm -Rf /var/log/*/*/*.old
+  requiresudo rm -f /etc/cron.*/*logrotate*
+  requiresudo logrotate -f /etc/logrotate.conf
+  requiresudo rm -Rf /var/log/bandwidth
+  requiresudo rm -Rf /var/log/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rf /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rf /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rf /var/log/*.gz
+  requiresudo rm -Rf /var/log/*/*.gz
+  requiresudo rm -Rf /var/log/*/*/*.gz
+  requiresudo rm -Rf /var/log/*.old
+  requiresudo rm -Rf /var/log/*/*.old
+  requiresudo rm -Rf /var/log/*/*/*.old
 
   if [ -f "$HOME/.config/logrotate/config" ]; then
-    devnull requiresudo logrotate -f "$HOME/.config/logrotate/config"
+    requiresudo logrotate -f "$HOME/.config/logrotate/config"
   fi
 else
-  devnull requiresudo rm -fv /etc/cron.*/*logrotate*
-  devnull requiresudo logrotate -fv /etc/logrotate.conf
-  devnull requiresudo rm -Rfv /var/log/bandwidth
-  devnull requiresudo rm -Rfv /var/log/*.{0,1,2,3,4,5,6,7,8,9}
-  devnull requiresudo rm -Rfv /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
-  devnull requiresudo rm -Rfv /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
-  devnull requiresudo rm -Rfv /var/log/*.gz
-  devnull requiresudo rm -Rfv /var/log/*/*.gz
-  devnull requiresudo rm -Rfv /var/log/*/*/*.gz
-  devnull requiresudo rm -Rfv /var/log/*.old
-  devnull requiresudo rm -Rfv /var/log/*/*.old
-  devnull requiresudo rm -Rfv /var/log/*/*/*.old
+  requiresudo rm -fv /etc/cron.*/*logrotate*
+  requiresudo logrotate -fv /etc/logrotate.conf
+  requiresudo rm -Rfv /var/log/bandwidth
+  requiresudo rm -Rfv /var/log/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rfv /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rfv /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
+  requiresudo rm -Rfv /var/log/*.gz
+  requiresudo rm -Rfv /var/log/*/*.gz
+  requiresudo rm -Rfv /var/log/*/*/*.gz
+  requiresudo rm -Rfv /var/log/*.old
+  requiresudo rm -Rfv /var/log/*/*.old
+  requiresudo rm -Rfv /var/log/*/*/*.old
 
   if [ -f "$HOME/.config/logrotate/config" ]; then
-    devnull logrotate -fv "$HOME/.config/logrotate/config"
+    logrotate -fv "$HOME/.config/logrotate/config"
   fi
 fi
 

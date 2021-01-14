@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -27,33 +27,27 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#if [ "$(stat -c %y "$HOME/.cache/corona-virus" 2>/dev/null | cut -d' ' -f1)" != "$(date '+%Y-%m-%d %H:%M:%S.%s')" ]; then
-if [ "$(devnull find "$HOME/.cache/corona-virus" -type f -mmin +120 -delete)" ] || [ ! -f "$HOME/.cache/corona-virus" ]; then
-  curl -s https://corona-stats.online/us >"$HOME/.cache/corona-virus"
+if [[ $1 = --force ]]; then
+  shift 1
+  __rm_rf "$HOME/.cache/corona-virus"
+  __curl_download https://corona-stats.online/us "$HOME/.cache/corona-virus"
   if [ ! -f "$HOME/.cache/corona-virus" ]; then
-    echo "Download unsuccessfull"
-    exit 1
+    printf_exit "Download unsuccessfull"
   fi
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [[ $* = --force ]]; then
-  shift
-  rm "$HOME/.cache/corona-virus"
-  curl -s https://corona-stats.online/us >"$HOME/.cache/corona-virus"
+#if [ "$(stat -c %y "$HOME/.cache/corona-virus" 2>/dev/null | cut -d' ' -f1)" != "$(date '+%Y-%m-%d %H:%M:%S.%s')" ]; then
+if [ "$(__devnull find "$HOME/.cache/corona-virus" -type f -mmin +120 -delete)" ] || [ ! -f "$HOME/.cache/corona-virus" ]; then
+  __curl_download https://corona-stats.online/us "$HOME/.cache/corona-virus"
+  if [ ! -f "$HOME/.cache/corona-virus" ]; then
+    printf_exit "Download unsuccessfull"
+  fi
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -65,8 +59,8 @@ else
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-echo -n "$LOCATION: "
 
+printf_color "4" "$LOCATION: "
 grep "$LOCATION" "$HOME/.cache/corona-virus" | sed "s/\x1b\[[0-9;]*m//g" | sed "s/\s*//g ; s/║//g ; s/│/;/g" | awk -F';' '{print "😷" $3 " (" $9") 💀" $5 " 🏠("$7"%)"}'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

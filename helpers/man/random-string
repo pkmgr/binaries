@@ -1,0 +1,1 @@
+printf_help "Usage: random-string howmany    |    random-string 20"

@@ -27,33 +27,7 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "
-\t\tWeather in your terminal
-\t\thttps://github.com/chubin/wttr.in
-\t\tIE: weather option 90210 or weather city lax
-\t\tOptions are as follows:
-\t\tcity use zipcode or airport code        | weather report for city
-\t\tv2 use zipcode or airport code          | version 2 of wttr.in
-\t\timg use city or closest airport code    | create an image file
-\t\tmoon                                    | get moon phase
-\t\tRun weather :help                       | see all options
-\t\tweather for defaults and detected location
-"
-  exit 1
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

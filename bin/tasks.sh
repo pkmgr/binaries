@@ -27,10 +27,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -62,24 +58,6 @@ FIELD_IFS=\|            # IFS for splitting lines into fields
 ### END CONFIGURATION
 
 ### FUNCTIONS
-
-__help() {
-  echo ""
-  printf_custom "4" "Usage: tasks.sh [task_num] [command] ..."
-  printf_custom "4" "list [all|complete]       - shows a list of tasks"
-  printf_custom "4" "add [@project] desc       - adds a task to the given project"
-  printf_custom "4" "<task_num> delete         - deletes a task and all its sessions"
-  printf_custom "4" "<task_num> start          - starts a session for the given task"
-  printf_custom "4" "[task_num] stop [durn]    - stops session(s) with optional duration"
-  printf_custom "4" "<task_num> session <durn> - creates a session"
-  printf_custom "4" "<task_num> switch [durn]  - switches session to a new task"
-  printf_custom "4" "<task_num> done [durn]    - marks a task as complete"
-  printf_custom "4" "<task_num> [info]         - shows information for the given task"
-  printf_custom "4" "report [week]             - generate a weekly report"
-  printf_custom "4" "cleanup                   - discard all completed tasks"
-  echo ""
-  exit
-}
 
 [ "$1" = "--help" ] && __help
 

@@ -27,10 +27,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -39,21 +35,9 @@ dockermgr_install
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if cmd_exists jq; then
   API="$(curl -s "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "Scripts to setup docker containers"
-  printf_green "Available scripts are: $(echo "$API" | tr '\n' ' ')"
-  exit 1
-}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -192,10 +176,6 @@ __ssh_main() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--help" ] && __help
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 case "$1" in
 
 init)
@@ -252,6 +232,11 @@ help | --help)
 updater | cron)
   shift 1
   __run_cron "$*"
+  ;;
+
+list)
+  shift 1
+  echo "$API" | printf_readline "2"
   ;;
 
 *)

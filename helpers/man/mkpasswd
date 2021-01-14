@@ -1,0 +1,2 @@
+printf_help "Usage: mkpasswd 10"
+printf_help "mkpasswd pass length"

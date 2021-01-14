@@ -1,0 +1,5 @@
+  printf_help "Usage:"
+  printf_help "init: Default init message"
+  printf_help "alot: I'm to lazy to say"
+  printf_help "docker, node, ruby, php, perl, python, bug, fixes"
+  printf_help "Also -m --message or custom to say your own messsage"

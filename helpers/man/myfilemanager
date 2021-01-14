@@ -1,0 +1,1 @@
+printf_help "Usage: myfilemanager -e app   |   myfilemanager --create"

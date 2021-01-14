@@ -27,19 +27,8 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_green "Usage: automate tv start"
-  printf_green "Usage: automate tv stop"
-  exit 0
-}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # variables
@@ -49,9 +38,7 @@ hue_api_key="${HUE_ACCESS_TOKEN}"
 
 [ -n "$hue_api_key" ] || printf_exit "HUE_API_KEY is not set"
 [ -n "$hue_device" ] || printf_exit "HUE_DEVICE is not set"
-[ -n "$1" ] || __help
-
-[ "$1" = "--help" ] && __help
+[ -z "$1" ] && __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

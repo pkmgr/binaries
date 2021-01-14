@@ -1,0 +1,2 @@
+  printf_help "Usage: tryforever <command> <args...> "
+  printf_help "Keep trying command until it succeeds. Useful for trainternets."

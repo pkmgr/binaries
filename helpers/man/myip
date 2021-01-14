@@ -1,0 +1,8 @@
+  printf_help "Usage:"
+  printf_help "myip              |   print current ip addresses"
+  printf_help "myip local        |   print current local ip address"
+  printf_help "myip public       |   print current public ip address"
+  printf_help "myip local 4      |   print current local ip 4 address"
+  printf_help "myip local 6      |   print current local ip 6 address"
+  printf_help "myip public 4     |   print current public ip 4 address"
+  printf_help "myip public 4     |   print current public ip 4 address"

@@ -15,20 +15,21 @@ USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
+# Set functions
 
-__help() {
-  printf_green "Usage:"
-  printf_green "$($0): Ask for recording type via dmenu"
-  printf_green "$($0 screencast): Record both audio and screen"
-  printf_green "$($0 video): Record only screen"
-  printf_green "$($0 audio): Record only audio"
-  printf_green "$($0 kill): Kill existing recording"
-  printf_green "If there is already a running instance, user will be prompted to end it."
-  exit 0
-}
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
 
-[ "$1" = "--help" ] && __help
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 updateicon() {
   echo "$1" >/tmp/recordingicon

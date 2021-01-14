@@ -28,24 +28,8 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__help() {
-  printf_red "Generate a dns zone"
-  printf_red "This will look for a"
-  printf_red "$HOME/templates/dns-zone.txt"
-  printf_help "Usage: $APPNAME Domain"
-  exit
-}
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-[ "$1" = "--help" ] && __help
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [[ $(id -u) -ne 0 ]]; then

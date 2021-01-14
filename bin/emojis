@@ -27,10 +27,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,10 +34,6 @@ fi
 # Emoji list
 ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/array)"
 LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/list)"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -74,11 +66,6 @@ update | -update | --update)
   fi
   ;;
 
-help | -h* | --h*)
-  emojis --usage
-  echo ""
-  ;;
-
 dmenu)
   dmenu_emojis
   ;;
@@ -106,17 +93,10 @@ list | -l* | --l*)
   unset var
   ;;
 
-* | usage | -u* | --u*)
-  printf_green '
-                    🙄😆 emojify - emojis on the command line 😱😄
-        Usage:
-       -h|help|-help|--help        | This help!                  | emojis help
-       -s|search|-search|--search  | search for an emoji         | emojis search smile
-       -l|list|-list|--list        | list all available emojis   | emojis list
-       -p|print|-print|--print     | print to console            | emojis print "Hello :smile:"
-       -update|update|--update     | update emojify              | emojis update'
-  exit
+*)
+  __help
   ;;
+
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

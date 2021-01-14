@@ -34,15 +34,6 @@ else
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__help() { printf_help "Usage: command | transfer.sh or transfer.sh filename"; }
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--help" ] && __help
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if __api_test; then
   tmpfile=$(mktemp -t transferXXX)

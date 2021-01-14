@@ -28,10 +28,6 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -48,10 +44,6 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 pkmgr_install
-
-#---------------------------------------------------------------------------------------
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -404,35 +396,6 @@ dotfiles_run() {
   [ -z $1 ] && printf_red "Usage: pkmgr dotfiles name" && exit
   local url="$dotfilesrepo/$1.list"
   urlverify "$url" && curl -LSsq "$url" >/tmp/pkmgr-curl.txt
-}
-
-#---------------------------------------------------------------------------------------
-
-__help() {
-  echo ""
-  printf_green '                A Package Manager for most systems'
-  printf_green 'pkmgr dotfiles      - install required packages     | IE: pkmgr dotfiles git'
-  printf_green 'pkmgr list          - install from a file           | IE: pkmgr list [full path to list]'
-  printf_green 'pkmgr curl          - install from a url            | IE: pkmgr curl debian min [ See '$REPO' for details]'
-  printf_green 'pkmgr script        - run a script                  | IE: pkmgr script [ ./pathToScript or http://fullurltoscript ]'
-  printf_green 'pkmgr search        - find a package                | IE: pkmgr search myapp'
-  printf_green 'pkmgr install       - install a package             | IE: pkmgr install myapp'
-  printf_green 'pkmgr remove        - remove a package              | IE: pkmgr remove myapp'
-  printf_green 'pkmgr update        - update all packages           | IE: pkmgr update'
-  printf_green 'pkmgr clean         - Removes cached files          | IE: pkmgr clean'
-  printf_green 'pkmgr makecache     - update package lists          | IE: pkmgr makecache'
-  printf_green 'pkmgr silent        - silently install package      | IE: pkmgr silent myapp'
-  printf_green 'pkmgr silent-remove - silently remove package       | IE: pkmgr silent-remove myapp'
-  printf_green 'pkmgr cron add      - schedule daily updates        | IE: pkmgr cron add'
-  printf_green 'pkmgr aliases       - lists the alias for bash      | IE: pkmgr alias'
-  printf_green 'pkmgr pip           - install a python package      | IE: pkmgr pip requests'
-  printf_green 'pkmgr cpan          - install a perl module         | IE: pkmgr cpan Bundle::Apache'
-  printf_green 'pkmgr gem           - install a gem module          | IE: pkmgr gem jekyll'
-  printf_green 'pkmgr npm           - install a nodejs module       | IE: pkmgr npm express'
-  printf_green 'pkmgr cmd --help    - show help for the command     | IE: pkmgr aliases --help'
-  echo ""
-  exit 1
-
 }
 
 #---------------------------------------------------------------------------------------
