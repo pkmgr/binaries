@@ -24,22 +24,22 @@ _config_completions() {
     ;;
 
   commit)
-    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" commit)' -- "$cur"))
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/config/" --work-tree="$HOME" commit)' -- "$cur"))
     return
     ;;
 
   pull)
-    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" pull)' -- "$cur"))
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/config/" --work-tree="$HOME" pull)' -- "$cur"))
     return
     ;;
 
   set)
-    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" config)' -- "$cur"))
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/config/" --work-tree="$HOME" config)' -- "$cur"))
     return
     ;;
 
   status)
-    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/system/" --work-tree="$HOME" status)' -- "$cur"))
+    COMPREPLY=($(compgen -W '$(git --git-dir="$HOME/.local/dotfiles/config/" --work-tree="$HOME" status)' -- "$cur"))
     return
     ;;
 
