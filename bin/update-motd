@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 APPNAME="update-motd"
-USER="${__requiresudo_USER:-${USER}}"
+USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 PATH="/usr/games:$PATH"
 
@@ -68,10 +68,11 @@ messages_issue() {
   fi
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/issue/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
-    __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#Welcome to .*#Welcome to '$HOSTNAME'#g'
-    {} \; &>/dev/null
-    __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MYFULLHOSTNAME#'$HOSTNAME'#g'{} \; &>/dev/null
-    __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:    '$HOSTSHORT'#g' {} \; &>/dev/null
+    $sed -i "/etc/casjaysdev/messages" 's#MYFULLHOSTNAME#'$HOSTNAME'#g'
+    $sed -i "/etc/casjaysdev/messages" 's#MYFULLHOSTNAME#'$HOSTNAME'#g'
+    $sed -i "/etc/casjaysdev/messages" 's#MYFULLHOSTNAME#'$HOSTNAME'#g'
+__requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MYFULLHOSTNAME#'$HOSTNAME'#g'{} \; &>/dev/null
+__requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:    '$HOSTSHORT'#g' {} \; &>/dev/null
     __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \; &>/dev/null
     cat /etc/casjaysdev/messages/issue/* | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue &>/dev/null
     printf "\n" | __requiresudo tee -a /etc/issue &>/dev/null
@@ -162,3 +163,4 @@ main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 exit $?
+# end
