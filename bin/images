@@ -17,15 +17,6 @@ USER="${SUDO_USER:-${USER}}"
 
 # Set functions
 
-shopt -s extglob
-trap '' SIGINT
-trap '' SIGQUIT
-trap '' SIGTSTP # display message and pause
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
@@ -37,6 +28,13 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP # display message and pause
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -7,11 +7,11 @@ USER="${SUDO_USER:-${USER}}"
 ##@Version     : 010920210727-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : urbandict
+# @File        : thesaurus
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : script to lookup words on urbandictionary.com
+# @Description : thesaurus
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : dotfiles
+# @File        : emojify
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : dotfiles installer script
+# @Description : Substitutes emoji aliases (like :sparkling_heart:) to emoji raw characters
 # @Source      : https://github.com/mrowa44/emojify
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

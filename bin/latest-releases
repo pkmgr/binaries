@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
-set -o pipefail
-
-APPNAME="latest-releases"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
-HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
@@ -34,6 +30,9 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+set -e
+set -o pipefail
 
 config_path="${HOME}/.config/latest-releases"
 auth_path="${config_path}/auth"

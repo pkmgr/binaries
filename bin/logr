@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
-logrname="$(basename $0)"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
-
-set -o pipefail # trace ERR through pipes
-shopt -s extglob
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
@@ -38,7 +35,10 @@ printf_red() { printf_color "$1" 1; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-logrname="$1"
+set -o pipefail # trace ERR through pipes
+shopt -s extglob
+
+logrname="${1:-$APPNAME}"
 logdir="${LOGDIR:-$HOME/.local/log}/logr"
 date=$(date +'%m%d%Y-%H%M')
 stdout="$1-$date.log"

@@ -7,19 +7,12 @@ USER="${SUDO_USER:-${USER}}"
 ##@Version     : 010920210727-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : music
+# @File        : videos
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : play music
+# @Description : play videos
 #
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-shopt -s extglob
-trap '' SIGINT
-trap '' SIGQUIT
-trap '' SIGTSTP # display message and pause
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Set functions
@@ -35,6 +28,13 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP # display message and pause
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

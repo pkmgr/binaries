@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
 # @Author      : Jason

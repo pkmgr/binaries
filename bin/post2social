@@ -12,7 +12,7 @@ USER="${SUDO_USER:-${USER}}"
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
 # @Description : post to mastodon and twitter
-#
+# @TODO        :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Set functions

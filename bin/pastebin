@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
 # @Author      : Jason
@@ -8,8 +11,8 @@
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : Send output to pastebin
-#
+# @Description : bash pastebin.com client
+# @Source      : https://github.com/mefuckin/pastebin-shell
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
@@ -25,9 +28,6 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# bash pastebin.com client
-# https://github.com/mefuckin/pastebin-shell
 
 if [ ! -d "$HOME/.config/pastebin" ]; then mkdir -p "$HOME/.config/pastebin"; fi
 if [ ! -f "$HOME/.config/pastebin/config.conf" ]; then touch "$HOME/.config/pastebin/config.conf"; fi
