@@ -39,7 +39,7 @@ CAL_CONFIG="$HOME/.config/local/calendar.local"
 if [ -f "$HOME/.config/local/calendar.local" ]; then
   source "$HOME/.config/local/calendar.local"
 else
-  echo '
+  cat <<EOF >"$CAL_CONFIG"
 #Calendar Configuration
 # directory for storing the events. Make sure this path exists
 eventpath="$HOME/.local/share/ics"
@@ -52,7 +52,7 @@ DATEFORMAT="%a %e %b, %-l:%M%P"
 TAGS=(work meeting study party)
 TERSE="$startdate - $title"
 #FULL="$startdate - $title\n$desc\n$location ($category)"
-' >"$CAL_CONFIG"
+EOF
   source "$HOME/.config/local/calendar.local"
 fi
 
