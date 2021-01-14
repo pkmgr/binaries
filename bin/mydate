@@ -11,7 +11,7 @@ USER="${SUDO_USER:-${USER}}"
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : date command through toilet
+# @Description : get the date: This is what I use for versioning
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -31,15 +31,30 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-check_app toilet
+case "$1" in
 
-if [ "$1" = "--term" ]; then
-  toilet -f term -F border --gay "$(date)"
-  bash
-else
-  toilet -f term -F border --gay "$(date)"
-fi
+nowtime)
+  shift 1
+  date +"%T"
+  ;;
+
+nowdate)
+  shift 1
+  'date +"%m-%d-%Y"'
+  ;;
+
+setver)
+  shift 1
+  date +"%m%d%Y%H%M-git"
+  ;;
+
+setverfile)
+  shift 1
+  date +"%m%d%Y%H%M-git" >version.txt
+  ;;
+
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

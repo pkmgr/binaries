@@ -1,0 +1,4 @@
+printf_help "Usage: mydate nowtime         |  get current time"
+printf_help "Usage: mydate nowdate         |  get current date"
+printf_help "Usage: mydate setver          |  set version"
+printf_help "Usage: mydate setverfile      |  out to ./verion.txt"
