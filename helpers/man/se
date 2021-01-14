@@ -1,8 +1,10 @@
-printf_help "-a         Show hidden files/directories."
-printf_help "-r         Show file content in the right."
-printf_help "-u         Show file content under the list."
-printf_help "-d         Show content of the directory."
-printf_help "-D         Do not show content of the directory."
-printf_help "-n         No preview."
-printf_help "-C         No confirmation at deletion."
-printf_help "-h         print this help and exit.""
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "-a    |    Show hidden files/directories."
+printf_help "4" "-r    |    Show file content in the right."
+printf_help "4" "-u    |    Show file content under the list."
+printf_help "4" "-d    |    Show content of the directory."
+printf_help "4" "-D    |    Do not show content of the directory."
+printf_help "4" "-n    |    No preview."
+printf_help "4" "-C    |    No confirmation at deletion."
+printf_help "4" "-h    |    print this help and exit."

@@ -1,2 +1,4 @@
-printf_help "Usage: dockerrun imageName"
-printf_help "See http://hub.docker.com for images"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: dockerrun imageName"
+printf_help "4" "See http://hub.docker.com for images"

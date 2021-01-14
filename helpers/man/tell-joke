@@ -1,2 +1,4 @@
-  printf_help "Get a random joke "
-  printf_help "Usage: tell-joke"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Get a random joke "
+printf_help "4" "Usage: tell-joke"

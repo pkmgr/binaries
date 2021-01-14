@@ -1,4 +1,6 @@
-  printf_help "Usage: roku command option hostname"
-  printf_help "IE: roku keypress play rokuipaddress"
-  printf_help"See https://github.com/tispratik/docs-1/blob/master/develop/guides/remote-api-ecp.md"
-  printf_help "for a full list of commands\n"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: roku command option hostname"
+printf_help "4" "IE: roku keypress play rokuipaddress"
+printf_help "4" "See https://github.com/tispratik/docs-1/blob/master/develop/guides/remote-api-ecp.md"
+printf_help "4" "for a full list of commands\n"

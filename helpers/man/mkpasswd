@@ -1,2 +1,4 @@
-printf_help "Usage: mkpasswd 10"
-printf_help "mkpasswd pass length"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: mkpasswd 10"
+printf_help "4" "mkpasswd pass length"

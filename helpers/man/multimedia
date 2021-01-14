@@ -1,1 +1,3 @@
-printf_help "Usage: multimedia | a multimedia menu"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: multimedia | a multimedia menu"

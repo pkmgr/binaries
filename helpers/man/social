@@ -1,1 +1,3 @@
-printf_help "Usage: social | a social media menu"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: social | a social media menu"

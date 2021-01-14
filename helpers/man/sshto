@@ -1,21 +1,17 @@
-print_help "Username" "Change ssh username to \Z2$GUEST\Z0"
-print_help ''print_help      ''
-print_help "ls  -la"  "List Files"
-print_help "free -h"  "Show free memory"
-print_help "df  -ih"  "Show free inodes"
-print_help "df   -h"  "Show free disk space"
-print_help "${new_custom:-$RUN_CUSTOM}" "Execute Custom Command"
-print_help "Info"print_help  "Full system info"
-print_help "Sshkey"   "Add my ssh key to \Z4$target\Z0"
-print_help "Alias"print_help "Add my usefull aliases to \Z4$target\Z0"
-print_help "Copy"print_help  "Copy selected file or dir to \Z4$target\Z0"
-print_help ''print_help      ''
-print_help "Custom"   "CMD: \Z1${new_custom:-$RUN_CUSTOM}\Z0"
-print_help ''print_help      ''
-print_help "Dest"print_help  "Change destination folder \Z4$DEST\Z0 on \Z4$target\Z0"
-print_help "Upload"   "Upload   file or folder from \Z4$PWD\Z0 to \Z4$target:${DEST}\Z0"
-print_help "Download" "Download file or folder from \Z4$target:${DEST}\Z0 to \Z4$PWD\Z0"
-print_help ''print_help      ''
-print_help "Local"print_help "Change local  port \Z1$LOCAL\Z0"
-print_help "Remote"   "Change remote port \Z1$REMOTE\Z0"
-print_help "Tunnel"   "Start portunneling from \Z4$target\Z0 port \Z1$REMOTE\Z0 to local port \Z1$LOCAL\Z0"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Username       |    Change ssh username to 'GUEST"
+printf_help "4" "ls   -la       |    List Files"
+printf_help "4" "free -h        |    Show free memory"
+printf_help "4" "df   -ih       |    Show free inodes"
+printf_help "4" "df   -h        |    Show free disk space"
+printf_help "4" "Info           |    Full system info"
+printf_help "4" "Sshkey         |    Add my ssh key to 'target'"
+printf_help "4" "Alias          |    Add my usefull aliases to 'target'"
+printf_help "4" "Copy           |    Copy selected file or dir to 'target'"
+printf_help "4" "Dest           |    Change destination folder 'DEST' on 'target'"
+printf_help "4" "Upload         |    Upload file or folder from 'PWD' to 'target: '{DEST}'"
+printf_help "4" "Download       |    Download file or folder from 'target:' '{DEST} to 'PWD'"
+printf_help "4" "Local          |    Change local port 'LOCAL'"
+printf_help "4" "Remote         |    Change remote port 'REMOTE'"
+printf_help "4" "Tunnel         |    Start portunneling from target port REMOTE to local port LOCAL"

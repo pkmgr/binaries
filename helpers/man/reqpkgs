@@ -1,1 +1,3 @@
-printf_help "Install all required packages"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Install all required packages"

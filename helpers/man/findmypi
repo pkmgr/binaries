@@ -1,2 +1,4 @@
-printf_help "Find a raspberry pi on your network"
-printf_help "Usage: findmypi iprange netmask   |  IE findmypi 192.168.1.0 24"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Find a raspberry pi on your network"
+printf_help "4" "Usage: findmypi iprange netmask   |  IE findmypi 192.168.1.0 24"

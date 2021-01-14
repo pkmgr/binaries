@@ -1,7 +1,9 @@
-  printf_help "If there is already a running instance, user will be prompted to end it."
-  printf_help "If there is already a running instance, user will be prompted to end it."
-  printf_help "dmenurecord        | Ask for recording type via dmenu"
-  printf_help "dmenurecord        | Record both audio and screen"
-  printf_help "dmenurecord        | Record only screen"
-  printf_help "dmenurecord        | Record only audio"
-  printf_help "dmenurecord        | Kill existing recording"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "If there is already a running instance, user will be prompted to end it."
+printf_help "4" "If there is already a running instance, user will be prompted to end it."
+printf_help "4" "dmenurecord        | Ask for recording type via dmenu"
+printf_help "4" "dmenurecord        | Record both audio and screen"
+printf_help "4" "dmenurecord        | Record only screen"
+printf_help "4" "dmenurecord        | Record only audio"
+printf_help "4" "dmenurecord        | Kill existing recording"

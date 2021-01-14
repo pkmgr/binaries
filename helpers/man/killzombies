@@ -1,1 +1,3 @@
-printf_help "Usage: killzombies --admin    |    killzombies --cron"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: killzombies --admin    |    killzombies --cron"

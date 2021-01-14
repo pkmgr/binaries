@@ -1,1 +1,3 @@
-printf_exit 'Usage: notifications "title" "message"'
+#!/usr/bin/env bash
+source ./.functions
+printf_help 'Usage: notifications "title" "message" '

@@ -1,3 +1,5 @@
-printf_help "Usage: $APPNAME"
-printf_help "$APPNAME --console for output"
-printf_help "$APPNAME --help this message"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: $APPNAME"
+printf_help "4" "$APPNAME --console for output"
+printf_help "4" "$APPNAME --help this message"

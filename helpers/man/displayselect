@@ -1,1 +1,3 @@
-printf_help "Select monitor"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Select monitor"

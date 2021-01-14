@@ -1,1 +1,3 @@
-printf_help "Scripts to setup docker containers"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Scripts to setup docker containers"

@@ -1,1 +1,3 @@
-printf_help "Usage: random-string howmany    |    random-string 20"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: random-string howmany    |    random-string 20"

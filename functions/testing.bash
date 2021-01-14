@@ -33,7 +33,7 @@ fi
 
 ###################### error handling ######################
 #used for debugging
-export DEBUGARGS="$*"
+[ "$1" -- "vdebug" ] && export DEBUGARGS="$*"
 #no output
 __devnull() {
   args="$*"
@@ -1347,15 +1347,15 @@ wallpapermgr_install() {
 ###################### help ######################
 
 __help() {
-  printf_help() { printf_custom "4" "$1"; }
-  printf_custom ""
+  echo ""
   if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
-    bash "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+    source $SCRIPTSFUNCTDIR/helpers/man/source/.functions
+    source "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
   else
-    printf_custom "4" "There is no man page in for this app"
-    printf_custom "4" "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+    printf_help "4" "There is no man page in for this app"
+    printf_help "4" "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
   fi
-  printf_exit
+  exit 0
 }
 
 [ "$1" = "--help" ] && __help

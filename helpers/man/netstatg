@@ -1,1 +1,3 @@
-printf_help 'Usage: netstatg options search    |    IE: netstatg taupln "LIST'
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" 'Usage: netstatg options search    |    IE: netstatg taupln "LIST'

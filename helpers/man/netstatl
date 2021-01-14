@@ -1,1 +1,3 @@
-printf_help 'Usage: netstatg search    |    IE: netstatg LIST'
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" 'Usage: netstatg search    |    IE: netstatg LIST'

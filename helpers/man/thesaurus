@@ -1,2 +1,4 @@
-  printf_help "Lookup definition "
-  printf_help "Usage: define WordToLookUP"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Lookup definition "
+printf_help "4" "Usage: define WordToLookUP"

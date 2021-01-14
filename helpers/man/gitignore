@@ -1,3 +1,5 @@
-printf_help "Usage: gitignore node"
-printf_help "see http://gitignore.io for all options"
-printf_help "or if you have bash completion just type and press tab"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: gitignore node"
+printf_help "4" "see http://gitignore.io for all options"
+printf_help "4" "or if you have bash completion just type and press tab"

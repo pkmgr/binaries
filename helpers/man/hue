@@ -1,3 +1,5 @@
-printf_help "Usage: hue hostname command\n"
-printf_help "IE: hue hostname on / off\n"
-printf_help "See http://hkionline.net/posts/using-phillips-hue-from-the-command-line for a full list of commands"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: hue hostname command"
+printf_help "4" "IE: hue hostname on / off"
+printf_help "4" "See http://hkionline.net/posts/using-phillips-hue-from-the-command-line for a full list of commands"

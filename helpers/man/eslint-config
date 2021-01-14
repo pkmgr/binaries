@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage eslint-config    |    create an eslint file"

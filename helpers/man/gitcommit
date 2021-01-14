@@ -1,5 +1,7 @@
-  printf_help "Usage:"
-  printf_help "init: Default init message"
-  printf_help "alot: I'm to lazy to say"
-  printf_help "docker, node, ruby, php, perl, python, bug, fixes"
-  printf_help "Also -m --message or custom to say your own messsage"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage:"
+printf_help "4" "init: Default init message"
+printf_help "4" "alot: I'm to lazy to say"
+printf_help "4" "docker, node, ruby, php, perl, python, bug, fixes"
+printf_help "4" "Also -m --message or custom to say your own messsage"

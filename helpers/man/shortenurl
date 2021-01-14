@@ -1,1 +1,3 @@
-printf_help "Usage: shortenurl url2shorten"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: shortenurl url2shorten"

@@ -1,1 +1,3 @@
-printf_help "Usage: killproc mycommand    |    IE: killproc vlc"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: killproc mycommand    |    IE: killproc vlc"

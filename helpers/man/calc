@@ -1,6 +1,8 @@
-  printf_help "Console Based calculator"
-  printf_help "Usage: calc 20*4/2+23-14"
-  printf_help "Addition:       calc 1+1"
-  printf_help "Subtraction:    calc 1-1"
-  printf_help "Multiplication: calc 1*1"
-  printf_help "Division:       calc 1/1"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Console Based calculator"
+printf_help "4" "Usage: calc 20*4/2+23-14"
+printf_help "4" "Addition:       calc 1+1"
+printf_help "4" "Subtraction:    calc 1-1"
+printf_help "4" "Multiplication: calc 1*1"
+printf_help "4" "Division:       calc 1/1"

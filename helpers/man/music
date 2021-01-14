@@ -1,1 +1,3 @@
-printf_help "Usage: music   |  a music menu"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: music   |  a music menu"

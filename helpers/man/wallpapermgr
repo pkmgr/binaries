@@ -1,5 +1,7 @@
-printf_help "              A Wallpaper Manager for all systems   |   Usage: wallpapermgr command"
-printf_help "wallpapermgr version              - show the version info           | IE: wallpapermgr version casjay"
-printf_help "wallpapermgr remove               - remove wallpaper pack           | IE: wallpapermgr remove casjay"
-printf_help "wallpapermgr install              - install wallpaper pack          | IE: wallpapermgr install dwt1"
-printf_help "wallpapermgr update               - update wallpaper pack           | IE: wallpapermgr update"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "              A Wallpaper Manager for all systems   |   Usage: wallpapermgr command"
+printf_help "4" "wallpapermgr version              - show the version info           | IE: wallpapermgr version casjay"
+printf_help "4" "wallpapermgr remove               - remove wallpaper pack           | IE: wallpapermgr remove casjay"
+printf_help "4" "wallpapermgr install              - install wallpaper pack          | IE: wallpapermgr install dwt1"
+printf_help "4" "wallpapermgr update               - update wallpaper pack           | IE: wallpapermgr update"

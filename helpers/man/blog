@@ -1,3 +1,5 @@
-printf_help  "Usage:"
-printf_help  "blog page "path_to_page" "title_of_page""
-printf_help  "blog post "title_of_post""
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage:"
+printf_help "4" "blog page "path_to_page" "title_of_page""
+printf_help "4" "blog post "title_of_post""

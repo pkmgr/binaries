@@ -1,1 +1,3 @@
-printf_help "devhints.to <toolname> [--refresh]"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "devhints.to <toolname> [--refresh]"

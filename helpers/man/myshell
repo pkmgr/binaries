@@ -1,1 +1,3 @@
-printf_help "Usage: myshell ShellName    |   IE: myshell fish"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: myshell ShellName    |   IE: myshell fish"

@@ -1,1 +1,3 @@
-printf_help "Usage: myterminal -e app   |   myterminal --create"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: myterminal -e app   |   myterminal --create"

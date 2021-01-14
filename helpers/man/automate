@@ -1,2 +1,4 @@
-  printf_help "Usage: automate tv start"
-  printf_help "Usage: automate tv stop"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: automate tv start"
+printf_help "4" "Usage: automate tv stop"

@@ -1,2 +1,4 @@
-printf_help "Usage: $APPNAME location $APPNAME : Show app location"
-printf_help "Will return 0 if found and will return 1 for not found"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: $APPNAME location $APPNAME : Show app location"
+printf_help "4" "Will return 0 if found and will return 1 for not found"

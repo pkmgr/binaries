@@ -1,2 +1,4 @@
-  printf_help "Usage: tryforever <command> <args...> "
-  printf_help "Keep trying command until it succeeds. Useful for trainternets."
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: tryforever <command> <args...> "
+printf_help "4" "Keep trying command until it succeeds. Useful for trainternets."

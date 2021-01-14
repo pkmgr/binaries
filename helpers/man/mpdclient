@@ -1,4 +1,6 @@
-  printf_help "mpd client script"
-  printf_help "If you have the MPDSERVER variable set then"
-  printf_help "this will connect to the remote MPD server"
-  printf_help "otherwise it will connect to the local MPD"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "mpd client script"
+printf_help "4" "If you have the MPDSERVER variable set then"
+printf_help "4" "this will connect to the remote MPD server"
+printf_help "4" "otherwise it will connect to the local MPD"

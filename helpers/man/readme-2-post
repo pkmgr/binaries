@@ -1,1 +1,3 @@
-printf_help "Usage: readme-2-post Title Content Author"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: readme-2-post Title Content Author"

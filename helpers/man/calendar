@@ -1,2 +1,4 @@
-printf_help "A calendar written in bash"
-printf_help "Usage: calander"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "A calendar written in bash"
+printf_help "4" "Usage: calander"

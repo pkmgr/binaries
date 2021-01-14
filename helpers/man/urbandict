@@ -1,2 +1,4 @@
-  printf_help "Lookup definition on urbandictionary"
-  printf_help "Usage: urbandict WordToLookUP"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Lookup definition on urbandictionary"
+printf_help "4" "Usage: urbandict WordToLookUP"

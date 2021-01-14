@@ -1,3 +1,5 @@
-  printf_help "A dmenu prompt to unmount drives."
-  printf_help "Provides you with mounted partitions, select one to unmount."
-  printf_help "Drives mounted at /, /boot and /home will not be options to unmount."
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "A dmenu prompt to unmount drives."
+printf_help "4" "Provides you with mounted partitions, select one to unmount."
+printf_help "4" "Drives mounted at /, /boot and /home will not be options to unmount."

@@ -1,2 +1,4 @@
-printf_help "Auto connect to first container if none are specified"
-printf_help "Usage: docker-ssh container_name"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Auto connect to first container if none are specified"
+printf_help "4" "Usage: docker-ssh container_name"

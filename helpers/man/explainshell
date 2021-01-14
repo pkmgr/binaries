@@ -1,7 +1,9 @@
-  printf_help "Usage: explainshell ls -ltrsa"
-  printf_help "list directory contents"
-  printf_help "-l   use a long listing format"
-  printf_help "-t   sort by modification time, newest first"
-  printf_help "-r   reverse order while sorting"
-  printf_help "-s   print the allocated size of each file, in blocks"
-  printf_help "-a   do not ignore entries starting with ."
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: explainshell ls -ltrsa"
+printf_help "4" "list directory contents"
+printf_help "4" "-l   use a long listing format"
+printf_help "4" "-t   sort by modification time, newest first"
+printf_help "4" "-r   reverse order while sorting"
+printf_help "4" "-s   print the allocated size of each file, in blocks"
+printf_help "4" "-a   do not ignore entries starting with ."

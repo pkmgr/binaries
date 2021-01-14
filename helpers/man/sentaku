@@ -1,1 +1,3 @@
-printf_exit "Usage: sentaku [-HNladnh] [-f <file>] [-s <sep>] [input variables]"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "Usage: sentaku [-HNladnh] [-f <file>] [-s <sep>] [input variables]"

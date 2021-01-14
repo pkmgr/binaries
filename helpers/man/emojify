@@ -1,2 +1,4 @@
-printf_help "  emojify - emoji on the command line 😱"
-printf_help "USAGE: emojify [-h|--help] [-l|--list] TEXT"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "  emojify - emoji on the command line 😱"
+printf_help "4" "USAGE: emojify [-h|--help] [-l|--list] TEXT"

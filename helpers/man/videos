@@ -1,1 +1,3 @@
-printf_help "Usage: videos  |  a video menu"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: videos  |  a video menu"

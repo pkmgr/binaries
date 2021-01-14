@@ -1,1 +1,3 @@
-printf_help "Usage: radioreference https://www.broadcastify.com/scripts/playlists/1/30321/184850-6324415808.m3u"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: radioreference https://www.broadcastify.com/scripts/playlists/1/30321/184850-6324415808.m3u"

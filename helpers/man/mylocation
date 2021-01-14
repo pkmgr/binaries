@@ -1,4 +1,6 @@
-printf_help "This requires a free API key"
-printf_help "https://ipstack.com/plan and the"
-printf_help "Enviroment variable IPSTACK_ACCESS_TOKEN to"
-printf_help "be set IE:export IPSTACK_ACCESS_TOKEN=myapikey"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "This requires a free API key"
+printf_help "4" "https://ipstack.com/plan and the"
+printf_help "4" "Enviroment variable IPSTACK_ACCESS_TOKEN to"
+printf_help "4" "be set IE:export IPSTACK_ACCESS_TOKEN=myapikey"

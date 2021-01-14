@@ -1,1 +1,3 @@
-printf_help "Usage: remove-samples	|   remove the sample files from your home dir"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: remove-samples	|   remove the sample files from your home dir"

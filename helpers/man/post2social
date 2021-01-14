@@ -1,3 +1,5 @@
-  printf_help 'Usage: post2social "Your message"'
-  printf_help 'post2social twitter "Your message"'
-  printf_help 'post2social mastodon "Your message"'
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" 'Usage: post2social "Your message" '
+printf_help "4" 'post2social twitter "Your message" '
+printf_help "4" 'post2social mastodon "Your message" '

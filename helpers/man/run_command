@@ -1,1 +1,3 @@
-printf_help "Usage: run_commands mycommand    |    Run command in the background with logs"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: run_commands mycommand    |    Run command in the background with logs"

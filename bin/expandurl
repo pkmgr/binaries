@@ -31,10 +31,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-url="$1"
-
-[ ! -z "$1" ] || printf_help "Nothing to expand"
-[[ -z "$url" ]] && url=$(printclip)
+[ -z "$1" ] && printf_exit "Nothing to expand"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

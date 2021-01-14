@@ -1,1 +1,3 @@
-printf_help "multi_clipboard"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "multi_clipboard"

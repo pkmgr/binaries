@@ -1,4 +1,6 @@
-printf_help "Usage: mydate nowtime         |  get current time"
-printf_help "Usage: mydate nowdate         |  get current date"
-printf_help "Usage: mydate setver          |  set version"
-printf_help "Usage: mydate setverfile      |  out to ./verion.txt"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: mydate nowtime         |  get current time"
+printf_help "4" "Usage: mydate nowdate         |  get current date"
+printf_help "4" "Usage: mydate setver          |  set version"
+printf_help "4" "Usage: mydate setverfile      |  out to ./verion.txt"

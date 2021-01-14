@@ -1,6 +1,8 @@
-printf_help "4" "Convert metric to imperial measurements"
-printf_help "Convert celcius to fahrenheit     | $APPNAME f 20"
-printf_help "Convert millimeter to inches      | $APPNAME mm 20"
-printf_help "Convert centimeter to inches      | $APPNAME cm 20"
-printf_help "Convert meter to feet             | $APPNAME m 20"
-printf_help "Convert kilometer to miles        | $APPNAME km 20"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "4" "Convert metric to imperial measurements"
+printf_help "4" "Convert celcius to fahrenheit     | $APPNAME f 20"
+printf_help "4" "Convert millimeter to inches      | $APPNAME mm 20"
+printf_help "4" "Convert centimeter to inches      | $APPNAME cm 20"
+printf_help "4" "Convert meter to feet             | $APPNAME m 20"
+printf_help "4" "Convert kilometer to miles        | $APPNAME km 20"

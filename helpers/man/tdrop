@@ -1,1 +1,3 @@
-print_help "Usage: tdrop"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "Usage: tdrop"

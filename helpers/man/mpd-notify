@@ -1,1 +1,3 @@
-printf_help "Usage: mpd-notify"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: mpd-notify"

@@ -1,1 +1,3 @@
-printf_help "Detect OS Info"
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Detect OS Info"

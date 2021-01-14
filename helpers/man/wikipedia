@@ -1,1 +1,3 @@
-printf_help "Usage: wikipedia linux
+#!/usr/bin/env bash
+source ./.functions
+printf_help "4" "Usage: wikipedia linux"
