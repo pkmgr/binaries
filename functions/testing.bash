@@ -1350,7 +1350,7 @@ __help() {
   printf_help() { printf_custom "4" "$1"; }
   printf_custom ""
   if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
-    . "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+    bash "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
   else
     printf_custom "4" "There is no man page in for this app"
     printf_custom "4" "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
