@@ -73,7 +73,7 @@ distro_version="$distro_version"
 
 messages_issue() {
   if [ -f "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/issue/legal.txt ]; then
-    __cp_rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/issue/legal.txt"
+    __requiresudo cp -Rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/issue/legal.txt"
   fi
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/issue/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
