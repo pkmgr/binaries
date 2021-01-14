@@ -33,7 +33,7 @@ fi
 
 ###################### error handling ######################
 #used for debugging
-[ "$1" -- "vdebug" ] && export DEBUGARGS="$*"
+[ "$1" = "vdebug" ] && export DEBUGARGS="$*"
 #no output
 __devnull() {
   args="$*"
