@@ -282,7 +282,7 @@ __cmd_exists() {
   local args=$*
   local exitCode
   for cmd in $args; do
-    if find "$(command -v $cmd 2>/dev/null)" &>/dev/null || find "$(which --skip-alias --skip-functions $cmd 2>/dev/null)" &>/dev/null; then exitCode=0; else exitCode=1; fi
+    if find "$(command -v $cmd 2>/dev/null)" >/dev/null 2>&1 || find "$(which --skip-alias --skip-functions $cmd 2>/dev/null)" >/dev/null 2>&1; then exitCode=0; else exitCode=1; fi
     local exitCode+="$exitCode"
   done
   [ "$exitCode" -eq 0 ] && return 0 || return 1
@@ -325,7 +325,7 @@ __gem_exists() {
 __check_app() {
   local ARGS="$*"
   local MISSING=""
-  for cmd in "$ARGS"; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
+  for cmd in $ARGS; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
   if [ -n "$MISSING" ]; then
     printf_question "$cmd is not installed Would you like install it" [y/N]
     read -n 1 -s choice && echo
@@ -342,7 +342,7 @@ __check_app() {
 __check_pip() {
   local ARGS="$*"
   local MISSING=""
-  for cmd in "$ARGS"; do __cmd_exists $cmd || MISSING+="$cmd "; done
+  for cmd in $ARGS; do __cmd_exists $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
     printf_question "$1 is not installed Would you like install it" [y/N]
     read -n 1 -s choice
@@ -407,11 +407,11 @@ __getuser() { if [ -n "$1" ]; then cut -d: -f1 /etc/passwd | grep "${1:-USER}" |
 #mkd dir
 __mkd() { if [ ! -e "$1" ]; then mkdir -p "$@"; else return 0; fi; }
 #tar "filename dir"
-__tar_create() { tar cfvz $@; }
+__tar_create() { tar cfvz "$@"; }
 #tar filename
-__tar_extract() { tar xfvz $@; }
+__tar_extract() { tar xfvz "$@"; }
 #while_true "command"
-__while_true() { while true; do ${*} && sleep .3; done; }
+__while_true() { while true; do "${@}" && sleep .3; done; }
 #for_each "option" "command"
 __for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
 #hostname ""
@@ -658,8 +658,8 @@ __run_prog_menus() {
   local prog="$1"
   shift 1
   local args="$*"
-  if __cmd_exists }; then
-    __devnull2 "$prog $@" || clear printf_red "An error has occured"
+  if __cmd_exists $prog; then
+    __devnull2 "$prog $*" || clear printf_red "An error has occured"
   else
     attemp_install_menus "$prog" &&
       __devnull2 "$prog" "$args" || return 1
@@ -869,12 +869,12 @@ __am_i_online() {
     fi
   }
   __test_ping() {
-    timeout 0.3 ping -c1 8.8.8.8 &>/dev/null
+    timeout 0.3 ping -c1 8.8.8.8 >/dev/null 2>&1
     local pingExit=$?
     return_code $pingExit
   }
   __test_http() {
-    curl -LSIs --max-time 1 http://1.1.1.1" | grep -e "HTTP/[0123456789]" | grep "200 -n1 &>/dev/null
+    curl -LSIs --max-time 1 http://1.1.1.1" | grep -e "HTTP/[0123456789]" | grep "200 -n1 >/dev/null 2>&1
     local httpExit=$?
     return_code $httpExit
   }
@@ -991,7 +991,7 @@ __if_os_id() {
   for id_like in "$@"; do
     if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
       case "$1" in
-      arch* | arch*)
+      arch* | arco*)
         if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
           distro_id=Arch
           distro_version="$distroversion"
@@ -1380,7 +1380,7 @@ __load_debug() {
   user_installdirs
   if [ -f ./applications.debug ]; then . ./applications.debug; fi
   DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-  printf_info ""$(dirname $0)/$APPNAME""
+  printf_info "$(dirname $0)/$APPNAME"
   printf_custom "4" "ARGS: $DEBUGARGS"
   printf_custom "4" "FUNCTIONSDir: $DIR"
   for path in USER:$USER HOME:$HOME PREFIX:$PREFIX CONF:$CONF SHARE:$SHARE \
