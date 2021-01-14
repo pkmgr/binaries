@@ -287,6 +287,26 @@ __cmd_exists() {
   done
   [ "$exitCode" -eq 0 ] && return 0 || return 1
 }
+#system_service_active "list of services to check"
+__system_service_active() {
+  for service in "$@"; do
+    if [ "$(systemctl show -p ActiveState $service | cut -d'=' -f2)" == active ]; then
+      return 0
+    else
+      return 1
+    fi
+  done
+}
+#system_service_running "list of services to check"
+__system_service_running() {
+  for service in "$@"; do
+    if [[ $(systemctl status $service | grep running >/dev/null) = "yes" ]]; then
+      return 0
+    else
+      return 1
+    fi
+  done
+}
 #system_service_exists "servicename"
 __system_service_exists() {
   if sudo systemctl list-units --full -all | grep -Fq "$1.service" || sudo systemctl list-units --full -all | grep -Fq "$1.socket"; then return 0; else return 1; fi
