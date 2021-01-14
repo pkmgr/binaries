@@ -182,8 +182,8 @@ run_postinst() {
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
   mkd /etc/casjaysdev/messages/motd
   mkd /etc/casjaysdev/messages/issue
-  if [ -f "$APPDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/issue/legal.txt ]; then
-    cp_rf "$APPDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/issue/legal.txt"
+  if [ -f "$APPDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/legal.txt ]; then
+    cp_rf "$APPDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal.txt"
   fi
   replace /etc/casjaysdev/messages/ MYHOSTIP "$CURRIP4"
   replace /etc/casjaysdev/messages/ MYHOSTNAME "$(hostname -s)"
