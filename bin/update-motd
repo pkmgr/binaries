@@ -72,7 +72,7 @@ messages_issue() {
     {} \; &>/dev/null
     __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:    '$HOSTSHORT'#g' {} \; &>/dev/null
     __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Adress is.*#MY IP Adress is:   '$CURRIP4'#g' {} \; &>/dev/null
-    cat /etc/casjaysdev/messages/issue/* | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue
+    cat /etc/casjaysdev/messages/issue/* | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue &>/dev/null
     printf "\n" | __requiresudo tee -a /etc/issue &>/dev/null
   fi
 }
