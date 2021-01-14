@@ -1300,9 +1300,9 @@ if_os_id() {
 ###################### help ######################
 
 __help() {
+  [ -f "$SCRIPTSFUNCTDIR/helpers/man/.functions" ] && source "$SCRIPTSFUNCTDIR/helpers/man/.functions"
   echo ""
   if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
-    source $SCRIPTSFUNCTDIR/helpers/man/source/.functions
     source "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
   else
     printf_help "4" "There is no man page in for this app"
