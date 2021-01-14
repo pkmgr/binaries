@@ -86,7 +86,8 @@ messages_issue() {
     __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Address is.*#MY IP Address is:    '$CURRIP4'#g' {} \; >/dev/null 2>&1
     __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP6 Address is.*#MY IP6 Address is:   '$CURRIP6'#g' {} \; >/dev/null 2>&1
 
-    cat /etc/casjaysdev/messages/issue/* 2>/dev/null | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue >/dev/null 2>&1
+    cat /etc/casjaysdev/messages/legal/*.txt 2>/dev/null | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue >/dev/null 2>&1
+    cat /etc/casjaysdev/messages/issue/*.txt 2>/dev/null | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue >/dev/null 2>&1
     printf "\n" | __requiresudo tee -a /etc/issue >/dev/null 2>&1
   fi
 }
@@ -94,7 +95,7 @@ messages_issue() {
 messages_motd() {
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/motd/*.txt | wc -l)
   if [ "$messages" != "0" ]; then
-    cat /etc/casjaysdev/messages/motd/* | "$sed" '/^$/d' | __requiresudo tee -a /etc/motd >/dev/null 2>&1
+    cat /etc/casjaysdev/messages/motd/*.txt | "$sed" '/^$/d' | __requiresudo tee -a /etc/motd >/dev/null 2>&1
   fi
 }
 
