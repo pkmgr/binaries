@@ -990,15 +990,16 @@ __unsupported_oses() {
 }
 __if_os_id() {
   unset distroname distroversion distro_id distro_version
-  if [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
+  if [ -f "/etc/os-release" ]; then
+    #local distroname=$(grep "ID_LIKE=" /etc/os-release | sed 's#ID_LIKE=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g' | awk '{print $1}')
+    local distroname=$(cat /etc/os-release | grep '^ID=' | sed 's#ID=##g' | sed 's#"##g' | tr '[:upper:]' '[:lower:]')
+    local distroversion=$(cat /etc/os-release | grep '^VERSION="' | sed 's#VERSION="##g;s#"##g')
+  elif [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
     local distroname="$(lsb_release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
-    local distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+    local distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
   elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
     local distroname="$(lsb-release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
-    local distroversion="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
-  elif [ -f "/etc/os-release" ]; then
-    local distroname=$(grep "ID_LIKE=" /etc/os-release | sed 's#ID_LIKE=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g' | awk '{print $1}')
-    local distroversion=$(grep "ID_LIKE=" /etc/os-release | sed 's#VERSION_ID=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+    local distroversion="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
   elif [ -f "/etc/redhat-release" ]; then
     local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
     local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
@@ -1014,7 +1015,7 @@ __if_os_id() {
       arch* | arco*)
         if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
           distro_id=Arch
-          distro_version="$distroversion"
+          distro_version="$(cat /etc/os-release | grep '^BUILD_ID' | sed 's#BUILD_ID=##g')"
           return 0
         else
           return 1
