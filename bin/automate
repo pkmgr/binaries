@@ -42,12 +42,30 @@ hue_api_key="${HUE_ACCESS_TOKEN}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+DEVICE_API="http://$hue_device/api/$hue_api_key"
+GROUPS_API="http://$hue_device/api/$hue_api_key/groups/0/action"
+
+if [ "$1" = "--testing" ]; then
+  shift 1
+  case "$1" in
+    state) curl -LSs "$GROUPS_API" | tr ',"' '\n" ' | sed 's#{}##g;s#"state":{##g' | grep 'all_on' | grep false ;;
+    info)
+      printf_green "$(curl -LSs $DEVICE_API | jq )"
+      printf_green "Device     | $hue_device"
+      printf_green "API Key    | $hue_api_key"
+      printf_green "Device API | $DEVICE_API"
+      ;;
+    *) exit ;;
+  esac
+fi
+
 case "$1" in
 start) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
 off | false | 1) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":false}' ;;
 on | true | 0) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
 *) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
 esac
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $exitCode
