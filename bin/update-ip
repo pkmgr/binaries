@@ -33,7 +33,12 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--force" ] && shift 1 && __requiresudo rm -Rf "/etc/casjaysdev/messages/legal/000.txt"
+if [ "$1" = "--force" ]; then
+shift 1
+__requiresudo rm -Rf /etc/casjaysdev/messages/*/*.txt
+__requiresudo mkdir -p /etc/casjaysdev/messages/{legal,issue,motd}
+__requiresudo touch /etc/casjaysdev/messages/{legal,issue,motd}/000.txt
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
