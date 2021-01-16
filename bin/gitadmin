@@ -520,20 +520,30 @@ updater | cron)
   __run_cron "$*"
   ;;
 
+s | status)
+shift 1
+git status
+;;
+
+l | log
+shift 1
+log --pretty=custom
+;;
+
 remote)
-  shift 1
-  case "$1" in
+  case "$2" in
   show)
-    shift 1
+    shift 2
     [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote show | Show remote"
     git remote show origin
     ;;
   add)
-    shift 1
+    shift 2
     [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote add MyURL | Add remote"
     git remote add origin "$1"
     ;;
   *)
+    shift 1
     [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote | Show remote"
     git remote show origin
     ;;
