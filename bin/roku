@@ -51,7 +51,7 @@ toggle() {
     roku play
   elif [ "$(getstate)" = "play" ]; then
     roku stop
-  elif [ "$(getstate)" = "pause" ]; then
+  elif [ "$(getstate)" = "pause" ] || [ "$(getstate)" = "toggle" ]; then
     roku pause
   else
     printf_exit "Can not get state"
@@ -81,15 +81,14 @@ case "$1" in
 
   toggle)
     shift 1
-    toggle "$@" & echo pause >$state
+    toggle "$@" & echo toggle >$state
   ;;
 
-     state)
+  state)
     case "$2" in
-    json)
-      echo '{"status":"$(getstate)"}' | jq
-      ;;
-  esac
+      text) echo "$(getstate)" ;;
+      json | *) echo -e '{"status":"'$(getstate)'"}' | jq ;;
+    esac
   ;;
 
   *)

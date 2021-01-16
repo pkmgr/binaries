@@ -54,33 +54,32 @@ state_on() { curl -LSsq -X PUT "$api_url/action" -d '{"on": true}' &>/dev/null &
 state_off() { curl -LSsq -X PUT "$api_url/action" -d '{"on": false}' &>/dev/null && echo off >$state; }
 toggle() {
   if [ "$(cat $state)" = on ]; then
-    state_off
+    state_off 
   elif [ "$(cat $state)" = off ]; then
     state_on
   fi
 }
 
 case "$hue_option" in
-on | true | 0)
+on | true | 0 | stop)
   printf_green "Telling $hue_device to turn on the lights"
   state_on
   ;;
 
-off | false | 1)
+off | false | 1 | play)
   printf_green "Telling $hue_device to turn off the lights"
   state_off
   ;;
 
 toggle)
   printf_green "Telling $hue_device to toggle the lights"
-  toggle && echo pause >$state
+  toggle
   ;;
 
-   state)
-    case "$2" in
-    json)
-      echo '{"status":"$(getstate)"}' | jq
-      ;;
+state)
+  case "$2" in
+    text) echo "$(getstate)" ;;
+    json | *) echo -e '{"status":"'$(getstate)'"}' | jq ;;
   esac
   ;;
 

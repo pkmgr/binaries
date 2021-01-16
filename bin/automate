@@ -37,17 +37,17 @@ getstate() { cat $state; }
 roku_play() { roku play; }
 roku_stop() { roku stop; }
 roku_pause() { roku pause; }
-hue_on() { hue on; }
-hue_off() { hue off; }
-automate_play() { roku_play && hue_on && echo play >$state; }
-automate_stop() { roku_stop && hue_off && echo stop >$state; }
+hue_play() { hue play; }
+hue_stop() { hue stop; }
+automate_play() { roku_play && hue_play && echo play >$state; }
+automate_stop() { roku_stop && hue_stop && echo stop >$state; }
 automate_pause() { roku pause && hue toggle && echo pause >$state ; }
 toggle() {
 if [ "$(getstate)" = play ]; then
   automate_stop
 elif [ "$(getstate)" = stop ]; then
   automate_play
-elif  [ "$(getstate)" = pause ]; then
+elif  [ "$(getstate)" = pause ] || [ "$(getstate)" = "toggle" ]; then
   automate_pause
 fi
 }
@@ -67,16 +67,15 @@ case $1 in
     ;;
   toggle)
     shift 1
-    toggle && echo pause >$state
+    toggle && echo toggle >$state
     ;;
 
   state)
     case "$2" in
-    json)
-      echo '{"status":"$(getstate)"}' | jq
-      ;;
-  esac
-  ;;
+      text) echo "$(getstate)" ;;
+      json | *) echo -e '{"status":"'$(getstate)'"}' | jq ;;
+    esac
+    ;;
 
   *)
     shift 0
