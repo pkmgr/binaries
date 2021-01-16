@@ -40,7 +40,7 @@ hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
 main() {
 # variables
 unset roku_device roku_command roku_option
-local state="/tmp/automate_roku"
+local state="/tmp/automate_roku"; touch $state
 local DEVICE="$(hostname2ip ${ROKU_DEVICE:-$3})"
 local roku_device="${DEVICE:-$3}"
 local roku_command="$1"
