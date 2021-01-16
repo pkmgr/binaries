@@ -65,19 +65,32 @@ on | true | 0)
   printf_green "Telling $hue_device to turn on the lights"
   state_on
   ;;
+  
 off | false | 1)
   printf_green "Telling $hue_device to turn off the lights"
   state_off
   ;;
+  
 toggle)
   printf_green "Telling $hue_device to toggle the lights"
   toggle
   ;;
-state)
+  
+   state)
+    case "$2" in
+    json)
+      echo '{"status":"$(getstate)"}' | jq
+      ;;
+  esac
+  ;;
+  
+info)
   printf_green "Getting info for group $hue_group from $hue_device"
   curl -LSs "$api_url" | jq
   ;;
+  
 esac
+
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

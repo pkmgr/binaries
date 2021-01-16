@@ -66,20 +66,32 @@ case "$1" in
     printf_green "Telling $roku_device to play"
     devnull curl -d '' http://$roku_device:8060/keypress/play && echo play >$state
   ;;
+  
   stop)
     shift 1
     printf_green "Telling $roku_device to stop"
     devnull curl -d '' http://$roku_device:8060/keypress/stop && echo stop >$state
   ;;
+  
   pause)
     shift 1
     printf_green "Telling $roku_device to pause/unpause"
     devnull curl -d '' http://$roku_device:8060/keypress/play && echo pause >$state
   ;;
+  
   toggle)
     shift 1
     toggle "$@"
   ;;
+
+     state)
+    case "$2" in
+    json)
+      echo '{"status":"$(getstate)"}' | jq
+      ;;
+  esac
+  ;;
+  
   *)
     [ -z "$roku_command" ] && printf_exit "Please enter the the command you want to send to your roku"
     [ -z "$roku_option" ] && printf_exit "Please enter the the command you want to send to your roku"
@@ -87,6 +99,7 @@ case "$1" in
     devnull curl -d '' http://$roku_device:8060/$roku_command/$roku_option && echo $roku_option >$state
   ;;
 esac
+
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

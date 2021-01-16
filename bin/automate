@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+main() {
 # functions
 state="/tmp/automate"
 getstate() { cat $state; }
@@ -69,6 +69,15 @@ case $1 in
     shift 1
     toggle
     ;;
+
+  state)
+    case "$2" in
+    json)
+      echo '{"status":"$(getstate)"}' | jq
+      ;;
+  esac
+  ;;
+
   *)
     shift 0
     [ "$1" = "--help" ] && printf_help "automate play, pause, stop"
@@ -76,5 +85,12 @@ case $1 in
     ;;
 
   esac
+}
 
-  exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end
+
