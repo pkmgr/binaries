@@ -41,7 +41,7 @@ main() {
 # variables
 unset roku_device roku_command roku_option
 getstate() { touch $state; cat $state; }
-local state=$HOME/.cache/roku
+local state="/tmp/automate_roku"
 local DEVICE="$(hostname2ip ${ROKU_DEVICE:-$3})"
 local roku_device="${DEVICE:-$3}"
 local roku_command="$1"

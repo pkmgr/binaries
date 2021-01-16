@@ -34,7 +34,7 @@ fi
 main() {
 # variables
 unset hue_api_key hue_device hue_option
-state="$HOME/.cache/hue"
+state="/tmp/automate_hue"
 DEVICE="$(__hostname2ip ${HUE_HUB_DEVICE:-$2})"
 hue_api_key="${HUE_ACCESS_TOKEN}"
 hue_device="${DEVICE:-$2}"

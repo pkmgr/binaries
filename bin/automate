@@ -32,7 +32,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # functions
-state="$HOME/.cache/automate"
+state="/tmp/automate_"
 getstate() { cat $state; }
 roku_play() { roku play; }
 roku_stop() { roku stop; }
