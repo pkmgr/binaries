@@ -67,7 +67,7 @@ case $1 in
     ;;
   toggle)
     shift 1
-    toggle
+    toggle && echo pause >$state
     ;;
 
   state)

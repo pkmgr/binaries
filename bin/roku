@@ -40,12 +40,12 @@ hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
 main() {
 # variables
 unset roku_device roku_command roku_option
-getstate() { touch $state; cat $state; }
 local state="/tmp/automate_roku"
 local DEVICE="$(hostname2ip ${ROKU_DEVICE:-$3})"
 local roku_device="${DEVICE:-$3}"
 local roku_command="$1"
 local roku_option="$2"
+getstate() { touch $state; cat $state; }
 toggle() {
   if [ "$(getstate)" = "stop" ]; then
     roku play
@@ -66,22 +66,22 @@ case "$1" in
     printf_green "Telling $roku_device to play"
     devnull curl -d '' http://$roku_device:8060/keypress/play && echo play >$state
   ;;
-  
+
   stop)
     shift 1
     printf_green "Telling $roku_device to stop"
     devnull curl -d '' http://$roku_device:8060/keypress/stop && echo stop >$state
   ;;
-  
+
   pause)
     shift 1
     printf_green "Telling $roku_device to pause/unpause"
     devnull curl -d '' http://$roku_device:8060/keypress/play && echo pause >$state
   ;;
-  
+
   toggle)
     shift 1
-    toggle "$@"
+    toggle "$@" & echo pause >$state
   ;;
 
      state)
@@ -91,7 +91,7 @@ case "$1" in
       ;;
   esac
   ;;
-  
+
   *)
     [ -z "$roku_command" ] && printf_exit "Please enter the the command you want to send to your roku"
     [ -z "$roku_option" ] && printf_exit "Please enter the the command you want to send to your roku"
