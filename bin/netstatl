@@ -30,10 +30,12 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-nsdef="taupln"
-nsopts="${1:-$nsdef}"
 
-sudo netstat "-$nsopts" | grep -i --color=auto "LISTEN"
+nsopts="${1:-taupln}"
+
+#[ $# -ne 1 ] && __help
+
+sudo netstat -"$nsopts" | grep -i --color=auto 'LISTEN'
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
