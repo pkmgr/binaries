@@ -47,9 +47,9 @@ roku_device="${DEVICE:-$3}"
 roku_command="$1"
 roku_option="$2"
 
-[ -z "$roku_device" ] && printf_red "\t\tPlease enter the hostname of your roku\n" && exit 1
-[ -z "$roku_command" ] && printf_red "\t\tPlease enter the the command you want to send to your roku\n" && exit 1
-[ -z "$roku_option" ] && printf_red "\t\tPlease enter the the command you want to send to your roku\n" && exit 1
+[ -z "$roku_device" ] && printf_exit "Please enter the hostname of your roku"
+[ -z "$roku_command" ] && printf_exit "Please enter the the command you want to send to your roku"
+[ -z "$roku_option" ] && printf_exit "Please enter the the command you want to send to your roku"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

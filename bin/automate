@@ -31,43 +31,41 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-# variables
-
-hue_device="$(__hostname2ip ${HUE_HUB_DEVICE:-$1})"
-hue_api_key="${HUE_ACCESS_TOKEN}"
-
-[ -n "$hue_api_key" ] || printf_exit "HUE_API_KEY is not set"
-[ -n "$hue_device" ] || printf_exit "HUE_DEVICE is not set"
-[ -z "$1" ] && __help
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-DEVICE_API="http://$hue_device/api/$hue_api_key"
-GROUPS_API="http://$hue_device/api/$hue_api_key/groups/0/action"
-
-if [ "$1" = "--testing" ]; then
-  shift 1
-  case "$1" in
-    state) curl -LSs "$GROUPS_API" | tr ',"' '\n" ' | sed 's#{}##g;s#"state":{##g' | grep 'all_on' | grep false ;;
-    info)
-      printf_green "$(curl -LSs $DEVICE_API | jq )"
-      printf_green "Device     | $hue_device"
-      printf_green "API Key    | $hue_api_key"
-      printf_green "Device API | $DEVICE_API"
-      ;;
-    *) exit ;;
-  esac
+# functions
+state="$HOME/.cache/automate"
+getstate() { cat $state; }
+roku_play() { roku keypress play; }
+roku_stop() { roku keypress stop; }
+hue_on() { hue on; }
+hue_off() { hue off; }
+automate_play() { roku_play; hue_off; echo play >$state; }
+automate_stop() { roku_stop; hue_on; echo stop >$state; }
+automate_pause() {
+if [ "$(getstate)" = play ]; then
+  automate_stop
+elif [ "$(getstate)" = stop ]; then
+  automate_play
 fi
+}
 
-case "$1" in
-start) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
-off | false | 1) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":false}' ;;
-on | true | 0) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
-*) __devnull curl -X PUT "http://$hue_device/api/$hue_api_key/groups/0/action" -d '{"on":true}' ;;
-esac
+case $1 in
+  play)
+    shift 1
+    automate_play
+    ;;
+  stop)
+    shift 1
+    automate_stop
+    ;;
+  pause)
+    shift 1
+    automate_pause
+    ;;
+  *)
+    shift 0
+    [ "$1" = "--help" ] && printf_help "automate play, pause, stop"
+    ;;
 
+  esac
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $exitCode
-
-# end
+  exit $?

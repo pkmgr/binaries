@@ -527,7 +527,7 @@ s | status)
 
 l | log)
   shift 1
-  git log --pretty=custom
+  git log --pretty="%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
   ;;
 
 remote)
