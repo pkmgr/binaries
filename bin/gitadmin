@@ -523,62 +523,62 @@ updater | cron)
 remote)
   shift 1
   case "$1" in
-    show)
-      shift 1
-      [ $1 = "--help" ] && printf_help "Usage: $APPNAME remote show | Show remote"
-      git remote show origin
+  show)
+    shift 1
+    [ $1 == "--help" ] && printf_help "Usage: $APPNAME remote show | Show remote"
+    git remote show origin
+    ;;
+  add)
+    shift 1
+    [ $1 == "--help" ] && printf_help "Usage: $APPNAME remote add MyURL | Add remote"
+    git remote add origin "$1"
+    ;;
+  *)
+    [ $1 == "--help" ] && printf_help "Usage: $APPNAME remote | Show remote"
+    git remote show origin
+    ;;
+  esac
   ;;
-   add)
-     shift 1
-     [ $1 = "--help" ] && printf_help "Usage: $APPNAME remote add MyURL | Add remote"
-     git remote add origin "$1"
-  ;;
-*)
-  [ $1 = "--help" ] && printf_help "Usage: $APPNAME remote | Show remote"
-  git remote show origin
-  ;;
-esac
-;;
 
 update)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME update | $APPNAME update --while | Run git pull on all repos"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME update | $APPNAME update --while | Run git pull on all repos"
   git_update_loop "$@"
   ;;
 
 push)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME push | push the repo"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME push | push the repo"
   git_push_single "$@"
   ;;
 
 pull)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME update | pull the repos"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME update | pull the repos"
   git_pull_single "$@"
   ;;
 
 clone)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME clone | clone the repos"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME clone | clone the repos"
   git_clone_single "$@"
   ;;
 
 --all-orgs)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --all-orgs | Clone/Pull all orgs owned by you"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --all-orgs | Clone/Pull all orgs owned by you"
   git_all_orgs
   ;;
 
 --single)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --single | clone a single repo"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --single | clone a single repo"
   ghsinglerepo "$@"
   ;;
 
 --org)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --org | Clone/Pull all repos owned by org"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --org | Clone/Pull all repos owned by org"
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000&type=owner"
@@ -594,8 +594,8 @@ clone)
   ;;
 
 --user)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --user | Clone/Pull all repos owned by you"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --user | Clone/Pull all repos owned by you"
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/user/repos?type=owner&per_page=1000"
@@ -611,7 +611,7 @@ clone)
   ;;
 
 --push)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --push | push all your repos repos"
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --push | push all your repos repos"
   shift 1
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
@@ -648,8 +648,8 @@ clone)
   ;;
 
 --clone)
-  [ "$*" == "--help" ] && printf_help "Usage: $APPNAME --clone | clone the repos"
   shift 1
+  [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --clone | clone the repos"
   USERNAME="$1"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=owner"
@@ -857,7 +857,7 @@ stow)
 *)
   shift 0
   if [ -z "$1" ]; then
-    help
+    __help
     exit
   fi
   USERNAME="$1"
@@ -882,8 +882,6 @@ esac
 
 rm -Rf "/tmp/github-casjaysdev-*"
 
-exit $EXIT
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $EXIT
 # end
