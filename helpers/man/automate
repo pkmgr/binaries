@@ -8,5 +8,8 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Usage: automate tv start"
-printf_help "4" "Usage: automate tv stop"
+printf_help "4" "automate pause   |   turn hue lights on/off and play/pause roku"
+printf_help "4" "automate play    |   turn hue lights off and play roku"
+printf_help "4" "automate stop    |   turn hue lights on and stop roku"
+printf_help "4" "automate toggle  |   same as pause"
+

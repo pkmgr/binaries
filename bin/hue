@@ -31,9 +31,10 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+main() {
 # variables
 unset hue_api_key hue_device hue_option
+state="$HOME/.cache/hue"
 DEVICE="$(__hostname2ip ${HUE_HUB_DEVICE:-$2})"
 hue_api_key="${HUE_ACCESS_TOKEN}"
 hue_device="${DEVICE:-$2}"
@@ -48,25 +49,40 @@ api_url="${HUE_HUB_API:-http://$hue_device/api/$hue_api_key/groups/$hue_group}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # functions
-state_on() { curl -LSsq -X PUT "$api_url/action" -d '{"on": true}' &>/dev/null; }
-state_off() { curl -LSsq -X PUT "$api_url/action" -d '{"on": false}' &>/dev/null; }
+getstate() { touch $state; cat $state; }
+state_on() { curl -LSsq -X PUT "$api_url/action" -d '{"on": true}' &>/dev/null && echo on >$state; }
+state_off() { curl -LSsq -X PUT "$api_url/action" -d '{"on": false}' &>/dev/null && echo off >$state; }
+toggle() {
+  if [ "$(cat $state)" = on ]; then
+    state_off
+  elif [ "$(cat $state)" = off ]; then
+    state_on
+  fi
+}
 
 case "$hue_option" in
 on | true | 0)
-  printf_green "Sending command $hue_option to $hue_device"
+  printf_green "Telling $hue_device to turn on the lights"
   state_on
   ;;
 off | false | 1)
-  printf_green "Sending command $hue_option to $hue_device"
+  printf_green "Telling $hue_device to turn off the lights"
   state_off
   ;;
-#toggle)
-#    state_on || state_off
-#  ;;
+toggle)
+  printf_green "Telling $hue_device to toggle the lights"
+  toggle
+  ;;
 state)
   printf_green "Getting info for group $hue_group from $hue_device"
   curl -LSs "$api_url" | jq
   ;;
 esac
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

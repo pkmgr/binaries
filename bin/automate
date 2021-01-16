@@ -34,17 +34,21 @@ fi
 # functions
 state="$HOME/.cache/automate"
 getstate() { cat $state; }
-roku_play() { roku keypress play; }
-roku_stop() { roku keypress stop; }
+roku_play() { roku play; }
+roku_stop() { roku stop; }
+roku_pause() { roku pause; }
 hue_on() { hue on; }
 hue_off() { hue off; }
-automate_play() { roku_play; hue_off; echo play >$state; }
-automate_stop() { roku_stop; hue_on; echo stop >$state; }
-automate_pause() {
+automate_play() { roku_play && hue_on && echo play >$state; }
+automate_stop() { roku_stop && hue_off && echo stop >$state; }
+automate_pause() { roku pause && hue toggle && echo pause >$state ; }
+toggle() {
 if [ "$(getstate)" = play ]; then
   automate_stop
 elif [ "$(getstate)" = stop ]; then
   automate_play
+elif  [ "$(getstate)" = pause ]; then
+  automate_pause
 fi
 }
 
@@ -61,9 +65,14 @@ case $1 in
     shift 1
     automate_pause
     ;;
+  toggle)
+    shift 1
+    toggle
+    ;;
   *)
     shift 0
     [ "$1" = "--help" ] && printf_help "automate play, pause, stop"
+    printf_help "automate play, pause, stop toggle"
     ;;
 
   esac

@@ -9,6 +9,8 @@ printf_help() {
 }
 #----------------
 printf_help "4" "Usage: roku command option hostname"
-printf_help "4" "IE: roku keypress play rokuipaddress"
-printf_help "4" "See https://github.com/tispratik/docs-1/blob/master/develop/guides/remote-api-ecp.md"
-printf_help "4" "for a full list of commands\n"
+printf_help "4" "roku pause      |     pause the video"
+printf_help "4" "roku play       |     play the video"
+printf_help "4" "roku stop       |     stop the video"
+printf_help "4" "Advanced commands are roku keypress command"
+
