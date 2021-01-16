@@ -525,16 +525,16 @@ remote)
   case "$1" in
   show)
     shift 1
-    [ $1 == "--help" ] && printf_help "Usage: $APPNAME remote show | Show remote"
+    [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote show | Show remote"
     git remote show origin
     ;;
   add)
     shift 1
-    [ $1 == "--help" ] && printf_help "Usage: $APPNAME remote add MyURL | Add remote"
+    [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote add MyURL | Add remote"
     git remote add origin "$1"
     ;;
   *)
-    [ $1 == "--help" ] && printf_help "Usage: $APPNAME remote | Show remote"
+    [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote | Show remote"
     git remote show origin
     ;;
   esac
