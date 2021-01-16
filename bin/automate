@@ -32,7 +32,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # functions
-state="/tmp/automate_"
+state="/tmp/automate"
 getstate() { cat $state; }
 roku_play() { roku play; }
 roku_stop() { roku stop; }
