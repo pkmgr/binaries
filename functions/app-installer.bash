@@ -1418,6 +1418,10 @@ show_optvars() {
     exit $?
   fi
 
+  if [ "$1" = "--force" ]; then
+    installer_noupdate --force
+  fi
+
   path_info() {
     echo "$PATH" | tr ':' '\n' | sort -u
   }
@@ -1522,11 +1526,13 @@ show_optvars() {
 
 ##################################################################################################
 
-systemmgr_noupdate() {
-  if [ -f "$SYSSHARE/CasjaysDev/apps/$PREFIX/$APPNAME" ] || [ -d $APPDIR ]; then
-    ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
-    printf_warning "Updating of $APPNAME has been disabled"
-    exit 0
+installer_noupdate() {
+  if [ "$1" != "--force" ]; then
+    if [ -f "$SYSSHARE/CasjaysDev/apps/$PREFIX/$APPNAME" ] || [ -d $APPDIR ]; then
+      ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
+      printf_warning "Updating of $APPNAME has been disabled"
+      exit 0
+    fi
   fi
 }
 
