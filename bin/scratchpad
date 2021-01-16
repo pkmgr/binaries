@@ -41,8 +41,7 @@ scratchdir="$HOME/.local/share/editors/scratchpads"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 tmux_conf() {
-  if [ ! -f "$scratchdir/tmux.conf" ]; then
-    echo "
+cat <<EOF >"$scratchdir/tmux.conf"
 # remap prefix from 'C-b' to 'C-a'
 unbind C-b
 set-option -g prefix C-a
@@ -81,9 +80,7 @@ setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 
 # messages
 set -g message-style 'fg=colour232 bg=colour16 bold'
-
-" >"$scratchdir/tmux.conf"
-  fi
+EOF
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,12 +89,12 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 
 tmux_conf
 
-if devnull2 tmux ls | grep -q scratchpad; then
+if tmux ls | grep scratchpad >/dev/null 2>&1; then
   echo -e "$title\n" >"$scratchdir/$ext"
-  devnull2 tmux -f "$scratchdir/tmux.conf" new-session -d -s scratchpad "vim $scratchdir/$ext"
+  __devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $scratchdir/$ext"
+else
+  __devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $scratchdir/$ext"
 fi
-
-devnull2 tmux attach -t scratchpad
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
