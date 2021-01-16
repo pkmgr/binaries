@@ -71,22 +71,26 @@ fi
 # find replace
 if [ -d "/etc/casjaysdev/messages" ]; then
   __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#Welcome to.*#Welcome to '$HOSTNAME'!#g' {} \; >/dev/null 2>&1
-  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:   '$HOSTSHORT'#g' {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY Hostname is.*#MY Hostname is:     '$HOSTSHORT'#g' {} \; >/dev/null 2>&1
   __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP Address is.*#MY IP Address is:   '$CURRIP4'#g' {} \; >/dev/null 2>&1
-  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP6 Address is.*#MY IP6 Address is:   '$CURRIP6'#g' {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/casjaysdev/messages" -type f -exec "$sed" -i 's#MY IP6 Address is.*#MY IP6 Address is: '$CURRIP6'#g' {} \; >/dev/null 2>&1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "/etc/issue" ]; then
   __requiresudo find "/etc/issue" -type f -exec sed -i 's#MY IP Address is.*#MY IP Address is:   '$CURRIP4'#g' {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/issue" -type f -exec sed -i 's#MY IP6 Address is.*#MY IP6 Address is: '$CURRIP6'#g' {} \; >/dev/null 2>&1
 fi
 if [ -f "/etc/motd" ]; then
   __requiresudo find "/etc/motd" -type f -exec sed -i 's#MY IP Address is.*#MY IP Address is:   '$CURRIP4'#g' {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/motd" -type f -exec sed -i 's#MY IP6 Address is.*#MY IP6 Address is: '$CURRIP6'#g' {} \; >/dev/null 2>&1
 fi
 if [ -f "/etc/issue.net" ]; then
   __requiresudo find "/etc/issue.net" -type f -exec sed -i 's#MY IP Address is.*#MY IP Address is:   '$CURRIP4'#g' {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/issue.net" -type f -exec sed -i 's#MY IP6 Address is.*#MY IP6 Address is: '$CURRIP6'#g' {} \; >/dev/null 2>&1
 fi
 if [ -f "/etc/motd.net" ]; then
   __requiresudo find "/etc/motd.net" -type f -exec sed -i 's#MY IP Address is.*#MY IP Address is:   '$CURRIP4'#g' {} \; >/dev/null 2>&1
+  __requiresudo find "/etc/motd.net" -type f -exec sed -i 's#MY IP6 Address is.*#MY IP6 Address is: '$CURRIP6'#g' {} \; >/dev/null 2>&1
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
