@@ -525,7 +525,7 @@ shift 1
 git status
 ;;
 
-l | log
+l | log)
 shift 1
 log --pretty=custom
 ;;
