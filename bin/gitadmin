@@ -521,14 +521,14 @@ updater | cron)
   ;;
 
 s | status)
-shift 1
-git status
-;;
+  shift 1
+  git status -b -s
+  ;;
 
 l | log)
-shift 1
-log --pretty=custom
-;;
+  shift 1
+  git log --pretty=custom
+  ;;
 
 remote)
   case "$2" in
