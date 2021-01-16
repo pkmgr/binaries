@@ -1418,10 +1418,6 @@ show_optvars() {
     exit $?
   fi
 
-  if [ "$1" = "--force" ]; then
-    installer_noupdate --force
-  fi
-
   path_info() {
     echo "$PATH" | tr ':' '\n' | sort -u
   }
