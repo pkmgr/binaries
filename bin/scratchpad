@@ -91,9 +91,9 @@ tmux_conf
 
 if tmux ls | grep scratchpad >/dev/null 2>&1; then
   echo -e "$title\n" >"$scratchdir/$ext"
-  __devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $scratchdir/$ext"
+  devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad &>/dev/null "vim $scratchdir/$ext"
 else
-  __devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $scratchdir/$ext"
+  devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad &>/dev/null "vim $scratchdir/$ext"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
