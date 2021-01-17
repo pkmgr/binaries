@@ -35,13 +35,14 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-OLDPWD="$($PWD)"
 NOTES_DIRECTORY="${NOTES_DIRECTORY:-"$HOME/.local/share/editors/notes"}"
 NOTE_FOLDER="$(date +%Y)"
 NOTES_FILE="$(date +%m).txt"
 NOTES_PATH="${NOTES_DIRECTORY}/$NOTE_FOLDER/${NOTES_FILE}"
 NOTES_EDITOR="${NOTES_EDITOR:-vim}"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+mkdir -p ${NOTES_DIRECTORY}/$NOTE_FOLDER
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
@@ -84,7 +85,7 @@ if [ ${#} -eq 0 ]; then
       printf "\n"
     ) >>"${NOTES_PATH}"
   else
-    eval "${NOTES_EDITOR}" "${NOTES_PATH}"
+    eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null
   fi
 else
   printf "%s\n" "${*}" >>"${NOTES_PATH}"
