@@ -85,20 +85,20 @@ if [ -z "$NEWIP6" ]; then
 else
   printf_green "ipv6 works so continuing with IPV6 changes"
   __requiresudo sh -c "echo $NEWIP6 > /var/lib/system-scripts/checkip/myip6.txt"
-  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /root -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/postfix -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/proftpd* -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/named -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /var/named -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /var/www -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/hosts* -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/issue* -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/motd* -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/webmin -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
-  __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i "s#$OLDIP6#$NEWIP6#g" {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /root -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/postfix -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/proftpd* -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/named -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /var/named -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /var/www -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/hosts* -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/issue* -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/motd* -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/webmin -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
+  __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -109,20 +109,20 @@ if [ -z "$NEWIP4" ]; then
 else
   printf_green "ipv4 works so continuing with IPV4 changes"
   __requiresudo sh -c "echo $NEWIP4 > /var/lib/system-scripts/checkip/myip4.txt"
-  __requiresudo find /root -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/proftpd* -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/postfix -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/hosts* -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/issue* -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/motd* -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/named -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /var/www -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /var/named -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/webmin -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  # __requiresudo  find /etc/usermin -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;  > /dev/null 2>&1
-  __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
-  __requiresudo find /etc/casjaysdev/system-scripts -type f -exec "$sed" -i "s#$OLDIP4#$NEWIP4#g" {} \;
+  __requiresudo find /root -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/proftpd* -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/postfix -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/hosts* -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/issue* -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/motd* -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/named -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /var/www -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /var/named -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/webmin -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  # __requiresudo  find /etc/usermin -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;  > /dev/null 2>&1
+  __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
+  __requiresudo find /etc/casjaysdev/system-scripts -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,25 +130,25 @@ fi
 #Change Domain
 if [ ! "$(echo $NEWDOM | grep -v none)" = "" ]; then
   __requiresudo sh -c "echo $NEWDOM > /var/lib/system-scripts/checkip/mydomain.txt"
-  __requiresudo find /root -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/postfix -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/proftpd* -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/named -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /var/named -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /var/www -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/hosts* -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/issue* -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/motd* -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/munin -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/rc.d/rc.local -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/cron* -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/webmin -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/webalizer* -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/uptimed.conf -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
-  __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i "s#$OLDDOM#$NEWDOM#g" {} \;
+  __requiresudo find /root -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/postfix -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/proftpd* -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/named -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /var/named -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /var/www -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/hosts* -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/issue* -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/motd* -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/munin -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/rc.d/rc.local -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/cron* -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/webmin -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/webalizer* -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/uptimed.conf -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
+  __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -156,9 +156,10 @@ fi
 # Change Short HostName
 if [ ! "$(echo $NEWSHORT)" = "" ]; then
   __requiresudo sh -c "echo $NEWSHORT > /var/lib/system-scripts/checkip/myhostname.txt"
-  __requiresudo find /root -type f -exec "$sed" -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
-  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
-  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i "s#$OLDSHORT#$NEWSHORT#g" {} \;
+  __requiresudo find /root -type f -exec "$sed" -i 's#'$OLDSHORT'#'$NEWSHORT'#g' {} \;
+  __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i 's#'$OLDSHORT'#'$NEWSHORT'#g' {} \;
+  __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i 's#'$OLDSHORT'#'$NEWSHORT'#g' {} \;
+  __requiresudo find /etc/crontab -type f -exec "$sed" -i 's#$(hostname -s)#'$NEWSHORT'#g' {} \;
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

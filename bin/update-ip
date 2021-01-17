@@ -39,13 +39,13 @@ __getlipaddr
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # erase old files and recreate
 if [ "$1" = "--force" ]; then
-shift 1
-__requiresudo rm -Rf /etc/casjaysdev/messages/*/*.txt
-__requiresudo mkdir -p /etc/casjaysdev/messages/{legal,issue,motd}
-__requiresudo touch /etc/casjaysdev/messages/{legal,issue,motd}/000.txt
-if [ -f "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" ]; then
-  __requiresudo cp -Rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
-fi
+  shift 1
+  __requiresudo rm -Rf /etc/casjaysdev/messages/*/*.txt
+  __requiresudo mkdir -p /etc/casjaysdev/messages/{legal,issue,motd}
+  __requiresudo touch /etc/casjaysdev/messages/{legal,issue,motd}/000.txt
+  if [ -f "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" ]; then
+    __requiresudo cp -Rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
+  fi
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
