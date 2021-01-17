@@ -42,7 +42,7 @@ set -o pipefail
 shopt -s extglob
 
 logrname="${1:-$APPNAME}"
-logdir="${LOGDIR:-$HOME/.local/log}/logr"
+logdir="${LOGDIR:-~/.local/log}/logr"
 date=$(date +'%m%d%Y-%H%M')
 stdout="$1-$date.log"
 stderr="$1-$date.err"
