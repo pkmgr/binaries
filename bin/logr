@@ -119,7 +119,7 @@ if [ -d "$logdir" ] && [ -n "$(ls -A $logdir/$logrname-$date.* 2>/dev/null)" ]; 
   done
 fi
 
-if [ -s $logdir/$logrname-$date.err ] && [ -n "$EMAIL_ERROR" ] && cmd_exists mail; then
+if cmd_exists mail && [ -s $logdir/$logrname-$date.err ] && [ -n "$EMAIL_ERROR" ]; then
   MAILFROM="${MAILFROM:-root@$host}"
   MAILRECIP="${MAILRECIP:-$USER@$host}"
   MAILSUB="logr: $logrname"
