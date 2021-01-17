@@ -17,7 +17,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -51,78 +51,101 @@ host="$(hostname -f)"
 if [ "$1" = "-name" ]; then
   logrname=$2
   shift 2
+  cmdline="${*}"
 fi
 if [ "$logrname" = "cron" ] || [ "$logrname" = "eval" ] || [ "$logrname" = "exec" ]; then
+  logrname="$2"
   stdout="$2.log"
   stderr="$2.err"
   shift 1
+  cmdline="${*}"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 mkdir -p "$logdir"
+mkdir -p "$logdir/pretty"
 
 case "$1" in
 --help | -h)
   __help
   ;;
+
 --list | -l)
   ls "$logdir"
   ;;
+
 --open | -o)
   cmd_exists myfilemanager && myfilemanager "$logdir" || vifm "$logdir" || thunar "$logdir"
   ;;
+
 --clean | -c)
   rm -Rf "$logdir"
   rm -Rf "$HOME/.log" "$HOME/.err"
   mkdir -p "$logdir"
+  mkdir -p "$logdir/pretty"
   ;;
+
 -show | -sh)
   shift 1
-  cmdline="$*"
-  echo -e "$logrname started on $(date +"%b %d, %Y at %H:%M")"
-  echo -e "Full command is: $*"
-  "$cmdline"
-  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")"
+  cmdline="${cmdline:-$*}"
+  printf_head "$logrname started on $(date +"%b %d, %Y at %H:%M")" \
+    "Full command is: $cmdline"
+  bash -c "$cmdline"
   ;;
+
 --noerr | -noe)
   shift 1
-  cmdline="$*"
-  echo -e "logr started $logrname on $(date +"%b %d, %Y at %H:%M")"
-  echo -e "Full command is: $cmdline"
-  "$cmdline" 2>>"$logdir/$stderr"
-  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")"
+  cmdline="${cmdline:-$*}"
+  printf_head "logr started $logrname on $(date +"%b %d, %Y at %H:%M")" \
+    "Full command is: $cmdline"
+  bash -c "$cmdline" 2>>"$logdir/$stderr"
   ;;
+
 --err | -e)
   shift 1
-  cmdline="$*"
-  echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
-  echo -e "Full command is: $cmdline" >>"$logdir/$stdout"
-  "$cmdline" >>"$logdir/$stdout"
-  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
+  cmdline="${cmdline:-$*}"
+  printf_head "logr started $logrname on $(date +"%b %d, %Y at %H:%M")" \
+    "Full command is: $cmdline" >>"$logdir/$stdout" >>"$logdir/$stdout"
+  bash -c "$cmdline" >>"$logdir/$stdout"
   ;;
+
 --silent | -si)
   shift 1
-  cmdline="$*"
-  echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
-  echo -e "Full command is: $cmdline" >>"$logdir/$stdout"
-  "$cmdline" >>"$logdir/$stdout" 2>>"$logdir/$stderr"
-  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
+  cmdline="${cmdline:-$*}"
+  printf_head "logr started $logrname on $(date +"%b %d, %Y at %H:%M")" \
+    "Full command is: $cmdline" >>"$logdir/$stdout" >>"$logdir/$stdout"
+  bash -c "$cmdline" >>"$logdir/$stdout" 2>>"$logdir/$stderr"
   ;;
+
 *)
-  cmdline="$*"
-  echo -e "logr started $logrname $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
-  echo -e "Full command is: $cmdline" >>"$logdir/$stdout"
-  "$cmdline" >>"$logdir/$stdout" 2>>"$logdir/$stderr"
-  echo -e "App has ended on $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
+  cmdline="${cmdline:-$*}"
+  printf_head "logr started $logrname on $(date +"%b %d, %Y at %H:%M")" \
+    "Full command is: $cmdline" >>"$logdir/$stdout" >>"$logdir/$stdout"
+  bash -c "$cmdline" >>"$logdir/$stdout" 2>>"$logdir/$stderr"
   ;;
 esac
 
-if [ -d "$logdir" ] && [ -n "$(ls -A $logdir/$logrname* 2>/dev/null)" ]; then
-  for upd in $(ls $logdir/$logrname* 2>/dev/null); do
-    file="$(ls -A $logdir/$upd 2>/dev/null)"
-    if [ -f "$file" ]; then
-      sed -i "s,\x1B\[[0-9;]*[a-zA-Z],,g" "$file"
-      sed -i '/^$/d' "$file"
+# merge the 2 files and keep any formatting
+if [ -f "$logdir/$stderr" ]; then
+  cat "$logdir/$stderr" >>"$logdir/$stdout"
+fi
+
+# close log file
+if [ -f $logdir/$stdout ]; then
+  printf_head "$logrname has ended on $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
+  printf "\n\n" >>"$logdir/$stdout"
+  cat "$logdir/$stdout" >>"$logdir/pretty/$stdout"
+fi
+
+# remove formatting
+if [ -d "$logdir" ]; then
+  for upd in "$logdir/$stdout" "$logdir/$stderr"; do
+    if [ -f "$upd" ]; then
+      sed -i 's,\x1B\[[0-9;]*[a-zA-Z],,g' "$upd"
+      sed -i '/^$/d' "$upd"
+      sed -i 's#\t##g' "$upd"
+      sed -i 's###g' "$upd"
     fi
   done
 fi
@@ -147,8 +170,7 @@ if [ -n "$DESKTOP_SESSION" ] && [ -s "$logdir/$stderr" ]; then
 fi
 
 #clean up
-if [ -s "$logdir/$stderr" ]; then
-  cat "$logdir/$stderr" >>"$logdir/$stdout"
+if [ ! -s "$logdir/$stderr" ]; then
   rm -Rf "${logdir:?}/$stderr"
 fi
 

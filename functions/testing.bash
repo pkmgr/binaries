@@ -257,12 +257,44 @@ ask_for_confirmation() {
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
-  local msg="$*"
+  local msg1="$1" && shift 1
+  local msg2="$1" && shift 1 || msg2=
+  local msg3="$1" && shift 1 || msg3=
+  local msg4="$1" && shift 1 || msg4=
+  local msg5="$1" && shift 1 || msg5=
+  local msg6="$1" && shift 1 || msg6=
+  local msg7="$1" && shift 1 || msg7=
   shift
-  printf_color "
-\t\t##################################################
-\t\t$msg
-\t\t##################################################\n" "$color"
+  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
+  [ -z "$msg1" ] || printf_color "\t\t$msg1\n" "$color"
+  [ -z "$msg2" ] || printf_color "\t\t$msg2\n" "$color"
+  [ -z "$msg3" ] || printf_color "\t\t$msg3\n" "$color"
+  [ -z "$msg4" ] || printf_color "\t\t$msg4\n" "$color"
+  [ -z "$msg5" ] || printf_color "\t\t$msg5\n" "$color"
+  [ -z "$msg6" ] || printf_color "\t\t$msg6\n" "$color"
+  [ -z "$msg7" ] || printf_color "\t\t$msg7\n" "$color"
+  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
+}
+
+# same as printf_head but no formatting
+printf_header() {
+  local msg1="$1" && shift 1
+  local msg2="$1" && shift 1 || msg2=
+  local msg3="$1" && shift 1 || msg3=
+  local msg4="$1" && shift 1 || msg4=
+  local msg5="$1" && shift 1 || msg5=
+  local msg6="$1" && shift 1 || msg6=
+  local msg7="$1" && shift 1 || msg7=
+  shift
+  [ -z "$msg1" ] || printf "##################################################\n"
+  [ -z "$msg1" ] || printf "$msg1\n"
+  [ -z "$msg2" ] || printf "$msg2\n"
+  [ -z "$msg3" ] || printf "$msg3\n"
+  [ -z "$msg4" ] || printf "$msg4\n"
+  [ -z "$msg5" ] || printf "$msg5\n"
+  [ -z "$msg6" ] || printf "$msg6\n"
+  [ -z "$msg7" ] || printf "$msg7\n"
+  [ -z "$msg1" ] || printf "##################################################\n"
 }
 
 printf_result() {
