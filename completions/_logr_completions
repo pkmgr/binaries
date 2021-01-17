@@ -16,6 +16,10 @@ _logr_completions() {
     _filedir '$logdir'
     return 0
     ;;
+  *)
+    COMPREPLY=($(compgen -c -- "${cur}"))
+    return 0
+    ;;
   esac
 
   # relevant options completion
