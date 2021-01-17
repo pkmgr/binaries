@@ -7,6 +7,7 @@
 
 _logr_completions() {
   local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--help --list --open --clean --show --noerr --err --silent "
   local logdir=${LOGDIR:-$HOME/.local/log}/logr
   _init_completion || return
@@ -17,13 +18,17 @@ _logr_completions() {
     return 0
     ;;
   *)
-    COMPREPLY=($(compgen -c -- "${cur}"))
-    return 0
+    if [[ "$prev" == -* ]]; then
+      COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+      return 0
+    else
+      COMPREPLY=($(compgen -c -- "$cur"))
+      return 0
+    fi
     ;;
   esac
 
   # relevant options completion
-  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
 
 } &&
 
