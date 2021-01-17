@@ -21,7 +21,7 @@ shopt -s extglob
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -131,8 +131,8 @@ run_git_init() {
       read -r -n 1 confirm_repo && echo
       if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
         if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-        devnull git push -q --set-upstream origin master -f &&
-          devnull git push -q -f &&
+        __devnull git push -q --set-upstream origin master -f &&
+          __devnull git push -q -f &&
           printf_green "Successfully pushed to $repo" ||
           printf_red "Push to $repo has failed"
       else
@@ -167,8 +167,8 @@ run_git_setup() {
   date +"%m%d%Y%H%M-git" >version.txt
   ls README* 1>/dev/null 2>&1 || create_new_readme_template
   ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  devnull git init . &&
-    devnull git add . &&
+  __devnull git init . &&
+    __devnull git add . &&
     git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
     printf_green "Success: Repo has been initialized"
 
@@ -220,13 +220,13 @@ run_git_setup_automated() {
   date +"%m%d%Y%H%M-git" >version.txt
   ls README* 1>/dev/null 2>&1 || create_new_readme_template
   ls LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  devnull git init &&
+  __devnull git init &&
     git remote add origin $PREVREPO &&
     if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi &&
-    devnull git add . &&
+    __devnull git add . &&
     git commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    devnull git push -q --set-upstream origin master -f &&
-    devnull git push -q -f &&
+    __devnull git push -q --set-upstream origin master -f &&
+    __devnull git push -q -f &&
     printf_green "Successfully pushed to: $PREVREPO" ||
     printf_red "Push to $PREVREPO has failed"
   echo ""
@@ -292,7 +292,7 @@ ghgist() {
   printf_green "Creating $TITLE - $DESCR"
   curl -X POST -LSsi -H "Content-Type: application/json" -H "Authorization: token $TOKEN" --data @/tmp/gist_url-data.txt https://api.github.com/gists |
     grep -w "html_url" | grep "gist" | awk '{print $2}' | sed 's/\,//' >"/tmp/gist_url" 2>&1 && SUCCES="$(cat /tmp/gist_url)" &&
-    devnull rm -Rf "/tmp/gist_url" "/tmp/gist_url-data.txt"
+    __devnull rm -Rf "/tmp/gist_url" "/tmp/gist_url-data.txt"
   getexitcode "$SUCCES" "$ERROR"
   return $EXIT
 }
@@ -308,7 +308,7 @@ ghdelete() {
   local ERROR="Deletion of $REPONAME failed"
   local SUCCES="Deletion of $REPONAME successfull"
   printf_green "Deleting $REPONAME for user $USERNAME\n"
-  devnull curl -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
+  __devnull curl -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
   sleep 3
   curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
   ghdelete-user
@@ -335,7 +335,7 @@ ghcreate() {
   local ERROR="Creation of $REPONAME failed"
   local SUCCES="Creation of $REPONAME successfull"
   printf_green "Creating $REPONAME for user $USERNAME"
-  devnull curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos" -d "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}"
+  __devnull curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos" -d "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}"
   sleep 1
   curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" >/dev/null && true ||
     ghcreate-user
@@ -356,9 +356,9 @@ ghsinglerepo() {
 # Reusable function for create
 
 ghcreate-user() {
-  devnull2 curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
+  __devnull2 curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
   sleep 1
-  devnull2 curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" && true
+  __devnull2 curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" && true
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -373,13 +373,13 @@ main() {
       printf_purple "Now running git pull $USERNAME/$i"
       cd "$PROJECT_DIR/$USERNAME/$i" || exit 1
       if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-      devnull git pull --recurse-submodules -f -q
+      __devnull git pull --recurse-submodules -f -q
       getexitcode "$SUCCES" "$ERROR"
     else
       ERROR="Git clone $USERNAME/$i failed"
       SUCCES="Git clone $USERNAME/$i completed"
       printf_purple "Now running git clone $USERNAME/$i"
-      devnull git clone --recurse-submodules -f -q "$REPO_URL/$i" "$PROJECT_DIR/$USERNAME/$i"
+      __devnull git clone --recurse-submodules -f -q "$REPO_URL/$i" "$PROJECT_DIR/$USERNAME/$i"
       getexitcode "$SUCCES" "$ERROR"
     fi
   done
@@ -393,7 +393,7 @@ git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d ./.git ]; then
     printf_custom "4" "Pushing the repo in $PWD"
-    devnull git push -q
+    __devnull git push -q
     getexitcode "Push has completed"
   else
     if [ -n "$1" ]; then
@@ -405,7 +405,7 @@ git_push_single() {
     fi
     if [ -d "$projdir/.git" ]; then
       printf_custom "4" "Pushing the repo in $projdir"
-      devnull git -C "$projdir" push -q
+      __devnull git -C "$projdir" push -q
       getexitcode "Push has completed"
     else
       return 1
@@ -420,7 +420,7 @@ git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d ./.git ]; then
     printf_custom "4" "Pulling the repo in $PWD"
-    devnull git pull -q
+    __devnull git pull -q
     getexitcode "Pulling has completed"
   else
     if [ -n "$1" ]; then
@@ -432,7 +432,7 @@ git_pull_single() {
     fi
     if [ -d "$projdir/.git" ]; then
       printf_custom "4" "Pulling the repo in $projdir"
-      devnull git -C "$projdir" pull -q
+      __devnull git -C "$projdir" pull -q
       getexitcode "Pulling has completed"
     else
       return 1
@@ -450,11 +450,11 @@ git_clone_single() {
   projdir="${2:-$PROJECT_BASE/$gitdirname/$username/$userrepo}"
   if [ -d "$projdir/.git" ]; then
     printf_custom "4" "Updating the repo in $projdir"
-    devnull git -C "$projdir" pull -q
+    __devnull git -C "$projdir" pull -q
     getexitcode "Updating has completed"
   else
     printf_custom "4" "Cloning the repo to $projdir"
-    devnull git -C "$projdir" clone -q
+    __devnull git -C "$projdir" clone -q
     getexitcode "Cloning has completed"
   fi
   exit $?
@@ -464,13 +464,13 @@ git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
       for project in $(ls -d ~/Projects/*/*/*); do
-        printf_green "Updating $project $(devnull git -C $project pull -q) $(getexitcode)"
+        printf_green "Updating $project $(__devnull git -C $project pull -q) $(getexitcode)"
       done && clear
       printf_custom "3" "Sleeping for a minute $(sleep 60)"
     done
   else
     for project in $(ls -d ~/Projects/*/*/*); do
-      printf_green "Updating $project $(devnull git -C $project pull -q) $(getexitcode)"
+      printf_green "Updating $project $(__devnull git -C $project pull -q) $(getexitcode)"
     done
   fi
 }
@@ -629,13 +629,13 @@ clone)
       SUCCES="git push completed for $USERNAME/$i"
       cd "$PROJECT_DIR/$USERNAME/$i" || exit 1
       if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-      if (devnull2 git status | grep -q "working tree clean"); then
+      if (__devnull2 git status | grep -q "working tree clean"); then
         getexitcode
       else
         date +"%m%d%Y%H%M-git" >version.txt
-        devnull git add . &&
-          devnull git commit -a -m " ❇🦈🏠❗ General Fixes ❗🏠🦈❇ " &&
-          devnull git push -q
+        __devnull git add . &&
+          __devnull git commit -a -m " ❇🦈🏠❗ General Fixes ❗🏠🦈❇ " &&
+          __devnull git push -q
         getexitcode
       fi
     fi

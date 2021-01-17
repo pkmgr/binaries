@@ -241,7 +241,7 @@ else
   fi
   __getexitcode "Successfully committed the changes" "Failed to commit the changes"
 
-  if am_i_online && [ -z "$push" ]; then
+  if __am_i_online && [ -z "$push" ]; then
     if [ "$repo" != "localdir" ]; then
       if [[ "$*" =~ --automated ]]; then
         printf_green "Pushing the changes to $repo"
