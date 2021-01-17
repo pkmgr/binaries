@@ -18,9 +18,17 @@ _music_completions() {
     return
     ;;
 
-  esac
+  *)
+    if [[ "${cur}" == -* ]]; then
+      COMPREPLY=($(compgen -W '--help' -- "$cur"))
+      return 0
+    else
+      COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+      return 0
+    fi
+    ;;
 
-  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+  esac
 
 } &&
 

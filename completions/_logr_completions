@@ -7,22 +7,24 @@
 
 _logr_completions() {
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur_word="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--help --list --open --clean --show --noerr --err --silent "
   local logdir=${LOGDIR:-$HOME/.local/log}/logr
   _init_completion || return
 
   case $prev in
   --open)
+    shift 1
     _filedir '$logdir'
     return 0
     ;;
+
   *)
-    if [[ "$prev" == -* ]]; then
+    if [[ "${cur_word}" == -* ]]; then
       COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
       return 0
     else
-      COMPREPLY=($(compgen -c -- "$cur"))
+      COMPREPLY=($(compgen -c -- "${cur}"))
       return 0
     fi
     ;;
