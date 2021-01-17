@@ -501,6 +501,13 @@ __ln_sf() {
   fi
   __devnull ln -sf "$@"
 }
+#find "dir" "options"
+__find() {
+  local dir="$1"
+  shift 1
+  find "$dir" -not -path "$dir/.git/*" "$@"
+}
+
 ###################### url functions ######################
 __curl() {
   __devnull2 curl --disable -LSs --connect-timeout 3 --retry 0 "$@"

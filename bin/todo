@@ -96,9 +96,8 @@ todo() {
 
   list | l)
     shift 1
-    if [ -d "$tododir/$name" ] && [ "$(__countdir $tododir/$name)" -ne 0 ]; then
-      printf_green "Listing the files in $tododir/$name"
-      ls "$tododir/$name" | printf_read "3"
+    if [ -d "$tododir" ]; then
+      __find "$tododir" -iname "*.md" | sed 's#'$tododir/'##g'
     else
       printf_exit "No todos exist for this month in: $tododir/$name"
     fi
