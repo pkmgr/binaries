@@ -103,6 +103,13 @@ todo() {
     fi
     ;;
 
+  mv)
+    shift 1
+    ls "$tododir/$name" | printf_read "3"
+    printf_question "continue"
+    mv -fv "$tododir/$1" "$tododir/$2"
+    ;;
+
   open | o)
     shift 1
     run_tmux
