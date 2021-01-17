@@ -58,7 +58,7 @@ else
 fi
 
 # DOMAIN
-NEWDOM="$(__domainname | grep -v none || echo .local)"
+NEWDOM="$(__domainname)"
 if [ -f "/var/lib/system-scripts/checkip/mydomain.txt" ]; then
   OLDDOM="$(cat /var/lib/system-scripts/checkip/mydomain.txt)"
 else
