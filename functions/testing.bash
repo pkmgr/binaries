@@ -507,6 +507,16 @@ __find() {
   shift 1
   find "$dir" -not -path "$dir/.git/*" "$@"
 }
+#cd "dir"
+__cd() { cd "$1" || return 1; }
+# cd into directory with message
+__cd_into() {
+  if [ $PWD != $1 ]; then
+    cd "$1" && printf_green "Changing the directory to $1" &&
+      printf_green "Type exit to return to your previous directory" &&
+      exec bash || exit 1
+  fi
+}
 
 ###################### url functions ######################
 __curl() {
@@ -610,6 +620,9 @@ __git_username_repo() {
     return 1
   fi
 }
+__git_top_dir() { git rev-parse --show-toplevel 2>/dev/null; }
+__git_fetch_remote() { git remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null; }
+__git_porcelain() { [ "$(git status --porcelain | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
 ###################### crontab functions ######################
 
 setupcrontab() {
@@ -759,7 +772,7 @@ sudorerun() {
 
 sudoreq() { if [[ $UID != 0 ]]; then
   echo "" && printf_error "Please run this script with sudo"
-  returnexitcode
+  __returnexitcode
   exit 1
 fi; }
 
@@ -900,7 +913,7 @@ __getexitcode() {
   else
     printf_red "$PERROR"
   fi
-  returnexitcode $EXIT
+  __returnexitcode $EXIT
 }
 ###################### OS Functions ######################
 #alternative names
@@ -1438,8 +1451,8 @@ __help() {
 [ "$1" = "--help" ] && __help
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 
-###################### call functions ######################
-
+###################### export and call functions ######################
+export -f __cd_into
 __getpythonver
 
 ###################### debugging tool ######################

@@ -60,6 +60,11 @@ CURRIP4=${CURRIP4}
 CURRIP6=${CURRIP6}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# system files
+[ -d /etc/postfix ] && __requiresudo find /etc/postfix -type f -exec "$sed" -i 's#MYHOSTNAME#'$HOSTSHORT'#g' {} \; >/dev/null 2>&1
+[ -f /etc/crontab ] && __requiresudo find /etc/crontab -type f -exec "$sed" -i 's#$(hostname -s)#'$HOSTSHORT'#g' {} \; >/dev/null 2>&1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # replace
 if [ -d "/etc/casjaysdev/messages/legal" ]; then
   __requiresudo $sed -i 's#MYFULLHOSTNAME#'$HOSTNAME'#g' "/etc/casjaysdev/messages/legal/000.txt"
@@ -67,6 +72,7 @@ if [ -d "/etc/casjaysdev/messages/legal" ]; then
   __requiresudo $sed -i 's#MYHOSTIP#'$CURRIP4'#g' "/etc/casjaysdev/messages/legal/000.txt"
   __requiresudo $sed -i 's/MYHOSTIP6/'$CURRIP6'/g' "/etc/casjaysdev/messages/legal/000.txt"
 fi
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # find replace
 if [ -d "/etc/casjaysdev/messages" ]; then

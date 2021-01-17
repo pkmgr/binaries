@@ -20,7 +20,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,7 +35,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
 
-check_app git
+__check_app git
 
 if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
   printf_exit "You are not in a git repo"
@@ -160,12 +160,12 @@ python)
 
 scratchpad)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Updated my scratchpad ❗🏠🦈❇🐜 "
+  mess=" 🐜📓❇📓 Modified my scratchpad 📓❇📓🐜 "
   ;;
 
 todo)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Updated my todo list ❗🏠🦈❇🐜 "
+  mess=" 🐜📓❇📓 Modified my todo list 📓❇📓🐜 "
   ;;
 
 notes)
@@ -180,7 +180,7 @@ init)
 
 random)
   shift 1
-  mess="🐜 Random: $(curl -s https://commitment.herokuapp.com/index.txt) 🐜"
+  mess="🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜"
   ;;
 
 custom)
@@ -199,6 +199,7 @@ setup)
   ;;
 
 *)
+  [ ! "$(echo $* | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 5 characters"
   if [ -n "$1" ]; then
     mess="$newmess"
   else
@@ -210,54 +211,59 @@ setup)
 esac
 
 oldpwd="$(pwd)"
-gitdir="$(echo $(git rev-parse --git-dir 2>/dev/null)/..)"
-repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null)"
+gitdir="$(__git_top_dir)"
+repo="$(__git_fetch_remote)"
 
 [ ! -z "$repo" ] || repo="localdir"
 
 if [ ! -d "$gitdir" ]; then
-  printf_exit "Not a git repo"
+  printf_exit "$gitdir doesn't seem to be a git repo"
 else
-  cd "$gitdir" || exit 1
+  __cd "$gitdir"
 fi
 
-printf_info "Commiting Changes with message: $mess"
-
-date +"%m%d%Y%H%M-git" >version.txt
-if [ -f gitmasterconfig ] && [ -d .git ]; then
-  cp -Rf gitmasterconfig .git/config
-fi
-
-git add . >/dev/null 2>&1
-
-if [ -z "$mess" ]; then
-  git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
+if __git_porcelain; then
+  printf_red "There are no changes to commit"
 else
-  git commit -q -S -m "$mess" 2>/dev/null
-fi
-getexitcode "Successfully committed the changes" "Failed to commit the changes"
+  printf_info "Commiting Changes with message: $mess"
 
-if am_i_online && [ -z "$push" ]; then
-  if [ "$repo" != "localdir" ]; then
-    if [[ "$*" =~ --automated ]]; then
-      printf_green "Pushing the changes to $repo"
-      git push -q
-      getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
-    else
-      printf_question "Should I push to $repo? [y/n]"
-      read -r -n 1 -s push && echo
-      if [[ $push == "y" || $push == "Y" ]]; then
+  date +"%m%d%Y%H%M-git" >version.txt
+  if [ -f gitmasterconfig ] && [ -d .git ]; then
+    cp -Rf gitmasterconfig .git/config
+  fi
+
+  git add . >/dev/null 2>&1
+
+  if [ -z "$mess" ]; then
+    git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
+  else
+    git commit -q -S -m "$mess" 2>/dev/null
+  fi
+  __getexitcode "Successfully committed the changes" "Failed to commit the changes"
+
+  if am_i_online && [ -z "$push" ]; then
+    if [ "$repo" != "localdir" ]; then
+      if [[ "$*" =~ --automated ]]; then
         printf_green "Pushing the changes to $repo"
         git push -q
-        getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
+        __getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
+      else
+        printf_question "Should I push to $repo? [y/n]"
+        read -r -n 1 -s push && echo
+        if [[ $push == "y" || $push == "Y" ]]; then
+          printf_green "Pushing the changes to $repo"
+          git push -q
+          __getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
+        fi
       fi
     fi
+  else
+    printf_green "commit ID: $(git rev-parse --short HEAD)"
+    printf_red "No internet connection. Skipping push"
   fi
-else
-  printf_red "No internet connection. Skipping push"
-fi
 
-cd "$oldpwd" || exit 1
+  __cd "$oldpwd"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?

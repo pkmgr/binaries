@@ -41,32 +41,41 @@ printf_exit() {
 set -o pipefail
 shopt -s extglob
 
+myhostname="$(hostname -f)"
 logrname="${1:-$APPNAME}"
 logdir="${LOGDIR:-$HOME/.local/log}/logr"
 date=$(date +'%m%d%Y-%H%M')
-stdout="$1-$date.log"
-stderr="$1-$date.err"
-email=${EMAIL_ERROR:-root}
-host="$(hostname -f)"
-if [ "$1" = "-name" ]; then
-  logrname=$2
-  shift 2
-  cmdline="${*}"
-fi
-if [ "$logrname" = "cron" ] || [ "$logrname" = "eval" ] || [ "$logrname" = "exec" ]; then
+stdout="$logrname-$date.log"
+stderr="$logrname-$date.err"
+toemail=${EMAIL_ERROR_TO:-root@$myhostname}
+fromemail=${EMAIL_ERROR_FROM:-root@$myhostname}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$logrname" in
+-name | --name)
   logrname="$2"
-  stdout="$2.log"
-  stderr="$2.err"
+  shift 2
+  stdout="$logrname.log"
+  stderr="$logrname.err"
+  cmdline="$*"
+  ;;
+
+cron | eval | exec)
+  logrname="$1"
   shift 1
-  cmdline="${*}"
-fi
+  stdout="$logrname.log"
+  stderr="$logrname.err"
+  cmdline="$*"
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 mkdir -p "$logdir"
 mkdir -p "$logdir/pretty"
 
-case "$1" in
+case "$logrname" in
 --help | -h)
   __help
   ;;
@@ -132,7 +141,7 @@ if [ -f "$logdir/$stderr" ]; then
 fi
 
 # close log file
-if [ -f $logdir/$stdout ]; then
+if [ -f "$logdir/$stdout" ]; then
   printf_head "$logrname has ended on $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
   printf "\n\n" >>"$logdir/$stdout"
   cat "$logdir/$stdout" >>"$logdir/pretty/$stdout"
@@ -150,19 +159,20 @@ if [ -d "$logdir" ]; then
   done
 fi
 
-if cmd_exists mail && [ -s "$logdir/$stderr" ] && [ -n "$EMAIL_ERROR" ]; then
-  MAILFROM="${MAILFROM:-root@$host}"
-  MAILRECIP="${MAILRECIP:-$USER@$host}"
+#
+if cmd_exists mail && [ -s "$logdir/$stderr" ]; then
+  MAILFROM="$fromemail"
+  MAILRECIP="$toemail"
   MAILSUB="logr: $logrname"
-  MAILHEADER="The $logrname script has been ran on $(hostname -s)"
-  cat "$logdir/$stderr" | devnull mail -r "$MAILFROM" -s "$MAILSUB" "$MAILRECIP"
+  MAILHEADER="The $logrname script has been ran on $(hostname -s) and has failed.\nThe log can be found in $logdir/$stdout\nCheck the the log output below for info.\n"
+  echo -e "$MAILHEADER\n$(cat "$logdir/$stderr")" | mail -r "$MAILFROM" -s "$MAILSUB" "$MAILRECIP" 2>/dev/null
   echo -e "
 Email Sent On: $(date +"%b %d, %Y at %H:%M")\n
 Mail From: $MAILFROM
-Mail Subject: $MAILSUB
 Mail To: $MAILRECIP
-Log File: "$logdir/$stderr"
-" >$logdir/$logrname-$date.sent
+Mail Subject: $MAILSUB
+Log File: "$logdir/$stdout"
+\n" >>$logdir/$logrname.sent
 fi
 
 if [ -n "$DESKTOP_SESSION" ] && [ -s "$logdir/$stderr" ]; then
@@ -170,9 +180,7 @@ if [ -n "$DESKTOP_SESSION" ] && [ -s "$logdir/$stderr" ]; then
 fi
 
 #clean up
-if [ ! -s "$logdir/$stderr" ]; then
-  rm -Rf "${logdir:?}/$stderr"
-fi
+rm -Rf "$logdir/$stderr"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
