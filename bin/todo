@@ -34,6 +34,7 @@ hour="$(date +"%H:%M")"
 month="$(date +"%m")"
 year="$(date +"%Y")"
 day="$(date +"%d")"
+archive="$year/$month/$day.md"
 name="${1:-all}"
 title="Created on: $(date +"%B") $(date +"%d"), $year at $hour"
 filename="$name/index.md"
@@ -103,12 +104,16 @@ todo() {
     fi
     ;;
 
-  mv)
+  archive)
     shift 1
-    ls "$tododir/$name" | printf_read "3"
-    printf_question "continue"
-    mv -fv "$tododir/$1" "$tododir/$2"
+    mv -f "$tododir/$name" "$tododir/$archive"
     ;;
+
+  # mv)
+  #   shift 1
+  #   ls "$tododir/$name" | printf_read "3"
+  #   #mv -f "$tododir/$1" "$tododir/$2"
+  #   ;;
 
   open | o)
     shift 1
