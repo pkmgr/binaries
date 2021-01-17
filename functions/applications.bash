@@ -383,8 +383,8 @@ system_installdirs() {
     #printf_info "Install Type: system - ${WHOAMI}"
     #printf_red "\t\tInstalling as root ❓\n"
     INSTALL_TYPE=system
-    BACKUPDIR="$HOME/.local/backups/dotfiles"
     HOME="/usr/local/home/root"
+    BACKUPDIR="$HOME/.local/backups/dotfiles"
     BIN="/usr/local/bin"
     CONF="/usr/local/etc"
     SHARE="/usr/local/share"
@@ -406,8 +406,8 @@ system_installdirs() {
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   else
     INSTALL_TYPE=system
-    BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
     HOME="${HOME:-/home/$WHOAMI}"
+    BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
     BIN="$HOME/.local/bin"
     CONF="$HOME/.config"
     SHARE="$HOME/.local/share"

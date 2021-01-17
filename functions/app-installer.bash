@@ -1227,12 +1227,7 @@ system_installdirs() {
     #printf_info "Install Type: system - ${WHOAMI}"
     #printf_red "\t\tInstalling as root ?\n"
     export INSTALL_TYPE=system
-    if [[ "$OSTYPE" =~ ^darwin ]]; then
-      export HOME="/usr/local/share/CasjaysDev/root"
-      chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
-    else
-      export HOME="/root"
-    fi
+    export HOME="/usr/local/share/CasjaysDev/root"
     export BACKUPDIR="$HOME/.local/backups/dotfiles"
     export BIN="/usr/local/bin"
     export CONF="/usr/local/etc"
@@ -1253,6 +1248,7 @@ system_installdirs() {
     export WALLPAPERS="/usr/local/share/wallpapers"
     #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
   else
     export INSTALL_TYPE=system
     export HOME="${HOME:-/home/$WHOAMI}"
