@@ -8,4 +8,4 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help 'Usage: '$APPNAME' "ProjectName" "FileName" "ext"  |  '$APPNAME' "server" "parts" "txt"'
+printf_help 'Usage: '$APPNAME' "ProjectName"  |  '$APPNAME' "MyNewApp"'

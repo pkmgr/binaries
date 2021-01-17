@@ -34,13 +34,13 @@ hour="$(date +"%H:%M")"
 month="$(date +"%m")"
 year="$(date +"%Y")"
 day="$(date +"%d")"
-folder="${1:-$year/$month}"
-title="$(date +"%B") $(date +"%d"), $year created at $hour"
-filename="$folder/${2:-$day}.md"
+name="${1:-all}"
+title="Created on: $(date +"%B") $(date +"%d"), $year at $hour"
+filename="$name/index.md"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mkdir -p "$tododir"
-mkdir -p "$tododir/$folder"
+mkdir -p "$tododir/$name"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
@@ -84,8 +84,7 @@ todo() {
       exit $?
   }
   run_tmux() {
-    local title="${1:-TODO for $title}"
-    local filename="${2:-$filename}"
+    local title="TODO for $name: $title"
     if [ ! -f "$tododir/$filename" ]; then
       echo -e "$title\n\n" >"$tododir/$filename"
     fi
@@ -96,12 +95,17 @@ todo() {
 
   list | l)
     shift 1
-    if [ -d "$tododir/$folder" ] && [ "$(__countdir $tododir/$folder)" -ne 0 ]; then
-      printf_green "Listing the files in $tododir/$folder"
-      ls "$tododir/$folder" | printf_read "3"
+    if [ -d "$tododir/$name" ] && [ "$(__countdir $tododir/$name)" -ne 0 ]; then
+      printf_green "Listing the files in $tododir/$name"
+      ls "$tododir/$name" | printf_read "3"
     else
-      printf_exit "No todos exist for this month in: $tododir/$folder"
+      printf_exit "No todos exist for this month in: $tododir/$name"
     fi
+    ;;
+
+  open | o)
+    shift 1
+    run_tmux
     ;;
 
   git)
@@ -109,13 +113,7 @@ todo() {
     run_git
     ;;
 
-  open | o)
-    shift 1
-    run_tmux "$@"
-    ;;
-
   *)
-    mkdir -p
     run_tmux "$@"
     ;;
 

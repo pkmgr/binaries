@@ -226,9 +226,9 @@ fi
 git add . >/dev/null 2>&1
 
 if [ -z "$mess" ]; then
-  git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " | printf_readline "2" 2>/dev/null
+  git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
 else
-  git commit -q -S -m "$mess" | printf_readline "2" 2>/dev/null
+  git commit -q -S -m "$mess" 2>/dev/null
 fi
 getexitcode "Successfully committed the changes" "Failed to commit the changes"
 
