@@ -75,6 +75,11 @@ EOF
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 scratchpad() {
+  run_git() {
+    cd "$scratchdir" &&
+      if [ -d "$scratchdir/.git" ]; then gitcommit scratchpad; else git init . &>/dev/null && gitcommit scratchpad; fi ||
+      exit $?
+  }
   run_tmux() {
     if [ ! -f "$scratchdir/$filename" ]; then
       echo -e "TODO for $title\n\n" >"$scratchdir/$filename"
@@ -102,11 +107,17 @@ scratchpad() {
     run_tmux
     ;;
 
+  git)
+    shift 1
+    run_git
+    ;;
+
   *)
     run_tmux
     ;;
 
   esac
+
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

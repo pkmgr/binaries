@@ -115,7 +115,7 @@ fixes)
 
 permission | permissions)
   shift 1
-  mess=" 🏠🔥❗ Permission Fixes ❗🔥🏠 "
+  mess=" 🏠🔥❗ Fixed Permissions ❗🔥🏠 "
   ;;
 
 bug | bugs)
@@ -158,9 +158,19 @@ python)
   mess=" 🐜❇🦈🏠❗ Added python Workflow ❗🏠🦈❇🐜 "
   ;;
 
+scratchpad)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Updated my scratchpad ❗🏠🦈❇🐜 "
+  ;;
+
+todo)
+  shift 1
+  mess=" 🐜❇🦈🏠❗ Updated my todo list ❗🏠🦈❇🐜 "
+  ;;
+
 init)
   shift 1
-  mess=" 🦈🏠🐜❗ Initial Commit📍 🐜🦈🏠 "
+  mess=" 🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
   ;;
 
 random)
@@ -202,9 +212,8 @@ repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null)"
 
 if [ ! -d "$gitdir" ]; then
   printf_exit "Not a git repo"
-  exit 1
 else
-  cd $gitdir
+  cd "$gitdir" || exit 1
 fi
 
 printf_info "Commiting Changes with message: $mess"
@@ -214,28 +223,28 @@ if [ -f gitmasterconfig ] && [ -d .git ]; then
   cp -Rf gitmasterconfig .git/config
 fi
 
-git add .
+git add . >/dev/null 2>&1
 
 if [ -z "$mess" ]; then
-  git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
+  git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " | printf_readline "2" 2>/dev/null
 else
-  git commit -q -S -m "$mess" 2>/dev/null
+  git commit -q -S -m "$mess" | printf_readline "2" 2>/dev/null
 fi
-getexitcode "Successfully committed the changes"
+getexitcode "Successfully committed the changes" "Failed to commit the changes"
 
 if am_i_online && [ -z "$push" ]; then
   if [ "$repo" != "localdir" ]; then
     if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
       git push -q
-      getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
+      getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
     else
       printf_question "Should I push to $repo? [y/n]"
       read -r -n 1 -s push && echo
       if [[ $push == "y" || $push == "Y" ]]; then
         printf_green "Pushing the changes to $repo"
         git push -q
-        getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)"
+        getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
       fi
     fi
   fi
