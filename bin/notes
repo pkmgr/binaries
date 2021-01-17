@@ -27,21 +27,25 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-oldpwd="$PWD"
-date="$(date +%Y-%m)"
-notesdir="${NOTES_DIRECTORY:-$HOME/.local/share/editors/notes}"
-notes_file="${1:-$date.txt}"
-notes_path="$notesdir/$notes_file"
-title="$(date +"%B") $(date +"%d"), $(date +"%Y") at $(date +"%H:%M")"
-mkdir -p "${notesdir}"
+
+OLDPWD="$($PWD)"
+NOTES_DIRECTORY="${NOTES_DIRECTORY:-"$HOME/.local/share/editors/notes"}"
+NOTE_FOLDER="$(date +%Y)"
+NOTES_FILE="$(date +%m).txt"
+NOTES_PATH="${NOTES_DIRECTORY}/$NOTE_FOLDER/${NOTES_FILE}"
+NOTES_EDITOR="${NOTES_EDITOR:-vim}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-tmux_conf() {
-  if [ ! -f "$notesdir/tmux.conf" ]; then
-    cat <<EOF >"$notesdir/tmux.conf"
+
+if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
+  cat <<EOF >"$NOTES_DIRECTORY/tmux.conf"
 # Very basic tmux config
 unbind C-b
 set-option -g prefix C-a
@@ -69,75 +73,23 @@ setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244
 setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
-  fi
-}
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-notes() {
-  # if [ ! -d "${notesdir}" ]; then
-  #   while true; do
-  #     printf_green "The notes directory does not exist, do you want to create it?"
-  #     read -r -n 1 yn
-  #     case "${yn}" in
-  #     [Yy]*)
-  #       mkdir -p "${notesdir}"
-  #       break
-  #       ;;
-  #     [Nn]*) exit ;;
-  #     *) echo "Please answer y or n" ;;
-  #     esac
-  #   done
-  # fi
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  printf "#$title\n\n" >>"${notes_path}"
-  if [ ${#} -eq 0 ]; then
-    if [ -p "/dev/stdin" ]; then
-      (
-        cat
-      ) >>"${notes_path}"
-    else
-      tmux -f "${notesdir}/tmux.conf" new-session -D -A -s notes "vim ${notes_path}" &>/dev/null
-    fi
+if [ ${#} -eq 0 ]; then
+  if [ -p "/dev/stdin" ]; then
+    (
+      cat
+      printf "\n"
+    ) >>"${NOTES_PATH}"
   else
-    printf "%s" "${*}" >>"${notes_path}"
+    eval "${NOTES_EDITOR}" "${NOTES_PATH}"
   fi
-  printf "\n" >>"${notes_path}"
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # oldpwd="$PWD"
-  # if [ ! -d "$notesdir/.git" ] && [ ! -f "$notesdir/.nogit" ]; then
-  #   printf_question "Should I keep track of this via git"
-  #   read -r -n 1 -s create && echo
-  #   if [[ $create == "y" || $create == "Y" ]]; then
-  #     oldpwd="$PWD"
-  #     cd "$notesdir" || return 1
-  #     gitadmin setup
-  #   else
-  #     touch "$notesdir/.nogit"
-  #   fi
-  # fi
-  # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # if [ ! -d "$notesdir/.git" ]; then
-  #   if [ ! -f "$notesdir/.nogit" ] && [ "$(git status --porcelain | wc -l)" -ne "0" ]; then
-  #     printf_question "Should I commit your changes"
-  #     read -r -n 1 -s commit && echo
-  #     if [[ $commit == "y" || $commit == "Y" ]]; then
-  #       gitcommit notes
-  #     fi
-  #   fi
-  # fi
-  # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # cd "$oldpwd" || return 1
-  return $?
-}
+else
+  printf "%s\n" "${*}" >>"${NOTES_PATH}"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main() {
-  tmux_conf
-  notes "$@"
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

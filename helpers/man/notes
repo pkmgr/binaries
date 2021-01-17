@@ -11,4 +11,4 @@ printf_help() {
 printf_help "4" "Usage: "
 printf_help "4" "notes something you want to jot down |   appends that text to the file"
 printf_help "4" "xclip -o | notes                     |   appends your clipboard to the file"
-printf_help "4" "notes                                |   opens the file in your editor $EDITOR"
+printf_help "4" "notes                                |   opens the file in vim"
