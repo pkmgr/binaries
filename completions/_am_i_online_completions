@@ -15,6 +15,7 @@ _am_i_online_completions() {
   case $prev in
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
     ;;
   esac
 

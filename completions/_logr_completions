@@ -13,8 +13,8 @@ _logr_completions() {
 
   case $prev in
   --open)
-    _filedir $logdir
-    return
+    _filedir '$logdir'
+    return 0
     ;;
   esac
 

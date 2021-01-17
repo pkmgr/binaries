@@ -15,6 +15,7 @@ _calendar_completions() {
   case $prev in
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
     ;;
   esac
 

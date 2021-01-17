@@ -52,7 +52,7 @@ if [ "$1" = "-name" ]; then
   logrname=$2
   shift 2
 fi
-if [ "$logrname" = "cron" ]; then
+if [ "$logrname" = "cron" ] || [ "$logrname" = "eval" ] || [ "$logrname" = "exec" ]; then
   stdout="$2.log"
   stderr="$2.err"
   shift 1

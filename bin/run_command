@@ -31,30 +31,33 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
+main() {
+  APP="$(basename $1)"
+  [[ -z "$APP" ]] && printf_help "No command given"
+  [[ "$APP" = /* ]] && printf_help "Absolute paths not supported"
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  logdir="${LOGDIR:-$HOME/.local/log}"
+  mkdir -p "$logdir"
+  date=$(date +'%m%d%Y%H%M')
+  logname="$APP-$date"
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  if [ -f "$(command -v $APP 2>/dev/null)" ]; then
+    eval "$@" >"$logdir/$logname.log" 2>"$logdir/$logname.err" &>/dev/null &
+    if [ "$?" -eq 0 ]; then
+      printf_success "$APP completed successfully"
+    else
+      printf_red "$APP has failed"
+      exit 1
+    fi
+  else
+    printf_exit "$APP does not exist"
+  fi
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[[ -z "$1" ]] && printf_help "No command given"
-[[ "$1" = /* ]] && printf_help "Absolute paths not supported"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-logdir="${LOGDIR:-$HOME/.local/log}"
-mkdir -p "$logdir"
-date=$(date +'%m%d%Y%H%M')
-args="$1-$date"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-"$@" >"$logdir/$args.log" 2>"$logdir/$args.err" &
-if [ "$?" -eq 0 ]; then
-  printf_success "$1 completed successfully"
-else
-  printf_red "$1 has failed"
-  exit 1
-fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+main "$@"
 # end
