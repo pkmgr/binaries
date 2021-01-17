@@ -42,7 +42,7 @@ set -o pipefail
 shopt -s extglob
 
 logrname="${1:-$APPNAME}"
-logdir="${LOGDIR:-~/.local/log}/logr"
+logdir="${LOGDIR:-$HOME/.local/log}/logr"
 date=$(date +'%m%d%Y-%H%M')
 stdout="$1-$date.log"
 stderr="$1-$date.err"
@@ -53,7 +53,6 @@ if [ "$1" = "-name" ]; then
   shift 2
 fi
 if [ "$1" = "cron" ]; then
-  echo $logdir
   stdout="$2.log"
   stderr="$2.err"
   shift 1
