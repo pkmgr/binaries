@@ -134,8 +134,9 @@ Log File: $logdir/$logrname-$date.err
 " >$logdir/$logrname-$date.sent
 fi
 
-[ -n "$DESKTOP_SESSION" ] && [ -s $logdir/$logrname-$date.err ] &&
+if [ -n "$DESKTOP_SESSION" ] && [ -s $logdir/$logrname-$date.err ]; then
   notifications "$logrname completed" "The task has finished with errors: check the log"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
