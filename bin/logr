@@ -53,7 +53,7 @@ if [ "$1" = "-name" ]; then
   shift 2
 fi
 if [ "$1" = "cron" ]; then
-  logdir=~/.local/log/logr
+  echo $logdir
   stdout="$2.log"
   stderr="$2.err"
   shift 1
