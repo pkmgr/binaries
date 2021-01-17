@@ -852,7 +852,7 @@ check_app() {
         execute "pkmgr silent-install $miss" "Installing $miss" || return 1
       done
     else
-      return 1
+      exit 1
     fi
   fi
 }
