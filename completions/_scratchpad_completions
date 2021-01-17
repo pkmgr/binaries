@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# _scratchpad_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for scratchpad
+
+_scratchpad_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/scratchpad/array)"
+
+  _init_completion || return
+
+  case $prev in
+  list)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    ;;
+
+  open)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    ;;
+
+  new)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    ;;
+
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _scratchpad_completions -o default scratchpad
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

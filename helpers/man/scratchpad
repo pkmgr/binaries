@@ -8,4 +8,6 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Usage: scratchpad title"
+printf_help "4" "Usage: scratchpad    |    Simple scratchpad using vim and tmux"
+printf_help "4" "scratchpad list      |    List this months scratchpads"
+printf_help "4" "scratchpad open      |    Open up an existing scratchpad"

@@ -17,7 +17,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -28,40 +28,35 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 unset TMUX
-
-mkdir -p "$HOME/.local/share/editors/scratchpads"
-
-ext="$(date +"%m-%d-%Y").txt"
-date="$(date +"%m-%d-%Y %H:%M")"
-title="$date"
-scratchdir="$HOME/.local/share/editors/scratchpads"
+scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
+hour="$(date +"%H:%M")"
+month="$(date +"%m")"
+year="$(date +"%Y")"
+day="$(date +"%d")"
+folder="$year/$month"
+title="$(date +"%B") $(date +"%d"), $year created at $hour"
+filename="$folder/$day.md"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+mkdir -p "$scratchdir"
+mkdir -p "$scratchdir/$folder"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
-cat <<EOF >"$scratchdir/tmux.conf"
-# remap prefix from 'C-b' to 'C-a'
+  cat <<EOF >"$scratchdir/tmux.conf"
 unbind C-b
 set-option -g prefix C-a
 bind-key C-a send-prefix
-# loud or quiet?
 set -g visual-activity off
 set -g visual-bell off
 set -g visual-silence off
 setw -g monitor-activity off
 set -g bell-action none
-
-#  modes
 setw -g clock-mode-colour colour5
 setw -g mode-style 'fg=colour1 bg=colour18 bold'
-
-# panes
 set -g pane-border-style 'fg=colour19 bg=colour0'
 set -g pane-active-border-style 'bg=colour0 fg=colour9'
-
-# statusbar
 set -g status-position bottom
 set -g status-justify left
 set -g status-style 'bg=colour18 fg=colour137 dim'
@@ -69,33 +64,60 @@ set -g status-left ''
 set -g status-right '#[fg=colour233,bg=colour19] %m/%d #[fg=colour233,bg=colour8] %H:%M:%S '
 set -g status-right-length 50
 set -g status-left-length 20
-
 setw -g window-status-current-style 'fg=colour1 bg=colour19 bold'
 setw -g window-status-current-format ' #I#[fg=colour249]:#[fg=colour255]#W#[fg=colour249]#F '
-
 setw -g window-status-style 'fg=colour9 bg=colour18'
 setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
-
 setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
-
-# messages
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+scratchpad() {
+  run_tmux() {
+    if [ ! -f "$scratchdir/$filename" ]; then
+      echo -e "TODO for $title\n\n" >"$scratchdir/$filename"
+    fi
+    tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $scratchdir/$filename" &>/dev/null
+  }
 
-[ "$1" ] && ext="$1.txt" && title="$1"
+  case "$1" in
+  list | l)
+    shift 1
+    if [ -d "$scratchdir/$folder" ] && [ "$(__countdir $scratchdir/$folder)" -ne 0 ]; then
+      printf_green "Listing the files in $scratchdir/$folder"
+      ls "$scratchdir/$folder" | printf_read "3"
+    else
+      printf_exit "No scratchpads exist for this month in: $scratchdir/$folder"
+    fi
+    ;;
 
-tmux_conf
+  open | o)
+    shift 1
+    run_tmux
+    ;;
 
-if tmux ls | grep scratchpad >/dev/null 2>&1; then
-  echo -e "$title\n" >"$scratchdir/$ext"
-  devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad &>/dev/null "vim $scratchdir/$ext"
-else
-  devnull2 tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad &>/dev/null "vim $scratchdir/$ext"
-fi
+  new)
+    run_tmux
+    ;;
 
+  *)
+    run_tmux
+    ;;
+
+  esac
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+main() {
+  tmux_conf
+  scratchpad "$@"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # end

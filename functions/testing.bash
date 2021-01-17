@@ -149,7 +149,6 @@ printf_yellow() { printf_color "\t\t$1\n" 3; }
 printf_blue() { printf_color "\t\t$1\n" 4; }
 printf_cyan() { printf_color "\t\t$1\n" 6; }
 printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
-printf_read() { printf_color "\t\t$1" 5; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_error() { printf_color "\n\t\t$ICON_ERROR $1 $2\n\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
@@ -198,6 +197,16 @@ printf_custom() {
   echo ""
 }
 
+printf_read() {
+  set -o pipefail
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
+  while read line; do
+    printf_color "\t\t$line" "$color"
+  done
+  printf "\n"
+  set +o pipefail
+}
+
 printf_readline() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -208,8 +217,8 @@ printf_readline() {
 }
 
 printf_newline() {
-  set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
+  set -o pipefail
   while read line; do
     printf_color "\t\t$line\n" "$color"
   done
@@ -422,6 +431,8 @@ __rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 __countwd() { cat "$@" | wc -l | __rmcomments; }
 #getuser "username" "grep options"
 __getuser() { if [ -n "$1" ]; then cut -d: -f1 /etc/passwd | grep "${1:-USER}" | cut -d: -f1 /etc/passwd | grep "${1:-USER}" ${2:-}; fi; }
+#countdir "dir"
+__countdir() { ls "$@" | wc -l; }
 
 ###################### Apps ######################
 #mkd dir
