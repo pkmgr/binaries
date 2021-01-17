@@ -44,7 +44,9 @@ mkdir -p "$scratchdir/$folder"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
-  cat <<EOF >"$scratchdir/tmux.conf"
+  if [ ! -f "$scratchdir/tmux.conf" ]; then
+    cat <<EOF >"$scratchdir/tmux.conf"
+# Very basic tmux config
 unbind C-b
 set-option -g prefix C-a
 bind-key C-a send-prefix
@@ -71,6 +73,7 @@ setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244
 setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
+  fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,13 +84,23 @@ scratchpad() {
       exit $?
   }
   run_tmux() {
+    local title="${1:-TODO for $title}"
+    local filename="${2:-$filename}"
     if [ ! -f "$scratchdir/$filename" ]; then
-      echo -e "TODO for $title\n\n" >"$scratchdir/$filename"
+      echo -e "$title\n\n" >"$scratchdir/$filename"
     fi
     tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $scratchdir/$filename" &>/dev/null
   }
 
   case "$1" in
+  new)
+    shift 1
+    [ $# -eq 0 ] && printf_help 'Usage: '$APPNAME' new "ProjectName" "FileName" "ext"  |  '$APPNAME' new "server" "parts" "txt"'
+    local new_title="ScratchPad for $1: Created on $(date +"%B") $(date +"%d"), $year at $hour"
+    mkdir -p "$scratchdir/$1"
+    run_tmux "${new_title}" "$1/$2.${3:-md}"
+    ;;
+
   list | l)
     shift 1
     if [ -d "$scratchdir/$folder" ] && [ "$(__countdir $scratchdir/$folder)" -ne 0 ]; then
@@ -100,10 +113,6 @@ scratchpad() {
 
   open | o)
     shift 1
-    run_tmux
-    ;;
-
-  new)
     run_tmux
     ;;
 

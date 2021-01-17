@@ -1,1 +1,137 @@
-todo.sh
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version     : 010920210727-git
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : todo
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Setup a console base todo
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+unset TMUX
+tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
+hour="$(date +"%H:%M")"
+month="$(date +"%m")"
+year="$(date +"%Y")"
+day="$(date +"%d")"
+folder="${1:-$year/$month}"
+title="$(date +"%B") $(date +"%d"), $year created at $hour"
+filename="$folder/${2:-$day}.md"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+mkdir -p "$tododir"
+mkdir -p "$tododir/$folder"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+tmux_conf() {
+  if [ ! -f "$tododir/tmux.conf" ]; then
+    cat <<EOF >"$tododir/tmux.conf"
+# Very basic tmux config
+unbind C-b
+set-option -g prefix C-a
+bind-key C-a send-prefix
+set -g visual-activity off
+set -g visual-bell off
+set -g visual-silence off
+setw -g monitor-activity off
+set -g bell-action none
+setw -g clock-mode-colour colour5
+setw -g mode-style 'fg=colour1 bg=colour18 bold'
+set -g pane-border-style 'fg=colour19 bg=colour0'
+set -g pane-active-border-style 'bg=colour0 fg=colour9'
+set -g status-position bottom
+set -g status-justify left
+set -g status-style 'bg=colour18 fg=colour137 dim'
+set -g status-left ''
+set -g status-right '#[fg=colour233,bg=colour19] %m/%d #[fg=colour233,bg=colour8] %H:%M:%S '
+set -g status-right-length 50
+set -g status-left-length 20
+setw -g window-status-current-style 'fg=colour1 bg=colour19 bold'
+setw -g window-status-current-format ' #I#[fg=colour249]:#[fg=colour255]#W#[fg=colour249]#F '
+setw -g window-status-style 'fg=colour9 bg=colour18'
+setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244]#F '
+setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
+set -g message-style 'fg=colour232 bg=colour16 bold'
+EOF
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+todo() {
+  run_git() {
+    cd "$tododir" &&
+      if [ -d "$tododir/.git" ]; then gitcommit todo; else git init . &>/dev/null && gitcommit todo; fi ||
+      exit $?
+  }
+  run_tmux() {
+    local title="${1:-TODO for $title}"
+    local filename="${2:-$filename}"
+    if [ ! -f "$tododir/$filename" ]; then
+      echo -e "$title\n\n" >"$tododir/$filename"
+    fi
+    tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "vim $tododir/$filename" &>/dev/null
+  }
+
+  case "$1" in
+
+  list | l)
+    shift 1
+    if [ -d "$tododir/$folder" ] && [ "$(__countdir $tododir/$folder)" -ne 0 ]; then
+      printf_green "Listing the files in $tododir/$folder"
+      ls "$tododir/$folder" | printf_read "3"
+    else
+      printf_exit "No todos exist for this month in: $tododir/$folder"
+    fi
+    ;;
+
+  git)
+    shift 1
+    run_git
+    ;;
+
+  open | o)
+    shift 1
+    run_tmux "$@"
+    ;;
+
+  *)
+    mkdir -p
+    run_tmux "$@"
+    ;;
+
+  esac
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+main() {
+  tmux_conf
+  todo "$@"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

@@ -8,4 +8,4 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Usage: [-fhpantvV] [-d todo_config] action [task_number] [task_description]"
+printf_help 'Usage: '$APPNAME' "ProjectName" "FileName" "ext"  |  '$APPNAME' "server" "parts" "txt"'

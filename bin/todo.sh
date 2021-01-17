@@ -787,15 +787,15 @@ fi
 ACTION=${1:-$TODOTXT_DEFAULT_ACTION}
 
 [ -z "$ACTION" ] && usage
-[ -d "$TODO_DIR" ] || devnull2 mkdir -p "$TODO_DIR" || dieWithHelp "$1" "Fatal Error: $TODO_DIR is not a directory"
-(cd "$TODO_DIR") || dieWithHelp "$1" "Fatal Error: Unable to cd to $TODO_DIR"
+[ -d "$TODOSH_DIR" ] || devnull2 mkdir -p "$TODOSH_DIR" || dieWithHelp "$1" "Fatal Error: $TODOSH_DIR is not a directory"
+(cd "$TODOSH_DIR") || dieWithHelp "$1" "Fatal Error: Unable to cd to $TODOSH_DIR"
 [ -z "$TODOTXT_PRIORITY_ON_ADD" ] ||
   echo "$TODOTXT_PRIORITY_ON_ADD" | grep -q "^[A-Z]$" ||
   die "TODOTXT_PRIORITY_ON_ADD should be a capital letter from A to Z (it is now \"$TODOTXT_PRIORITY_ON_ADD\")."
 
-[ -z "$TODO_FILE" ] && TODO_FILE="$TODO_DIR/todo.txt"
-[ -z "$DONE_FILE" ] && DONE_FILE="$TODO_DIR/done.txt"
-[ -z "$REPORT_FILE" ] && REPORT_FILE="$TODO_DIR/report.txt"
+[ -z "$TODO_FILE" ] && TODO_FILE="$TODOSH_DIR/todo.txt"
+[ -z "$DONE_FILE" ] && DONE_FILE="$TODOSH_DIR/done.txt"
+[ -z "$REPORT_FILE" ] && REPORT_FILE="$TODOSH_DIR/report.txt"
 
 [ -f "$TODO_FILE" ] || [ -c "$TODO_FILE" ] || >"$TODO_FILE"
 [ -f "$DONE_FILE" ] || [ -c "$DONE_FILE" ] || >"$DONE_FILE"
@@ -881,19 +881,19 @@ filtercommand() {
 _list() {
   local FILE="$1"
   ## If the file starts with a "/" use absolute path. Otherwise,
-  ## try to find it in either $TODO_DIR or using a relative path
+  ## try to find it in either $TODOSH_DIR or using a relative path
   if [ "${1:0:1}" == / ]; then
     ## Absolute path
     src="$FILE"
-  elif [ -f "$TODO_DIR/$FILE" ]; then
+  elif [ -f "$TODOSH_DIR/$FILE" ]; then
     ## Path relative to todo.sh directory
-    src="$TODO_DIR/$FILE"
+    src="$TODOSH_DIR/$FILE"
   elif [ -f "$FILE" ]; then
     ## Path relative to current working directory
     src="$FILE"
-  elif [ -f "$TODO_DIR/${FILE}.txt" ]; then
+  elif [ -f "$TODOSH_DIR/${FILE}.txt" ]; then
     ## Path relative to todo.sh directory, missing file extension
-    src="$TODO_DIR/${FILE}.txt"
+    src="$TODOSH_DIR/${FILE}.txt"
   else
     die "TODO: File $FILE does not exist."
   fi
@@ -1111,7 +1111,7 @@ case $action in
 
 "addto")
   [ -z "$2" ] && die "usage: $TODO_SH addto DEST \"TODO ITEM\""
-  dest="$TODO_DIR/$2"
+  dest="$TODOSH_DIR/$2"
   [ -z "$3" ] && die "usage: $TODO_SH addto DEST \"TODO ITEM\""
   shift
   shift
@@ -1325,7 +1325,7 @@ case $action in
   shift ## Was listfile, next $1 is file name
   if [ $# -eq 0 ]; then
     [ "$TODOTXT_VERBOSE" -gt 0 ] && echo "Files in the todo.txt directory:"
-    cd "$TODO_DIR" && ls -1 -- *.txt
+    cd "$TODOSH_DIR" && ls -1 -- *.txt
   else
     FILE="$1"
     shift ## Was filename; next $1 is first search term
@@ -1356,8 +1356,8 @@ case $action in
   # replace moved line with a blank line when TODOTXT_PRESERVE_LINE_NUMBERS is 1
   errmsg="usage: $TODO_SH mv ITEM# DEST [SRC]"
   item=$2
-  dest="$TODO_DIR/$3"
-  src="$TODO_DIR/$4"
+  dest="$TODOSH_DIR/$3"
+  src="$TODOSH_DIR/$4"
 
   [ -z "$4" ] && src="$TODO_FILE"
   [ -z "$dest" ] && die "$errmsg"
