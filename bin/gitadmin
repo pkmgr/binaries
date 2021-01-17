@@ -41,7 +41,7 @@ REPO_URL="https://github.com/$USERNAME"
 PROJECT_BASE="$HOME/Projects"
 PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
-WTFLICENSE="${MYLICENSE:-https://github.com/casjay/resources/raw/master/license/wtfpl.md}"
+WTFLICENSE="${MY_LICENSE_FILE:-https://github.com/casjay/resources/raw/master/license/wtfpl.md}"
 unset PREVREPO
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

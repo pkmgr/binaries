@@ -168,6 +168,11 @@ todo)
   mess=" 🐜❇🦈🏠❗ Updated my todo list ❗🏠🦈❇🐜 "
   ;;
 
+notes)
+  shift 1
+  mess=" 🐜📓❇📓 Modified my notes 📓❇📓🐜 "
+  ;;
+
 init)
   shift 1
   mess=" 🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
