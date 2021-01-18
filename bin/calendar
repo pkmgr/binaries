@@ -5,11 +5,11 @@ USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : calendar
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
+# @Author        : Jason
+# @Contact      : casjaysdev@casjay.net
+# @File             : calendar
+# @Created      : Wed, Aug 05, 2020, 02:00 EST
+# @License      : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
 # @Description : A calendar written in bash
 # @TODO        :
@@ -42,7 +42,7 @@ else
   cat <<EOF >"$CAL_CONFIG"
 #Calendar Configuration
 # directory for storing the events. Make sure this path exists
-eventpath="$HOME/.local/share/ics"
+eventpath="$HOME/.local/share/calendar"
 # alter these to your most common location
 HOMETOWN="${MYLOCATIONCITY:-Albany}"
 HOMECOUNTRY="${MYLOCATIONCOUNTRY:-USA}"
@@ -50,8 +50,8 @@ HOMECOUNTRY="${MYLOCATIONCOUNTRY:-USA}"
 DATEFORMAT="%a %e %b, %-l:%M%P"
 # categories - no spaces in tags
 TAGS=(work meeting study party)
-TERSE="$startdate - $title"
-#FULL="$startdate - $title\n$desc\n$location ($category)"
+#TERSE="$startdate - $title"
+FULL="$startdate - $title\n$desc\n$location ($category)"
 EOF
   source "$HOME/.config/local/calendar.local"
 fi
@@ -300,14 +300,13 @@ show_help() {
   printf_red "calendar script."
   printf_info "Edit ~/.config/local/calendar.local to change the directory."
   printf_info "DATE_STRING is a any value accepted by date(1) function."
-  printf_green "-a  Add event in console."
-  printf_green "-ag	Add event using a graphical dialog interface."
-  printf_green "-g  Graphical calendar display of events (can also add events)."
-  printf_green "-c --category=TEXT List all saved events filtered by category."
-  printf_green "-s --summary=TEXT	List all saved events filtered by summary."
-  printf_green "-d,--date=DATE_STRING Find events matching the date string."
-  printf_green "-r START_DATE_STRING END_DATE_STRING	Find events within a date range."
-  printf_green " -h,-?,--help Show this help."
+  printf_green "-a                   |   Add event in console."
+  printf_green "-ag                  |   Add event using a graphical dialog interface."
+  printf_green "-g                   |   Graphical calendar display of events (can also add events)."
+  printf_green "-c TEXT              |   List all saved events filtered by category."
+  printf_green "-s TEXT              |   List all saved events filtered by summary."
+  printf_green "-d DATE_STRING       |    Find events matching the date string."
+  printf_green "-r START_DATE_STRING END_DATE_STRING | Find events within a date range."
 }
 
 case $1 in
@@ -413,5 +412,5 @@ unset
 rm $LERTA
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
