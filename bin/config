@@ -199,26 +199,29 @@ fi
 
 case "$1" in
 
+  init)
+    shift 1
+    git_init
+    ;;
+
   local)
+    shift 1
     _stow config --local "$@"
     ;;
 
   log | l)
-    _stow log --pretty=custom
+    shift 1
+    _stow log --pretty=custom "$@"
     ;;
 
   status | l)
-    _stow status
+    shift 1
+    _stow status "$@"
     ;;
-
-init)
-  shift 1
-  git_init
-  ;;
 
 restore)
   shift 1
-  git_init
+  _stow reset -- "$@"
   ;;
 
 add | stow)
@@ -266,16 +269,6 @@ push)
 set)
   shift 1
   _stow config "$*"
-  ;;
-
-status)
-  shift 1
-  _stow status "$*"
-  ;;
-
-log)
-  shift 1
-  _stow log "$*"
   ;;
 
 help | -h* | --h*)
