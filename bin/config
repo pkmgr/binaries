@@ -45,6 +45,7 @@ else
   gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
   backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
   logdir="${LOGDIR:-$HOME/.local/log}"
+  HOME=$HOME
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -55,14 +56,8 @@ echo "$(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/config.log"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_git() {
-  command -p git "$@" | printf_readline "6"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 _stow() {
-  _git --git-dir="$gitdir/" --work-tree="$HOME" "$@"
+  git --git-dir="$gitdir/" --work-tree="$HOME" "$@"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -81,7 +76,7 @@ _checkout() { _stow checkout "$@" || _backup "$@"; }
 
 git_remote() {
   if [ -z "$1" ]; then
-    printf_read "Enter the url to your git repo: "
+    printf_read "Enter the url to your git repo:"
     read url
     _stow remote add origin "$url"
   else
@@ -97,38 +92,38 @@ git_init() {
   else
     grep -q "$gitdir" .gitignore 2>/dev/null && echo "$gitdir" >>.gitignore
   fi
-  printf_question "4" "Do you already have a dotfiles repo:  [y/N]"
+  printf_question "4" "Do you already have a dotfiles repo: [y/N]"
   read -n 1 -s choice
   echo ""
   if [[ $choice == "y" || $choice == "Y" ]]; then
-    printf_read "What is the repo url: "
-    read url
-    __devnull _git clone --bare "$url" "$gitdir"
+    printf_read "What is the repo url:"
+    read -n 60 url
+    __devnull git clone --bare "$url" "$gitdir" -q
     _checkout
     __devnull _stow config --local status.showUntrackedFiles no
   else
     mkdir -p "$gitdir"
-    __devnull _git init --bare "$gitdir"
+    __devnull git init --bare "$gitdir" -q
     __devnull _stow config --local status.showUntrackedFiles no
     __devnull _stow config --local commit.gpgSign false
-    printf_question "Would you like to add a remote git repo:  [y/N]"
+    printf_question "Would you like to add a remote git repo: [y/N]"
     read -n 1 -s choice
     echo ""
     if [[ $choice == "y" || $choice == "Y" ]]; then
-      printf_read "Enter the url to your git repo: "
-      read url
+      printf_question "4" "Enter the url to your git repo:"
+      read -n 60 url
       _stow remote add origin "$url"
     else
       printf_green "You did not add a remote git repo"
     fi
-    printf_read "Enter your name: "
-    read name
-    printf_read "Enter email address: "
-    read email
+    printf_question "Enter your name:"
+    read -n 80 name
+    printf_question "Enter email address:"
+    read -n 100 email
     _stow config user.name "$name"
     _stow config user.email "$email"
     __devnull _stow add .gitignore
-    _stow commit -q -m " 🏠🐜❗ Added .gitignore "
+    __devnull2 _stow commit -m " 🏠🐜❗ Added .gitignore 🏠🐜❗" -q
   fi
   exit "$?"
 }
@@ -210,7 +205,7 @@ add | stow)
       _stow add "$f"
     fi
   done
-  _stow commit -m " 🏠🐜❗ Added $args" -q
+  _stow commit -m " 🏠🐜❗ Added $args  🏠🐜❗ " -q
   ;;
 
 commit)
@@ -267,5 +262,5 @@ help | -h* | --h*)
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
