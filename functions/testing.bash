@@ -626,6 +626,8 @@ __git_username_repo() {
     return 1
   fi
 }
+#__git _status() { git -C ${1:-.} status -b -s; }
+#__git_log() { git -C ${1:-.} log --pretty="%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"; }
 __git_pull() { git -C ${1:-.} pull -q; }
 __git_top_dir() { git -C ${1:-.} rev-parse --show-toplevel 2>/dev/null; }
 __git_fetch_remote() { git -C ${1:-.} remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null; }
