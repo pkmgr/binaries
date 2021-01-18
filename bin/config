@@ -53,7 +53,7 @@ printf "$(date +'%A, %B %d, %Y %H:%M:%S')\n" >>"$logfile"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "$@"; }
+_stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "$*"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,7 +65,7 @@ _backup() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_checkout() { _stow checkout "$@" || _backup "$@"; }
+_checkout() { _stow checkout "${@}" || _backup "${@}"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -190,7 +190,7 @@ restore)
 add | stow)
   shift 1
   declare -a args="$*"
-  for f in $args; do
+  for f in ${args[*]}; do
     if [ -L "$f" ]; then
       [ ! -L "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')" ] &&
         [ -e "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')" ] &&
@@ -200,47 +200,47 @@ add | stow)
       _stow add "$f"
     fi
   done
-  _stow commit -m ' 🏠🐜❗ Added $args  🏠🐜❗ ' -q
+  _stow commit -q -m "🏠🐜❗ Added Files 🏠🐜❗ "
   ;;
 
 commit)
   shift 1
-  _stow commit ' 🏠🐜❗ $@ 🏠🐜❗ ' -q
+  _stow commit -q -m '🏠🐜❗ Updated files to repo 🏠🐜❗'
   ;;
 
 checkout)
   shift 1
-  _checkout "$@"
+  _checkout "$*"
   ;;
 
 remote)
   shift 1
-  git_remote "$@"
+  git_remote "$*"
   ;;
 
 pull)
   shift 1
-  _stow pull "$@"
+  _stow pull "$*"
   ;;
 
 push)
   shift 1
-  _stow push "$@" || _stow push --set-upstream origin master "$@"
+  _stow push "$*" || _stow push --set-upstream origin master "$@"
   ;;
 
 set)
   shift 1
-  _stow config "$@"
+  _stow config "$*"
   ;;
 
 status)
   shift 1
-  _stow status "$@"
+  _stow status "$*"
   ;;
 
 log)
   shift 1
-  _stow log "$@"
+  _stow log "$*"
   ;;
 
 help | -h* | --h*)
