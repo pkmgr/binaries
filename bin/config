@@ -35,6 +35,8 @@ ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/con
 LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
 HELP="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/help)"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 if [[ $EUID -eq 0 ]]; then
   printf_head "You are running as root as such this will allow full system access"
   HOME="/"
@@ -42,18 +44,14 @@ else
   HOME=$HOME
 fi
 gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
-backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
-logdir="${LOGDIR:-$HOME/.local/log}"
+backupdir="${CONFIG_HOME:-$HOME/.local/backups}/config"
+logdir="${LOGDIR:-$HOME/.local/log}/config"
 logfile="$logdir/config.log"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-mkdir -p "$logdir"
-printf "#################################\n" >>"$logfile"
-printf "$(date +'%A, %B %d, %Y %H:%M:%S')\n" >>"$logfile"
+mkdir -p $logdir $backupdir
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "$*"; }
+_stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "${@}"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -81,11 +79,33 @@ git_remote() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+gitconfig_local() {
+  cat <<EOF >"$gitdir/config.local"
+
+[color "status"]
+  added = green reverse
+  changed = yellow reverse
+  untracked = red reverse
+
+#pretty log
+[pretty]
+  custom = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+
+# Aliases
+g   = log --graph --pretty=custom
+l   = log --pretty=custom
+p   = push
+s = "!f(){ config status; };f"
+EOF
+}
+
 git_init() {
   if [ ! -f .gitignore ]; then
     echo "$gitdir" >.gitignore
+    echo "*/.git/*" >.gitignore
   else
-    grep -q "$gitdir" .gitignore 2>/dev/null && echo "$gitdir" >>.gitignore
+    grep -q "$gitdir" ~/.gitignore 2>/dev/null || echo "$gitdir" >>.gitignore
+    grep -q '/.git/' ~/.gitignore 2>/dev/null || echo "*/.git/*" >>.gitignore
   fi
   printf_question "4" "Do you already have a dotfiles repo: [y/N]"
   read -r -n 1 -s choice
@@ -99,6 +119,7 @@ git_init() {
   else
     mkdir -p "$gitdir"
     git init --bare "$gitdir" -q
+    gitconfig_local
     _stow config --local status.showUntrackedFiles no
     _stow config --local commit.gpgSign false
     printf_question "Would you like to add a remote git repo: [y/N]"
@@ -115,10 +136,11 @@ git_init() {
     read -r -n 80 name
     printf_question "Enter email address:"
     read -r -n 100 email
+    _stow config --local include.path $gitdir/gitconfig.local
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
-    _stow add ~/.gitignore
-    _stow commit -q -m ' 🏠🐜❗ Added .gitignore 🏠🐜❗ '
+    _stow add -f ~/.gitignore
+    _stow commit -q -m "'🏠🐜❗ Added .gitignore 🏠🐜❗'"
   fi
   exit "$?"
 }
@@ -177,6 +199,18 @@ fi
 
 case "$1" in
 
+  local)
+    _stow config --local "$@"
+    ;;
+
+  log | l)
+    _stow log --pretty=custom
+    ;;
+
+  status | l)
+    _stow status
+    ;;
+
 init)
   shift 1
   git_init
@@ -200,12 +234,12 @@ add | stow)
       _stow add "$f"
     fi
   done
-  _stow commit -q -m "🏠🐜❗ Added Files 🏠🐜❗ "
+  _stow commit -q -m "'🏠🐜❗ Added Files 🏠🐜❗'"
   ;;
 
 commit)
   shift 1
-  _stow commit -q -m '🏠🐜❗ Updated files to repo 🏠🐜❗'
+  _stow commit -q -m "'🏠🐜❗ Updated files to repo 🏠🐜❗'"
   ;;
 
 checkout)

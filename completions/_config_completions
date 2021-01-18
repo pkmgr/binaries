@@ -65,6 +65,7 @@ _config_completions() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   # enable completions
+  complete -F _git -o default config &&
   complete -F _config_completions -o default config
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
