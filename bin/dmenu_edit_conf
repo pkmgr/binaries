@@ -8,11 +8,11 @@ HOME="${USER_HOME:-${HOME}}"
 ##@Version     : 010920210727-git
 # @Author          : Jason
 # @Contact         : jason@casjaysdev.com
-# @File            : dmenu_run_cmd
+# @File            : dmenu_edit_conf
 # @Created         : Wed, Aug 09, 2020, 02:00 EST
 # @License         : WTFPL
 # @Copyright       : Copyright (c) CasjaysDev
-# @Description     : dmenu menu system
+# @Description     : dmenu for editing configuration files
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -114,4 +114,9 @@ zsh)
   ;;
 esac
 
-myterminal -e myeditor "$editConfig"
+if [ -f "$editConfig" ]; then
+  myterminal -e myeditor "$editConfig"
+else
+  printf_exit "Can not find the file: $editConfig"
+fi
+
