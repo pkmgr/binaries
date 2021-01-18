@@ -4,15 +4,13 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author        : Jason
-# @Contact      : casjaysdev@casjay.net
-# @File             : calendar
-# @Created      : Wed, Aug 05, 2020, 02:00 EST
-# @License      : WTFPL
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : calendar
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
 # @Description : A calendar written in bash
-# @TODO        :
 # @Source      : https://github.com/coreymwamba/estonta
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -20,7 +18,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -28,9 +26,16 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+else
+  mkdir -p "/tmp/CasjaysDev/functions"
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ "$1" = "--version" ] && get_app_info "$APPNAME"
+[ "$1" = "--help " ] && printf_exit "A calendar written in bash"
 
 CAL_CONFIG="$HOME/.config/local/calendar.local"
 
@@ -39,20 +44,20 @@ CAL_CONFIG="$HOME/.config/local/calendar.local"
 if [ -f "$HOME/.config/local/calendar.local" ]; then
   source "$HOME/.config/local/calendar.local"
 else
-  cat <<EOF >"$CAL_CONFIG"
+  echo '
 #Calendar Configuration
 # directory for storing the events. Make sure this path exists
-eventpath="$HOME/.local/share/calendar"
+eventpath="$HOME/.local/share/ics"
 # alter these to your most common location
 HOMETOWN="${MYLOCATIONCITY:-Albany}"
 HOMECOUNTRY="${MYLOCATIONCOUNTRY:-USA}"
 # sets $startdate below; "man 1 date" for details on modification
-DATEFORMAT="%a %b %e %Y, %H:%M"
+DATEFORMAT="%a %e %b, %-l:%M%P"
 # categories - no spaces in tags
 TAGS=(work meeting study party)
-#TERSE="$startdate - $title"
-FULL="$startdate - $title\n$desc\n$location ($category)"
-EOF
+TERSE="$startdate - $title"
+#FULL="$startdate - $title\n$desc\n$location ($category)"
+' >"$CAL_CONFIG"
   source "$HOME/.config/local/calendar.local"
 fi
 
@@ -69,6 +74,7 @@ containsElement() {
 initialise() {
   if [[ ! -s "$eventpath" ]]; then
     mkdir -p "$eventpath" 2>/dev/null
+    echo "New directory created at $eventpath."
   fi
 }
 
@@ -122,9 +128,9 @@ list_appointment() {
   tail -n +7 "$found" >"$LERTA"
   generate_fields
   if [[ -n "${FULL+set}" ]]; then
-    printf_green "$FULL"
+    echo -e "$FULL"
   else
-    printf_green "$TERSE"
+    echo -e "$TERSE"
   fi
 }
 
@@ -137,7 +143,7 @@ list_all() {
   for file in $eventpath/*.ics; do
     tail -n +7 $file >$LERTA
     generate_fields
-    printf_green "$TERSE"
+    echo -e "$TERSE"
   done
 }
 
@@ -300,13 +306,14 @@ show_help() {
   printf_red "calendar script."
   printf_info "Edit ~/.config/local/calendar.local to change the directory."
   printf_info "DATE_STRING is a any value accepted by date(1) function."
-  printf_green "-a                   |   Add event in console."
-  printf_green "-ag                  |   Add event using a graphical dialog interface."
-  printf_green "-g                   |   Graphical calendar display of events (can also add events)."
-  printf_green "-c TEXT              |   List all saved events filtered by category."
-  printf_green "-s TEXT              |   List all saved events filtered by summary."
-  printf_green "-d DATE_STRING       |    Find events matching the date string."
-  printf_green "-r START_DATE_STRING END_DATE_STRING | Find events within a date range."
+  printf_green "-a  Add event in console."
+  printf_green "-ag	Add event using a graphical dialog interface."
+  printf_green "-g  Graphical calendar display of events (can also add events)."
+  printf_green "-c --category=TEXT List all saved events filtered by category."
+  printf_green "-s --summary=TEXT	List all saved events filtered by summary."
+  printf_green "-d,--date=DATE_STRING Find events matching the date string."
+  printf_green "-r START_DATE_STRING END_DATE_STRING	Find events within a date range."
+  printf_green " -h,-?,--help Show this help."
 }
 
 case $1 in
@@ -412,5 +419,5 @@ unset
 rm $LERTA
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+
 # end
