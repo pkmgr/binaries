@@ -483,7 +483,7 @@ __hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
 #count_files "dir"
-__count_files() { __devnull2 find "${1:-.}" -maxdepth 1 | wc -l; }
+__count_files() { __devnull2 find ${1:-.} -maxdepth 1 | wc -l; }
 #symlink "file" "dest"
 __symlink() { if [ -e "$1" ]; then __devnull ln -sf "${1}" "${2}"; fi; }
 #mv_f "file" "dest"
@@ -493,7 +493,7 @@ __cp_rf() { if [ -e "$1" ]; then __devnull cp -Rfa "$1" "$2"; fi; }
 #rm_rf "file"
 __rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$*"; fi; }
 #ln_rm "file"
-__ln_rm() { if [ -e "$1" ]; then __devnull find "${1:-.}" -maxdepth 1 -xtype l -delete; fi; }
+__ln_rm() { if [ -e "$1" ]; then __devnull find "$1" -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
 __ln_sf() {
   if [ -L "$2" ]; then
@@ -588,7 +588,7 @@ __git_update() {
 }
 #git_commit "dir"
 __git_commit() {
-  local dir="${1:-.}"
+  local dir="$1"
   if [ ! -d "$dir" ]; then
     __mkd "$dir"
     git -C "$dir" init -q
@@ -599,7 +599,7 @@ __git_commit() {
 }
 #git_init "dir"
 __git_init() {
-  local dir="${1:-.}"
+  local dir="$1"
   __mkd "$dir"
   git -C "$dir" init -q
   git -C "$dir" add -A .
@@ -626,12 +626,12 @@ __git_username_repo() {
     return 1
   fi
 }
-__git_pull() { git -C "${1:-.}" pull -q; }
-__git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null; }
-__git_fetch_remote() { git -C "${1:-.}" remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null; }
-__git_porcelain() { __devnull __git_porcelain_count -C "${1:-.}" || return 1; }
-__git_remote_origin() { git -C "${1:-.}" remote show origin | grep Push | awk '{print $3}'; }
-__git_porcelain_count() { [ "$(git -C ${1:-.} status --porcelain | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
+__git_pull() { git -C ${1:-.} pull -q; }
+__git_top_dir() { git -C ${1:-.} rev-parse --show-toplevel 2>/dev/null; }
+__git_fetch_remote() { git -C ${1:-.} remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null; }
+__git_porcelain() { __git_porcelain_count ${1:-.} && return 0 || return 1; }
+__git_remote_origin() { git -C ${1:-.} remote show origin | grep Push | awk '{print $3}'; }
+__git_porcelain_count() { [ -d ${1:-.}/.git ] && [ "$(git -C "${1:-.}" status --porcelain | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
 ###################### crontab functions ######################
 
 setupcrontab() {

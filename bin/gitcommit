@@ -222,7 +222,7 @@ else
   __cd "$gitdir"
 fi
 
-if __git_porcelain; then
+if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
 else
   printf_info "Commiting Changes with message: $mess"
