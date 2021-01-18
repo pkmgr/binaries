@@ -55,12 +55,12 @@ create_link() {
 if [ -z "$FILEMANAGER" ] && [ ! -f "$HOME/.local/bin/myfilemanager" ]; then
   FILEMANAGER="HOME/.local/bin/myfilemanager"
   if [ -z $DESKTOP_SESSION ]; then
-    if [ -f "$(command -v vifm 2>/dev/null)" ]; then
+    if [ -f "$(command -v lf 2>/dev/null)" ]; then
+      export FILEMANAGER="lf"
+    elif [ -f "$(command -v vifm 2>/dev/null)" ]; then
       export FILEMANAGER="vifm"
     elif [ -f "$(command -v ranger 2>/dev/null)" ]; then
       export FILEMANAGER="ranger"
-    elif [ -f "$(command -v lf 2>/dev/null)" ]; then
-      export FILEMANAGER="lf"
     elif [ -f "$(command -v cfiles 2>/dev/null)" ]; then
       export FILEMANAGER="cfiles"
     fi
