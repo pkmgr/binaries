@@ -6,25 +6,52 @@
 # autocomplete for blog
 
 _blog_completions() {
-  local blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
-  local cur prev words cword
+  local cur prev words cword split
+  local BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blog}"
   ARRAY="new page post edit --help"
   _init_completion || return
 
+  list_all() {
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+  }
+
+  local special i
+  for ((i = 1; i < ${#words[@]} - 1; i++)); do
+    if [[ ${words[i]} == @(edit) ]]; then
+      special=${words[i]}
+      break
+    fi
+  done
+
+  if [[ -v special ]]; then
+    if [[ $cur == @(*/|[.~])* && \
+      $special == @(edit) ]]; then
+      list_all
+      return
+    fi
+
+    case $special in
+    edit)
+      k=0
+      i="$BLOG_DIR/*"
+      for j in $(compgen -f "$i/$cur"); do
+        [ -d "$j" ] && j="${j}"
+        COMPREPLY[k++]=${j#$i/}
+      done
+      return 0
+      ;;
+    esac
+  fi
+
+  # relevant options completion
+
   case $prev in
-  edit)
-    k=0
-    i="$blogdir"
-    for j in $(compgen -f "$i/$cur"); do
-      [ -d "$j" ] && j="${j}"
-      COMPREPLY[k++]=${j#$i/}
-    done
-    return 0
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     ;;
   esac
 
-  # relevant options completion
-  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+  $split && return
 
 } &&
 
