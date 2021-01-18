@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,45 +30,38 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
 
-_blog_init() { devnull git pull -q; }
-_blog_publish() {
-  devnull git add .
-  devnull2 git commit -q -m "New Blog Post"
-  devnull git push -q
-}
-_blog_site() { git remote show origin | grep Push | awk '{print $3}'; }
+__blog_init() { __devnull git pull -q; }
+__blog_publish() { __git_init "$*"; }
+__blog_site() { git remote show origin | grep Push | awk '{print $3}'; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_blog_post_header() {
+__blog_post_header() {
   cat "$SCRIPTSFUNCTDIR/templates/blog/post.md" |
-    sed "s#AuthorName#${USER}#g" |
-    sed "s#DATE#$(date +"%Y-%m-%d %H:%M")#g" |
-    sed "s#TITLE#${TITLE}#g"
+    __sed "s#AuthorName#${USER}#g" |
+    __sed "s#DATE#$(date +"%Y-%m-%d %H:%M")#g" |
+    __sed "s#TITLE#${title}#g"
 
 }
 
-_blog_page_header() {
+__blog_page_header() {
   cat "$SCRIPTSFUNCTDIR/templates/blog/page.md" |
-    sed "s#AuthorName#${USER}#g" |
-    sed "s#TITLE#${TITLE}#g"
+    __sed "s#AuthorName#${USER}#g" |
+    __sed "s#TITLE#${title}#g"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_blog_dir() {
-  find . -type d -name _posts | grep -q "." &&
-    find . -type d -name _posts | grep "." ||
-    return 1
-}
+__blog_dir() { [ -d "$blogdir" ] && return 0 || return 1; }
 
 _newpost_template() {
-  if devnull _blog_dir; then
+  if __blog_dir; then
     local date="$(date +"%Y-%m-%d")"
-    local edit="$(echo $date-$title | sed 's# #_#g')"
-    local file="$(_blog_dir)/$edit.md"
-    _blog_post_header >"$file"
+    local edit="$(echo $date-$title | __sed 's# #_#g')"
+    local file="$blogdir/_posts/$edit.md"
+    __blog_post_header >"$file"
     vim -c ":setlocal ft=notes syntax=markdown" "$file"
   else
     printf_red "There is no blog directory"
@@ -76,10 +69,10 @@ _newpost_template() {
 }
 
 _newpage_template() {
-  local edit="$(echo $1 | sed 's# #_#g')"
-  local file="$edit"
+  local edit="$(echo $1 | __sed 's# #_#g')"
+  local file="$blogdir/_pages/$edit.md"
   if [ ! -f "$file" ]; then
-    _blog_page_header >"$file"
+    __blog_page_header >"$file"
   fi
   vim -c ":setlocal ft=notes syntax=markdown" "$file"
 }
@@ -88,36 +81,42 @@ _newpage_template() {
 
 case "$1" in
 
+new)
+  shift 1
+  newdir="${1:-$blogdir}"
+  title="${2:-welcome}"
+  date="$(date +"%Y-%m-%d")"
+  edit="$(echo $date-$title | __sed 's# #_#g')"
+  file="$newdir/_posts/$edit.md"
+  __mkd "$newdir/_posts" "$newdir/_pages"
+  __blog_post_header >"$file"
+  __git_init "$newdir"
+  ;;
 page)
   shift 1
-  [ -z "$1" ] && printf_red "Please the full path of the file" && exit 1
-  [ -z "$2" ] && printf_red "Please enter a title" && exit 1
-  [ "$2" ] && title="$2" || title="TITLE"
-  _blog_init
+  [ -z "${1}" ] && printf_red "Please enter the filename" && exit 1
+  [ -z "${2}" ] && printf_red "Please enter a title" && exit 1 || title="$2"
   _newpage_template "$@"
-  _blog_publish
+  __blog_publish "$blogdir"
   ;;
 
 post)
   shift 1
-  [ -z "$1" ] && printf_red "Please enter a title" && exit 1
-  [ "$1" ] && title="$1" || title="TITLE"
-  _blog_init
+  [ -z "${1}" ] && printf_red "Please enter a title" && exit 1 || title="$1"
   _newpost_template "$@"
-  _blog_publish
+  __blog_publish "$blogdir"
   ;;
 
 edit)
   shift 1
-  [ -z "$1" ] && printf_red "Please the full path of the file" && exit 1
-  edit="$1"
+  [ -z "${1}" ] && printf_red "Please enter path of the file relative to $blogdir" && exit 1
+  edit="$blogdir/${1}"
   file="$edit"
-  _blog_init
   _vim "$file"
-  _blog_publish
+  __blog_publish "$blogdir"
   ;;
 
-* | --help)
+*)
   shift 1
   __help
   ;;

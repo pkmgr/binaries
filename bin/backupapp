@@ -36,7 +36,7 @@ if [ $# -lt 2 ]; then printf_red "Not enough arguments given!" && __help; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
 
-__check_app tar
+__require_app tar
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application

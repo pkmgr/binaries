@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# _blog completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for blog
+
+_blog_completions() {
+  local blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
+  local cur prev words cword
+  ARRAY="new page post edit --help"
+  _init_completion || return
+
+  case $prev in
+  edit)
+    _filedir '$blogdir'
+    return
+    ;;
+  esac
+
+  # relevant options completion
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _blog_completions -o default blog

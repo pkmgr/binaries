@@ -97,7 +97,7 @@ __runapp() {
 __run_post() {
   local e="$1"
   local m="${e//__devnull//}"
-  execute "$e" "executing: $m"
+  __execute "$e" "executing: $m"
   __setexitstatus
   set --
 }
@@ -140,6 +140,7 @@ ICON_WARN="[ ❗ ]"
 ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
 
+printf_newline() { printf "\n"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
 printf_green() { printf_color "\t\t$1\n" 2; }
@@ -216,20 +217,11 @@ printf_readline() {
   set +o pipefail
 }
 
-printf_newline() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
-  set -o pipefail
-  while read line; do
-    printf_color "\t\t$line\n" "$color"
-  done
-  set +o pipefail
-}
-
 printf_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
-  printf_color "\t\t$ICON_QUESTION $msg " "$color"
+  printf_color "\t\t$ICON_QUESTION $msg? " "$color"
 }
 printf_answer() {
   read -r -n ${2:-1} ${1:-__QUESTION_REPLY}
@@ -348,19 +340,19 @@ __system_service_running() {
 #system_service_exists "servicename"
 __system_service_exists() {
   if sudo systemctl list-units --full -all | grep -Fq "$1.service" || sudo systemctl list-units --full -all | grep -Fq "$1.socket"; then return 0; else return 1; fi
-  setexitstatus
+  __setexitstatus
   set --
 }
 #system_service_enable "servicename"
 __system_service_enable() {
   if __system_service_exists; then __devnull "sudo systemctl enable -f $1"; fi
-  setexitstatus
+  __setexitstatus
   set --
 }
 #system_service_disable "servicename"
 __system_service_disable() {
   if __system_service_exists; then __devnull "sudo systemctl disable --now $1"; fi
-  setexitstatus
+  __setexitstatus
   set --
 }
 #perl_exists "perlpackage"
@@ -389,7 +381,7 @@ __check_app() {
     read -n 1 -s choice && echo
     if [[ $choice == "y" || $choice == "Y" ]]; then
       for miss in $MISSING; do
-        execute "pkmgr silent-install $miss" "Installing $miss" || return 1
+        __execute "pkmgr silent-install $miss" "Installing $miss" || return 1
       done
     else
       exit 1
@@ -406,7 +398,7 @@ __check_pip() {
     read -n 1 -s choice
     if [[ $choice == "y" || $choice == "Y" ]]; then
       for miss in $MISSING; do
-        execute "pkmgr pip $miss" "Installing $miss"
+        __execute "pkmgr pip $miss" "Installing $miss"
       done
     fi
   else
@@ -422,13 +414,15 @@ __check_cpan() {
     read -n 1 -s choice
     if [[ $choice == "y" || $choice == "Y" ]]; then
       for miss in $MISSING; do
-        execute "pkmgr cpan $miss" "Installing $miss"
+        __execute "pkmgr cpan $miss" "Installing $miss"
       done
     fi
   else
     return 1
   fi
 }
+#check_app "app"
+__require_app() { __check_app "$@" || exit 1; }
 
 ###################### get versions ######################
 __getpythonver() {
@@ -466,6 +460,9 @@ __countdir() { ls "$@" | wc -l; }
 ###################### Apps ######################
 #mkd dir
 __mkd() { if [ ! -e "$1" ]; then mkdir -p "$@"; else return 0; fi; }
+#sed "commands"
+sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
+__sed() { "$sed" "$@"; }
 #tar "filename dir"
 __tar_create() { tar cfvz "$@"; }
 #tar filename
@@ -563,41 +560,44 @@ __do_not_add_a_url() {
 }
 ###################### git commands ######################
 #git "commands"
-__git() {
-  __devnull1 git "$@"
-  __setexitstatus "$?"
-}
 #git_clone "url" "dir"
 __git_clone() {
   __git_username_repo "$1"
   local repo="$1"
   [ ! -z "$2" ] && local myappdir="$2" || local myappdir="$APPDIR"
   [ ! -d "$myappdir" ] || rm_rf "$myappdir"
-  __git -C "$myappdir" clone -q --recursive "$1" "${2}"
+  git -C "$myappdir" clone -q --recursive "$1" "${2}"
 }
 #git_pull "dir"
 __git_update() {
   [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
   local repo="$(git -C "$myappdir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-  __git -C "$myappdir" reset --hard &&
-    __git -C "$myappdir" pull --recurse-submodules -fq &&
-    __git -C "$myappdir" submodule update --init --recursive -q &&
-    __git -C "$myappdir" reset --hard -q
+  git -C "$myappdir" reset --hard &&
+    git -C "$myappdir" pull --recurse-submodules -fq &&
+    git -C "$myappdir" submodule update --init --recursive -q &&
+    git -C "$myappdir" reset --hard -q
   if [ "$?" -ne "0" ]; then
     __backupapp "$myappdir" "$myappdir" &&
       rm_rf "$myappdir" &&
-      __git clone -q "$repo" "$myappdir"
+      git clone -q "$repo" "$myappdir"
   fi
 }
 #git_commit "dir"
 __git_commit() {
   if [ ! -d "$1" ]; then
     __mkd "$1"
-    __git -C "$1" init -q
+    git -C "$1" init -q
   fi
   touch "$1/README.md"
-  __git -C "${1:-.}" add -A .
-  __git -C "${1:-.}" commit -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" -q | printf_readline "3"
+  git -C "${1:-.}" add -A .
+  git -C "${1:-.}" 'commit -m '"${2:-🏠🐜❗ Updated Files 🏠🐜❗}"' -q' || return 1
+}
+#git_init "dir"
+__git_init() {
+  __mkd "$1"
+  git -C "$1" init -q
+  git -C "$1" add -A .
+  git -C "$1" commit -m ' 🏠🐜❗ Initial Commit 🏠🐜❗ ' -q
 }
 #set folder name based on githost
 __git_hostname() {
@@ -845,7 +845,7 @@ __execute() {
   return $exitCode
 }
 #
-show_spinner() {
+__show_spinner() {
   local -r FRAMES='/-\|'
   local -r NUMBER_OR_FRAMES=${#FRAMES}
   local -r CMDS="$2"

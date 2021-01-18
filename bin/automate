@@ -31,28 +31,30 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
-# functions
-state="/tmp/automate"; touch $state
-getstate() { cat $state; }
-roku_play() { roku play; }
-roku_stop() { roku stop; }
-roku_pause() { roku pause; }
-hue_play() { hue play; }
-hue_stop() { hue stop; }
-automate_play() { roku_play && hue_play && echo play >$state; }
-automate_stop() { roku_stop && hue_stop && echo stop >$state; }
-automate_pause() { roku pause && hue toggle && echo pause >$state ; }
-toggle() {
-if [ "$(getstate)" = play ]; then
-  automate_stop
-elif [ "$(getstate)" = stop ]; then
-  automate_play
-elif  [ "$(getstate)" = pause ] || [ "$(getstate)" = "toggle" ]; then
-  automate_pause
-fi
-}
+  local opts="$1"
+  local state="/tmp/automate"
+  touch $state
+  # functions
+  getstate() { cat $state; }
+  roku_play() { roku play; }
+  roku_stop() { roku stop; }
+  roku_pause() { roku pause; }
+  hue_play() { hue play; }
+  hue_stop() { hue stop; }
+  automate_play() { roku_play && hue_play && echo play >$state; }
+  automate_stop() { roku_stop && hue_stop && echo stop >$state; }
+  automate_pause() { roku pause && hue toggle && echo pause >$state; }
+  toggle() {
+    if [ "$(getstate)" = play ]; then
+      automate_stop
+    elif [ "$(getstate)" = stop ]; then
+      automate_play
+    elif [ "$(getstate)" = pause ] || [ "$(getstate)" = "toggle" ]; then
+      automate_pause
+    fi
+  }
 
-case $1 in
+  case "$opts" in
   play)
     shift 1
     automate_play
@@ -72,8 +74,8 @@ case $1 in
 
   state)
     case "$2" in
-      text) echo "$(getstate)" ;;
-      json | *) echo -e '{"status":"'$(getstate)'"}' | jq ;;
+    text) echo "$(getstate)" ;;
+    json | *) echo -e '{"status":"'$(getstate)'"}' | jq ;;
     esac
     ;;
 
@@ -92,4 +94,3 @@ main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # end
-

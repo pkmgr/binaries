@@ -94,7 +94,7 @@ printf_read() { printf_color "\t\t$1" 5; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
-printf_question() { printf_color "\t\t$ICON_QUESTION $1 " 6; }
+printf_question() { printf_color "\t\t$ICON_QUESTION $1? " 6; }
 printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
 printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_execute_error() { printf_color "\t\t$ICON_WARN $1 $2\n" 1; }

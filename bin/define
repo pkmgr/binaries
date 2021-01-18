@@ -42,6 +42,6 @@ fi
 
 __check_app dict
 
-dict -d gcide "$1" | sed '/^$/d' | sed 's#From The Collaborative International.*##g' | printf_newline "2"
+dict -d gcide "$1" | sed '/^$/d' | sed 's#From The Collaborative International.*##g' | printf_readline "2"
 
 # end

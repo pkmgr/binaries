@@ -41,6 +41,6 @@ fi
 
 __check_app dict
 
-dict -d moby-thesaurus "$1" | sed '/^$/d' | sed 's#From Moby Thesaurus.*##g' | printf_newline "2"
+dict -d moby-thesaurus "$1" | sed '/^$/d' | sed 's#From Moby Thesaurus.*##g' | printf_readline "2"
 
 # end

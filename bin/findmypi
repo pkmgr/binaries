@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -32,30 +32,29 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __gethostname() {
-  rasppi="$(echo $device)"
-  cmd_exists nslookup && sethost="$(getent hosts $rasppi 2>/dev/null | head -n 1 | awk '{print $2}')"
-  echo "$rasppi    $sethost" >>"$HOME/Documents/raspis.txt" 2>/dev/null
+  local host="$1"
+  __cmd_exists nslookup && sethost="$(getent hosts $host 2>/dev/null | head -n 1 | awk '{print $2}')"
+  echo "$host    $sethost" >>"$HOME/Documents/raspis.txt" 2>/dev/null
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ -z "$1" ] && ip="10.0.0.0" || ip="$1"
 [ -z "$2" ] && nm="16" || nm="$2"
+[ -f /tmp/raspi.search.txt ] && sudo rm -Rf /tmp/raspi.search.txt
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # we need sudo
-requiresudo
-
-check_app nmap
-[ -f /tmp/raspi.search.txt ] && sudo rm -Rf /tmp/raspi.search.txt
+__requiresudo
+__require_app nmap
 
 printf_green "Searching the $ip/$nm network for your Raspberry PI"
-printf_green "Depending on your network range this may take some time\n" &&
-  sudo nmap -sP "$ip"/"$nm" 2>/dev/null | awk '/^Nmap/{ip=$NF}/Raspberry Pi/{print ip}' | sed 's#(##g' | sed 's#)##g' >/tmp/raspi.search.txt 2>/dev/null
+printf_green "Depending on your network range this may take some time\n"
+sudo nmap -sP "$ip"/"$nm" 2>/dev/null | awk '/^Nmap/{ip=$NF}/Raspberry Pi/{print ip}' | sed 's#(##g' | sed 's#)##g' >/tmp/raspi.search.txt 2>/dev/null
 
 if [ -s /tmp/raspi.search.txt ]; then
   while IFS="" read -r device || [ -n "$device" ]; do
-    printf_cyan "I have found the following device: $device"
-    __gethostname
+    printf_cyan "I have found the following device[s]: $device"
+    __gethostname "$device"
   done </tmp/raspi.search.txt
   echo "" && printf_blue "Saved the list to $HOME/Documents/raspis.txt"
 else

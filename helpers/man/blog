@@ -9,5 +9,9 @@ printf_help() {
 }
 #----------------
 printf_help "4" "Usage:"
-printf_help "4" "blog page "path_to_page" "title_of_page""
-printf_help "4" "blog post "title_of_post""
+printf_help "4" 'blog new "directory" "title"                | Setup a new blog'
+printf_help "4" 'blog post "title_of_post"                   | Create a new post'
+printf_help "4" 'blog page "path_to_page" "title_of_page"    | Create a blog page'
+printf_newline
+printf_help "4" 'By default the blog dir is '$HOME/.local/share/blog''
+printf_help "4" 'however, this can be changed with the BLOG_DIR variable'
