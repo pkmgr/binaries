@@ -32,9 +32,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
 
-__blog_init() { __devnull git pull -q; }
-__blog_publish() { __git_init "$*"; }
-__blog_site() { git remote show origin | grep Push | awk '{print $3}'; }
+__blog_init() { __git_pull "$blogdir"; }
+__blog_publish() { __git_porcelain "$blogdir" && __git_commit "$blogdir"; }
+__blog_site() { __git_remote_origin "$blogdir"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -56,25 +56,25 @@ __blog_page_header() {
 
 __blog_dir() { [ -d "$blogdir" ] && return 0 || return 1; }
 
-_newpost_template() {
+__newpost_template() {
   if __blog_dir; then
     local date="$(date +"%Y-%m-%d")"
     local edit="$(echo $date-$title | __sed 's# #_#g')"
     local file="$blogdir/_posts/$edit.md"
     __blog_post_header >"$file"
-    vim -c ":setlocal ft=notes syntax=markdown" "$file"
+    __vim -c ":setlocal ft=notes syntax=markdown" "$file"
   else
     printf_red "There is no blog directory"
   fi
 }
 
-_newpage_template() {
+__newpage_template() {
   local edit="$(echo $1 | __sed 's# #_#g')"
   local file="$blogdir/_pages/$edit.md"
   if [ ! -f "$file" ]; then
     __blog_page_header >"$file"
   fi
-  vim -c ":setlocal ft=notes syntax=markdown" "$file"
+  __vim -c ":setlocal ft=notes syntax=markdown" "$file"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -96,23 +96,23 @@ page)
   shift 1
   [ -z "${1}" ] && printf_red "Please enter the filename" && exit 1
   [ -z "${2}" ] && printf_red "Please enter a title" && exit 1 || title="$2"
-  _newpage_template "$@"
+  __newpage_template "$@"
   __blog_publish "$blogdir"
   ;;
 
 post)
   shift 1
   [ -z "${1}" ] && printf_red "Please enter a title" && exit 1 || title="$1"
-  _newpost_template "$@"
+  __newpost_template "$@"
   __blog_publish "$blogdir"
   ;;
 
 edit)
   shift 1
-  [ -z "${1}" ] && printf_red "Please enter path of the file relative to $blogdir" && exit 1
-  edit="$blogdir/${1}"
+  [ -z "${1}" ] && printf_red "Please enter the full path of the file" && exit 1
+  edit="${1}"
   file="$edit"
-  _vim "$file"
+  __vim "$file"
   __blog_publish "$blogdir"
   ;;
 

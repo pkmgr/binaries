@@ -458,6 +458,9 @@ __getuser() { if [ -n "$1" ]; then cut -d: -f1 /etc/passwd | grep "${1:-USER}" |
 __countdir() { ls "$@" | wc -l; }
 
 ###################### Apps ######################
+#vim "file"
+vim="$(command -v /usr/local/bin/vim || command -v vim)"
+__vim() { $vim "$*"; }
 #mkd dir
 __mkd() { if [ ! -e "$1" ]; then mkdir -p "$@"; else return 0; fi; }
 #sed "commands"
@@ -584,20 +587,22 @@ __git_update() {
 }
 #git_commit "dir"
 __git_commit() {
-  if [ ! -d "$1" ]; then
-    __mkd "$1"
-    git -C "$1" init -q
+  local dir="${1:-.}"
+  if [ ! -d "$dir" ]; then
+    __mkd "$dir"
+    git -C "$dir" init -q
   fi
-  touch "$1/README.md"
-  git -C "${1:-.}" add -A .
-  git -C "${1:-.}" 'commit -m '"${2:-🏠🐜❗ Updated Files 🏠🐜❗}"' -q' || return 1
+  touch "$dir/README.md"
+  git -C "$dir" add -A .
+  __git_porcelain "$dir" || git -C "$dir" commit -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" -q
 }
 #git_init "dir"
 __git_init() {
-  __mkd "$1"
-  git -C "$1" init -q
-  git -C "$1" add -A .
-  git -C "$1" commit -m ' 🏠🐜❗ Initial Commit 🏠🐜❗ ' -q
+  local dir="${1:-.}"
+  __mkd "$dir"
+  git -C "$dir" init -q
+  git -C "$dir" add -A .
+  __git_porcelain "$dir" || git -C "$dir" commit -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " -q
 }
 #set folder name based on githost
 __git_hostname() {
@@ -620,9 +625,12 @@ __git_username_repo() {
     return 1
   fi
 }
-__git_top_dir() { git rev-parse --show-toplevel 2>/dev/null; }
-__git_fetch_remote() { git remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null; }
-__git_porcelain() { [ "$(git status --porcelain | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
+__git_pull() { git -C "${1:-.}" pull -q; }
+__git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null; }
+__git_fetch_remote() { git -C "${1:-.}" remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null; }
+__git_porcelain() { __devnull __git_porcelain_count -C "${1:-.}"; }
+__git_remote_origin() { git -C "${1:-.}" remote show origin | grep Push | awk '{print $3}'; }
+__git_porcelain_count() { [ "$(git -C ${1:-.} status --porcelain | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
 ###################### crontab functions ######################
 
 setupcrontab() {
