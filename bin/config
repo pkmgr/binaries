@@ -37,34 +37,29 @@ HELP="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/conf
 
 if [[ $EUID -eq 0 ]]; then
   printf_head "You are running as root as such this will allow full system access"
-  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
-  backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
-  logdir="${LOGDIR:-$HOME/.local/log}"
   HOME="/"
 else
-  gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
-  backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
-  logdir="${LOGDIR:-$HOME/.local/log}"
   HOME=$HOME
 fi
-
+gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
+backupdir="${CONFIG_HOME:-$HOME/.local/backups/config}"
+logdir="${LOGDIR:-$HOME/.local/log}"
+logfile="$logdir/config.log"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 mkdir -p "$logdir"
-echo "#################################" >>"$logdir/config.log"
-echo "$(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/config.log"
+printf "#################################\n" >>"$logfile"
+printf "$(date +'%A, %B %d, %Y %H:%M:%S')\n" >>"$logfile"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_stow() {
-  eval "git --git-dir=$gitdir/ --work-tree=$HOME $@"
-}
+_stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "$@"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 _backup() {
   mkdir -p "$backupdir"
-  _stow checkout 2>&1 | egrep "^\s+" | awk {'print $1'} |
+  _stow checkout 2>&1 | grep -E '^\s+' | awk '{print $1}' |
     rsync -a --remove-source-files --files-from="-" ~/ "$backupdir/"
 }
 
@@ -77,7 +72,7 @@ _checkout() { _stow checkout "$@" || _backup "$@"; }
 git_remote() {
   if [ -z "$1" ]; then
     printf_read "Enter the url to your git repo:"
-    read url
+    read -r url
     _stow remote add origin "$url"
   else
     _stow remote "$@"
@@ -93,11 +88,11 @@ git_init() {
     grep -q "$gitdir" .gitignore 2>/dev/null && echo "$gitdir" >>.gitignore
   fi
   printf_question "4" "Do you already have a dotfiles repo: [y/N]"
-  read -n 1 -s choice
+  read -r -n 1 -s choice
   echo ""
   if [[ $choice == "y" || $choice == "Y" ]]; then
     printf_read "What is the repo url:"
-    read -n 60 url
+    read -r -n 60 url
     git clone --bare "$url" "$gitdir" -q
     _checkout
     _stow config --local status.showUntrackedFiles no
@@ -107,23 +102,23 @@ git_init() {
     _stow config --local status.showUntrackedFiles no
     _stow config --local commit.gpgSign false
     printf_question "Would you like to add a remote git repo: [y/N]"
-    read -n 1 -s choice
+    read -r -n 1 -s choice
     echo ""
     if [[ $choice == "y" || $choice == "Y" ]]; then
       printf_question "4" "Enter the url to your git repo:"
-      read -n 60 url
+      read -r -n 60 url
       _stow remote add origin "$url"
     else
       printf_green "You did not add a remote git repo"
     fi
     printf_question "Enter your name:"
-    read -n 80 name
+    read -r -n 80 name
     printf_question "Enter email address:"
-    read -n 100 email
+    read -r -n 100 email
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
     _stow add ~/.gitignore
-    _stow commit -q -m '" 🏠🐜❗ Added .gitignore 🏠🐜❗ "'
+    _stow commit -q -m ' 🏠🐜❗ Added .gitignore 🏠🐜❗ '
   fi
   exit "$?"
 }
@@ -137,7 +132,7 @@ case "$1" in
     printf_exit "See config help for commands"
     __help
   fi
-  requiresudo
+  requiresudo true
   gitdir="/root/.local/dotfiles/system/$(hostname -s)"
   ;;
 
@@ -194,23 +189,23 @@ restore)
 
 add | stow)
   shift 1
-  declare -a args="$@"
+  declare -a args="$*"
   for f in $args; do
     if [ -L "$f" ]; then
-      [ ! -L "$(ls -ltra $f | grep '\->' | sed "s#.*-.##g" | sed "s#$HOME/##g" | sed "s# ##g")" ] &&
-        [ -e "$(ls -ltra $f | grep '\->' | sed "s#.*-.##g" | sed "s#$HOME/##g" | sed "s# ##g")" ] &&
+      [ ! -L "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')" ] &&
+        [ -e "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')" ] &&
         _stow add "$f" &&
-        _stow add "$(ls -ltra $f | grep '\->' | sed "s#.*-.##g" | sed "s#$HOME/##g" | sed "s# ##g")"
+        _stow add "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')"
     else
       _stow add "$f"
     fi
   done
-  _stow commit -m " 🏠🐜❗ Added $args  🏠🐜❗ " -q
+  _stow commit -m ' 🏠🐜❗ Added $args  🏠🐜❗ ' -q
   ;;
 
 commit)
   shift 1
-  _stow commit " 🏠🐜❗ $@ 🏠🐜❗ " -q
+  _stow commit ' 🏠🐜❗ $@ 🏠🐜❗ ' -q
   ;;
 
 checkout)

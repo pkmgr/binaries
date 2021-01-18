@@ -47,7 +47,7 @@ eventpath="$HOME/.local/share/calendar"
 HOMETOWN="${MYLOCATIONCITY:-Albany}"
 HOMECOUNTRY="${MYLOCATIONCOUNTRY:-USA}"
 # sets $startdate below; "man 1 date" for details on modification
-DATEFORMAT="%a %e %b, %-l:%M%P"
+DATEFORMAT="%a %b %e %Y, %H:%M"
 # categories - no spaces in tags
 TAGS=(work meeting study party)
 #TERSE="$startdate - $title"

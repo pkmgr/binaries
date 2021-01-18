@@ -53,8 +53,8 @@ WTFLICENSE="${MY_LICENSE_FILE:-$SCRIPTSAPPFUNCTDIR/templates/wtfpl.md}"
 create_new_readme_template() {
   local BaseDir="$(git rev-parse --show-toplevel 2>/dev/null || echo $PWD)"
   cat $SCRIPTSFUNCTDIR/templates/readmes/project.md |
-    sed "s#ProjectName#${BaseDir##*/}#g" |
-    sed "s#AuthorName#${USER}#g" >README.md
+    sed 's#ProjectName#'${BaseDir##*/}'#g' |
+    sed 's#AuthorName#'${USER}'#g' >README.md
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -122,11 +122,11 @@ do_not_add_a_url() {
 
 run_git_init() {
   if [ ! -z "$repo" ]; then
-    git remote add origin $repo
+    git remote add origin "$repo"
     printf_green "$repo has been added"
     printf_question "Should I push to the new repo? [y/n]"
     read -r -n 1 push && echo
-    if [[ $push == "y" || $push == "Y" ]]; then
+    if [[ "$push" == "y" || "$push" == "Y" ]]; then
       printf_question "This will overwrite the repo if it exists. Continue? [y/n]"
       read -r -n 1 confirm_repo && echo
       if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
@@ -155,7 +155,7 @@ run_git_setup() {
       printf_info "Repo is: $PREVREPO"
     fi
     printf_question "Should I continue to reset this repo? [y/n]"
-    read -n 1 continue && echo ""
+    read -r -n 1 continue && echo ""
     if [[ $continue == "y" || $continue == "Y" ]]; then
       rm -Rf ./.git
     else
@@ -237,8 +237,8 @@ run_git_setup_automated() {
 # Makes a new jeckyll site
 
 make_newsite() {
-  git clone https://github.com/casjay-templates/domain-template $HOME/Public/sites/$1 &&
-    rm -Rf $HOME/Public/sites/new/.git && cd $HOME/Public/sites/$1 && $EDITOR _config.yml || return 1
+  git clone https://github.com/casjay-templates/domain-template "$HOME/Public/sites/$1" &&
+    rm -Rf "$HOME/Public/sites/new/.git" && cd "$HOME/Public/sites/$1" && "$EDITOR" _config.yml || return 1
   git setup
 }
 
@@ -247,8 +247,8 @@ make_newsite() {
 
 git_all_orgs() {
   ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=owner"
-  for org in $GITHUB_USERNAME $(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}'); do
-    gitadmin --clone $org
+  for org in "$GITHUB_USERNAME" "$(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
+    gitadmin --clone "$org"
   done
 }
 
@@ -259,7 +259,7 @@ repos_init() {
   date +"%m%d%Y%H%M-git" >version.txt
   git add .
   if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-  git commit -m " 🦈🏠🐜 Initial Commit 🐜🦈🏠 "
+  git commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -272,7 +272,7 @@ git_init() {
   date +"%m%d%Y%H%M-git" >version.txt
   git add .
   if [ -f gitmasterconfig ]; then cp -Rf gitmasterconfig .git/config; fi
-  git commit -m " 🦈🏠🐜 Initial Commit 🐜🦈🏠 "
+  git commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
   git remote add origin "https://github.com/$1/$2"
   git push -u origin master
 }
@@ -340,7 +340,7 @@ ghcreate() {
   curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" >/dev/null && true ||
     ghcreate-user
   getexitcode "$SUCCES" "$ERROR"
-  return $EXIT
+  return "$EXIT"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -349,7 +349,7 @@ ghcreate() {
 ghsinglerepo() {
   [ "$1" = "" ] && printf_red "Usage: --single userName repoName" && return 1
   [ "$2" = "" ] && printf_red "Usage: --create userName repoName Description" && return 1
-  git clone -q https://github.com/$1/$2
+  git clone -q "https://github.com/$1/$2"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -384,7 +384,7 @@ main() {
     fi
   done
   rm -Rf "/tmp/github-casjaysdev-*"
-  exit $EXIT
+  exit "$EXIT"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -411,7 +411,7 @@ git_push_single() {
       return 1
     fi
   fi
-  exit $?
+  exit "$?"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -438,7 +438,7 @@ git_pull_single() {
       return 1
     fi
   fi
-  exit $?
+  exit "$?"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -457,7 +457,7 @@ git_clone_single() {
     __devnull git -C "$projdir" clone -q
     getexitcode "Cloning has completed"
   fi
-  exit $?
+  exit "$?"
 }
 
 git_update_loop() {
