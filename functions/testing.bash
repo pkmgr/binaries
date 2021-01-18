@@ -567,18 +567,19 @@ __do_not_add_a_url() {
 __git_clone() {
   __git_username_repo "$1"
   local repo="$1"
-  [ ! -z "$2" ] && local myappdir="$2" || local myappdir="$APPDIR"
-  [ ! -d "$myappdir" ] || rm_rf "$myappdir"
-  git -C "$myappdir" clone -q --recursive "$1" "${2}"
+  local dir=$2
+  [ ! -z "$2" ] && local dir="$2" || local dir="$APPDIR"
+  [ ! -d "$dir" ] || rm_rf "$dir"
+  git -C "$dir" clone -q --recursive "$1" "$2"
 }
 #git_pull "dir"
 __git_update() {
   [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
   local repo="$(git -C "$myappdir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-  git -C "$myappdir" reset --hard &&
-    git -C "$myappdir" pull --recurse-submodules -fq &&
-    git -C "$myappdir" submodule update --init --recursive -q &&
-    git -C "$myappdir" reset --hard -q
+  git -C "$myappdir" reset --hard
+  git -C "$myappdir" pull --recurse-submodules -fq
+  git -C "$myappdir" submodule update --init --recursive -q
+  git -C "$myappdir" reset --hard -q
   if [ "$?" -ne "0" ]; then
     __backupapp "$myappdir" "$myappdir" &&
       rm_rf "$myappdir" &&
@@ -594,7 +595,7 @@ __git_commit() {
   fi
   touch "$dir/README.md"
   git -C "$dir" add -A .
-  if __git_repo_clean "$dir"; then git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}"; fi || return 0
+  if ! __git_porcelain "$dir"; then git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "2"; fi || return 0
 }
 #git_init "dir"
 __git_init() {
@@ -602,7 +603,7 @@ __git_init() {
   __mkd "$dir"
   git -C "$dir" init -q
   git -C "$dir" add -A .
-  if __git_repo_clean "$dir"; then git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ "; fi || return 0
+  if ! __git_porcelain "$dir"; then git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " | printf_readline "2"; fi || return 0
 }
 #set folder name based on githost
 __git_hostname() {
@@ -628,9 +629,8 @@ __git_username_repo() {
 __git_pull() { git -C "${1:-.}" pull -q; }
 __git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null; }
 __git_fetch_remote() { git -C "${1:-.}" remote -v | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null; }
-__git_porcelain() { __devnull __git_porcelain_count -C "${1:-.}"; }
+__git_porcelain() { __devnull __git_porcelain_count -C "${1:-.}" || return 1; }
 __git_remote_origin() { git -C "${1:-.}" remote show origin | grep Push | awk '{print $3}'; }
-__git_repo_clean() { git -C "${1:-.}" status | grep -qv nothing && return 1 || return 0; }
 __git_porcelain_count() { [ "$(git -C ${1:-.} status --porcelain | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
 ###################### crontab functions ######################
 
