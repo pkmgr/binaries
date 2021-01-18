@@ -460,7 +460,7 @@ __countdir() { ls "$@" | wc -l; }
 ###################### Apps ######################
 #vim "file"
 vim="$(command -v /usr/local/bin/vim || command -v vim)"
-__vim() { $vim "$*"; }
+__vim() { $vim "$@"; }
 #mkd dir
 __mkd() { if [ ! -e "$1" ]; then mkdir -p "$@"; else return 0; fi; }
 #sed "commands"
@@ -594,7 +594,7 @@ __git_commit() {
   fi
   touch "$dir/README.md"
   git -C "$dir" add -A .
-  __git_porcelain "$dir" || git -C "$dir" commit -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" -q
+  if ! __git_porcelain "$dir"; then git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "3"; fi || return 0
 }
 #git_init "dir"
 __git_init() {
@@ -602,7 +602,7 @@ __git_init() {
   __mkd "$dir"
   git -C "$dir" init -q
   git -C "$dir" add -A .
-  __git_porcelain "$dir" || git -C "$dir" commit -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " -q
+  if ! __git_porcelain "$dir"; then git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " | printf_readline "3"; fi || return 0
 }
 #set folder name based on githost
 __git_hostname() {

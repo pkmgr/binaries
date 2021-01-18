@@ -32,10 +32,10 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
 
-__blog_init() { __git_pull "$blogdir"; }
-__blog_publish() { __git_porcelain "$blogdir" && __git_commit "$blogdir"; }
+__blog_init() { __blog_dir && __git_commit "$blogdir"; }
+__blog_publish() { __blog_dir && __git_commit "$blogdir"; }
 __blog_site() { __git_remote_origin "$blogdir"; }
-
+__blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __blog_post_header() {
@@ -53,8 +53,6 @@ __blog_page_header() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__blog_dir() { [ -d "$blogdir" ] && return 0 || return 1; }
 
 __newpost_template() {
   if __blog_dir; then
@@ -90,21 +88,19 @@ new)
   file="$newdir/_posts/$edit.md"
   __mkd "$newdir/_posts" "$newdir/_pages"
   __blog_post_header >"$file"
-  __git_init "$newdir"
+  __blog_init "$newdir"
   ;;
 page)
   shift 1
   [ -z "${1}" ] && printf_red "Please enter the filename" && exit 1
   [ -z "${2}" ] && printf_red "Please enter a title" && exit 1 || title="$2"
   __newpage_template "$@"
-  __blog_publish "$blogdir"
   ;;
 
 post)
   shift 1
   [ -z "${1}" ] && printf_red "Please enter a title" && exit 1 || title="$1"
   __newpost_template "$@"
-  __blog_publish "$blogdir"
   ;;
 
 edit)
@@ -113,15 +109,15 @@ edit)
   edit="${1}"
   file="$edit"
   __vim "$file"
-  __blog_publish "$blogdir"
   ;;
 
 *)
   shift 1
   __help
   ;;
-
 esac
+
+__blog_publish "$blogdir"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
