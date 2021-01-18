@@ -36,17 +36,17 @@ fi
 [ "$1" = "vdebug" ] && export DEBUGARGS="$*"
 #no output
 __devnull() {
-  args="$*"
+  args="$@"
   bash -c "$args" >/dev/null 2>&1
 }
 #error output
 __devnull1() {
-  args="$*"
+  args="$@"
   bash -c "$args" 1>/dev/null 2>&0
 }
 #standart output
 __devnull2() {
-  args="$*"
+  args="$@"
   bash -c "$args" 2>/dev/null
 }
 #err "commands"
@@ -104,7 +104,7 @@ __run_post() {
 
 #macos fix
 case "$(uname -s)" in
-Darwin) alias dircolors=gdircolors ;;
+  Darwin) alias dircolors=gdircolors ;;
 esac
 
 #Set Main Repo for dotfiles
@@ -166,7 +166,7 @@ printf_execute_error_stream() { while read -r line; do printf_execute_error "↳
 #used for printing console notifications
 printf_console() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
-  local msg="$*"
+  local msg="$@"
   shift
   printf_color "\n\n\t\t$msg\n\n" "$color"
 }
@@ -290,7 +290,7 @@ printf_result() {
   PREV="$4"
   [ ! -z "$1" ] && EXIT="$1" || EXIT="$?"
   [ ! -z "$2" ] && local OK="$2" || local OK="Command executed successfully"
-  [ ! -z "$3" ] && local FAIL="$3" || local FAIL="The previous command has failed"
+  [ ! -z "$3" ] && local FAIL="$3" || local FAIL="${PREV:-The previous command} has failed"
   [ ! -z "$4" ] && local FAIL="$3" || local FAIL="$3"
   if [ "$EXIT" -eq 0 ]; then
     printf_success "$OK"
@@ -306,7 +306,7 @@ printf_result() {
 }
 
 ###################### checks ######################
-#__cmd_exists command
+#cmd_exists command
 __cmd_exists() {
   [ $# -eq 0 ] && return 1
   local args=$*
@@ -475,7 +475,7 @@ __while_true() { while true; do "${@}" && sleep .3; done; }
 #for_each "option" "command"
 __for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
 #hostname ""
-__hostname() { __devnull2 hostname "$@"; }
+__hostname() { __devnull2 hostname -s "$@"; }
 #domainname ""
 __domainname() { hostname -d "$@" 2>/dev/null || hostname -f "$@" 2>/dev/null; }
 #hostname2ip "hostname"
@@ -487,11 +487,11 @@ __count_files() { __devnull2 find ${1:-.} -maxdepth 1 | wc -l; }
 #symlink "file" "dest"
 __symlink() { if [ -e "$1" ]; then __devnull ln -sf "${1}" "${2}"; fi; }
 #mv_f "file" "dest"
-__mv_f() { if [ -e "$1" ]; then __devnull mv -f "$@"; fi; }
+__mv_f() { if [ -e "$1" ]; then __devnull mv -f "$1" "$2"; fi; }
 #cp_rf "file" "dest"
 __cp_rf() { if [ -e "$1" ]; then __devnull cp -Rfa "$1" "$2"; fi; }
 #rm_rf "file"
-__rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$*"; fi; }
+__rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@"; fi; }
 #ln_rm "file"
 __ln_rm() { if [ -e "$1" ]; then __devnull find "$1" -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
@@ -499,7 +499,7 @@ __ln_sf() {
   if [ -L "$2" ]; then
     rm_rf "$2"
   fi
-  __devnull ln -sf "$@"
+  __devnull ln -sf "$1" "$2"
 }
 #find "dir" "options"
 __find() {
@@ -524,15 +524,15 @@ __curl() {
   __setexitstatus
 }
 #curl_header "site" "code"
-__curl_header() { __curl --disable -LSIs --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
+__curl_header() { curl --disable -LSIs --connect-timeout 3 --retry 0 --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
-__curl_download() { __curl --disable -LSs "$1" -o "$2"; }
+__curl_download() { curl --disable -LSs --connect-timeout 3 --retry 0 "$1" -o "$2"; }
 #curl_version "url"
-__curl_version() { __curl --disable -LSs "$REPORAW/master/version.txt"; }
+__curl_version() { curl --disable -LSs --connect-timeout 3 --retry 0 "${1:-$REPORAW/master/version.txt}"; }
 #curl_upload "file" "url"
-__curl_upload() { __curl --upload-file "$1" "$2"; }
+__curl_upload() { curl -disable -LSs --connect-timeout 3 --retry 0 --upload-file "$1" "$2"; }
 #urlcheck "url"
-__urlcheck() { __curl --disable --connect-timeout 1 --retry 1 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+__urlcheck() { curl --disable --connect-timeout 1 --retry 1 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
 #urlverify "url"
 __urlverify() { __urlcheck "$1" || __urlinvalid "$1"; }
 #urlinvalid "url"
