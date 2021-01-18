@@ -79,20 +79,23 @@ __newpage_template() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -d "$blogdir/.git" ]; then
+  shift
   printf_green "Initializing the repo"
-  __blog_init && $APPNAME new || printf_exit "Failed to initialize $blogdir"
+  __blog_init && $APPNAME page index welcome && \
+    printf_green "Your new blogging site has been setup" && \
+    exit 0 || printf_exit "Failed to initialize $blogdir"
 fi
 
 case "$1" in
 new)
   shift 1
-  newdir="${1:-$blogdir}"
-  title="${2:-welcome}"
+  title="${1:-welcome}" && shift 1
   date="$(date +"%Y-%m-%d")"
   edit="$(echo $date-$title | __sed 's# #_#g')"
-  file="$newdir/_posts/$edit.md"
+  file="$blogdir/_posts/$edit.md"
   __blog_post_header >"$file"
-  __blog_init "$newdir"
+  __vim "$file"
+  __blog_init "$blogdir"
   ;;
 page)
   shift 1
