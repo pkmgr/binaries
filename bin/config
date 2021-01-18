@@ -231,15 +231,16 @@ add | stow)
         _stow add "$f" &&
         _stow add "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')"
     else
-      _stow add "$f"
+      _stow add -f "$f"
     fi
   done
-  _stow commit -q -m "'🏠🐜❗ Added Files 🏠🐜❗'"
+  [ $? = 0 ] && printf_green "Don't forget to run config commit"
+  #_stow commit -q -m "'🏠🐜❗ Added Files 🏠🐜❗'"
   ;;
 
 commit)
   shift 1
-  _stow commit -q -m "'🏠🐜❗ Updated files to repo 🏠🐜❗'"
+  _stow commit -q -m "'🏠🐜❗ Added files to repo 🏠🐜❗'"
   ;;
 
 checkout)
