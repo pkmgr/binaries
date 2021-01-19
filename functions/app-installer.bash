@@ -282,6 +282,8 @@ notifications() {
 }
 
 ##################################################################################################
+__curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
+__appversion() { __curl "$REPORAW/master/version.txt" || echo 2021; }
 
 die() { echo -e "$1" exit ${2:9999}; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
@@ -390,7 +392,7 @@ mkd() { if [ ! -e "$1" ]; then devnull mkdir -p "$@"; else return 0; fi; }
 replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
-urlcheck() { devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+urlcheck() { devnull __curl--config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
 urlinvalid() { if [ -z "$1" ]; then
   printf_red "\t\tInvalid URL\n"
   failexitcode
@@ -401,6 +403,27 @@ fi; }
 urlverify() { urlcheck "$1" || urlinvalid "$1"; }
 symlink() { ln_sf "$1" "$2"; }
 
+##################################################################################################
+__am_i_online() {
+  site="1.1.1.1"
+  test_ping() {
+    timeout 1 ping -c1 $site &>/dev/null
+    pingExit=$?
+  }
+  test_http() {
+    timeout 1 __curl--disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    httpExit=$?
+  }
+  test_ping || test_http
+
+  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
+    __AM_I_ONLINE=0
+  else
+    __AM_I_ONLINE=1
+  fi
+  export __AM_I_ONLINE
+  return $__AM_I_ONLINE
+}
 ##################################################################################################
 
 cmd_exists() {
@@ -724,16 +747,18 @@ versioncheck() {
 ##################################################################################################
 
 scripts_check() {
-  if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
-    printf_red "\t\tPlease install my scripts repo - requires root/sudo\n"
-    printf_question "Would you like to do that now" [y/N]
-    read -n 1 -s choice && echo ""
-    if [[ $choice == "y" || $choice == "Y" ]]; then
-      urlverify $REPO/scripts/raw/master/install.sh &&
-        sudo bash -c "$(curl -LSs $REPO/installer/raw/master/install.sh)" && echo
-    else
-      touch ~/.noscripts
-      exit 1
+  if __am_i_online; then
+    if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
+      printf_red "\t\tPlease install my scripts repo - requires root/sudo\n"
+      printf_question "Would you like to do that now" [y/N]
+      read -n 1 -s choice && echo ""
+      if [[ $choice == "y" || $choice == "Y" ]]; then
+        urlverify $REPO/scripts/raw/master/install.sh &&
+          sudo bash -c "$(__curl $REPO/installer/raw/master/install.sh)" && echo
+      else
+        touch ~/.noscripts
+        exit 1
+      fi
     fi
   fi
 }
@@ -758,134 +783,150 @@ fi
 ##################################################################################################
 
 git_clone() {
-  local repo="$1"
-  [ ! -z "$2" ] && local myappdir="$2" || local myappdir="$APPDIR"
-  [ ! -d "$myappdir" ] || rm_rf "$myappdir"
-  devnull git clone --depth=1 -q --recursive "$@"
+  if __am_i_online; then
+    local repo="$1"
+    [ ! -z "$2" ] && local myappdir="$2" || local myappdir="$APPDIR"
+    [ ! -d "$myappdir" ] || rm_rf "$myappdir"
+    devnull git clone --depth=1 -q --recursive "$@"
+  fi
 }
 
 ##################################################################################################
 
 git_update() {
-  cd "$APPDIR" || exit 1
-  local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-  devnull git reset --hard &&
-    devnull git pull --recurse-submodules -fq &&
-    devnull git submodule update --init --recursive -q &&
-    devnull git reset --hard -q
-  if [ "$?" -ne "0" ]; then
-    cd "$HOME" || exit 1
-    backupapp "$APPDIR" "$APPNAME" &&
-      devnull rm_rf "$APPDIR" &&
-      git_clone "$repo" "$APPDIR"
+  if __am_i_online; then
+    cd "$APPDIR" || exit 1
+    local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
+    devnull git reset --hard &&
+      devnull git pull --recurse-submodules -fq &&
+      devnull git submodule update --init --recursive -q &&
+      devnull git reset --hard -q
+    if [ "$?" -ne "0" ]; then
+      cd "$HOME" || exit 1
+      backupapp "$APPDIR" "$APPNAME" &&
+        devnull rm_rf "$APPDIR" &&
+        git_clone "$repo" "$APPDIR"
+    fi
   fi
 }
 
 ##################################################################################################
 
 dotfilesreqcmd() {
-  local gitrepo="$REPO"
-  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-    bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
+  if __am_i_online; then
+    local gitrepo="$REPO"
+    urlverify "$gitrepo/$conf/raw/master/install.sh" &&
+      bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
+  fi
 }
 
 dotfilesreqadmincmd() {
-  local gitrepo="$REPO"
-  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-    sudo bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" || return 1
+  if __am_i_online; then
+    local gitrepo="$REPO"
+    urlverify "$gitrepo/$conf/raw/master/install.sh" &&
+      sudo bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
+  fi
 }
 
 ##################################################################################################
 
 dotfilesreq() {
-  if cmd_exists pkmgr; then
-    local confdir="$USRUPDATEDIR"
-    declare -a LISTARRAY="$*"
-    for conf in ${LISTARRAY[*]}; do
-      if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-        execute \
-          "dotfilesreqcmd" \
-          "Installing required dotfile $conf"
-      fi
-    done
-    rm_rf $TEMP/*.inst.tmp
+  if __am_i_online; then
+    if cmd_exists pkmgr; then
+      local confdir="$USRUPDATEDIR"
+      declare -a LISTARRAY="$*"
+      for conf in ${LISTARRAY[*]}; do
+        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+          execute \
+            "dotfilesreqcmd" \
+            "Installing required dotfile $conf"
+        fi
+      done
+      rm_rf $TEMP/*.inst.tmp
+    fi
   fi
 }
 
 dotfilesreqadmin() {
-  if cmd_exists pkmgr; then
-    local confdir="$SYSUPDATEDIR"
-    declare -a LISTARRAY="$*"
-    for conf in ${LISTARRAY[*]}; do
-      if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-        execute \
-          "dotfilesreqadmincmd" \
-          "Installing required dotfile $conf"
-      fi
-    done
-    rm_rf $TEMP/*.inst.tmp
+  if __am_i_online; then
+    if cmd_exists pkmgr; then
+      local confdir="$SYSUPDATEDIR"
+      declare -a LISTARRAY="$*"
+      for conf in ${LISTARRAY[*]}; do
+        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+          execute \
+            "dotfilesreqadmincmd" \
+            "Installing required dotfile $conf"
+        fi
+      done
+      rm_rf $TEMP/*.inst.tmp
+    fi
   fi
 }
 
 ##################################################################################################
 
 install_required() {
-  [[ $# -eq 0 ]] && return 0
-  # local MISSING=""
-  # for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
-  # if [ ! -z "$MISSING" ]; then
-  #   if cmd_exists "pkmgr"; then
-  #     printf_warning "Installing from package list"
-  #     printf_warning "Still missing: $MISSING"
-  #     if cmd_exists yay; then
-  #       pkmgr --enable-aur dotfiles "$APPNAME"
-  #     else
-  #       pkmgr dotfiles "$APPNAME"
-  #     fi
-  #   fi
-  # fi
+  if __am_i_online; then
+    [[ $# -eq 0 ]] && return 0
+    # local MISSING=""
+    # for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
+    # if [ ! -z "$MISSING" ]; then
+    #   if cmd_exists "pkmgr"; then
+    #     printf_warning "Installing from package list"
+    #     printf_warning "Still missing: $MISSING"
+    #     if cmd_exists yay; then
+    #       pkmgr --enable-aur dotfiles "$APPNAME"
+    #     else
+    #       pkmgr dotfiles "$APPNAME"
+    #     fi
+    #   fi
+    # fi
+  fi
   # unset MISSING
 }
 
 ##################################################################################################
 
 install_packages() {
-  local MISSING=""
-  if cmd_exists "pkmgr"; then
-    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
-      printf_warning "Attempting to install missing packages"
-      printf_warning "$MISSING"
-      for miss in $MISSING; do
-        if cmd_exists yay; then
-          execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
-        else
-          execute "sudo_pkmgr silent $miss" "Installing $miss"
-        fi
-      done
-    fi
-    unset MISSING
-
-    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
-      printf_warning "Still missing:"
-      printf_warning "$MISSING"
-      if cmd_exists yay; then
-        sudo_pkmgr --enable-aur dotfiles "$APPNAME"
-      else
-        sudo_pkmgr dotfiles "$APPNAME"
+  if __am_i_online; then
+    local MISSING=""
+    if cmd_exists "pkmgr"; then
+      for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
+      if [ ! -z "$MISSING" ]; then
+        printf_warning "Attempting to install missing packages"
+        printf_warning "$MISSING"
+        for miss in $MISSING; do
+          if cmd_exists yay; then
+            execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
+          else
+            execute "sudo_pkmgr silent $miss" "Installing $miss"
+          fi
+        done
       fi
-    fi
-    unset MISSING
+      unset MISSING
 
-    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
-      printf_warning "Can not install the required packages for $APPNAME"
-      #if [ -f "$APPDIR/install.sh" ]; then
-      #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
-      #fi
-      #set -eE
-      return 1
+      for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
+      if [ ! -z "$MISSING" ]; then
+        printf_warning "Still missing:"
+        printf_warning "$MISSING"
+        if cmd_exists yay; then
+          sudo_pkmgr --enable-aur dotfiles "$APPNAME"
+        else
+          sudo_pkmgr dotfiles "$APPNAME"
+        fi
+      fi
+      unset MISSING
+
+      for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
+      if [ ! -z "$MISSING" ]; then
+        printf_warning "Can not install the required packages for $APPNAME"
+        #if [ -f "$APPDIR/install.sh" ]; then
+        #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
+        #fi
+        #set -eE
+        return 1
+      fi
     fi
   fi
   unset MISSING
@@ -894,19 +935,21 @@ install_packages() {
 ##################################################################################################
 
 install_python() {
-  local MISSING=""
-  for cmd in "$@"; do python_missing "$cmd"; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
-      printf_warning "Attempting to install missing python packages"
-      printf_warning "$MISSING"
-      for miss in $MISSING; do
-        if cmd_exists yay; then
-          execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
-        else
-          execute "sudo_pkmgr silent $miss" "Installing $miss"
-        fi
-      done
+  if __am_i_online; then
+    local MISSING=""
+    for cmd in "$@"; do python_missing "$cmd"; done
+    if [ ! -z "$MISSING" ]; then
+      if cmd_exists "pkmgr"; then
+        printf_warning "Attempting to install missing python packages"
+        printf_warning "$MISSING"
+        for miss in $MISSING; do
+          if cmd_exists yay; then
+            execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
+          else
+            execute "sudo_pkmgr silent $miss" "Installing $miss"
+          fi
+        done
+      fi
     fi
   fi
   unset MISSING
@@ -915,19 +958,21 @@ install_python() {
 ##################################################################################################
 
 install_perl() {
-  local MISSING=""
-  for cmd in "$@"; do perl_missing "$cmd"; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
-      printf_warning "Attempting to install missing perl packages"
-      printf_warning "$MISSING"
-      for miss in $MISSING; do
-        if cmd_exists yay; then
-          execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
-        else
-          execute "sudo_pkmgr silent $miss" "Installing $miss"
-        fi
-      done
+  if __am_i_online; then
+    local MISSING=""
+    for cmd in "$@"; do perl_missing "$cmd"; done
+    if [ ! -z "$MISSING" ]; then
+      if cmd_exists "pkmgr"; then
+        printf_warning "Attempting to install missing perl packages"
+        printf_warning "$MISSING"
+        for miss in $MISSING; do
+          if cmd_exists yay; then
+            execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
+          else
+            execute "sudo_pkmgr silent $miss" "Installing $miss"
+          fi
+        done
+      fi
     fi
   fi
   unset MISSING
@@ -936,15 +981,17 @@ install_perl() {
 ##################################################################################################
 
 install_pip() {
-  local MISSING=""
-  for cmd in "$@"; do cmd_exists $cmd || pip_missing "$cmd"; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
-      printf_warning "Attempting to install missing pip packages"
-      printf_warning "$MISSING"
-      for miss in $MISSING; do
-        execute "sudo_pkmgr pip $miss" "Installing $miss"
-      done
+  if __am_i_online; then
+    local MISSING=""
+    for cmd in "$@"; do cmd_exists $cmd || pip_missing "$cmd"; done
+    if [ ! -z "$MISSING" ]; then
+      if cmd_exists "pkmgr"; then
+        printf_warning "Attempting to install missing pip packages"
+        printf_warning "$MISSING"
+        for miss in $MISSING; do
+          execute "sudo_pkmgr pip $miss" "Installing $miss"
+        done
+      fi
     fi
   fi
   unset MISSING
@@ -953,32 +1000,36 @@ install_pip() {
 ##################################################################################################
 
 install_cpan() {
-  local MISSING=""
-  for cmd in "$@"; do cmd_exists $cmd || cpan_missing "$cmd"; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
-      printf_warning "Attempting to install missing cpan packages"
-      printf_warning "$MISSING"
-      for miss in $MISSING; do
-        execute "sudo_pkmgr cpan $miss" "Installing $miss"
-      done
+  if __am_i_online; then
+    local MISSING=""
+    for cmd in "$@"; do cmd_exists $cmd || cpan_missing "$cmd"; done
+    if [ ! -z "$MISSING" ]; then
+      if cmd_exists "pkmgr"; then
+        printf_warning "Attempting to install missing cpan packages"
+        printf_warning "$MISSING"
+        for miss in $MISSING; do
+          execute "sudo_pkmgr cpan $miss" "Installing $miss"
+        done
+      fi
     fi
+    unset MISSING
   fi
-  unset MISSING
 }
 
 ##################################################################################################
 
 install_gem() {
-  local MISSING=""
-  for cmd in "$@"; do cmd_exists $cmd || gem_missing $cmd; done
-  if [ ! -z "$MISSING" ]; then
-    if cmd_exists "pkmgr"; then
-      printf_warning "Attempting to install missing gem packages"
-      printf_warning "$MISSING"
-      for miss in $MISSING; do
-        execute "sudo_pkmgr gem $miss" "Installing $miss"
-      done
+  if __am_i_online; then
+    local MISSING=""
+    for cmd in "$@"; do cmd_exists $cmd || gem_missing $cmd; done
+    if [ ! -z "$MISSING" ]; then
+      if cmd_exists "pkmgr"; then
+        printf_warning "Attempting to install missing gem packages"
+        printf_warning "$MISSING"
+        for miss in $MISSING; do
+          execute "sudo_pkmgr gem $miss" "Installing $miss"
+        done
+      fi
     fi
   fi
   unset MISSING
@@ -1192,6 +1243,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
+    export INSTALLDIR="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   else
@@ -1215,6 +1267,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
+    export INSTALLDIR="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
@@ -1250,6 +1303,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
     export WALLPAPERS="/usr/local/share/wallpapers"
+    export INSTALLDIR="/usr/local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
@@ -1274,6 +1328,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
+    export INSTALLDIR="$HOME/.local/share/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
@@ -1307,6 +1362,7 @@ ensure_dirs() {
     mkd "$SHARE/applications"
     mkd "$SHARE/CasjaysDev/functions"
     mkd "$SHARE/wallpapers/system"
+    mkd "$INSTALLDIR"
   fi
   return 0
 }
@@ -1344,6 +1400,7 @@ get_app_version() {
   [ -n "$INSTALL_TYPE" ] && printf_info "Install Type: $INSTALL_TYPE"
   [ -n "$APPNAME" ] && printf_info "APP name: $APPNAME"
   [ -n "$APPDIR" ] && printf_info "APP dir: $APPDIR"
+  [ -n "$INSTALLDIR" ] && printf_info "Install Dir: $INSTALLDIR"
   [ -n "$GITREPO" ] && printf_info "APP repo: $REPO/$APPNAME"
   [ -n "$PLUGNAMES" ] && printf_info "Plugins: $PLUGNAMES"
   [ -n "$PLUGDIR" ] && printf_info "PluginsDir: $PLUGDIR"
@@ -1361,6 +1418,7 @@ get_app_version() {
 app_uninstall() {
   if [ -d "$APPDIR" ]; then
     printf_yellow "\n\t\tRemoving $APPNAME from your system\n"
+    [ -d "$INSTALLDIR" ] && rm_rm "$INSTALLDIR"
     rm_rf "$APPDIR" &&
       rm_rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME" &&
       rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" &&
@@ -1425,6 +1483,7 @@ show_optvars() {
   if [ "$1" = "--location" ]; then
     printf_info "AppName:                   $APPNAME"
     printf_info "Installed to:              $APPDIR"
+    printf_info "Downloaded to:             $INSTALLDIR"
     printf_info "UserHomeDir:               $HOME"
     printf_info "UserBinDir:                $BIN"
     printf_info "UserConfDir:               $CONF"
@@ -1505,6 +1564,7 @@ show_optvars() {
     printf_info "Theme Manager Repo         $THEMEMGRREPO"
     printf_info "System Manager Repo:       $SYSTEMMGRREPO"
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
+    printf_info "Download directory:        $INSTALLDIR"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
     for PATHS in $(path_info); do
       printf_info "PATHS:                     $PATHS"
@@ -1543,6 +1603,9 @@ install_version() {
     fi
     ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
   fi
+  if [ -f "$INSTALLDIR/install.sh" ] && [ -f "$INSTALLDIR/version.txt" ]; then
+    ln_sf "$INSTALLDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
+  fi
 }
 
 ##################################################################################################
@@ -1556,7 +1619,7 @@ dfmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 dfmgr_run_post() {
@@ -1569,6 +1632,9 @@ dfmgr_install_version() {
   dfmgr_install
   install_version
   mkdir -p "$CASJAYSDEVSAPPDIR/dfmgr" "$CASJAYSDEVSAPPDIR/dfmgr"
+  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
+  fi
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
     ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
   fi
@@ -1586,7 +1652,7 @@ fontmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 fontmgr_run_post() {
@@ -1619,7 +1685,7 @@ iconmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 iconmgr_run_post() {
@@ -1658,7 +1724,7 @@ pkmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 pkmgr_run_postinst() {
@@ -1689,7 +1755,7 @@ systemmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 systemmgr_run_postinst() {
@@ -1718,7 +1784,7 @@ thememgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 generate_theme_index() {
@@ -1759,7 +1825,7 @@ wallpapermgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  APPVERSION="$(curl -LSs ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 wallpapermgr_run_postinst() {
@@ -1889,6 +1955,18 @@ run_postinst_global() {
       ln_rm "$FONTDIR/"
       cmd_exists fc-cache && fc-cache -f "$FONTDIR"
       return 0
+    fi
+  fi
+
+  if [ "$APPDIR" != "$INSTALLDIR" ]; then
+    if [ -d "$INSTALLDIR/etc" ]; then
+      local etc="$(ls "$APPDIR/etc" 2>/dev/null | wc -l)"
+      if [ "$etc" != "0" ]; then
+        fFiles="$(ls $APPDIR/etc)"
+        for f in $fFiles; do
+          ln_sf "$INSTALLDIR/etc/$f" "$APPDIR/$f"
+        done
+      fi
     fi
   fi
 
