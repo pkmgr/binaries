@@ -1243,7 +1243,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
-    export INSTALLDIR="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   else
@@ -1267,7 +1267,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    export INSTALLDIR="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
@@ -1303,7 +1303,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
     export WALLPAPERS="/usr/local/share/wallpapers"
-    export INSTALLDIR="/usr/local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="/usr/local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
@@ -1328,7 +1328,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    export INSTALLDIR="$HOME/.local/share/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="$HOME/.local/share/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
@@ -1362,7 +1362,8 @@ ensure_dirs() {
     mkd "$SHARE/applications"
     mkd "$SHARE/CasjaysDev/functions"
     mkd "$SHARE/wallpapers/system"
-    mkd "$INSTALLDIR"
+    mkd "$DOWNLOADED_TO"
+    [ -d "$APPDIR" ] || mkd "$APPDIR"
   fi
   return 0
 }
@@ -1396,20 +1397,20 @@ get_app_version() {
   fi
   local GITREPO=""$REPO/$APPNAME""
   local APPVERSION="${APPVERSION:-$REPORAW/master/version.txt}"
-  [ -n "$WHOAMI" ] && printf_info "WhoamI: $WHOAMI"
-  [ -n "$INSTALL_TYPE" ] && printf_info "Install Type: $INSTALL_TYPE"
-  [ -n "$APPNAME" ] && printf_info "APP name: $APPNAME"
-  [ -n "$APPDIR" ] && printf_info "APP dir: $APPDIR"
-  [ -n "$INSTALLDIR" ] && printf_info "Install Dir: $INSTALLDIR"
-  [ -n "$GITREPO" ] && printf_info "APP repo: $REPO/$APPNAME"
-  [ -n "$PLUGNAMES" ] && printf_info "Plugins: $PLUGNAMES"
-  [ -n "$PLUGDIR" ] && printf_info "PluginsDir: $PLUGDIR"
-  [ -n "$version" ] && printf_info "APP Version: $version"
-  [ -n "$APPVERSION" ] && printf_info "Git Version: $APPVERSION"
+  [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
+  [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
+  [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
+  [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
+  [ -n "$DOWNLOADED_TO" ] && printf_info "Downloaded to:             $DOWNLOADED_TO"
+  [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
+  [ -n "$PLUGNAMES" ] && printf_info "Plugins:                   $PLUGNAMES"
+  [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
+  [ -n "$version" ] && printf_info "Installed Version:         $version"
+  [ -n "$APPVERSION" ] && printf_info "Online Version:            $APPVERSION"
   if [ "$version" = "$APPVERSION" ]; then
-    printf_info "Update Available: No"
+    printf_info "Update Available:          No"
   else
-    printf_info "Update Available: True"
+    printf_info "Update Available:          Yes"
   fi
 }
 
@@ -1418,11 +1419,11 @@ get_app_version() {
 app_uninstall() {
   if [ -d "$APPDIR" ]; then
     printf_yellow "\n\t\tRemoving $APPNAME from your system\n"
-    [ -d "$INSTALLDIR" ] && rm_rm "$INSTALLDIR"
+    [ -d "$DOWNLOADED_TO" ] && rm_rm "$DOWNLOADED_TO"
     rm_rf "$APPDIR" &&
       rm_rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME" &&
       rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" &&
-      broken_symlinks $BIN $SHARE $COMPDIR
+      broken_symlinks $BIN $SHARE $COMPDIR $CONF
     getexitcode "\n\t\t$APPNAME has been removed\n"
   else
     printf_red "\n\t\t$APPNAME doesn't seem to be installed\n"
@@ -1483,7 +1484,7 @@ show_optvars() {
   if [ "$1" = "--location" ]; then
     printf_info "AppName:                   $APPNAME"
     printf_info "Installed to:              $APPDIR"
-    printf_info "Downloaded to:             $INSTALLDIR"
+    printf_info "Downloaded to:             $DOWNLOADED_TO"
     printf_info "UserHomeDir:               $HOME"
     printf_info "UserBinDir:                $BIN"
     printf_info "UserConfDir:               $CONF"
@@ -1564,7 +1565,7 @@ show_optvars() {
     printf_info "Theme Manager Repo         $THEMEMGRREPO"
     printf_info "System Manager Repo:       $SYSTEMMGRREPO"
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
-    printf_info "Download directory:        $INSTALLDIR"
+    printf_info "Downloaded to:             $DOWNLOADED_TO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
     for PATHS in $(path_info); do
       printf_info "PATHS:                     $PATHS"
@@ -1603,9 +1604,13 @@ install_version() {
     fi
     ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
   fi
-  if [ -f "$INSTALLDIR/install.sh" ] && [ -f "$INSTALLDIR/version.txt" ]; then
-    ln_sf "$INSTALLDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
+  if [ -f "$DOWNLOADED_TO/install.sh" ] && [ -f "$DOWNLOADED_TO/version.txt" ]; then
+    ln_sf "$DOWNLOADED_TO/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
   fi
+  if [ -d "$DOWNLOADED_TO" ] && [ -f "$DOWNLOADED_TO/install.sh" ] && [ -f "$DOWNLOADED_TO/version.txt" ]; then
+    ln_sf "$DOWNLOADED_TO/install.sh" "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME"
+  fi
+
 }
 
 ##################################################################################################
@@ -1632,9 +1637,6 @@ dfmgr_install_version() {
   dfmgr_install
   install_version
   mkdir -p "$CASJAYSDEVSAPPDIR/dfmgr" "$CASJAYSDEVSAPPDIR/dfmgr"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
-  fi
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
     ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
   fi
@@ -1875,6 +1877,18 @@ run_postinst_global() {
 
   else
     # Run on everything else
+    if [ "$APPDIR" != "$DOWNLOADED_TO" ]; then
+      if [ -d "$DOWNLOADED_TO/etc" ]; then
+        local etc="$(ls "$DOWNLOADED_TO/etc" 2>/dev/null | wc -l)"
+        if [ "$etc" != "0" ]; then
+          fFiles="$(ls $DOWNLOADED_TO/etc)"
+          for f in $fFiles; do
+            ln_sf "$DOWNLOADED_TO/etc/$f" "$APPDIR/$f"
+          done
+        fi
+      fi
+    fi
+
     if [ -d "$APPDIR/backgrounds" ]; then
       mkdir -p "$WALLPAPERS/system"
       local wallpapers="$(ls $APPDIR/backgrounds/ 2>/dev/null | wc -l)"
@@ -1958,18 +1972,6 @@ run_postinst_global() {
     fi
   fi
 
-  if [ "$APPDIR" != "$INSTALLDIR" ]; then
-    if [ -d "$INSTALLDIR/etc" ]; then
-      local etc="$(ls "$APPDIR/etc" 2>/dev/null | wc -l)"
-      if [ "$etc" != "0" ]; then
-        fFiles="$(ls $APPDIR/etc)"
-        for f in $fFiles; do
-          ln_sf "$INSTALLDIR/etc/$f" "$APPDIR/$f"
-        done
-      fi
-    fi
-  fi
-
   sudorun mkdir -p /etc/casjaysdev/updates/versions
 
   # Permission fix
@@ -1981,8 +1983,11 @@ run_postinst_global() {
 ##################################################################################################
 
 run_exit() {
-  if [ ! -f "$APPDIR/.installed" ]; then
+  if [ -z "$DOWNLOADED_TO" ] && [ ! -f "$APPDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed"
+  fi
+  if [ -n "$DOWNLOADED_TO" ] && [ ! -f "$DOWNLOADED_TO/.installed" ]; then
+    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$DOWNLOADED_TO/.installed"
   fi
 
   if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
