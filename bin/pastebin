@@ -28,7 +28,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-user_installdirs "$@"
+dfmgr_install "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -d "$HOME/.config/pastebin" ]; then mkdir -p "$HOME/.config/pastebin"; fi

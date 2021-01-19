@@ -1632,6 +1632,36 @@ dfmgr_install_version() {
 
 ##################################################################################################
 
+dockermgr_install() {
+  user_installdirs
+  export PREFIX="dockermgr"
+  export REPO="${DFMGRREPO}"
+  export REPORAW="$REPO/$APPNAME/raw"
+  export HOMEDIR="$CONF"
+  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dockermgr"
+  export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dockermgr"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+}
+
+dockermgr_run_post() {
+  dockermgr_install
+  run_postinst_global
+  replace "$APPDIR" "/home/jason" "$HOME"
+}
+
+dockermgr_install_version() {
+  dockermgr_install
+  install_version
+  mkdir -p "$CASJAYSDEVSAPPDIR/dockermgr" "$CASJAYSDEVSAPPDIR/dockermgr"
+  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dockermgr/$APPNAME"
+  fi
+}
+
+##################################################################################################
+
 fontmgr_install() {
   system_installdirs
   export PREFIX="fontmgr"

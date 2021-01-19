@@ -19,25 +19,23 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p $HOME/.local/share/CasjaysDev/functions
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/$SCRIPTSFUNCTFILE"
 fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+dfmgr_install "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # set variables
 
-[ -n $IFTTT_ACCESS_TOKEN ] || __help
+[ -n "$IFTTT_ACCESS_TOKEN" ] || __help
 [ $# -ne 3 ] && __help
 
 webhook_name="$1"

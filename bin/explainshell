@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-user_installdirs "$@"
+dfmgr_install "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 URL=$(echo "http://explainshell.com/explain/$1?args=${*:2}" | sed -e 's/ /+/g')
