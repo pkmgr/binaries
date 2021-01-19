@@ -183,6 +183,11 @@ random)
   mess="🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜"
   ;;
 
+emj | emojy | emojify)
+  shift 1
+  mess=" 🦈🏠🐜❗ ${1:-Well I did some things} ❗🐜🦈🏠 "
+  ;;
+
 custom)
   shift 1
   if [ -n "$1" ]; then
