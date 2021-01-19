@@ -38,70 +38,95 @@ hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
-# variables
-unset roku_device roku_command roku_option
-local state="/tmp/automate_roku"; touch $state
-local DEVICE="$(hostname2ip ${ROKU_DEVICE:-$3})"
-local roku_device="${DEVICE:-$3}"
-local roku_command="$1"
-local roku_option="$2"
-getstate() { touch $state; cat $state; }
-toggle() {
-  if [ "$(getstate)" = "stop" ]; then
-    roku play
-  elif [ "$(getstate)" = "play" ]; then
-    roku stop
-  elif [ "$(getstate)" = "pause" ] || [ "$(getstate)" = "toggle" ]; then
-    roku pause
-  else
-    printf_exit "Can not get state"
-  fi
-}
+  # variables
+  unset roku_device roku_command roku_option
+  local setopts="$1"
+  local state="/tmp/automate_roku"
+  local roku_device="$(hostname2ip ${ROKU_DEVICE:-$3})"
+  local roku_command="$1"
+  local roku_option="$2"
+  local api_url="http://$roku_device:8060"
+  touch "$state"
 
-[ -z "$roku_device" ] && printf_exit "Please enter the hostname of your roku"
+  [ -z "$roku_device" ] && printf_exit "Please enter the hostname of your roku"
 
-case "$1" in
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # functions
+  getstate() { cat "$state"; }
+  roku_play() {
+    printf_green "Telling $roku_device to play"
+    devnull curl -d '' $api_url/keypress/play && echo play >$state
+  }
+  roku_stop() {
+    printf_green "Telling $roku_device to stop"
+    devnull curl -d '' $api_url/keypress/stop && echo stop >$state
+  }
+  roku_pause() {
+    printf_green "Telling $roku_device to pause/unpause"
+    devnull curl -d '' $api_url/keypress/play && echo pause >$state
+  }
+  roku_toggle() {
+    if [ "$(getstate)" = "stop" ]; then
+      roku_play
+    elif [ "$(getstate)" = "play" ]; then
+      roku_stop
+    elif [ "$(getstate)" = "pause" ] || [ "$(getstate)" = "toggle" ]; then
+      roku_pause
+    else
+      printf_exit "Can not get state"
+    fi
+  }
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # main
+  if [ ! -s "$state" ]; then echo toggle >$state; fi
+
+  case "$setopts" in
   play)
     shift 1
-    printf_green "Telling $roku_device to play"
-    devnull curl -d '' http://$roku_device:8060/keypress/play && echo play >$state
-  ;;
+    roku_play
+    ;;
 
   stop)
     shift 1
-    printf_green "Telling $roku_device to stop"
-    devnull curl -d '' http://$roku_device:8060/keypress/stop && echo stop >$state
-  ;;
+    roku_stop
+    ;;
 
   pause)
     shift 1
-    printf_green "Telling $roku_device to pause/unpause"
-    devnull curl -d '' http://$roku_device:8060/keypress/play && echo pause >$state
-  ;;
+    roku_pause
+    ;;
 
   toggle)
     shift 1
-    toggle "$@" & echo toggle >$state
-  ;;
+    toggle
+    echo toggle >$state
+    ;;
 
   state)
     case "$2" in
-      text) echo "$(getstate)" ;;
-      json | *) echo -e '{"status":"'$(getstate)'"}' | jq ;;
+    text) echo "$(getstate)" ;;
+    json | *) echo -e '{"status":"'$(getstate)'"}' | jq ;;
     esac
-  ;;
+    ;;
 
-  *)
+  command)
     [ -z "$roku_command" ] && printf_exit "Please enter the the command you want to send to your roku"
     [ -z "$roku_option" ] && printf_exit "Please enter the the command you want to send to your roku"
     printf_green "Sending command $roku_command $roku_option to $roku_device"
     devnull curl -d '' http://$roku_device:8060/$roku_command/$roku_option && echo $roku_option >$state
-  ;;
-esac
+    ;;
+
+  *)
+    roku_toggle
+    ;;
+
+  esac
 
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#execute
 main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

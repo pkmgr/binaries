@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# _automate_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for automate
+
+_automate_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="--help play stop pause toggle state"
+
+  _init_completion || return
+
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _automate_completions -o default automate
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

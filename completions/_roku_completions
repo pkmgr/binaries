@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# _roku_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for roku
+
+_roku_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="--help play stop pause toggle state command"
+
+  _init_completion || return
+
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _roku_completions -o default roku
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

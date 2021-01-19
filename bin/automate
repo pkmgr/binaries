@@ -31,11 +31,14 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
-  local opts="$1"
+  # variables
+  local setopts="$1"
   local state="/tmp/automate"
-  touch $state
+  touch "$state"
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # functions
-  getstate() { cat $state; }
+  getstate() { cat "$state"; }
   roku_play() { roku play; }
   roku_stop() { roku stop; }
   roku_pause() { roku pause; }
@@ -44,17 +47,23 @@ main() {
   automate_play() { roku_play && hue_play && echo play >$state; }
   automate_stop() { roku_stop && hue_stop && echo stop >$state; }
   automate_pause() { roku pause && hue toggle && echo pause >$state; }
-  toggle() {
+  automate_toggle() {
     if [ "$(getstate)" = play ]; then
       automate_stop
     elif [ "$(getstate)" = stop ]; then
       automate_play
     elif [ "$(getstate)" = pause ] || [ "$(getstate)" = "toggle" ]; then
       automate_pause
+    else
+      printf_exit "Can not get state"
     fi
   }
 
-  case "$opts" in
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # main
+  if [ ! -s "$state" ]; then echo toggle >$state; fi
+
+  case "$setopts" in
   play)
     shift 1
     automate_play
@@ -69,7 +78,7 @@ main() {
     ;;
   toggle)
     shift 1
-    toggle && echo toggle >$state
+    automate_toggle && echo toggle >$state
     ;;
 
   state)
@@ -81,14 +90,14 @@ main() {
 
   *)
     shift 0
-    [ "$1" = "--help" ] && printf_help "automate play, pause, stop"
-    printf_help "automate play, pause, stop toggle"
+    automate_toggle
     ;;
 
   esac
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#execute
 main "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
