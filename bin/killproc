@@ -30,6 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 i=""
 if [ ! -z "$1" ]; then

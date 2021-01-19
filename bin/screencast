@@ -30,6 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 TMPFILE="$(mktemp -t screencast-XXXXXXX).mkv"
 OUTPUT="$HOME/Pictures/Screencasts/$(date +%F-%H-%M-%S)"

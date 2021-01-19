@@ -30,6 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 APP="$HOME/.config/mpd/mpd-notify"
 CONFIG="$APP/mpd-notify.cfg"

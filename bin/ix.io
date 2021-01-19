@@ -30,6 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ -f "$HOME/.netrc" ] && opts='-n'
 while getopts ":hd:i:n:" x; do

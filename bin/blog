@@ -30,6 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
 __mkd "$blogdir/_posts" "$blogdir/_pages"
 
@@ -81,8 +83,8 @@ __newpage_template() {
 if [ ! -d "$blogdir/.git" ]; then
   shift
   printf_green "Initializing the repo"
-  __blog_init && $APPNAME page index welcome && \
-    printf_green "Your new blogging site has been setup" && \
+  __blog_init && $APPNAME page index welcome &&
+    printf_green "Your new blogging site has been setup" &&
     exit 0 || printf_exit "Failed to initialize $blogdir"
 fi
 

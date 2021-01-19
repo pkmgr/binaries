@@ -61,20 +61,6 @@ cmd_exists() {
 devnull() { "$@" >/dev/null 2>&1; }
 devnull2() { "$@" >/dev/null 2>&1; }
 
-if [ "$*" = "--vdebug" ]; then
-  set -xveE
-  mkdir -p "$LOGDIR/debug"
-  touch "$LOGDIR/debug/$APPNAME.log" "$LOGDIR/debug/$APPNAME.err"
-  chmod -Rf 755 "$LOGDIR/debug"
-  exec >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
-  devnull() {
-    "$@" >>"$LOGDIR/debug/$APPNAME.log" 2>>"$LOGDIR/debug/$APPNAME.err"
-  }
-  devnull2() {
-    "$@" 2>>"$LOGDIR/debug/$APPNAME.err" >/dev/null
-  }
-fi
-
 # fail if git is not installed
 
 if ! command -v "git" >/dev/null 2>&1; then
@@ -2001,6 +1987,23 @@ vdebug() {
     printf_custom "4" $path
   done
 }
+
+##################################################################################################
+# if [ "$*" = "--vdebug" ]; then
+#   shift 1
+#   vdebug
+#   #set -xveE
+#   mkdir -p "$LOGDIR/debug"
+#   touch "$LOGDIR/debug/$APPNAME.log" "$LOGDIR/debug/$APPNAME.err"
+#   chmod -Rf 755 "$LOGDIR/debug"
+#   exec >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
+#   devnull() {
+#     "$@" >>"$LOGDIR/debug/$APPNAME.log" 2>>"$LOGDIR/debug/$APPNAME.err"
+#   }
+#   devnull2() {
+#     "$@" 2>>"$LOGDIR/debug/$APPNAME.err" >/dev/null
+#   }
+# fi
 
 #set_trap "EXIT" "install_packages"
 #set_trap "EXIT" "install_required"

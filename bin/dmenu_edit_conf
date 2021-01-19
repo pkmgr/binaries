@@ -31,6 +31,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 editConfig=$(echo -e "${options[@]}" | dmenu -i -p 'Edit config file: ')
 
@@ -117,4 +119,3 @@ if [ -f "$editConfig" ]; then
 else
   printf_exit "Can not find the file: $editConfig"
 fi
-

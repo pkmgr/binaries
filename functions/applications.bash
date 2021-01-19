@@ -372,6 +372,7 @@ user_installdirs() {
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 user_installdirs
@@ -428,6 +429,7 @@ system_installdirs() {
     #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################
@@ -541,6 +543,48 @@ get_app_info() {
     printf_red "File was not found"
   fi
   exit 0
+}
+
+#
+debug() {
+  get_app_info
+  printf_info "UserHomeDir:               $HOME"
+  printf_info "UserBinDir:                $BIN"
+  printf_info "UserConfDir:               $CONF"
+  printf_info "UserShareDir:              $SHARE"
+  printf_info "UserLogDir:                $LOGDIR"
+  printf_info "UserStartDir:              $STARTUP"
+  printf_info "SysConfDir:                $SYSCONF"
+  printf_info "SysBinDir:                 $SYSBIN"
+  printf_info "SysConfDir:                $SYSCONF"
+  printf_info "SysShareDir:               $SYSSHARE"
+  printf_info "SysLogDir:                 $SYSLOGDIR"
+  printf_info "SysBackUpDir:              $BACKUPDIR"
+  printf_info "ApplicationsDir:           $SHARE/applications"
+  printf_info "IconDir:                   $ICONDIR"
+  printf_info "ThemeDir                   $THEMEDIR"
+  printf_info "FontDir:                   $FONTDIR"
+  printf_info "FontConfDir:               $FONTCONF"
+  printf_info "CompletionsDir:            $COMPDIR"
+  printf_info "CasjaysDevDir:             $CASJAYSDEVSHARE"
+  printf_info "CASJAYSDEVSAPPDIR:         $CASJAYSDEVSAPPDIR"
+  printf_info "USRUPDATEDIR:              $USRUPDATEDIR"
+  printf_info "SYSUPDATEDIR:              $SYSUPDATEDIR"
+  printf_info "DOTFILESREPO:              $DOTFILESREPO"
+  printf_info "DevEnv Repo:               $DEVENVMGRREPO"
+  printf_info "Package Manager Repo:      $PKMGRREPO"
+  printf_info "Icon Manager Repo:         $ICONMGRREPO"
+  printf_info "Font Manager Repo:         $FONTMGRREPO"
+  printf_info "Theme Manager Repo         $THEMEMGRREPO"
+  printf_info "System Manager Repo:       $SYSTEMMGRREPO"
+  printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
+  printf_info "Downloaded to:             $DOWNLOADED_TO"
+  printf_info "REPORAW:                   $REPO/$APPNAME/raw"
+  printf_info "Prefix:                    $PREFIX"
+  for PATHS in $(path_info); do
+    printf_info "PATHS:                     $PATHS"
+  done
+  exit $?
 }
 
 ##################################################################################################
@@ -1031,6 +1075,7 @@ dfmgr_install() {
     export APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################
@@ -1052,6 +1097,7 @@ dockermgr_install() {
     export APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################
@@ -1096,6 +1142,7 @@ iconmgr_install() {
     export APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################
@@ -1117,6 +1164,7 @@ pkmgr_install() {
     export APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################
@@ -1140,6 +1188,7 @@ systemmgr_install() {
     export APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################
@@ -1162,6 +1211,7 @@ thememgr_install() {
     export APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################
@@ -1184,6 +1234,7 @@ wallpapermgr_install() {
     export APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
+  if [ "$1" = "--debug" ]; then debug; fi
 }
 
 ##################################################################################################

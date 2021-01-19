@@ -1473,8 +1473,6 @@ __getpythonver
 
 ###################### debugging tool ######################
 __load_debug() {
-  systemmgr_install
-  user_installdirs
   if [ -f ./applications.debug ]; then . ./applications.debug; fi
   DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
   printf_info "$(dirname $0)/$APPNAME"
@@ -1500,10 +1498,7 @@ __load_debug() {
     cat "$ERRL" | printf_readline "3"
   }
 }
-if [ "$1" = "--vdebug" ]; then
-  shift 1
-  __load_debug
-fi
+
 ###################### unload variables ######################
 unload_var_path() {
   unset APPDIR APPVERSION ARRAY BACKUPDIR BIN CASJAYSDEVSAPPDIR CASJAYSDEVSHARE COMPDIR CONF DEVENVMGR

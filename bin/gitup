@@ -30,6 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
 gitdir="$(echo $(git rev-parse --git-dir 2>/dev/null)/..)"

@@ -30,6 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ -z "$PUSHBULLET_ACCESS_TOKEN" ] && printf_help "Please set PUSHBULLET_ACCESS_TOKEN"
 [ -z "$1" ] && [ -z "$2" ] && printf_help 'Usage: pushbullet "title" "body"'

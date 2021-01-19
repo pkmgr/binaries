@@ -28,6 +28,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -d "$HOME/.config/pastebin" ]; then mkdir -p "$HOME/.config/pastebin"; fi
 if [ ! -f "$HOME/.config/pastebin/config.conf" ]; then touch "$HOME/.config/pastebin/config.conf"; fi

@@ -28,6 +28,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 unset TMUX
 scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
 hour="$(date +"%H:%M")"

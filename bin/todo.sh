@@ -32,6 +32,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # NOTE:  Todo.sh requires the .config/todo/config configuration file to run.
 # Place the .config/todo/config file in your home directory or use the -d option for a custom location.
