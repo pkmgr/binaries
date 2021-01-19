@@ -32,8 +32,6 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-printf_exit "This script is a work in progress"
-
 editConfig=$(echo -e "${options[@]}" | dmenu -i -p 'Edit config file: ')
 
 case "$editConfig" in
@@ -115,7 +113,7 @@ zsh)
 esac
 
 if [ -f "$editConfig" ]; then
-  myterminal -e myeditor "$editConfig"
+  myeditor "$editConfig"
 else
   printf_exit "Can not find the file: $editConfig"
 fi
