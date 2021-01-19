@@ -43,18 +43,16 @@ run_in_term() {
     printf_cyan "Usage: Enter the commands for $CMD"
     printf_cyan "To show this message again type: _help_"
     while :; do
-      printf_custom_question "2" "What commands would you like to execute?"
-      read -e ARG
-      history -s "$ARG"
-      if [ "$ARG" = exit ]; then clear && break; fi
-      if [ "$ARG" = _help_ ]; then
+      printf_read_question "5" "What would you like to pass to $CMD?" "__ANSWER" "120"
+      if [ "$__ANSWER" = exit ] || [ "$__ANSWER" = quit ] || [ "$__ANSWER" = !q ]; then clear && break; fi
+      if [ "$__ANSWER" = _help_ ]; then
         clear
         printf_cyan "Usage: Enter the commands for $CMD or type exit to quit"
         continue
       fi
       clear
       echo -e "\n\n\n"
-      $CMD "$ARG" | printf_readline
+      $CMD "$__ANSWER" 2>/dev/null | printf_readline
       echo -e "\n"
     done
   fi

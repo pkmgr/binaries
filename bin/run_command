@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -38,23 +38,25 @@ main() {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  logdir="${LOGDIR:-$HOME/.local/log}"
-  mkdir -p "$logdir"
-  date=$(date +'%m%d%Y%H%M')
+  year="$(date +'%Y')"
+  date="$(date +'%m%d')"
+  time="$(date +'%H%M')"
+  logdir="${LOGDIR:-$HOME/.local/log}/run/$year"
   logname="$APP-$date"
+  command="$* >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &>/dev/null &"
+  mkdir -p "$logdir"
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   if [ -f "$(command -v $APP 2>/dev/null)" ]; then
-    eval "$@" >"$logdir/$logname.log" 2>"$logdir/$logname.err" &>/dev/null &
-    if [ "$?" -eq 0 ]; then
-      printf_success "$APP completed successfully"
+    eval "$command" && sleep 2 && EXIT=0 || EXIT=1
+    if [ "$EXIT" -eq 0 ]; then
+      printf_success "$APP started successfully"
     else
-      printf_red "$APP has failed"
-      exit 1
+      printf_exit "$APP has failed: Check $logdir/$logname.err for details"
     fi
   else
-    printf_exit "$APP does not exist"
+    printf_exit "The application $APP does not exist"
   fi
 }
 

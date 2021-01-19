@@ -223,28 +223,29 @@ printf_question() {
   shift
   printf_color "\t\t$ICON_QUESTION $msg? " "$color"
 }
-printf_answer() {
-  history -s
-  read -er -n ${2:-1} ${1:-__QUESTION_REPLY}
-}
-
-printf_answer_yes() { [[ "${1:-__QUESTION_REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
 
 printf_custom_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
-  history -s
   printf_color "\t\t$msg " "$color"
 }
-
+#printf_read_question "color" "message" "answerVar" "maxLines"
 printf_read_question() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
-  local msg="$*"
-  shift
-  printf_custom_question "$1" "$color"
-  read -re -n 1 __QUESTION_REPLY
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local msg="$1" && shift 1
+  local reply="${1:-__ANSWER}" && shift
+  local lines="${1:-120}" && shift
+  printf_color "\t\t$msg " "$color"
+  printf_answer "$reply" "$lines"
 }
+
+printf_answer() {
+  read -er -n "${2:-120}" "${1:-__ANSWER}"
+  history -s "${1:-__ANSWER}"
+}
+
+printf_answer_yes() { [[ "${1:-__ANSWER}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
