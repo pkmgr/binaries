@@ -283,7 +283,7 @@ notifications() {
 
 ##################################################################################################
 __curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
-__appversion() { __curl "$REPORAW/master/version.txt" || echo 2021; }
+__appversion() { __curl "${1:-REPORAW/master/version.txt}" || echo 011920210931-git; }
 
 die() { echo -e "$1" exit ${2:9999}; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
@@ -1362,7 +1362,6 @@ ensure_dirs() {
     mkd "$SHARE/applications"
     mkd "$SHARE/CasjaysDev/functions"
     mkd "$SHARE/wallpapers/system"
-    mkd "$DOWNLOADED_TO"
     [ -d "$APPDIR" ] || mkd "$APPDIR"
   fi
   return 0
@@ -1396,7 +1395,7 @@ get_app_version() {
     local version="0000000"
   fi
   local GITREPO=""$REPO/$APPNAME""
-  local APPVERSION="${APPVERSION:-$REPORAW/master/version.txt}"
+  local APPVERSION="${APPVERSION:-$(__appversion)}"
   [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
   [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
   [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
@@ -1567,6 +1566,7 @@ show_optvars() {
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
     printf_info "Downloaded to:             $DOWNLOADED_TO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
+    printf_info "Prefix:                    $PREFIX"
     for PATHS in $(path_info); do
       printf_info "PATHS:                     $PATHS"
     done
@@ -1624,7 +1624,7 @@ dfmgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  export APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 dfmgr_run_post() {
@@ -1654,7 +1654,7 @@ fontmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
   export FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  export APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 fontmgr_run_post() {
@@ -1687,7 +1687,7 @@ iconmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
   export ICONDIR="${ICONDIR:-$SHARE/icons}"
-  export APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 iconmgr_run_post() {
@@ -1726,7 +1726,7 @@ pkmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
   export REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  export APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 pkmgr_run_postinst() {
@@ -1757,7 +1757,7 @@ systemmgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  export APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 systemmgr_run_postinst() {
@@ -1786,7 +1786,7 @@ thememgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
   export THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  export APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 generate_theme_index() {
@@ -1827,7 +1827,7 @@ wallpapermgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   export WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  export APPVERSION="$(__curl ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 wallpapermgr_run_postinst() {
