@@ -13,6 +13,10 @@ _automate_completions() {
   _init_completion || return
 
   case $prev in
+  state)
+    COMPREPLY=($(compgen -W 'json text' -- "$cur"))
+    return 0
+    ;;
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     return 0

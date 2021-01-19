@@ -85,7 +85,7 @@ main() {
 
   state)
     case "$2" in
-    text) echo "$(getstate)" ;;
+    text) echo -e "$(getstate)" ;;
     json | *) echo -e '{"status":"'$(getstate)'"}' ;;
     esac
     ;;
