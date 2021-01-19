@@ -159,7 +159,6 @@ printf_read() { printf_color "\t\t$1" 5; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
-printf_question() { printf_color "\t\t$ICON_QUESTION $1 " 6; }
 printf_error_stream() { while read -r line; do printf_error "? ERROR: $line"; done; }
 printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_execute_error() { printf_color "\t\t$ICON_WARN $1 $2\n" 1; }
@@ -174,6 +173,10 @@ printf_execute_result() {
 printf_execute_error_stream() { while read -r line; do printf_execute_error "? ERROR: $line"; done; }
 
 ##################################################################################################
+printf_question() {
+  history -s
+  printf_color "\t\t$ICON_QUESTION $1 " 6
+}
 
 printf_readline() {
   $(set -o pipefail)
@@ -251,6 +254,21 @@ printf_result() {
     printf_error "$FAIL"
     exit 1
   fi
+}
+
+##################################################################################################
+get_answer() { printf "%s" "$REPLY"; }
+answer_is_yes() { [[ "$REPLY" =~ ^[Yy]$ ]] && return 0 || return 1; }
+
+ask_for_input() {
+  history -s
+  printf_question "$1"
+  read -re "REPLY"
+}
+
+ask_question() {
+  printf_question "$1 (y/n) "
+  read -re -n 1 "REPLY"
 }
 
 ##################################################################################################
@@ -488,20 +506,6 @@ setexitstatus() {
     BG_EXIT="${BG_GREEN}"
     return 0
   fi
-}
-
-##################################################################################################
-
-get_answer() { printf "%s" "$REPLY"; }
-ask() {
-  printf_question "$1"
-  read -r
-}
-answer_is_yes() { [[ "$REPLY" =~ ^[Yy]$ ]] && return 0 || return 1; }
-ask_for_confirmation() {
-  printf_question "$1 (y/n) "
-  read -r -n 1
-  printf "\n"
 }
 
 ##################################################################################################

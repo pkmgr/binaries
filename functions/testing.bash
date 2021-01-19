@@ -104,7 +104,7 @@ __run_post() {
 
 #macos fix
 case "$(uname -s)" in
-  Darwin) alias dircolors=gdircolors ;;
+Darwin) alias dircolors=gdircolors ;;
 esac
 
 #Set Main Repo for dotfiles
@@ -224,7 +224,8 @@ printf_question() {
   printf_color "\t\t$ICON_QUESTION $msg? " "$color"
 }
 printf_answer() {
-  read -r -n ${2:-1} ${1:-__QUESTION_REPLY}
+  history -s
+  read -er -n ${2:-1} ${1:-__QUESTION_REPLY}
 }
 
 printf_answer_yes() { [[ "${1:-__QUESTION_REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
@@ -233,6 +234,7 @@ printf_custom_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
+  history -s
   printf_color "\t\t$msg " "$color"
 }
 
@@ -241,7 +243,7 @@ printf_read_question() {
   local msg="$*"
   shift
   printf_custom_question "$1" "$color"
-  read -r -n 1 __QUESTION_REPLY
+  read -re -n 1 __QUESTION_REPLY
 }
 
 printf_head() {
