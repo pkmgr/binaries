@@ -1307,6 +1307,7 @@ system_installdirs() {
     #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
+    mkd /etc/casjaysdev/updates/versions
   else
     export INSTALL_TYPE=system
     export HOME="${HOME:-/home/$WHOAMI}"
@@ -1885,7 +1886,8 @@ run_postinst_global() {
   else
     # Run on everything else
     if [ "$APPDIR" != "$DOWNLOADED_TO" ]; then
-      ln_sf "$DOWNLOADED_TO/etc" "$APPDIR"
+      mkd "$APPDIR/"
+      cp_rf "$DOWNLOADED_TO/etc/." "$APPDIR/"
     fi
 
     if [ -d "$APPDIR/backgrounds" ]; then
@@ -1970,8 +1972,6 @@ run_postinst_global() {
       return 0
     fi
   fi
-
-  sudorun mkdir -p /etc/casjaysdev/updates/versions
 
   # Permission fix
   ensure_perms
