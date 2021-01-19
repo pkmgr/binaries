@@ -27,12 +27,11 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  __curl "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+systemmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # indent type=spaces
 # tab size=2

@@ -30,7 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
+systemmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 find_tools() { wget -qO- --server-response=no -nv $RAW_MD_URL | sed -e '/^{: /d' >$LOCAL_CACHE_FILE; }

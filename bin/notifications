@@ -31,7 +31,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
+systemmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ -z "$1" ] && [ -z "$2" ] && __help

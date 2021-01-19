@@ -28,7 +28,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
+systemmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }

@@ -30,7 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
+user_installdirs
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 PASSWORD_STORE_KEY="${PASSWORD_STORE_KEY}"
@@ -43,7 +44,7 @@ PASSWORD_STORE_BACKUP="${PASSWORD_STORE_BACKUP:-$HOME/.local/backups/passmgr/$(h
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if cmd_exists pass; then
+if __cmd_exists pass; then
   pass "$@"
 else
   printf_custom "1" "The pass program was not found - attemping install "

@@ -30,7 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
+systemmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ ! -z "$1" ] && NPROCESSES="$1" || NPROCESSES=10

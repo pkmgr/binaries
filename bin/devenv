@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
+devenvmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if_sample() {
@@ -40,7 +41,7 @@ if_sample() {
   if [ -f .config.json.sample ] || [ -f .config.json ]; then cp -Rf .config.json.sample .config.json; fi
 }
 
-run_new_site() {
+__run_new_site() {
   printf_green "Enter the full path for your new project!"
   printf_custom_question "3" "Enter location for your new site - enter . for current: "
   read -r sitedir
@@ -48,7 +49,7 @@ run_new_site() {
 
 }
 
-run_jekyll() {
+__run_jekyll() {
   local appname=jekyll
   local project=jekyll
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -63,7 +64,7 @@ run_jekyll() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_hugo() {
+__run_hugo() {
   local appname=hugo
   local project=hugo
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -78,7 +79,7 @@ run_hugo() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_ruby() {
+__run_ruby() {
   local appname=ruby
   local project=ruby
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -93,7 +94,7 @@ run_ruby() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_python() {
+__run_python() {
   local appname=python
   local project=python
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -108,7 +109,7 @@ run_python() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_perl() {
+__run_perl() {
   local appname=perl
   local project=perl
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -123,7 +124,7 @@ run_perl() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_php() {
+__run_php() {
   local appname=php
   local project=php
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -138,7 +139,7 @@ run_php() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_node() {
+__run_node() {
   local appname=node || appname=node || appname=npm
   local project=node
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -155,7 +156,7 @@ run_node() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_vuecli() {
+__run_vuecli() {
   local appname=vue
   local project=node
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -172,7 +173,7 @@ run_vuecli() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_reactcli() {
+__run_reactcli() {
   local appname=create-react-app
   local project=javascript
   cmd_exists "$appname" || printf_exit "$node is not installed"
@@ -189,7 +190,7 @@ run_reactcli() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_expresscli() {
+__run_expresscli() {
   local appname=express-generator
   local project=javascript
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -206,7 +207,7 @@ run_expresscli() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_create-project() {
+__run_create-project() {
   local appname=create-project
   local project=javascript
   cmd_exists "$appname" || printf_exit "$appname is not installed"
@@ -223,7 +224,7 @@ run_create-project() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-run_mevn() {
+__run_mevn() {
   local appname=mevn
   local project=javascript
   cmd_exists "$git" || printf_exit "$git is not installed"
@@ -240,8 +241,8 @@ run_mevn() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-gen_shellcheck() {
-  cp -Rf "SCRIPTSFUNCTDIR/templates/shellcheckrc" ./shellcheckrc
+__gen_shellcheck() {
+  __cp_rf "SCRIPTSFUNCTDIR/templates/shellcheckrc" ./shellcheckrc
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -253,7 +254,7 @@ if [ "$1" = "--start" ]; then
   case "$START" in
   jekyll)
     if [ -f ./_config.yml ]; then
-      cmd_exists watchy && watchy -w _config.yml -- jekyll serve --host=0.0.0.0 || cmd_exists jekyll && jekyll serve --host=0.0.0.0 || printf_exit "There was a problem staring - no config found"
+      __cmd_exists watchy && watchy -w _config.yml -- jekyll serve --host=0.0.0.0 || cmd_exists jekyll && jekyll serve --host=0.0.0.0 || printf_exit "There was a problem staring - no config found"
     else
       printf_exit "There was a problem starting - no config found"
     fi
@@ -269,78 +270,78 @@ fi
 case "$1" in
 jekyll)
   shift 1
-  run_new_site
-  run_jekyll "$@"
+  __run_new_site
+  __run_jekyll "$@"
   ;;
 
 hugo)
   shift 1
-  run_new_site
-  run_hugo "$@"
+  __run_new_site
+  __run_hugo "$@"
   ;;
 
 ruby)
   shift 1
-  run_new_site
-  run_ruby "$@"
+  __run_new_site
+  __run_ruby "$@"
   ;;
 
 python)
   shift 1
-  run_new_site
-  run_python "$@"
+  __run_new_site
+  __run_python "$@"
   ;;
 
 perl)
   shift 1
-  run_new_site
-  run_perl "$@"
+  __run_new_site
+  __run_perl "$@"
   ;;
 
 php)
   shift 1
-  run_new_site
-  run_php "$@"
+  __run_new_site
+  __run_php "$@"
   ;;
 
 node)
   shift 1
-  run_new_site
-  run_node "$@"
+  __run_new_site
+  __run_node "$@"
   ;;
 
 vue)
   shift 1
-  run_new_site
-  run_vuecli "$@"
+  __run_new_site
+  __run_vuecli "$@"
   ;;
 
 react)
   shift 1
-  run_new_site
-  run_reactcli "$@"
+  __run_new_site
+  __run_reactcli "$@"
   ;;
 
 express)
   shift 1
-  run_new_site
-  run_expresscli "$@"
+  __run_new_site
+  __run_expresscli "$@"
   ;;
 
 create-project)
   shift 1
-  run_new_site
-  run_create-project "$@"
+  __run_new_site
+  __run_create-project "$@"
   ;;
 
 mevn)
   shift 1
-  run_new_site
-  run_mevn "$@"
+  __run_new_site
+  __run_mevn "$@"
   ;;
 gen-shellrc)
   shift 1
-  gen_shellcheck
+  __gen_shellcheck
   ;;
 *)
   shift --

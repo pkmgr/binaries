@@ -29,8 +29,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+dfmgr_install
+__options "$@"# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 

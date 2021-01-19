@@ -31,8 +31,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+dfmgr_install
+__options "$@"# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 editConfig=$(echo -e "${options[@]}" | dmenu -i -p 'Edit config file: ')
 

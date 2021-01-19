@@ -30,11 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 dockermgr_install
-
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if cmd_exists jq; then

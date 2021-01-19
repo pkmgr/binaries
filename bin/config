@@ -30,8 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+dfmgr_install
+__options "$@"# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
 LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"

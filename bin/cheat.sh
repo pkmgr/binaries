@@ -30,8 +30,9 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# [X] open section
+systemmgr_install
+__options "$@"
+[X] open section
 # [X] one shot mode
 # [X] usage info
 # [X] dependencies check

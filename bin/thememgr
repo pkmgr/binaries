@@ -31,10 +31,9 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 thememgr_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ARGS="$*"
 

@@ -31,8 +31,6 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$(dirname "${BASH_SOURCE[0]}")"/detectostype ]; then
   source "$(dirname "${BASH_SOURCE[0]}")"/detectostype
@@ -44,9 +42,8 @@ else
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 pkmgr_install
-
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 rm_rf() { sudo rm -Rf; }

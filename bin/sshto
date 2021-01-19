@@ -19,19 +19,19 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-    . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE" ]; then
-    . "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
-else
-    curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
-    . "/tmp/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+systemmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 REMOTE=8080                                               # Remote port for tunneling.

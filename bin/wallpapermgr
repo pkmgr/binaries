@@ -31,10 +31,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 wallpapermgr_install
+__options "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

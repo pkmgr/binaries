@@ -29,12 +29,11 @@ if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+systemmgr_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __requiresudo true
@@ -45,13 +44,13 @@ __getlipaddr
 __requiresudo rm -Rf /etc/issue* /etc/motd*
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "--force" ]; then
-shift 1
-__requiresudo rm -Rf /etc/casjaysdev/messages/*/*.txt
-__requiresudo mkdir -p /etc/casjaysdev/messages/{legal,issue,motd}
-__requiresudo touch /etc/casjaysdev/messages/{legal,issue,motd}/000.txt
-if [ -f "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" ]; then
-  __requiresudo cp -Rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
-fi
+  shift 1
+  __requiresudo rm -Rf /etc/casjaysdev/messages/*/*.txt
+  __requiresudo mkdir -p /etc/casjaysdev/messages/{legal,issue,motd}
+  __requiresudo touch /etc/casjaysdev/messages/{legal,issue,motd}/000.txt
+  if [ -f "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" ]; then
+    __requiresudo cp -Rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
+  fi
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

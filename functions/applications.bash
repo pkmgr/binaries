@@ -295,142 +295,6 @@ cron_updater() {
 
 mkd() { if [ ! -e "$1" ]; then devnull mkdir -p "$@"; else return 0; fi; }
 
-ensure_dirs() {
-  if [[ $EUID -ne 0 ]] || [[ "$WHOAMI" != "root" ]]; then
-    mkd "$BIN"
-    mkd "$SHARE"
-    mkd "$LOGDIR"
-    mkd "$LOGDIR/dfmgr"
-    mkd "$LOGDIR/fontmg"
-    mkd "$LOGDIR/iconmgr"
-    mkd "$LOGDIR/systemmgr"
-    mkd "$LOGDIR/thememgr"
-    mkd "$LOGDIR/wallpapermgr"
-    mkd "$COMPDIR"
-    mkd "$STARTUP"
-    mkd "$BACKUPDIR"
-    mkd "$FONTDIR"
-    mkd "$ICONDIR"
-    mkd "$THEMEDIR"
-    mkd "$FONTCONF"
-    mkd "$CASJAYSDEVSHARE"
-    mkd "$CASJAYSDEVSAPPDIR"
-    mkd "$USRUPDATEDIR"
-    mkd "$SYSUPDATEDIR"
-    mkd "$SHARE/applications"
-    mkd "$SHARE/CasjaysDev/functions"
-    mkd "$SHARE/wallpapers/system"
-  fi
-  return 0
-}
-
-##################################################################################################
-
-user_installdirs() {
-  if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
-    INSTALL_TYPE=user
-    HOME="/usr/local/home/root"
-    BIN="$HOME/.local/bin"
-    CONF="$HOME/.config"
-    SHARE="$HOME/.local/share"
-    LOGDIR="$HOME/.local/log"
-    STARTUP="$HOME/.config/autostart"
-    SYSBIN="/usr/local/bin"
-    SYSCONF="/usr/local/etc"
-    SYSSHARE="/usr/local/share"
-    SYSLOGDIR="/usr/local/log"
-    BACKUPDIR="$HOME/.local/backups/dotfiles"
-    COMPDIR="$HOME/.local/share/bash-completion/completions"
-    THEMEDIR="$SHARE/themes"
-    ICONDIR="$SHARE/icons"
-    FONTDIR="$SHARE/fonts"
-    FONTCONF="$SYSCONF/fontconfig/conf.d"
-    CASJAYSDEVSHARE="$SHARE/CasjaysDev"
-    CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
-    WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
-    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
-    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
-  else
-    INSTALL_TYPE=user
-    HOME="${HOME}"
-    BIN="$HOME/.local/bin"
-    CONF="$HOME/.config"
-    SHARE="$HOME/.local/share"
-    LOGDIR="$HOME/.local/log"
-    STARTUP="$HOME/.config/autostart"
-    SYSBIN="$HOME/.local/bin"
-    SYSCONF="$HOME/.config"
-    SYSSHARE="$HOME/.local/share"
-    SYSLOGDIR="$HOME/.local/log"
-    BACKUPDIR="$HOME/.local/backups/dotfiles"
-    COMPDIR="$HOME/.local/share/bash-completion/completions"
-    THEMEDIR="$SHARE/themes"
-    ICONDIR="$SHARE/icons"
-    FONTDIR="$SHARE/fonts"
-    FONTCONF="$SYSCONF/fontconfig/conf.d"
-    CASJAYSDEVSHARE="$SHARE/CasjaysDev"
-    CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
-    WALLPAPERS="$HOME/.local/share/wallpapers"
-    #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
-    #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
-  fi
-  if [ "$1" = "--debug" ]; then debug; fi
-}
-
-##################################################################################################
-
-system_installdirs() {
-  if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
-    #printf_info "Install Type: system - ${WHOAMI}"
-    #printf_red "\t\tInstalling as root ❓\n"
-    INSTALL_TYPE=system
-    HOME="/usr/local/home/root"
-    BACKUPDIR="$HOME/.local/backups/dotfiles"
-    BIN="/usr/local/bin"
-    CONF="/usr/local/etc"
-    SHARE="/usr/local/share"
-    LOGDIR="/usr/local/log"
-    STARTUP="/dev/null"
-    SYSBIN="/usr/local/bin"
-    SYSCONF="/usr/local/etc"
-    SYSSHARE="/usr/local/share"
-    SYSLOGDIR="/usr/local/log"
-    COMPDIR="/etc/bash_completion.d"
-    THEMEDIR="/usr/local/share/themes"
-    ICONDIR="/usr/local/share/icons"
-    FONTDIR="/usr/local/share/fonts"
-    FONTCONF="/usr/local/share/fontconfig/conf.d"
-    CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
-    CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
-    WALLPAPERS="/usr/local/share/wallpapers"
-    #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
-    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
-  else
-    INSTALL_TYPE=system
-    HOME="${HOME:-/home/$WHOAMI}"
-    BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
-    BIN="$HOME/.local/bin"
-    CONF="$HOME/.config"
-    SHARE="$HOME/.local/share"
-    LOGDIR="$HOME/.local/log"
-    STARTUP="$HOME/.config/autostart"
-    SYSBIN="$HOME/.local/bin"
-    SYSCONF="$HOME/.local/etc"
-    SYSSHARE="$HOME/.local/share"
-    SYSLOGDIR="$HOME/.local/log"
-    COMPDIR="$HOME/.local/share/bash-completion/completions"
-    THEMEDIR="$HOME/.local/share/themes"
-    ICONDIR="$HOME/.local/share/icons"
-    FONTDIR="$HOME/.local/share/fonts"
-    FONTCONF="$HOME/.local/share/fontconfig/conf.d"
-    CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
-    CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
-    WALLPAPERS="$HOME/.local/share/wallpapers"
-    #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
-    #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
-  fi
-}
-
 ##################################################################################################
 
 cmd_exists() {
@@ -1013,14 +877,121 @@ show_spinner() {
   done
 }
 
-##################################################################################################
-user_installdirs "$@"
-##################################################################################################
+###################### setup folders - user ######################
+user_installdirs() {
+  if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
+    INSTALL_TYPE=user
+    HOME="/usr/local/home/root"
+    BIN="$HOME/.local/bin"
+    CONF="$HOME/.config"
+    SHARE="$HOME/.local/share"
+    LOGDIR="$HOME/.local/log"
+    STARTUP="$HOME/.config/autostart"
+    SYSBIN="/usr/local/bin"
+    SYSCONF="/usr/local/etc"
+    SYSSHARE="/usr/local/share"
+    SYSLOGDIR="/usr/local/log"
+    BACKUPDIR="$HOME/.local/backups/dotfiles"
+    COMPDIR="$HOME/.local/share/bash-completion/completions"
+    THEMEDIR="$SHARE/themes"
+    ICONDIR="$SHARE/icons"
+    FONTDIR="$SHARE/fonts"
+    FONTCONF="$SYSCONF/fontconfig/conf.d"
+    CASJAYSDEVSHARE="$SHARE/CasjaysDev"
+    CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
+    WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
+    USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+  else
+    INSTALL_TYPE=user
+    HOME="${HOME}"
+    BIN="$HOME/.local/bin"
+    CONF="$HOME/.config"
+    SHARE="$HOME/.local/share"
+    LOGDIR="$HOME/.local/log"
+    STARTUP="$HOME/.config/autostart"
+    SYSBIN="$HOME/.local/bin"
+    SYSCONF="$HOME/.config"
+    SYSSHARE="$HOME/.local/share"
+    SYSLOGDIR="$HOME/.local/log"
+    BACKUPDIR="$HOME/.local/backups/dotfiles"
+    COMPDIR="$HOME/.local/share/bash-completion/completions"
+    THEMEDIR="$SHARE/themes"
+    ICONDIR="$SHARE/icons"
+    FONTDIR="$SHARE/fonts"
+    FONTCONF="$SYSCONF/fontconfig/conf.d"
+    CASJAYSDEVSHARE="$SHARE/CasjaysDev"
+    CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
+    WALLPAPERS="$HOME/.local/share/wallpapers"
+    USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
+    SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
+  fi
+  export installtype="user_installdirs"
+  PREFIX="${PREFIX:-dfmgr}"
+  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
+  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME}"
+}
 
+###################### setup folders - system ######################
+system_installdirs() {
+  APPNAME="${APPNAME:-installer}"
+  if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
+    BACKUPDIR="$HOME/.local/backups/dotfiles"
+    BIN="/usr/local/bin"
+    CONF="/usr/local/etc"
+    SHARE="/usr/local/share"
+    LOGDIR="/usr/local/log"
+    STARTUP="/dev/null"
+    SYSBIN="/usr/local/bin"
+    SYSCONF="/usr/local/etc"
+    SYSSHARE="/usr/local/share"
+    SYSLOGDIR="/usr/local/log"
+    COMPDIR="/etc/bash_completion.d"
+    THEMEDIR="/usr/local/share/themes"
+    ICONDIR="/usr/local/share/icons"
+    FONTDIR="/usr/local/share/fonts"
+    FONTCONF="/usr/local/share/fontconfig/conf.d"
+    CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
+    CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
+    WALLPAPERS="/usr/local/share/wallpapers"
+    USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+  else
+    INSTALL_TYPE=system
+    HOME="${HOME:-/home/$WHOAMI}"
+    BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
+    BIN="$HOME/.local/bin"
+    CONF="$HOME/.config"
+    SHARE="$HOME/.local/share"
+    LOGDIR="$HOME/.local/log"
+    STARTUP="$HOME/.config/autostart"
+    SYSBIN="$HOME/.local/bin"
+    SYSCONF="$HOME/.local/etc"
+    SYSSHARE="$HOME/.local/share"
+    SYSLOGDIR="$HOME/.local/log"
+    COMPDIR="$HOME/.local/share/bash-completion/completions"
+    THEMEDIR="$HOME/.local/share/themes"
+    ICONDIR="$HOME/.local/share/icons"
+    FONTDIR="$HOME/.local/share/fonts"
+    FONTCONF="$HOME/.local/share/fontconfig/conf.d"
+    CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
+    CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
+    WALLPAPERS="$HOME/.local/share/wallpapers"
+    USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
+    SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+  fi
+  export installtype="system_installdirs"
+  PREFIX="${PREFIX:-dfmgr}"
+  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
+  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME}"
+}
+
+user_installdirs
+###################### dfmgr settings ######################
 dfmgr_install() {
   user_installdirs
   PREFIX="dfmgr"
-  REPO="${DFMGRREPO}"
+  REPO="$DFMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$CONF"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
@@ -1035,15 +1006,35 @@ dfmgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
-  if [ "$1" = "--debug" ]; then debug; fi
+  export installtype="dfmgr_install"
 }
 
-##################################################################################################
-
+###################### devenv settings ######################
+devenvmgr_install() {
+  user_installdirs
+  PREFIX="devenv"
+  REPO="$DEVENVMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$CONF"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  else
+    APPVERSION="N/A"
+  fi
+  mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
+  export installtype="devenvmgr_install"
+}
+###################### dockermgr settings ######################
 dockermgr_install() {
   user_installdirs
   PREFIX="dockermgr"
-  REPO="${DFMGRREPO}"
+  REPO="$DFMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$CONF"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
@@ -1059,15 +1050,14 @@ dockermgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
-  if [ "$1" = "--debug" ]; then debug; fi
+  export installtype="dfmgr_install"
 }
 
-##################################################################################################
-
+###################### fontmgr settings ######################
 fontmgr_install() {
   system_installdirs
   PREFIX="fontmgr"
-  REPO="${FONTMGRREPO}"
+  REPO="$FONTMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SHARE/CasjaysDev/fontmgr"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
@@ -1084,14 +1074,14 @@ fontmgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$FONTDIR" "$HOMEDIR"
+  export installtype="dfmgr_install"
 }
 
-##################################################################################################
-
+###################### iconmgr settings ######################
 iconmgr_install() {
   system_installdirs
   PREFIX="iconmgr"
-  REPO="${ICONMGRREPO}"
+  REPO="$ICONMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SYSSHARE/CasjaysDev/iconmgr"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
@@ -1108,15 +1098,14 @@ iconmgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$ICONDIR" "$HOMEDIR"
-  if [ "$1" = "--debug" ]; then debug; fi
+  export installtype="dfmgr_install"
 }
 
-##################################################################################################
-
+###################### pkmgr settings ######################
 pkmgr_install() {
   system_installdirs
   PREFIX="pkmgr"
-  REPO="${PKMGRREPO}"
+  REPO="$PKMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SYSSHARE/CasjaysDev/pkmgr"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
@@ -1132,16 +1121,15 @@ pkmgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
-  if [ "$1" = "--debug" ]; then debug; fi
+  export installtype="dfmgr_install"
 }
 
-##################################################################################################
-
+###################### systemmgr settings ######################
 systemmgr_install() {
   requiresudo "true"
   system_installdirs
   PREFIX="systemmgr"
-  REPO="${SYSTEMMGRREPO}"
+  REPO="$SYSTEMMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
@@ -1158,15 +1146,14 @@ systemmgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
-  if [ "$1" = "--debug" ]; then debug; fi
+  export installtype="dfmgr_install"
 }
 
-##################################################################################################
-
+###################### thememgr settings ######################
 thememgr_install() {
   system_installdirs
   PREFIX="thememgr"
-  REPO="${THEMEMGRREPO}"
+  REPO="$THEMEMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SYSSHARE/CasjaysDev/thememgr"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
@@ -1182,11 +1169,10 @@ thememgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR"
-  if [ "$1" = "--debug" ]; then debug; fi
+  export installtype="dfmgr_install"
 }
 
-##################################################################################################
-
+###################### wallpapermgr settings ######################
 wallpapermgr_install() {
   system_installdirs
   PREFIX="wallpapermgr"
@@ -1206,13 +1192,43 @@ wallpapermgr_install() {
     APPVERSION="N/A"
   fi
   mkdir -p "$USRUPDATEDIR" "$SYSUPDATEDIR" "$WALLPAPERS"
-  if [ "$1" = "--debug" ]; then debug; fi
+  export installtype="wallpapermgr_install"
 }
 
-##################################################################################################
+###################### create directories ######################
+ensure_dirs() {
+  if [[ $EUID -ne 0 ]] || [[ "$WHOAMI" != "root" ]]; then
+    __mkd "$BIN"
+    __mkd "$SHARE"
+    __mkd "$LOGDIR"
+    __mkd "$LOGDIR/dfmgr"
+    __mkd "$LOGDIR/fontmg"
+    __mkd "$LOGDIR/iconmgr"
+    __mkd "$LOGDIR/systemmgr"
+    __mkd "$LOGDIR/thememgr"
+    __mkd "$LOGDIR/wallpapermgr"
+    __mkd "$COMPDIR"
+    __mkd "$STARTUP"
+    __mkd "$BACKUPDIR"
+    __mkd "$FONTDIR"
+    __mkd "$ICONDIR"
+    __mkd "$THEMEDIR"
+    __mkd "$FONTCONF"
+    __mkd "$CASJAYSDEVSHARE"
+    __mkd "$CASJAYSDEVSAPPDIR"
+    __mkd "$USRUPDATEDIR"
+    __mkd "$SYSUPDATEDIR"
+    __mkd "$SHARE/applications"
+    __mkd "$SHARE/CasjaysDev/functions"
+    __mkd "$SHARE/wallpapers/system"
+  fi
+  return 0
+}
+
 path_info() { echo "$PATH" | tr ':' '\n' | sort -u; }
-debug() {
-  get_app_info
+###################### debug settings ######################
+__debug() {
+  $installtype
   printf_info "UserHomeDir:               $HOME"
   printf_info "UserBinDir:                $BIN"
   printf_info "UserConfDir:               $CONF"
@@ -1243,12 +1259,8 @@ debug() {
   printf_info "Theme Manager Repo         $THEMEMGRREPO"
   printf_info "System Manager Repo:       $SYSTEMMGRREPO"
   printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
-  printf_info "Downloaded to:             $DOWNLOADED_TO"
-  printf_info "REPORAW:                   $REPO/$APPNAME/raw"
+  printf_info "InstallType:               $installtype"
   printf_info "Prefix:                    $PREFIX"
-  for PATHS in $(path_info); do
-    printf_info "PATHS:                     $PATHS"
-  done
   exit $?
 }
 
@@ -1386,9 +1398,11 @@ __help() {
   exit 0
 }
 
-[ "$1" = "--help" ] && __help
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
+__options() {
+  [ "$1" = "--debug" ] && __debug
+  [ "$1" = "--help" ] && __help
+  [ "$1" = "--version" ] && get_app_info "$APPNAME"
+}
 ##################################################################################################
 if [ "$1" = "--vdebug" ]; then
   vdebug() {
