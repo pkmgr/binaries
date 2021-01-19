@@ -8,5 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Lookup definition "
+printf_help "2" "Lookup definition "
 printf_help "4" "Usage: define WordToLookUP"

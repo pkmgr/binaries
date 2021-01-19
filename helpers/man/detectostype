@@ -8,4 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Detect OS Info"
+printf_help "2" "Detect OS Info"
+printf_help "4" "Usage: detectostype"

@@ -8,7 +8,7 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Usage:"
+printf_help "2" "A simple blogging script"
 printf_help "4" 'blog new "directory" "title"                | Setup a new blog'
 printf_help "4" 'blog post "title_of_post"                   | Create a new post'
 printf_help "4" 'blog page "path_to_page" "title_of_page"    | Create a blog page'

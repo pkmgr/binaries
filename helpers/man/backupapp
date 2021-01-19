@@ -8,4 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Usage: $APPNAME BackupName Directory"
+printf_help "2" "Backup utility"
+printf_help "4" "Usage: backupapp BackupName Directory"

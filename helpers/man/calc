@@ -8,8 +8,7 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Console Based calculator"
-printf_help "4" "Usage: calc 20*4/2+23-14"
+printf_help "2" "Console Based calculator"
 printf_help "4" "Addition:       calc 1+1"
 printf_help "4" "Subtraction:    calc 1-1"
 printf_help "4" "Multiplication: calc 1*1"

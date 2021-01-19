@@ -8,5 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Usage: $APPNAME location $APPNAME : Show app location"
-printf_help "4" "Will return 0 if found and will return 1 for not found"
+printf_help "2" "Check to see if application exists"
+printf_help "4" "cmd_exists appName  |  Will return 0 if found and return 1 for not found"

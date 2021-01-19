@@ -8,6 +8,7 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
+printf_help "2" "A git utility for keeping your dotfiles un a git repo"
 printf_help "4" "usage: config init add commit push help set remote checkout"
 printf_help "4" " "
 printf_help "4" "These are common config commands used in various situations:"
@@ -41,4 +42,3 @@ printf_help "4" "collaborate"
 printf_help "4" "fetch      Download objects and refs from another repository"
 printf_help "4" "pull       Fetch from and integrate with another repository or a local branch"
 printf_help "4" "push       Update remote refs along with associated objects"
-

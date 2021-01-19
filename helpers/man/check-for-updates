@@ -8,5 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Run with --notify to get a popup notification"
 printf_help "4" "Check and report updates"
+printf_help "4" "check-for-updates --notify | Get a popup notification"

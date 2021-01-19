@@ -8,4 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
+printf_help "2" "Changes your IP and hostname in system files"
 printf_help "4" "Usage: changeip"

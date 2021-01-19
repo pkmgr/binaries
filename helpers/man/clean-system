@@ -8,4 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
+printf_help "2" "Clean old system logs"
 printf_help "4" "Usage: clean-system"
