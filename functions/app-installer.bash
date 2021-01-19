@@ -1328,7 +1328,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    export DOWNLOADED_TO="$HOME/.local/share/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="$HOME/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
     #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
@@ -1878,15 +1878,7 @@ run_postinst_global() {
   else
     # Run on everything else
     if [ "$APPDIR" != "$DOWNLOADED_TO" ]; then
-      if [ -d "$DOWNLOADED_TO/etc" ]; then
-        local etc="$(ls "$DOWNLOADED_TO/etc" 2>/dev/null | wc -l)"
-        if [ "$etc" != "0" ]; then
-          fFiles="$(ls $DOWNLOADED_TO/etc)"
-          for f in $fFiles; do
-            ln_sf "$DOWNLOADED_TO/etc/$f" "$APPDIR/$f"
-          done
-        fi
-      fi
+      ln_sf "$DOWNLOADED_TO/etc" "$APPDIR"
     fi
 
     if [ -d "$APPDIR/backgrounds" ]; then
