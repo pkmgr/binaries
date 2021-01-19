@@ -1624,7 +1624,7 @@ dfmgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  export DOWNLOADED_TO="$SHARE/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1655,7 +1655,7 @@ fontmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
   export FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  export DOWNLOADED_TO="$SHARE/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1689,7 +1689,7 @@ iconmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
   export ICONDIR="${ICONDIR:-$SHARE/icons}"
-  export DOWNLOADED_TO="$SHARE/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1729,7 +1729,7 @@ pkmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
   export REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  export DOWNLOADED_TO="$SHARE/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1761,7 +1761,7 @@ systemmgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  export DOWNLOADED_TO="$SHARE/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1791,7 +1791,7 @@ thememgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
   export THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  export DOWNLOADED_TO="$SHARE/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1833,7 +1833,7 @@ wallpapermgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   export WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  export DOWNLOADED_TO="$SHARE/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
