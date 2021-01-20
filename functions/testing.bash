@@ -476,7 +476,7 @@ __tar_create() { tar cfvz "$@"; }
 #tar filename
 __tar_extract() { tar xfvz "$@"; }
 #while_true "command"
-__while_true() { while true; do "${@}" && sleep .3; done; }
+__while_loop() { while :; do "${@}" && sleep .3; done; }
 #for_each "option" "command"
 __for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
 #hostname ""
