@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# _notes_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for notes
+
+_notes_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="server client open --help"
+  local SERVEROPTS=""
+
+  _init_completion || return
+
+  case "$prev" in
+  --*)
+    return 1
+    ;;
+  server)
+    COMPREPLY=($(compgen -W '--kill' -- "$cur"))
+    return
+    ;;
+  client)
+    _filedir
+    return
+    ;;
+  open)
+    _filedir
+    return
+    ;;
+  esac
+
+  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+  return
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _notes_completions -o default notes
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

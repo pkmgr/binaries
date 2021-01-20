@@ -111,10 +111,10 @@ __client() {
   else
     printf "%s\n" "${*}" >"${_PATH}"
   fi
-  cat $_PATH 2>/dev/null | netcat -c $_SERVER 65000 2>/dev/null
+  cat $_PATH 2>/dev/null | netcat $_SERVER 65000 -c 2>/dev/null
   cat $_PATH 2>/dev/null >>${_NOTES_PATH}
   if [ "$(cat $_NOTES_PATH | wc -c)" = "$(cat $NOTES_PATH | wc -c)" ]; then
-    cat $_NOTES_PATH 2>/dev/null >>${NOTES_PATH}
+    cat $_NOTES_PATH 2>/dev/null >>${NOTES_PATH} &>/dev/null
   fi
   rm -Rf "$_PATH"
   return "$?"
