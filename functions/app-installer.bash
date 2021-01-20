@@ -1902,7 +1902,7 @@ run_postinst_global() {
   else
     # Run on everything else
     if [ "$APPDIR" != "$DOWNLOADED_TO" ]; then
-      mkd "$APPDIR/"
+      mkd "$APPDIR"
       cp_rf "$DOWNLOADED_TO/etc/." "$APPDIR/"
     fi
 
