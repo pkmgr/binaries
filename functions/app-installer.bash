@@ -342,6 +342,7 @@ backupapp() {
   local filename count backupdir rmpre4vbackup
   [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
   [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
+  local downloaddir="$DOWNLOADED_TO"
   local logdir="$HOME/.local/log/backupapp"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
@@ -349,7 +350,7 @@ backupapp() {
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   mkdir -p "$backupdir" "$logdir"
-  if [ -e "$myappdir" ] && [ ! -d $myappdir/.git ]; then
+  if [ -d "$myappdir" ] && [ "$myappdir" != "$downloaddir" ]; then
     echo -e " #################################" >>"$logdir/$myappname.log"
     echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
