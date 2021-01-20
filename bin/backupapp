@@ -47,12 +47,12 @@ __require_app tar
 backupapp() {
 
   local filename count backupdir rmpre4vbackup myappdirtmp
-  [ ! -z "$2" ] && local myappdir="$*" || local myappdir="$APPDIR"
   [ ! -z "$1" ] && local myappname="$1" && shift || local myappname="$APPNAME"
+  [ ! -z "$2" ] && local myappdir="$*" || local myappdir="$APPDIR"
   local logdir="$HOME/.local/log/backups"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/apps}"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${PREFIX:-dfmgr}"
   mkdir -p "$backupdir" "$logdir"
 
   _run_header() {
@@ -78,7 +78,7 @@ backupapp() {
   }
 
   _run_backup() {
-    tar cfzv "$backupdir/$filename" $backupfiles >>"$logdir/$myappname.log" 2>&1 || return 1
+    tar cfzv "$backupdir/$filename" $backupfiles >>"$logdir/$myappname.log" 2>>"$logdir/$myappname.log" || return 1
     exitCode=$?
   }
 

@@ -345,7 +345,7 @@ backupapp() {
   local logdir="$HOME/.local/log/backupapp"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/dotfiles/$PREFIX}"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/$PREFIX}"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   mkdir -p "$backupdir" "$logdir"
@@ -1868,6 +1868,7 @@ wallpaper_install_version() {
 ##################################################################################################
 
 run_postinst_global() {
+  if [ ! -d "$DOWNLOADED_TO" ] || [ ! -L "$DOWNLOADED_TO" ]; then ln_sf "$APPDIR" "$DOWNLOADED_TO"; fi
   #  OIFS="$IFS"
   #  IFS=$'\n'
   if [[ "$APPNAME" = "scripts" ]] || [[ "$APPNAME" = "installer" ]]; then
@@ -1875,25 +1876,25 @@ run_postinst_global() {
     ln_rm "$SYSBIN/"
     ln_rm "$COMPDIR/"
 
-    dfunFiles="$(ls $APPDIR/completions)"
+    dfunFiles="$(ls $DOWNLOADED_TO/completions)"
     for dfun in $dfunFiles; do
       rm_rf "$COMPDIR/$dfun"
     done
 
-    myfunctFiles="$(ls $APPDIR/functions)"
+    myfunctFiles="$(ls $DOWNLOADED_TO/functions)"
     for myfunct in $myfunctFiles; do
-      ln_sf "$APPDIR/functions/$myfunct" "$HOME/.local/share/CasjaysDev/functions/$myfunct"
+      ln_sf "$DOWNLOADED_TO/functions/$myfunct" "$HOME/.local/share/CasjaysDev/functions/$myfunct"
     done
 
-    compFiles="$(ls $APPDIR/completions)"
+    compFiles="$(ls $DOWNLOADED_TO/completions)"
     for comp in $compFiles; do
-      cp_rf "$APPDIR/completions/$comp" "$COMPDIR/$comp"
+      cp_rf "$DOWNLOADED_TO/completions/$comp" "$COMPDIR/$comp"
     done
 
-    appFiles="$(ls $APPDIR/bin)"
+    appFiles="$(ls $DOWNLOADED_TO/bin)"
     for app in $appFiles; do
-      chmod -Rf 755 "$APPDIR/bin/$app"
-      ln_sf "$APPDIR/bin/$app" "$SYSBIN/$app"
+      chmod -Rf 755 "$DOWNLOADED_TO/bin/$app"
+      ln_sf "$DOWNLOADED_TO/bin/$app" "$SYSBIN/$app"
     done
     cmd_exists updatedb && updatedb || return 0
 
@@ -1904,68 +1905,68 @@ run_postinst_global() {
       cp_rf "$DOWNLOADED_TO/etc/." "$APPDIR/"
     fi
 
-    if [ -d "$APPDIR/backgrounds" ]; then
+    if [ -d "$DOWNLOADED_TO/backgrounds" ]; then
       mkdir -p "$WALLPAPERS/system"
-      local wallpapers="$(ls $APPDIR/backgrounds/ 2>/dev/null | wc -l)"
+      local wallpapers="$(ls $DOWNLOADED_TO/backgrounds/ 2>/dev/null | wc -l)"
       if [ "$wallpapers" != "0" ]; then
-        wallpaperFiles="$(ls $APPDIR/backgrounds)"
+        wallpaperFiles="$(ls $DOWNLOADED_TO/backgrounds)"
         for wallpaper in $wallpaperFiles; do
-          ln_sf "$APPDIR/backgrounds/$wallpaper" "$WALLPAPERS/system/$wallpaper"
+          ln_sf "$DOWNLOADED_TO/backgrounds/$wallpaper" "$WALLPAPERS/system/$wallpaper"
         done
       fi
     fi
 
-    if [ -d "$APPDIR/startup" ]; then
-      local autostart="$(ls $APPDIR/startup/ 2>/dev/null | wc -l)"
+    if [ -d "$DOWNLOADED_TO/startup" ]; then
+      local autostart="$(ls $DOWNLOADED_TO/startup/ 2>/dev/null | wc -l)"
       if [ "$autostart" != "0" ]; then
-        startFiles="$(ls $APPDIR/startup)"
+        startFiles="$(ls $DOWNLOADED_TO/startup)"
         for start in $startFiles; do
-          ln_sf "$APPDIR/startup/$start" "$STARTUP/$start"
+          ln_sf "$DOWNLOADED_TO/startup/$start" "$STARTUP/$start"
         done
       fi
       ln_rm "$STARTUP/"
     fi
 
-    if [ -d "$APPDIR/bin" ]; then
-      local bin="$(ls $APPDIR/bin/ 2>/dev/null | wc -l)"
+    if [ -d "$DOWNLOADED_TO/bin" ]; then
+      local bin="$(ls $DOWNLOADED_TO/bin/ 2>/dev/null | wc -l)"
       if [ "$bin" != "0" ]; then
-        bFiles="$(ls $APPDIR/bin)"
+        bFiles="$(ls $DOWNLOADED_TO/bin)"
         for b in $bFiles; do
-          chmod -Rf 755 "$APPDIR/bin/$app"
-          ln_sf "$APPDIR/bin/$b" "$BIN/$b"
+          chmod -Rf 755 "$DOWNLOADED_TO/bin/$app"
+          ln_sf "$DOWNLOADED_TO/bin/$b" "$BIN/$b"
         done
       fi
       ln_rm "$BIN/"
     fi
 
-    if [ -d "$APPDIR/completions" ]; then
-      local comps="$(ls $APPDIR/completions/ 2>/dev/null | wc -l)"
+    if [ -d "$DOWNLOADED_TO/completions" ]; then
+      local comps="$(ls $DOWNLOADED_TO/completions/ 2>/dev/null | wc -l)"
       if [ "$comps" != "0" ]; then
-        compFiles="$(ls $APPDIR/completions)"
+        compFiles="$(ls $DOWNLOADED_TO/completions)"
         for comp in $compFiles; do
-          cp_rf "$APPDIR/completions/$comp" "$COMPDIR/$comp"
+          cp_rf "$DOWNLOADED_TO/completions/$comp" "$COMPDIR/$comp"
         done
       fi
       ln_rm "$COMPDIR/"
     fi
 
-    if [ -d "$APPDIR/applications" ]; then
-      local apps="$(ls $APPDIR/applications/ 2>/dev/null | wc -l)"
+    if [ -d "$DOWNLOADED_TO/applications" ]; then
+      local apps="$(ls $DOWNLOADED_TO/applications/ 2>/dev/null | wc -l)"
       if [ "$apps" != "0" ]; then
-        aFiles="$(ls $APPDIR/applications)"
+        aFiles="$(ls $DOWNLOADED_TO/applications)"
         for a in $aFiles; do
-          ln_sf "$APPDIR/applications/$a" "$SHARE/applications/$a"
+          ln_sf "$DOWNLOADED_TO/applications/$a" "$SHARE/applications/$a"
         done
       fi
       ln_rm "$SHARE/applications/"
     fi
 
-    if [ -d "$APPDIR/fontconfig" ]; then
-      local fontconf="$(ls $APPDIR/fontconfig 2>/dev/null | wc -l)"
+    if [ -d "$DOWNLOADED_TO/fontconfig" ]; then
+      local fontconf="$(ls $DOWNLOADED_TO/fontconfig 2>/dev/null | wc -l)"
       if [ "$fontconf" != "0" ]; then
-        fcFiles="$(ls $APPDIR/fontconfig)"
+        fcFiles="$(ls $DOWNLOADED_TO/fontconfig)"
         for fc in $fcFiles; do
-          ln_sf "$APPDIR/fontconfig/$fc" "$FONTCONF/$fc"
+          ln_sf "$DOWNLOADED_TO/fontconfig/$fc" "$FONTCONF/$fc"
         done
       fi
       ln_rm "$FONTCONF/"
@@ -1973,12 +1974,12 @@ run_postinst_global() {
       return 0
     fi
 
-    if [ -d "$APPDIR/fonts" ]; then
-      local font="$(ls "$APPDIR/fonts" 2>/dev/null | wc -l)"
+    if [ -d "$DOWNLOADED_TO/fonts" ]; then
+      local font="$(ls "$DOWNLOADED_TO/fonts" 2>/dev/null | wc -l)"
       if [ "$font" != "0" ]; then
-        fFiles="$(ls $APPDIR/fonts --ignore='.conf' --ignore='.uuid')"
+        fFiles="$(ls $DOWNLOADED_TO/fonts --ignore='.conf' --ignore='.uuid')"
         for f in $fFiles; do
-          ln_sf "$APPDIR/fonts/$f" "$FONTDIR/$f"
+          ln_sf "$DOWNLOADED_TO/fonts/$f" "$FONTDIR/$f"
         done
       fi
       ln_rm "$FONTDIR/"
