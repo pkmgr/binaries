@@ -52,7 +52,7 @@ backupapp() {
   local logdir="$HOME/.local/log/backups"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${PREFIX:-dfmgr}"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${SCRIPTS_PREFIX:-dfmgr}"
   mkdir -p "$backupdir" "$logdir"
 
   _run_header() {

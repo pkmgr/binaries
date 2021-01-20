@@ -345,7 +345,7 @@ backupapp() {
   local logdir="$HOME/.local/log/backupapp"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/$PREFIX}"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/$SCRIPTS_PREFIX}"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   mkdir -p "$backupdir" "$logdir"
@@ -1227,7 +1227,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
-    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   else
@@ -1251,7 +1251,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
@@ -1287,7 +1287,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
     export WALLPAPERS="/usr/local/share/wallpapers"
-    export DOWNLOADED_TO="/usr/local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="/usr/local/share/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
@@ -1313,7 +1313,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    export DOWNLOADED_TO="$HOME/.local/share/CasjaysDev/installed/$PREFIX/$APPNAME"
+    export DOWNLOADED_TO="$HOME/.local/share/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
@@ -1405,8 +1405,8 @@ app_uninstall() {
     printf_yellow "\n\t\tRemoving $APPNAME from your system\n"
     [ -d "$DOWNLOADED_TO" ] && rm_rm "$DOWNLOADED_TO"
     rm_rf "$APPDIR" &&
-      rm_rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME" &&
-      rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" &&
+      rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
+      rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
       broken_symlinks $BIN $SHARE $COMPDIR $CONF
     getexitcode "\n\t\t$APPNAME has been removed\n"
   else
@@ -1551,7 +1551,7 @@ show_optvars() {
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
     printf_info "Downloaded to:             $DOWNLOADED_TO"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
-    printf_info "Prefix:                    $PREFIX"
+    printf_info "Prefix:                    $SCRIPTS_PREFIX"
     for PATHS in $(path_info); do
       printf_info "PATHS:                     $PATHS"
     done
@@ -1570,7 +1570,7 @@ show_optvars() {
 
 installer_noupdate() {
   if [ "$1" != "--force" ]; then
-    if [ -f "$SYSSHARE/CasjaysDev/apps/$PREFIX/$APPNAME" ] || [ -d $APPDIR ]; then
+    if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d $APPDIR ]; then
       ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
       printf_warning "Updating of $APPNAME has been disabled"
       exit 0
@@ -1583,17 +1583,17 @@ installer_noupdate() {
 install_version() {
   mkdir -p "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/dotfiles"
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    if [ "$APPNAME" = "installer" ] && [ -d "$CASJAYSDEVSAPPDIR/$PREFIX" ]; then
-      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/$PREFIX/scripts"
-      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-scripts"
+    if [ "$APPNAME" = "installer" ] && [ -d "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX" ]; then
+      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
+      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
     fi
-    ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
+    ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
   fi
   if [ -f "$DOWNLOADED_TO/install.sh" ] && [ -f "$DOWNLOADED_TO/version.txt" ]; then
-    ln_sf "$DOWNLOADED_TO/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME"
+    ln_sf "$DOWNLOADED_TO/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
   fi
   if [ -d "$DOWNLOADED_TO" ] && [ -f "$DOWNLOADED_TO/install.sh" ] && [ -f "$DOWNLOADED_TO/version.txt" ]; then
-    ln_sf "$DOWNLOADED_TO/install.sh" "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME"
+    ln_sf "$DOWNLOADED_TO/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   fi
 
 }
@@ -1602,15 +1602,15 @@ install_version() {
 
 dfmgr_install() {
   user_installdirs
-  export PREFIX="dfmgr"
+  export SCRIPTS_PREFIX="dfmgr"
   export REPO="${DFMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export HOMEDIR="$CONF"
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 dfmgr_run_post() {
@@ -1632,15 +1632,15 @@ dfmgr_install_version() {
 
 dockermgr_install() {
   user_installdirs
-  export PREFIX="dockermgr"
+  export SCRIPTS_PREFIX="dockermgr"
   export REPO="${DFMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export HOMEDIR="$CONF"
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dockermgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dockermgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 dockermgr_run_post() {
@@ -1662,7 +1662,7 @@ dockermgr_install_version() {
 
 fontmgr_install() {
   system_installdirs
-  export PREFIX="fontmgr"
+  export SCRIPTS_PREFIX="fontmgr"
   export REPO="${FONTMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export HOMEDIR="$SHARE/CasjaysDev/fontmgr"
@@ -1670,8 +1670,8 @@ fontmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
   export FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 fontmgr_run_post() {
@@ -1696,7 +1696,7 @@ fontmgr_install_version() {
 
 iconmgr_install() {
   system_installdirs
-  export PREFIX="iconmgr"
+  export SCRIPTS_PREFIX="iconmgr"
   export REPO="${ICONMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export HOMEDIR="$SYSSHARE/CasjaysDev/iconmgr"
@@ -1704,8 +1704,8 @@ iconmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
   export ICONDIR="${ICONDIR:-$SHARE/icons}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 iconmgr_run_post() {
@@ -1736,7 +1736,7 @@ generate_icon_index() {
 
 pkmgr_install() {
   system_installdirs
-  export PREFIX="pkmgr"
+  export SCRIPTS_PREFIX="pkmgr"
   export REPO="${PKMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export HOMEDIR="$SYSSHARE/CasjaysDev/pkmgr"
@@ -1744,8 +1744,8 @@ pkmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
   export REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 pkmgr_run_postinst() {
@@ -1767,7 +1767,7 @@ pkmgr_install_version() {
 systemmgr_install() {
   requiresudo "true"
   system_installdirs
-  export PREFIX="systemmgr"
+  export SCRIPTS_PREFIX="systemmgr"
   export REPO="${SYSTEMMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export CONF="/usr/local/etc"
@@ -1776,8 +1776,8 @@ systemmgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 systemmgr_run_postinst() {
@@ -1798,7 +1798,7 @@ systemmgr_install_version() {
 
 thememgr_install() {
   system_installdirs
-  export PREFIX="thememgr"
+  export SCRIPTS_PREFIX="thememgr"
   export REPO="${THEMEMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export HOMEDIR="$SYSSHARE/CasjaysDev/thememgr"
@@ -1806,8 +1806,8 @@ thememgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
   export THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 generate_theme_index() {
@@ -1840,7 +1840,7 @@ thememgr_install_version() {
 
 wallpapermgr_install() {
   system_installdirs
-  export PREFIX="wallpapermgr"
+  export SCRIPTS_PREFIX="wallpapermgr"
   export REPO="${WALLPAPERMGRREPO}"
   export REPORAW="$REPO/$APPNAME/raw"
   export HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers"
@@ -1848,8 +1848,8 @@ wallpapermgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   export WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
+  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
 wallpapermgr_run_postinst() {
@@ -2011,7 +2011,7 @@ run_exit() {
 
 ##################################################################################################
 vdebug() {
-  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
+  for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
     HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
     printf_custom "4" $path
   done

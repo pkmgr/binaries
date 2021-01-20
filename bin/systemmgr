@@ -90,8 +90,8 @@ app_uninstall() {
   if [ -d "$HOMEDIR" ]; then
     printf_yellow "Removing $APPNAME from $HOMEDIR"
     devnull sudo rm -Rf "$HOMEDIR" &&
-      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/$PREFIX/$APPNAME" &&
-      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" &&
+      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
+      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
       devnull sudo find $BIN $SHARE $COMPDIR -xtype l -exec rm {} \;
     getexitcode "$APPNAME has been removed"
   else

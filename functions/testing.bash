@@ -710,7 +710,7 @@ __backupapp() {
   local logdir="$HOME/.local/log/backupapp"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${PREFIX:-apps}/"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${SCRIPTS_PREFIX:-apps}/"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
   __mkd "$backupdir" "$logdir"
@@ -1190,9 +1190,9 @@ user_installdirs() {
     SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
   INSTALLTYPE="user_installdirs"
-  PREFIX="${PREFIX:-dfmgr}"
+  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME}"
+  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
 }
 
 ###################### setup folders - system ######################
@@ -1244,27 +1244,27 @@ system_installdirs() {
     SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
   INSTALLTYPE="system_installdirs"
-  PREFIX="${PREFIX:-dfmgr}"
+  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME}"
+  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
 }
 
 user_installdirs
 ###################### dfmgr settings ######################
 dfmgr_install() {
   user_installdirs
-  PREFIX="dfmgr"
+  SCRIPTS_PREFIX="dfmgr"
   REPO="$DFMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$CONF"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1275,18 +1275,18 @@ dfmgr_install() {
 ###################### devenv settings ######################
 devenvmgr_install() {
   user_installdirs
-  PREFIX="devenv"
+  SCRIPTS_PREFIX="devenv"
   REPO="$DEVENVMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$CONF"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1296,19 +1296,19 @@ devenvmgr_install() {
 ###################### dockermgr settings ######################
 dockermgr_install() {
   user_installdirs
-  PREFIX="dockermgr"
+  SCRIPTS_PREFIX="dockermgr"
   REPO="$DFMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$CONF"
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/dockermgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dockermgr"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$PREFIX}/$APPNAME/raw/master/version.txt)"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1319,7 +1319,7 @@ dockermgr_install() {
 ###################### fontmgr settings ######################
 fontmgr_install() {
   system_installdirs
-  PREFIX="fontmgr"
+  SCRIPTS_PREFIX="fontmgr"
   REPO="$FONTMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SHARE/CasjaysDev/fontmgr"
@@ -1327,12 +1327,12 @@ fontmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1343,7 +1343,7 @@ fontmgr_install() {
 ###################### iconmgr settings ######################
 iconmgr_install() {
   system_installdirs
-  PREFIX="iconmgr"
+  SCRIPTS_PREFIX="iconmgr"
   REPO="$ICONMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SYSSHARE/CasjaysDev/iconmgr"
@@ -1351,12 +1351,12 @@ iconmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1367,7 +1367,7 @@ iconmgr_install() {
 ###################### pkmgr settings ######################
 pkmgr_install() {
   system_installdirs
-  PREFIX="pkmgr"
+  SCRIPTS_PREFIX="pkmgr"
   REPO="$PKMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SYSSHARE/CasjaysDev/pkmgr"
@@ -1375,11 +1375,11 @@ pkmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1391,7 +1391,7 @@ pkmgr_install() {
 systemmgr_install() {
   __requiresudo "true"
   system_installdirs
-  PREFIX="systemmgr"
+  SCRIPTS_PREFIX="systemmgr"
   REPO="$SYSTEMMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   CONF="/usr/local/etc"
@@ -1400,11 +1400,11 @@ systemmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1415,7 +1415,7 @@ systemmgr_install() {
 ###################### thememgr settings ######################
 thememgr_install() {
   system_installdirs
-  PREFIX="thememgr"
+  SCRIPTS_PREFIX="thememgr"
   REPO="$THEMEMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SYSSHARE/CasjaysDev/thememgr"
@@ -1423,11 +1423,11 @@ thememgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_SCRIPTS_PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1438,7 +1438,7 @@ thememgr_install() {
 ###################### wallpapermgr settings ######################
 wallpapermgr_install() {
   system_installdirs
-  PREFIX="wallpapermgr"
+  SCRIPTS_PREFIX="wallpapermgr"
   REPO="${WALLPAPERMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
   HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers"
@@ -1446,11 +1446,11 @@ wallpapermgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$PREFIX/$APPNAME"
-  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/array)"
-  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$PREFIX/list)"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$PREFIX-$APPNAME)"
+  DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="N/A"
   fi
@@ -1522,7 +1522,7 @@ __debug() {
   printf_info "System Manager Repo:       $SYSTEMMGRREPO"
   printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
   printf_info "InstallType:               $INSTALLTYPE"
-  printf_info "Prefix:                    $PREFIX"
+  printf_info "Prefix:                    $SCRIPTS_PREFIX"
   exit $?
 }
 
@@ -1584,7 +1584,7 @@ __load_debug() {
   printf_info "$(dirname $0)/$APPNAME"
   printf_custom "4" "ARGS: $DEBUGARGS"
   printf_custom "4" "FUNCTIONSDir: $DIR"
-  for path in USER:$USER HOME:$HOME PREFIX:$PREFIX CONF:$CONF SHARE:$SHARE \
+  for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX CONF:$CONF SHARE:$SHARE \
     HOMEDIR:$HOMEDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
     [ -z "$path" ] || printf_custom "4" $path
   done
@@ -1609,7 +1609,7 @@ __load_debug() {
 # unload_var_path() {
 #   unset APPDIR APPVERSION ARRAY BACKUPDIR BIN CASJAYSDEVSAPPDIR CASJAYSDEVSHARE COMPDIR CONF DEVENVMGR
 #   unset DFMGRREPO DOCKERMGRREPO FONTCONF FONTDIR FONTMGRREPO HOMEDIR ICONDIR ICONMGRREPO INSTALL_TYPE
-#   unset LIST PKMGRREPO PREFIX REPO REPODF REPORAW SHARE STARTUP SYSBIN SYSCONF SYSLOGDIR SYSSHARE SYSTEMMGRREPO
+#   unset LIST PKMGRREPO SCRIPTS_PREFIX REPO REPODF REPORAW SHARE STARTUP SYSBIN SYSCONF SYSLOGDIR SYSSHARE SYSTEMMGRREPO
 #   unset SYSSHARE SYSTEMMGRREPO SYSUPDATEDIR THEMEDIR THEMEMGRREPO USRUPDATEDIR WALLPAPERMGRREPO WALLPAPERS
 # }
 
