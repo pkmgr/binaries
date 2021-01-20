@@ -91,6 +91,7 @@ __notes() {
 }
 
 __server() {
+  kill $(pidof netcat) &>/dev/null
   printf_green "Launching server on port 65000"
   echo "Starting notes server on port 65000" >/tmp/notes_server.log
   rm -Rf /tmp/kill_notes
@@ -106,11 +107,7 @@ __client() {
   local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
   local _NOTES_PATH="$NOTES_PATH.loc"
   printf_green "Attempting to send message to $_SERVER"
-  if [ ${#} -eq 0 ]; then
-    if [ -p "/dev/stdin" ]; then (cat - && printf "\n") >"${_PATH}"; fi
-  else
-    printf "%s\n" "${*}" >"${_PATH}"
-  fi
+  printf "%s\n" "${@}" >"${_PATH}"
   cat $_PATH 2>/dev/null | netcat $_SERVER 65000 -c 2>/dev/null
   cat $_PATH 2>/dev/null >>${_NOTES_PATH}
   if [ "$(cat $_NOTES_PATH | wc -c)" = "$(cat $NOTES_PATH | wc -c)" ]; then
@@ -123,7 +120,10 @@ __client() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
-
+  -)
+   shift 1
+   printf "%s\n" "$(< /dev/stdin)" >>"${NOTES_PATH}"
+  ;;
 server)
   shift 1
   [ "$1" = "--help" ] && printf_help 'Usage: notes server  |  Start the server'
