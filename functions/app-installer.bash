@@ -354,11 +354,11 @@ backupapp() {
     echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
     echo -e "#################################\n" >>"$logdir/$myappname.log"
-    tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>&1
+    tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>>"$logdir/$myappname.log"
     echo -e "\n#################################" >>"$logdir/$myappname.log"
     echo -e "# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "#################################\n\n" >>"$logdir/$myappname.log"
-    #rm -Rf "$myappdir"
+    if [ -d "$myappdir/.git" ]; then rm -Rf "$myappdir"; fi
   fi
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
 }
