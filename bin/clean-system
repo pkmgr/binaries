@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -36,35 +36,35 @@ __options "$@"
 
 printf_red "Cleaning old logs"
 if [ "$1" = "" ]; then
-  requiresudo rm -f /etc/cron.*/*logrotate*
-  requiresudo logrotate -f /etc/logrotate.conf
-  requiresudo rm -Rf /var/log/bandwidth
-  requiresudo rm -Rf /var/log/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rf /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rf /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rf /var/log/*.gz
-  requiresudo rm -Rf /var/log/*/*.gz
-  requiresudo rm -Rf /var/log/*/*/*.gz
-  requiresudo rm -Rf /var/log/*.old
-  requiresudo rm -Rf /var/log/*/*.old
-  requiresudo rm -Rf /var/log/*/*/*.old
+  __requiresudo rm -f /etc/cron.*/*logrotate*
+  __requiresudo logrotate -f /etc/logrotate.conf
+  __requiresudo rm -Rf /var/log/bandwidth
+  __requiresudo rm -Rf /var/log/*.{0,1,2,3,4,5,6,7,8,9}
+  __requiresudo rm -Rf /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
+  __requiresudo rm -Rf /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
+  __requiresudo rm -Rf /var/log/*.gz
+  __requiresudo rm -Rf /var/log/*/*.gz
+  __requiresudo rm -Rf /var/log/*/*/*.gz
+  __requiresudo rm -Rf /var/log/*.old
+  __requiresudo rm -Rf /var/log/*/*.old
+  __requiresudo rm -Rf /var/log/*/*/*.old
 
   if [ -f "$HOME/.config/logrotate/config" ]; then
-    requiresudo logrotate -f "$HOME/.config/logrotate/config"
+    __requiresudo logrotate -f "$HOME/.config/logrotate/config"
   fi
 else
-  requiresudo rm -fv /etc/cron.*/*logrotate*
-  requiresudo logrotate -fv /etc/logrotate.conf
-  requiresudo rm -Rfv /var/log/bandwidth
-  requiresudo rm -Rfv /var/log/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rfv /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rfv /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
-  requiresudo rm -Rfv /var/log/*.gz
-  requiresudo rm -Rfv /var/log/*/*.gz
-  requiresudo rm -Rfv /var/log/*/*/*.gz
-  requiresudo rm -Rfv /var/log/*.old
-  requiresudo rm -Rfv /var/log/*/*.old
-  requiresudo rm -Rfv /var/log/*/*/*.old
+  __requiresudo rm -fv /etc/cron.*/*logrotate*
+  __requiresudo logrotate -fv /etc/logrotate.conf
+  __requiresudo rm -Rfv /var/log/bandwidth
+  __requiresudo rm -Rfv /var/log/*.{0,1,2,3,4,5,6,7,8,9}
+  __requiresudo rm -Rfv /var/log/*/*.{0,1,2,3,4,5,6,7,8,9}
+  __requiresudo rm -Rfv /var/log/*/*/*.{0,1,2,3,4,5,6,7,8,9}
+  __requiresudo rm -Rfv /var/log/*.gz
+  __requiresudo rm -Rfv /var/log/*/*.gz
+  __requiresudo rm -Rfv /var/log/*/*/*.gz
+  __requiresudo rm -Rfv /var/log/*.old
+  __requiresudo rm -Rfv /var/log/*/*.old
+  __requiresudo rm -Rfv /var/log/*/*/*.old
 
   if [ -f "$HOME/.config/logrotate/config" ]; then
     logrotate -fv "$HOME/.config/logrotate/config"

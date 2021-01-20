@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,8 +42,7 @@ __check_app wget
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-curl -LSsq "http://www.commandlinefu.com/commands/matching/$(echo "$@" |
-  sed 's/ /-/g')/$(echo -n "$@" | base64)/sort-by-votes/plaintext" | printf_readline "2"
+curl -LSsq "http://www.commandlinefu.com/commands/matching/$(echo "$@" | sed 's/ /-/g')/$(echo -n "$@" | base64)/sort-by-votes/plaintext" | printf_readline "2"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
