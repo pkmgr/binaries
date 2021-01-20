@@ -590,9 +590,7 @@ __git_update() {
   git -C "$myappdir" submodule update --init --recursive -q
   git -C "$myappdir" reset --hard -q
   if [ "$?" -ne "0" ]; then
-    __backupapp "$myappdir" "$myappdir" &&
-      rm_rf "$myappdir" &&
-      git clone -q "$repo" "$myappdir"
+    __backupapp "$APPDIR" "$APPNAME" && rm_rf "$myappdir" && git clone -q "$repo" "$myappdir"
   fi
 }
 #git_commit "dir"
@@ -704,7 +702,7 @@ cron_updater() {
 }
 
 ###################### backup functions ######################
-#backupapp "filename" "directory"
+#backupapp "directory" "filename"
 __backupapp() {
   local filename count backupdir rmpre4vbackup
   [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"

@@ -698,9 +698,7 @@ git_update() {
     devnull git reset --hard -q
   if [ "$?" -ne "0" ]; then
     cd "$HOME" || exit 1
-    backupapp "$APPDIR" "$APPNAME" &&
-      devnull rm_rf "$APPDIR" &&
-      git_clone "$repo" "$APPDIR"
+    backupapp "$APPDIR" "$APPNAME" && devnull rm_rf "$APPDIR" && git_clone "$repo" "$APPDIR"
   fi
 }
 
@@ -777,8 +775,7 @@ git_update() {
     devnull git reset --hard -q
   if [ "$?" -ne "0" ]; then
     cd "$HOME" || exit 1
-    backupapp &&
-      devnull git_clone "$repo" $APPDIR
+    backupapp && devnull git_clone "$repo" $APPDIR
   fi
 }
 
