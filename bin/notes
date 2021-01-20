@@ -104,13 +104,16 @@ __server() {
 __client() {
   local _SERVER="$NOTES_SERVER"
   local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
-  printf_green "Attempting to send $* to $_SERVER"
+  printf_green "Attempting to send message to $_SERVER"
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then (cat - && printf "\n") >"${_PATH}"; fi
   else
     printf "%s\n" "${*}" >"${_PATH}"
   fi
-  cat $_PATH 2>/dev/null | netcat -c $_SERVER 65000
+  cat $_PATH 2>/dev/null | netcat -c $_SERVER 65000 2>/dev/null
+  if [ "$(cat $_PATH | wc -c)" = "$(cat $NOTES_PATH | wc -c)" ]; then
+    cat $_PATH 2>/dev/null >>${NOTES_PATH}
+  fi
   rm -Rf "$_PATH"
   return "$?"
 }
@@ -130,16 +133,17 @@ client)
   shift 1
   [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
   [ -n "$NOTES_SERVER" ] || printf_help "Please set NOTES_SERVER variable to your server"
-  __client "$@"
+  __client "$@" 2>/dev/null
   ;;
 
 open)
-  __notes "$@"
+  shift 1
+  __notes "$@" 2>/dev/null
   ;;
 
 *)
   if pidof netcat; then
-    __client "$@"
+    __client "$@" 2>/dev/null
   else
     __notes "$@"
   fi
