@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -34,17 +34,17 @@ dockermgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if cmd_exists jq; then
+if __cmd_exists jq; then
   API="$(curl -s "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __init() {
-  if ! cmd_exists docker; then
+  if ! __cmd_exists docker; then
     printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"
-    devnull sudo bash -c "$(curl -fsSL https://get.docker.com)" || printf_exit "Installation has failed"
+    __devnull sudo bash -c "$(curl -fsSL https://get.docker.com)" || printf_exit "Installation has failed"
   fi
   mkdir -p "$HOME/.docker"
   if grep -q docker /etc/group; then
@@ -123,7 +123,7 @@ __run_main() {
 
 __run_update() {
   if [ "$*" != "" ]; then
-    install "$@"
+    __install "$@"
   else
     for d in $(ls "$HOMEDIR"); do
       __install "$d"
@@ -224,7 +224,7 @@ update)
   __run_update "$@"
   ;;
 
-help | --help)
+help)
   __help
   ;;
 
@@ -240,9 +240,8 @@ list)
 
 *)
   if ! cmd_exists docker; then
-    printf_question "Docker is not installed: would you like to install it?"
-    read -r -n 1 -s install && echo
-    if [[ $install == "y" || $install == "Y" ]]; then
+    printf_read_question "Docker is not installed: would you like to install it?"
+    if printf_answer_yes; then
       __init
     else
       printf_exit "User cancelled"
