@@ -133,6 +133,10 @@ client)
   __client "$@"
   ;;
 
+open)
+  __notes "$@"
+  ;;
+
 *)
   if pidof netcat; then
     __client "$@"
