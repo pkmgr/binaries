@@ -104,6 +104,7 @@ __server() {
 __client() {
   local _SERVER="$NOTES_SERVER"
   local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
+  local _NOTES_PATH="$NOTES_PATH.loc"
   printf_green "Attempting to send message to $_SERVER"
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then (cat - && printf "\n") >"${_PATH}"; fi
@@ -111,8 +112,9 @@ __client() {
     printf "%s\n" "${*}" >"${_PATH}"
   fi
   cat $_PATH 2>/dev/null | netcat -c $_SERVER 65000 2>/dev/null
-  if [ "$(cat $_PATH | wc -c)" = "$(cat $NOTES_PATH | wc -c)" ]; then
-    cat $_PATH 2>/dev/null >>${NOTES_PATH}
+  cat $_PATH 2>/dev/null >>${_NOTES_PATH}
+  if [ "$(cat $_NOTES_PATH | wc -c)" = "$(cat $NOTES_PATH | wc -c)" ]; then
+    cat $_NOTES_PATH 2>/dev/null >>${NOTES_PATH}
   fi
   rm -Rf "$_PATH"
   return "$?"
