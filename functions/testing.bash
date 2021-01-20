@@ -527,15 +527,15 @@ __cd_into() {
 
 ###################### url functions ######################
 __curl() {
-  __devnull2 curl --disable -LSs --connect-timeout 3 --retry 0 "$@"
+  __devnull2 curl --disable -LSfs --connect-timeout 3 --retry 0 "$@"
   __setexitstatus
 }
-
+#appversion "urlToVersion"
 __appversion() { __curl "${1:-REPORAW/master/version.txt}" || echo 011920210931-git; }
 #curl_header "site" "code"
 __curl_header() { curl --disable -LSIs --connect-timeout 3 --retry 0 --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
-__curl_download() { curl --disable -LSs --connect-timeout 3 --retry 0 "$1" -o "$2"; }
+__curl_download() { curl --disable --create-dirs -LSs --connect-timeout 3 --retry 0 "$1" -o "$2"; }
 #curl_version "url"
 __curl_version() { curl --disable -LSs --connect-timeout 3 --retry 0 "${1:-$REPORAW/master/version.txt}"; }
 #curl_upload "file" "url"

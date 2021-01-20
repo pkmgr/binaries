@@ -34,8 +34,8 @@ dockermgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if __cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+if __am_i_online && __cmd_exists jq; then
+  API="$(__curl "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -44,24 +44,24 @@ __init() {
   if ! __cmd_exists docker; then
     printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"
-    __devnull sudo bash -c "$(curl -fsSL https://get.docker.com)" || printf_exit "Installation has failed"
+    __requiresudo bash -c "$(__curl https://get.docker.com)" || printf_exit "Installation has failed"
   fi
   mkdir -p "$HOME/.docker"
   if grep -q docker /etc/group; then
-    sudo usermod -aG docker "$USER"
-    sudo chown -R "$USER":"$USER" "$HOME/.docker"
-    sudo chmod -R g+rwx "$HOME/.docker"
+    __requiresudo usermod -aG docker "$USER"
+    __requiresudo chown -R "$USER":"$USER" "$HOME/.docker"
+    __requiresudo chmod -R g+rwx "$HOME/.docker"
   fi
 
   if [ ! -f /etc/systemd/system/docker.service.d/docker.conf ]; then
-    sudo mkdir -p /etc/systemd/system/docker.service.d
-    devnull2 cat <<EOF | sudo tee /etc/systemd/system/docker.service.d/docker.conf
+    __requiresudo mkdir -p /etc/systemd/system/docker.service.d
+    devnull2 cat <<EOF | __requiresudo tee /etc/systemd/system/docker.service.d/docker.conf
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
 EOF
   fi
-  devnull sudo systemctl enable docker --now
+  __requiresudo systemctl enable docker --now
   if systemctl status docker | grep -q active 2>/dev/null; then
     printf_green "docker installation has completed"
   else
@@ -81,15 +81,15 @@ __install() {
   for container in ${LISTARRAY[*]}; do
     APPNAME="$1"
     if [ -d "$HOMEDIR/$APPNAME" ]; then
-      sudo git -C "$HOMEDIR/$APPNAME" reset --hard -q
-      sudo git -C "$HOMEDIR/$APPNAME" pull -q
+      __requiresudo git -C "$HOMEDIR/$APPNAME" reset --hard -q
+      __requiresudo git -C "$HOMEDIR/$APPNAME" pull -q
     else
-      sudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
+      __requiresudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
     fi
-    sudo chmod -Rf 755 "$HOMEDIR/$APPNAME/install.sh"
-    sudo -HE bash "$HOMEDIR/$APPNAME/install.sh"
+    __requiresudo chmod -Rf 755 "$HOMEDIR/$APPNAME/install.sh"
+    __requiresudo -HE bash "$HOMEDIR/$APPNAME/install.sh"
     if [ -d "$HOMEDIR/$APPNAME/os" ]; then
-      sudo cp -Rf "$HOMEDIR/$APPNAME/os/." /
+      __requiresudo cp -Rf "$HOMEDIR/$APPNAME/os/." /
     fi
   done
 }
@@ -220,7 +220,7 @@ log)
 
 update)
   shift
-  pkmg update docker
+  pkmgr update docker
   __run_update "$@"
   ;;
 
@@ -240,7 +240,7 @@ list)
 
 *)
   if ! cmd_exists docker; then
-    printf_read_question "Docker is not installed: would you like to install it?"
+    printf_read_question "Docker is not installed: would you like to install it?" "1"
     if printf_answer_yes; then
       __init
     else
