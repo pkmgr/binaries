@@ -91,14 +91,14 @@ __notes() {
 }
 
 __server() {
-  kill $(pidof netcat) &>/dev/null
+  kill "$(pidof netcat)" &>/dev/null
   printf_green "Launching server on port 65000"
   echo "Starting notes server on port 65000" >/tmp/notes_server.log
   rm -Rf /tmp/kill_notes
-  while true; do
-    if [ -f /tmp/kill_notes ]; then rm -Rf /tmp/kill_notes && echo shutdown >>/tmp/notes_server.log && break; fi
-    netcat -l -p 65000 >>"$NOTES_PATH" 2>>/tmp/notes_server.log
+  while :; do
+    netcat -l -p 65000 -c 'notes -' 2>>/tmp/notes_server.log
     echo "Message sent" >>/tmp/notes_server.log
+    if [ -f /tmp/kill_notes ]; then rm -Rf /tmp/kill_notes && echo shutdown >>/tmp/notes_server.log && break; fi
   done
 }
 
@@ -120,13 +120,14 @@ __client() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
-  -)
-   shift 1
-   printf "%s\n" "$(< /dev/stdin)" >>"${NOTES_PATH}"
+-)
+  shift 1
+  printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
   ;;
 server)
   shift 1
   [ "$1" = "--help" ] && printf_help 'Usage: notes server  |  Start the server'
+  if [ "$1" = "--status" ]; then netstatg 65000 && printf_exit "Server is running"; else printf_exit "Server is stopped"; fi
   if [ "$1" = "--kill" ]; then touch /tmp/kill_notes && printf_help "Starting shutdown"; fi
   __server "$@" 2>/tmp/notes_server.log &
   ;;
