@@ -39,7 +39,7 @@ NOTE_FOLDER="$(date +%Y)"
 NOTES_FILE="$(date +%m).txt"
 NOTES_PATH="${NOTES_DIRECTORY}/$NOTE_FOLDER/${NOTES_FILE}"
 NOTES_EDITOR="${NOTES_EDITOR:-vim}"
-
+NOTES_SERVER="${NOTES_SERVER:-localhost}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mkdir -p ${NOTES_DIRECTORY}/$NOTE_FOLDER
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -75,20 +75,73 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
 fi
 
+__notes() {
+  if [ ${#} -eq 0 ]; then
+    if [ -p "/dev/stdin" ]; then
+      (
+        cat
+        printf "\n"
+      ) >>"${NOTES_PATH}"
+    else
+      eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null
+    fi
+  else
+    printf "%s\n" "${*}" >>"${NOTES_PATH}"
+  fi
+}
+
+__server() {
+  printf_green "Launching server on port 65000"
+  echo "Starting notes server on port 65000" >/tmp/notes_server.log
+  rm -Rf /tmp/kill_notes
+  while true; do
+    if [ -f /tmp/kill_notes ]; then rm -Rf /tmp/kill_notes && echo shutdown >>/tmp/notes_server.log && break; fi
+    netcat -l -p 65000 >>"$NOTES_PATH" 2>>/tmp/notes_server.log
+    echo "Message sent" >>/tmp/notes_server.log
+  done
+}
+
+__client() {
+  local _SERVER="$NOTES_SERVER"
+  local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
+  printf_green "Attempting to send $* to $_SERVER"
+  if [ ${#} -eq 0 ]; then
+    if [ -p "/dev/stdin" ]; then (cat - && printf "\n") >"${_PATH}"; fi
+  else
+    printf "%s\n" "${*}" >"${_PATH}"
+  fi
+  cat $_PATH 2>/dev/null | netcat -c $_SERVER 65000
+  rm -Rf "$_PATH"
+  return "$?"
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ ${#} -eq 0 ]; then
-  if [ -p "/dev/stdin" ]; then
-    (
-      cat
-      printf "\n"
-    ) >>"${NOTES_PATH}"
+case "$1" in
+
+server)
+  shift 1
+  [ "$1" = "--help" ] && printf_help 'Usage: notes server  |  Start the server'
+  if [ "$1" = "--kill" ]; then touch /tmp/kill_notes && printf_help "Starting shutdown"; fi
+  __server "$@" 2>/tmp/notes_server.log &
+  ;;
+
+client)
+  shift 1
+  [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
+  [ -n "$NOTES_SERVER" ] || printf_help "Please set NOTES_SERVER variable to your server"
+  __client "$@"
+  ;;
+
+*)
+  if pidof netcat; then
+    __client "$@"
   else
-    eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null
+    __notes "$@"
   fi
-else
-  printf "%s\n" "${*}" >>"${NOTES_PATH}"
-fi
+  ;;
+
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
