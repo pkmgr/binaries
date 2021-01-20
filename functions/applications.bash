@@ -888,7 +888,7 @@ user_installdirs() {
     SYSCONF="/usr/local/etc"
     SYSSHARE="/usr/local/share"
     SYSLOGDIR="/usr/local/log"
-    BACKUPDIR="$HOME/.local/backups/dotfiles"
+    BACKUPDIR="$HOME/.local/backups"
     COMPDIR="$HOME/.local/share/bash-completion/completions"
     THEMEDIR="$SHARE/themes"
     ICONDIR="$SHARE/icons"
@@ -911,7 +911,7 @@ user_installdirs() {
     SYSCONF="$HOME/.config"
     SYSSHARE="$HOME/.local/share"
     SYSLOGDIR="$HOME/.local/log"
-    BACKUPDIR="$HOME/.local/backups/dotfiles"
+    BACKUPDIR="$HOME/.local/backups"
     COMPDIR="$HOME/.local/share/bash-completion/completions"
     THEMEDIR="$SHARE/themes"
     ICONDIR="$SHARE/icons"
@@ -933,7 +933,7 @@ user_installdirs() {
 system_installdirs() {
   APPNAME="${APPNAME:-installer}"
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
-    BACKUPDIR="$HOME/.local/backups/dotfiles"
+    BACKUPDIR="$HOME/.local/backups"
     BIN="/usr/local/bin"
     CONF="/usr/local/etc"
     SHARE="/usr/local/share"
@@ -956,7 +956,7 @@ system_installdirs() {
   else
     INSTALL_TYPE=system
     HOME="${HOME:-/home/$WHOAMI}"
-    BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
+    BACKUPDIR="${BACKUPS:-$HOME/.local/backups}"
     BIN="$HOME/.local/bin"
     CONF="$HOME/.config"
     SHARE="$HOME/.local/share"

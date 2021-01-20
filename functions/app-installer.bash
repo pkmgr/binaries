@@ -1219,7 +1219,7 @@ user_installdirs() {
     export SYSCONF="/usr/local/etc"
     export SYSSHARE="/usr/local/share"
     export SYSLOGDIR="/usr/local/log"
-    export BACKUPDIR="$HOME/.local/backups/dotfiles"
+    export BACKUPDIR="$HOME/.local/backups"
     export COMPDIR="$HOME/.local/share/bash-completion/completions"
     export THEMEDIR="$SHARE/themes"
     export ICONDIR="$SHARE/icons"
@@ -1243,7 +1243,7 @@ user_installdirs() {
     export SYSCONF="$HOME/.config"
     export SYSSHARE="$HOME/.local/share"
     export SYSLOGDIR="$HOME/.local/log"
-    export BACKUPDIR="$HOME/.local/backups/dotfiles"
+    export BACKUPDIR="$HOME/.local/backups"
     export COMPDIR="$HOME/.local/share/bash-completion/completions"
     export THEMEDIR="$SHARE/themes"
     export ICONDIR="$SHARE/icons"
@@ -1270,7 +1270,7 @@ system_installdirs() {
     #printf_red "\t\tInstalling as root ?\n"
     export INSTALL_TYPE=system
     export HOME="/usr/local/share/CasjaysDev/root"
-    export BACKUPDIR="$HOME/.local/backups/dotfiles"
+    export BACKUPDIR="$HOME/.local/backups"
     export BIN="/usr/local/bin"
     export CONF="/usr/local/etc"
     export SHARE="/usr/local/share"
@@ -1296,7 +1296,7 @@ system_installdirs() {
   else
     export INSTALL_TYPE=system
     export HOME="${HOME:-/home/$WHOAMI}"
-    export BACKUPDIR="${BACKUPS:-$HOME/.local/backups/dotfiles}"
+    export BACKUPDIR="${BACKUPS:-$HOME/.local/backups}"
     export BIN="$HOME/.local/bin"
     export CONF="$HOME/.config"
     export SHARE="$HOME/.local/share"
