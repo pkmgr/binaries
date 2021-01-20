@@ -90,66 +90,65 @@ __notes() {
   fi
 }
 
-__server() {
-  kill "$(pidof netcat)" &>/dev/null
-  printf_green "Launching server on port 65000"
-  echo "Starting notes server on port 65000" >/tmp/notes_server.log
-  rm -Rf /tmp/kill_notes
-  while :; do
-    netcat -l -p 65000 -c 'notes -' 2>>/tmp/notes_server.log
-    echo "Message sent" >>/tmp/notes_server.log
-    if [ -f /tmp/kill_notes ]; then rm -Rf /tmp/kill_notes && echo shutdown >>/tmp/notes_server.log && break; fi
-  done
-}
+# __server() {
+#   if [ "$1" = "--help" ]; then printf_help 'Usage: notes server  |  Start the server'; fi
+#   if [ "$1" = "--status" ]; then netstatg 65000 && printf_exit "Server is running" || printf_exit "Server is stopped"; fi
+#   if [ "$1" = "--kill" ]; then touch /tmp/kill_notes && printf_help "Starting shutdown"; fi
 
-__client() {
-  local _SERVER="$NOTES_SERVER"
-  local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
-  local _NOTES_PATH="$NOTES_PATH.loc"
-  printf_green "Attempting to send message to $_SERVER"
-  printf "%s\n" "${@}" >"${_PATH}"
-  cat $_PATH 2>/dev/null | netcat $_SERVER 65000 -c 2>/dev/null
-  cat $_PATH 2>/dev/null >>${_NOTES_PATH}
-  if [ "$(cat $_NOTES_PATH | wc -c)" = "$(cat $NOTES_PATH | wc -c)" ]; then
-    cat $_NOTES_PATH 2>/dev/null >>${NOTES_PATH} &>/dev/null
-  fi
-  rm -Rf "$_PATH"
-  return "$?"
-}
+#   kill "$(pidof netcat)" &>/dev/null
+#   printf_green "Launching server on port 65000"
+#   netstatg 65000 && printf_green "Server is running" || printf_exit "Server is stopped"
+#   echo "Starting notes server on port 65000" >/tmp/notes_server.log
+#   rm -Rf /tmp/kill_notes
+#   while :; do
+#     netcat -l 65000 | notes - 2>>/tmp/notes_server.log
+#     echo "Message sent" >>/tmp/notes_server.log
+#     if [ -f /tmp/kill_notes ]; then rm -Rf /tmp/kill_notes && echo shutdown >>/tmp/notes_server.log && break; fi
+#   done
+# }
+
+# __client() {
+#   local _SERVER="$NOTES_SERVER"
+#   local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
+#   local _NOTES_PATH="$NOTES_PATH.loc"
+#   printf_green "Attempting to send message to $_SERVER"
+#   printf "%s\n" "${@}" >"${_PATH}"
+#   cat $_PATH 2>/dev/null | netcat $_SERVER 65000 -c 2>/dev/null
+#   cat $_PATH 2>/dev/null >>${_NOTES_PATH}
+#   if [ "$(cat $_NOTES_PATH | wc -c)" = "$(cat $NOTES_PATH | wc -c)" ]; then
+#     cat $_NOTES_PATH 2>/dev/null >>${NOTES_PATH} &>/dev/null
+#   fi
+#   rm -Rf "$_PATH"
+#   return "$?"
+# }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
--)
-  shift 1
-  printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
-  ;;
-server)
-  shift 1
-  [ "$1" = "--help" ] && printf_help 'Usage: notes server  |  Start the server'
-  if [ "$1" = "--status" ]; then netstatg 65000 && printf_exit "Server is running"; else printf_exit "Server is stopped"; fi
-  if [ "$1" = "--kill" ]; then touch /tmp/kill_notes && printf_help "Starting shutdown"; fi
-  __server "$@" 2>/tmp/notes_server.log &
-  ;;
+# server)
+#   shift 1
+#   __server "$@" 2>/tmp/notes_server.log &
+#   ;;
 
-client)
-  shift 1
-  [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
-  [ -n "$NOTES_SERVER" ] || printf_help "Please set NOTES_SERVER variable to your server"
-  __client "$@" 2>/dev/null
-  ;;
+# client)
+#   shift 1
+#   [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
+#   [ -n "$NOTES_SERVER" ] || printf_help "Please set NOTES_SERVER variable to your server"
+#   __client "$@" 2>/dev/null
+#   ;;
 
 open)
   shift 1
   __notes "$@" 2>/dev/null
   ;;
 
+-)
+  shift 1
+  printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
+  ;;
+
 *)
-  if pidof netcat; then
-    __client "$@" 2>/dev/null
-  else
-    __notes "$@"
-  fi
+  __notes "$@"
   ;;
 
 esac
