@@ -84,8 +84,6 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-cd "$HOME" || exit 1
-
 if [ -f "$HOME/.local/bin/myterminal" ]; then
   devnull2 "HOME/.local/bin/myterminal" "$@"
 else
