@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# _trash_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for trash
+
+_trash_completions() {
+  local cur prev words cword
+  local prefix=trash
+  local ARRAY="--help ls rs rm rm empty"
+  local LIST="$(ls ${TRASH_DIR:-$HOME/.local/share/Trash})"
+
+  local cur prev words cword split
+  _init_completion -s || return
+
+  list_all() {
+    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+  }
+
+  local special i
+  for ((i = 1; i < ${#words[@]} - 1; i++)); do
+    if [[ ${words[i]} == @(rm|ls) ]]; then
+      special=${words[i]}
+      break
+    fi
+  done
+
+  if [[ -v special ]]; then
+    if [[ $cur == @(*/|[.~])* && \
+      $special == @(rm|ls) ]]; then
+      list_all
+      return
+    fi
+
+    case $special in
+    ls | rs)
+      list_all
+      return
+      ;;
+    rm)
+      _filedir
+      return
+      ;;
+    empty)
+      return 0
+      ;;
+    esac
+  fi
+
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    ;;
+  esac
+
+  $split && return
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _trash_completions -o default trash
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

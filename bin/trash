@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version     : 010920210727-git
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : trash
+# @Created     : Thurs, Jan 21, 2021, 00:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Send files and folders to the trash can
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#fileext="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)"
+
+TrashDir="${TRASH_DIR:-$HOME/.local/share/Trash}"
+RestoreDir="${RESTORE_DIR}"
+mkd "$TrashDir/files/" "$TrashDir/info"
+
+get_name() {
+  dirname="$(dirname "$(echo $PWD/$1)" 2>/dev/null || return 1)"
+  files=$(basename "$1")
+  while [ "$files" ]; do
+    file=${files%%;*}
+    if [ "$files" = "$file" ]; then
+      files=''
+    else
+      files="${files#*;}"
+    fi
+    echo "$dirname/$file"
+  done
+}
+
+filename_trash() { get_name "$1" | sed 's#/#_-_#g' | sed 's#"##g'; }
+filename_restore() { grep Path "$TrashDir/info/$(basename $1).trashinfo" 2>/dev/null | sed 's#Path=##g' | sed 's#"##g' || return 1; }
+
+create_trash_file() {
+  cat <<EOF >"$TrashDir/info/$(filename_trash "$1")-$(basename "$1").trashinfo"
+[Trash Info]
+Path=$(get_name "$1")
+DeletionDate="$(date +'%Y-%m-%d-T%H:%M:%S')"
+EOF
+}
+
+trash-put() {
+  for t in "$@"; do
+    file="$t"
+    create_trash_file "$file"
+    if [ -d "$file" ]; then
+      mkd "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+      rsync -a "$file/." "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+    else
+      rsync -a "$file" "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+    fi
+    rm -Rf "$file"
+  done
+}
+
+trash-restore() {
+  for r in "$@"; do
+    local file="$(basename $(echo $r))"
+    local restorefile="$(filename_restore "$r")"
+    #echo "file:$file restore:$restorefile restorename:$restorename restoredir:$restoredir"
+    if [ -e "$TrashDir/files/$file" ]; then
+      local restorename="$(basename $(echo "$restorefile" | sed 's#^/##g' | sed 's#_-_#/#g'))"
+      local restoredir="$RestoreDir"
+      mkd "$restoredir/$(dirname "$restorename")"
+      if [ -d "$TrashDir/files/$file" ]; then
+        rsync -a "$TrashDir/files/$file/." "$restoredir/$restorefile/"
+      else
+        rsync -a "$TrashDir/files/$file" "$restoredir/$restorefile"
+      fi
+      [ "$?" = 0 ] && rm -Rf "$TrashDir/files/$file" "$TrashDir/info/$file.trashinfo" &&
+        printf_green "Restored: $file to $restoredir/$restorefile" ||
+        printf_exit "Failed to restore $file to $restoredir/$restorefile"
+    else
+      printf_red "$file doesn't exist"
+    fi
+  done
+}
+
+trash-list() {
+  if [ "$(ls "$TrashDir/files/" | wc -l)" = 0 ]; then
+    printf_green "There are no files in your Trash"
+  else
+    if [ $# = 0 ]; then
+      find "$TrashDir/files"/* -type d 2>/dev/null | printf_readline "2" || return 1
+      find "$TrashDir/files"/ -type f 2>/dev/null | printf_readline "3" || return 1
+    else
+      for ls in "$@"; do
+        find "$TrashDir/files"/ -name $ls 2>/dev/null | printf_readline "3" || return 1
+      done
+    fi
+  fi
+}
+
+trash-empty() {
+  countfiles="$(find "$TrashDir/files"/* -type f 2>/dev/null | wc -l)"
+  countfolders="$(find "$TrashDir/files"/* -type d 2>/dev/null | wc -l)"
+  rm -Rf "$TrashDir/files/"
+  rm -Rf "$TrashDir/info"
+  mkd "$TrashDir/files/" "$TrashDir/info"
+  printf_yellow "Deleted $countfiles file[s] and $countfolders folder[s] from your system"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute function
+
+case $1 in
+--help | -h)
+  __help
+  ;;
+
+list | ls)
+  shift 1
+  trash-list "$@" 2>/dev/null
+  ;;
+
+restore | rs)
+  shift 1
+  trash-restore "$@" #2>/dev/null
+  ;;
+
+delete | rm)
+  shift 1
+  trash-put "$@" #2>/dev/null
+  ;;
+
+empty)
+  shift 1
+  trash-empty #2>/dev/null
+  ;;
+
+*)
+  [ $# -eq 0 ] && __help
+  trash-put "$@" 2>/dev/null
+  ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
