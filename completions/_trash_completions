@@ -9,7 +9,7 @@ _trash_completions() {
   local cur prev words cword
   local prefix=trash
   local ARRAY="--help ls rs rm rm empty"
-  local LIST="$(ls ${TRASH_DIR:-$HOME/.local/share/Trash})"
+  local LIST="$(ls ${TRASH_DIR:-$HOME/.local/share/Trash/files/})"
 
   local cur prev words cword split
   _init_completion -s || return
@@ -20,7 +20,7 @@ _trash_completions() {
 
   local special i
   for ((i = 1; i < ${#words[@]} - 1; i++)); do
-    if [[ ${words[i]} == @(rm|ls) ]]; then
+    if [[ ${words[i]} == @(rs|ls) ]]; then
       special=${words[i]}
       break
     fi
@@ -28,7 +28,7 @@ _trash_completions() {
 
   if [[ -v special ]]; then
     if [[ $cur == @(*/|[.~])* && \
-      $special == @(rm|ls) ]]; then
+      $special == @(rs|ls) ]]; then
       list_all
       return
     fi
