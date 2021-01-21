@@ -97,7 +97,7 @@ gitconfig_local() {
 g   = log --graph --pretty=custom
 l   = log --pretty=custom
 p   = push
-s = "!f(){ config status; };f"
+s   = status
 EOF
 }
 
@@ -138,9 +138,9 @@ git_init() {
     read -r -n 80 name
     printf_question "Enter email address:"
     read -r -n 100 email
-    _stow config --local include.path $gitdir/gitconfig.local
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
+    _stow config --local include.path $gitdir/gitconfig.local
     _stow add -f ~/.gitignore
     _stow commit -q -m "'🏠🐜❗ Added .gitignore 🏠🐜❗'"
   fi
@@ -216,7 +216,7 @@ case "$1" in
     _stow log --pretty=custom "$@"
     ;;
 
-  status | l)
+  status | s)
     shift 1
     _stow status "$@"
     ;;
@@ -228,6 +228,7 @@ restore)
 
 add | stow)
   shift 1
+  "'🏠🐜❗ Adding files to repo - this may take a moment 🏠🐜❗'"
   declare -a args="$*"
   for f in ${args[*]}; do
     if [ -L "$f" ]; then
@@ -245,6 +246,7 @@ add | stow)
 
 commit)
   shift 1
+  printf_green "'🏠🐜❗ Commiting files to repo 🏠🐜❗'"
   _stow commit -q -m "'🏠🐜❗ Added files to repo 🏠🐜❗'"
   ;;
 

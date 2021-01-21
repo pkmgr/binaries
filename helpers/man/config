@@ -8,7 +8,7 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "2" "A git utility for keeping your dotfiles un a git repo"
+printf_help "2" "A git utility for keeping your dotfiles in a git repo"
 printf_help "4" "usage: config init add commit push help set remote checkout"
 printf_help "4" " "
 printf_help "4" "These are common config commands used in various situations:"
