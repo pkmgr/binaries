@@ -1617,8 +1617,8 @@ dfmgr_install() {
 dfmgr_run_post() {
   dfmgr_install
   run_postinst_global
-  replace "$APPDIR" "replacehome" "$HOME"
-  replace "$APPDIR" "/home/jason" "$HOME"
+  [ -d "$APPDIR" ] && replace "$APPDIR" "replacehome" "$HOME"
+  [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
 }
 
 dfmgr_install_version() {
@@ -1648,7 +1648,7 @@ dockermgr_install() {
 dockermgr_run_post() {
   dockermgr_install
   run_postinst_global
-  replace "$APPDIR" "/home/jason" "$HOME"
+  [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
 }
 
 dockermgr_install_version() {
