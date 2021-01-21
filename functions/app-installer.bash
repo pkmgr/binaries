@@ -1617,6 +1617,7 @@ dfmgr_install() {
 dfmgr_run_post() {
   dfmgr_install
   run_postinst_global
+  replace "$APPDIR" "replacehome" "$HOME"
   replace "$APPDIR" "/home/jason" "$HOME"
 }
 
@@ -1870,8 +1871,6 @@ wallpaper_install_version() {
 
 run_postinst_global() {
   if [ ! -d "$DOWNLOADED_TO" ] || [ ! -L "$DOWNLOADED_TO" ]; then ln_sf "$APPDIR" "$DOWNLOADED_TO"; fi
-  #  OIFS="$IFS"
-  #  IFS=$'\n'
   if [[ "$APPNAME" = "scripts" ]] || [[ "$APPNAME" = "installer" ]]; then
     # Only run on the scripts install
     ln_rm "$SYSBIN/"
@@ -1898,7 +1897,6 @@ run_postinst_global() {
       ln_sf "$DOWNLOADED_TO/bin/$app" "$SYSBIN/$app"
     done
     cmd_exists updatedb && updatedb || return 0
-
   else
     # Run on everything else
     if [ "$APPDIR" != "$DOWNLOADED_TO" ]; then
