@@ -389,6 +389,7 @@ else
 fi; }
 urlverify() { urlcheck "$1" || urlinvalid "$1"; }
 symlink() { ln_sf "$1" "$2"; }
+rm_link() { unlink "$1"; }
 
 ##################################################################################################
 __am_i_online() {
@@ -1900,7 +1901,7 @@ run_postinst_global() {
   else
     # Run on everything else
     if [ "$APPDIR" != "$DOWNLOADED_TO" ]; then
-      mkd "$APPDIR"
+      [ -d "$APPDIR" ] || mkd "$APPDIR"
       cp_rf "$DOWNLOADED_TO/etc/." "$APPDIR/"
     fi
 
