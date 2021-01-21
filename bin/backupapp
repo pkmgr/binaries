@@ -30,12 +30,8 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_installdirs
 __options "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ $# -lt 2 ]; then printf_red "Not enough arguments given!" && __help; fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
 
@@ -44,79 +40,56 @@ __require_app tar
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
-backupapp() {
+declare filename count backupdir rmpre4vbackup _APPNAME _APPDIRS
+if [ -n "$1" ]; then _APPNAME="$1" && shift 1; else printf_green "Needs a name" && __help; fi
+if [ -n "$*" ]; then _APPDIRS="$*" && shift; else printf_green "Needs a directory" && __help; fi
 
-  local filename count backupdir rmpre4vbackup myappdirtmp
-  [ ! -z "$1" ] && local myappname="$1" && shift || local myappname="$APPNAME"
-  [ ! -z "$2" ] && local myappdir="$*" || local myappdir="$APPDIR"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+main() {
+  local appname="$_APPNAME"
+  local appdir="$_APPDIRS"
   local logdir="$HOME/.local/log/backups"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
-  local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${SCRIPTS_PREFIX:-dfmgr}"
+  local filename="$appname-$curdate.tar.gz"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/apps"
   mkdir -p "$backupdir" "$logdir"
 
-  _run_header() {
-    printf_green "Starting backup"
-    echo -e "##################################################################" >>"$logdir/$myappname.log"
-    echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
-    echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
-    echo -e "##################################################################\n" >>"$logdir/$myappname.log"
-  }
+  printf_green "Starting backup"
+  echo -e " ##################################################################" >>"$logdir/$appname.log"
+  echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
+  echo -e "# Backing up $appdir" >>"$logdir/$appname.log"
+  echo -e "##################################################################\n" >>"$logdir/$appname.log"
 
-  _run_footer() {
-    echo -e "\n##################################################################" >>"$logdir/$myappname.log"
-    echo -e "#Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
-    echo -e "##################################################################\n\n" >>"$logdir/$myappname.log"
-    if [ "$exitCode" = 0 ]; then
-      printf_green "The backup has completed successfully."
-      printf_green "Saved to: $backupdir/$filename"
-    else
-      printf_red "The backup has failed to complete."
-      printf_red "More information can be found in the log file:"
-      printf_exit "$logdir/$myappname.log"
-    fi
-  }
+  tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1
+  exitCode=$?
 
-  _run_backup() {
-    tar cfzv "$backupdir/$filename" $backupfiles >>"$logdir/$myappname.log" 2>>"$logdir/$myappname.log" || return 1
-    exitCode=$?
-  }
-
-  _cleanup() {
-    local leaveCount=5
-    local fileCount=$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)
-    local removeoldbackups=$(ls $backupdir/$myappname*.tar.gz 2>/dev/null)
-
-    tailCount=$((fileCount - leaveCount))
-    ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
-  }
-
-  check_file_dir() {
-    if [ -L "$1" ] || [ -f "$1" ] || [ -d "$1" ]; then
-      return 0
-    else
-      return 1
-    fi
-  }
-
-  for d in $myappdir; do
-    check_file_dir "$d" && backupfiles+="$d " || backupfiles+=""
-  done
-
-  if [ -n "$backupfiles" ]; then
-    _run_header
-    _run_backup
-    _run_footer
-    _cleanup
+  echo -e "\n##################################################################" >>"$logdir/$appname.log"
+  echo -e "#Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
+  echo -e "##################################################################\n\n" >>"$logdir/$appname.log"
+  if [ "$exitCode" = 0 ]; then
+    printf_green "The backup has completed successfully."
+    printf_green "Saved to: $backupdir/$filename"
   else
-    printf_red "Nothing to back up"
-    printf_green "$backupfiles"
-    return 1
+    printf_red "The backup has failed to complete."
+    printf_red "More information can be found in the log file:"
+    printf_exit "$logdir/$appname.log"
   fi
+
+  leaveCount=5
+  fileCount=$(ls $backupdir/$appname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)
+  removeoldbackups=$(ls $backupdir/$appname*.tar.gz 2>/dev/null)
+
+  tailCount=$((fileCount - leaveCount))
+  ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
 
 }
 
-backupapp "$@"
+if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
+  main "$*"
+else
+  printf_red "Nothing to back up" && __help
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
