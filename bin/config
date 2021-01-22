@@ -228,7 +228,7 @@ restore)
 
 add | stow)
   shift 1
-  "'🏠🐜❗ Adding files to repo - this may take a moment 🏠🐜❗'"
+  printf_green "'🏠🐜❗ Adding files to repo - this may take a moment 🏠🐜❗'"
   declare -a args="$*"
   for f in ${args[*]}; do
     if [ -L "$f" ]; then
