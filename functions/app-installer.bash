@@ -342,7 +342,7 @@ backupapp() {
   local filename count backupdir rmpre4vbackup
   [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
   [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
-  local downloaddir="$DOWNLOADED_TO"
+  local downloaddir="$INSTDIR"
   local logdir="$HOME/.local/log/backupapp"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
@@ -1229,7 +1229,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
-    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+    export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   else
@@ -1253,7 +1253,7 @@ user_installdirs() {
     export CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+    export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="$SHARE/CasjaysDev/apps/dotfiles"
     #SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dotfiles"
   fi
@@ -1289,7 +1289,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
     export WALLPAPERS="/usr/local/share/wallpapers"
-    export DOWNLOADED_TO="/usr/local/share/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+    export INSTDIR="/usr/local/share/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     chmod -Rf 777 "/usr/local/share/CasjaysDev/root"
@@ -1315,7 +1315,7 @@ system_installdirs() {
     export CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     export CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
     export WALLPAPERS="$HOME/.local/share/wallpapers"
-    export DOWNLOADED_TO="$HOME/.local/share/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+    export INSTDIR="$HOME/.local/share/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
     #USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     #SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
   fi
@@ -1387,7 +1387,7 @@ get_app_version() {
   [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
   [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
   [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
-  [ -n "$DOWNLOADED_TO" ] && printf_info "Downloaded to:             $DOWNLOADED_TO"
+  [ -n "$INSTDIR" ] && printf_info "Downloaded to:             $INSTDIR"
   [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
   [ -n "$PLUGNAMES" ] && printf_info "Plugins:                   $PLUGNAMES"
   [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
@@ -1405,7 +1405,7 @@ get_app_version() {
 app_uninstall() {
   if [ -d "$APPDIR" ]; then
     printf_yellow "\n\t\tRemoving $APPNAME from your system\n"
-    [ -d "$DOWNLOADED_TO" ] && rm_rm "$DOWNLOADED_TO"
+    [ -d "$INSTDIR" ] && rm_rm "$INSTDIR"
     rm_rf "$APPDIR" &&
       rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
       rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
@@ -1470,7 +1470,7 @@ show_optvars() {
   if [ "$1" = "--location" ]; then
     printf_info "AppName:                   $APPNAME"
     printf_info "Installed to:              $APPDIR"
-    printf_info "Downloaded to:             $DOWNLOADED_TO"
+    printf_info "Downloaded to:             $INSTDIR"
     printf_info "UserHomeDir:               $HOME"
     printf_info "UserBinDir:                $BIN"
     printf_info "UserConfDir:               $CONF"
@@ -1551,7 +1551,7 @@ show_optvars() {
     printf_info "Theme Manager Repo         $THEMEMGRREPO"
     printf_info "System Manager Repo:       $SYSTEMMGRREPO"
     printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
-    printf_info "Downloaded to:             $DOWNLOADED_TO"
+    printf_info "Downloaded to:             $INSTDIR"
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
     printf_info "Prefix:                    $SCRIPTS_PREFIX"
     for PATHS in $(path_info); do
@@ -1591,11 +1591,11 @@ install_version() {
     fi
     ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
   fi
-  if [ -f "$DOWNLOADED_TO/install.sh" ] && [ -f "$DOWNLOADED_TO/version.txt" ]; then
-    ln_sf "$DOWNLOADED_TO/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
+  if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+    ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
   fi
-  if [ -d "$DOWNLOADED_TO" ] && [ -f "$DOWNLOADED_TO/install.sh" ] && [ -f "$DOWNLOADED_TO/version.txt" ]; then
-    ln_sf "$DOWNLOADED_TO/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  if [ -d "$INSTDIR" ] && [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+    ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   fi
 
 }
@@ -1611,7 +1611,7 @@ dfmgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1642,7 +1642,7 @@ dockermgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dockermgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dockermgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1673,7 +1673,7 @@ fontmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/fontmgr"
   export FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1707,7 +1707,7 @@ iconmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/iconmgr"
   export ICONDIR="${ICONDIR:-$SHARE/icons}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1747,7 +1747,7 @@ pkmgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/pkmgr"
   export REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1779,7 +1779,7 @@ systemmgr_install() {
   export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
   export USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1809,7 +1809,7 @@ thememgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/thememgr"
   export THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1851,7 +1851,7 @@ wallpapermgr_install() {
   export USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
   export SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
   export WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  export INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 }
 
@@ -1871,102 +1871,102 @@ wallpaper_install_version() {
 ##################################################################################################
 
 run_postinst_global() {
-  if [ ! -d "$DOWNLOADED_TO" ] || [ ! -L "$DOWNLOADED_TO" ]; then ln_sf "$APPDIR" "$DOWNLOADED_TO"; fi
+  if [ ! -d "$INSTDIR" ] || [ ! -L "$INSTDIR" ] || [ "$APPDIR" != "$INSTDIR" ]; then ln_sf "$APPDIR" "$INSTDIR"; fi
   if [[ "$APPNAME" = "scripts" ]] || [[ "$APPNAME" = "installer" ]]; then
     # Only run on the scripts install
     ln_rm "$SYSBIN/"
     ln_rm "$COMPDIR/"
 
-    dfunFiles="$(ls $DOWNLOADED_TO/completions)"
+    dfunFiles="$(ls $INSTDIR/completions)"
     for dfun in $dfunFiles; do
       rm_rf "$COMPDIR/$dfun"
     done
 
-    myfunctFiles="$(ls $DOWNLOADED_TO/functions)"
+    myfunctFiles="$(ls $INSTDIR/functions)"
     for myfunct in $myfunctFiles; do
-      ln_sf "$DOWNLOADED_TO/functions/$myfunct" "$HOME/.local/share/CasjaysDev/functions/$myfunct"
+      ln_sf "$INSTDIR/functions/$myfunct" "$HOME/.local/share/CasjaysDev/functions/$myfunct"
     done
 
-    compFiles="$(ls $DOWNLOADED_TO/completions)"
+    compFiles="$(ls $INSTDIR/completions)"
     for comp in $compFiles; do
-      cp_rf "$DOWNLOADED_TO/completions/$comp" "$COMPDIR/$comp"
+      cp_rf "$INSTDIR/completions/$comp" "$COMPDIR/$comp"
     done
 
-    appFiles="$(ls $DOWNLOADED_TO/bin)"
+    appFiles="$(ls $INSTDIR/bin)"
     for app in $appFiles; do
-      chmod -Rf 755 "$DOWNLOADED_TO/bin/$app"
-      ln_sf "$DOWNLOADED_TO/bin/$app" "$SYSBIN/$app"
+      chmod -Rf 755 "$INSTDIR/bin/$app"
+      ln_sf "$INSTDIR/bin/$app" "$SYSBIN/$app"
     done
     cmd_exists updatedb && updatedb || return 0
   else
     # Run on everything else
-    if [ "$APPDIR" != "$DOWNLOADED_TO" ]; then
+    if [ "$APPDIR" != "$INSTDIR" ]; then
       [ -d "$APPDIR" ] || mkd "$APPDIR"
-      cp_rf "$DOWNLOADED_TO/etc/." "$APPDIR/"
+      cp_rf "$INSTDIR/etc/." "$APPDIR/"
     fi
 
-    if [ -d "$DOWNLOADED_TO/backgrounds" ]; then
+    if [ -d "$INSTDIR/backgrounds" ]; then
       mkdir -p "$WALLPAPERS/system"
-      local wallpapers="$(ls $DOWNLOADED_TO/backgrounds/ 2>/dev/null | wc -l)"
+      local wallpapers="$(ls $INSTDIR/backgrounds/ 2>/dev/null | wc -l)"
       if [ "$wallpapers" != "0" ]; then
-        wallpaperFiles="$(ls $DOWNLOADED_TO/backgrounds)"
+        wallpaperFiles="$(ls $INSTDIR/backgrounds)"
         for wallpaper in $wallpaperFiles; do
-          ln_sf "$DOWNLOADED_TO/backgrounds/$wallpaper" "$WALLPAPERS/system/$wallpaper"
+          ln_sf "$INSTDIR/backgrounds/$wallpaper" "$WALLPAPERS/system/$wallpaper"
         done
       fi
     fi
 
-    if [ -d "$DOWNLOADED_TO/startup" ]; then
-      local autostart="$(ls $DOWNLOADED_TO/startup/ 2>/dev/null | wc -l)"
+    if [ -d "$INSTDIR/startup" ]; then
+      local autostart="$(ls $INSTDIR/startup/ 2>/dev/null | wc -l)"
       if [ "$autostart" != "0" ]; then
-        startFiles="$(ls $DOWNLOADED_TO/startup)"
+        startFiles="$(ls $INSTDIR/startup)"
         for start in $startFiles; do
-          ln_sf "$DOWNLOADED_TO/startup/$start" "$STARTUP/$start"
+          ln_sf "$INSTDIR/startup/$start" "$STARTUP/$start"
         done
       fi
       ln_rm "$STARTUP/"
     fi
 
-    if [ -d "$DOWNLOADED_TO/bin" ]; then
-      local bin="$(ls $DOWNLOADED_TO/bin/ 2>/dev/null | wc -l)"
+    if [ -d "$INSTDIR/bin" ]; then
+      local bin="$(ls $INSTDIR/bin/ 2>/dev/null | wc -l)"
       if [ "$bin" != "0" ]; then
-        bFiles="$(ls $DOWNLOADED_TO/bin)"
+        bFiles="$(ls $INSTDIR/bin)"
         for b in $bFiles; do
-          chmod -Rf 755 "$DOWNLOADED_TO/bin/$app"
-          ln_sf "$DOWNLOADED_TO/bin/$b" "$BIN/$b"
+          chmod -Rf 755 "$INSTDIR/bin/$app"
+          ln_sf "$INSTDIR/bin/$b" "$BIN/$b"
         done
       fi
       ln_rm "$BIN/"
     fi
 
-    if [ -d "$DOWNLOADED_TO/completions" ]; then
-      local comps="$(ls $DOWNLOADED_TO/completions/ 2>/dev/null | wc -l)"
+    if [ -d "$INSTDIR/completions" ]; then
+      local comps="$(ls $INSTDIR/completions/ 2>/dev/null | wc -l)"
       if [ "$comps" != "0" ]; then
-        compFiles="$(ls $DOWNLOADED_TO/completions)"
+        compFiles="$(ls $INSTDIR/completions)"
         for comp in $compFiles; do
-          cp_rf "$DOWNLOADED_TO/completions/$comp" "$COMPDIR/$comp"
+          cp_rf "$INSTDIR/completions/$comp" "$COMPDIR/$comp"
         done
       fi
       ln_rm "$COMPDIR/"
     fi
 
-    if [ -d "$DOWNLOADED_TO/applications" ]; then
-      local apps="$(ls $DOWNLOADED_TO/applications/ 2>/dev/null | wc -l)"
+    if [ -d "$INSTDIR/applications" ]; then
+      local apps="$(ls $INSTDIR/applications/ 2>/dev/null | wc -l)"
       if [ "$apps" != "0" ]; then
-        aFiles="$(ls $DOWNLOADED_TO/applications)"
+        aFiles="$(ls $INSTDIR/applications)"
         for a in $aFiles; do
-          ln_sf "$DOWNLOADED_TO/applications/$a" "$SHARE/applications/$a"
+          ln_sf "$INSTDIR/applications/$a" "$SHARE/applications/$a"
         done
       fi
       ln_rm "$SHARE/applications/"
     fi
 
-    if [ -d "$DOWNLOADED_TO/fontconfig" ]; then
-      local fontconf="$(ls $DOWNLOADED_TO/fontconfig 2>/dev/null | wc -l)"
+    if [ -d "$INSTDIR/fontconfig" ]; then
+      local fontconf="$(ls $INSTDIR/fontconfig 2>/dev/null | wc -l)"
       if [ "$fontconf" != "0" ]; then
-        fcFiles="$(ls $DOWNLOADED_TO/fontconfig)"
+        fcFiles="$(ls $INSTDIR/fontconfig)"
         for fc in $fcFiles; do
-          ln_sf "$DOWNLOADED_TO/fontconfig/$fc" "$FONTCONF/$fc"
+          ln_sf "$INSTDIR/fontconfig/$fc" "$FONTCONF/$fc"
         done
       fi
       ln_rm "$FONTCONF/"
@@ -1974,12 +1974,12 @@ run_postinst_global() {
       return 0
     fi
 
-    if [ -d "$DOWNLOADED_TO/fonts" ]; then
-      local font="$(ls "$DOWNLOADED_TO/fonts" 2>/dev/null | wc -l)"
+    if [ -d "$INSTDIR/fonts" ]; then
+      local font="$(ls "$INSTDIR/fonts" 2>/dev/null | wc -l)"
       if [ "$font" != "0" ]; then
-        fFiles="$(ls $DOWNLOADED_TO/fonts --ignore='.conf' --ignore='.uuid')"
+        fFiles="$(ls $INSTDIR/fonts --ignore='.conf' --ignore='.uuid')"
         for f in $fFiles; do
-          ln_sf "$DOWNLOADED_TO/fonts/$f" "$FONTDIR/$f"
+          ln_sf "$INSTDIR/fonts/$f" "$FONTDIR/$f"
         done
       fi
       ln_rm "$FONTDIR/"
@@ -2000,8 +2000,8 @@ run_exit() {
   if [ ! -f "$APPDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed"
   fi
-  if [ -n "$DOWNLOADED_TO" ] && [ ! -f "$DOWNLOADED_TO/.installed" ]; then
-    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$DOWNLOADED_TO/.installed"
+  if [ -n "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
+    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed"
   fi
 
   if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
