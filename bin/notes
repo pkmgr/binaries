@@ -95,7 +95,6 @@ __notes() {
  __server() {
    __cmd_exists netcat || printf_exit "The program netcat is not installed"
    local _PORT=${NOTES_SERVER_PORT}
-     printf_exit "Server is running\n" || printf_exit "Server is stopped\n"; fi
    kill "$(pidof netcat)" &>/dev/null
    printf_green "Launching server on port $_PORT"
    echo "Starting notes server on port $_PORT" >/tmp/notes_server.log
@@ -133,6 +132,7 @@ case "$1" in
     if [ "$1" = "--help" ]; then printf_help 'Usage: notes server  |  Start the server'; fi
     if [ "$1" = "--kill" ]; then touch /tmp/kill_notes && killall netcat && printf_help "Starting shutdown"; fi
     if [ "$1" = "--status" ]; then netstatg $_PORT >/dev/null 2>&1 && \
+      printf_exit "Server is running\n" || printf_exit "Server is stopped\n"; fi
     opts="$*"
     __server "$opts" 2>>/tmp/notes_server.log &
   ;;
