@@ -114,13 +114,12 @@ __notes() {
 }
 
 __sync() {
-  local _PATH="${1:-$_PATH}"
-  local NOTES_PATH="${2:-$NOTES_PATH}"
-  local NOTES_DIRECTORY="${3:-$NOTES_DIRECTORY}"
-  cat "$_PATH" "${NOTES_PATH}" >/tmp/notes_cli.tmp
-  mv -f /tmp/notes_cli.tmp "${NOTES_PATH}"
-  cat "${NOTES_PATH}" "${NOTES_DIRECTORY}/all.txt" | sort -u >/tmp/notes_cli.tmp
-  mv -f /tmp/notes_cli.tmp "${NOTES_DIRECTORY}/all.txt"
+  local _NOTESP="${1:-$NOTES_PATH}"
+  local _NOTESA="${2:-$NOTES_DIRECTORY}"
+  local _TPATH="${3:-$_PATH}"
+  [ -n "$_TPATH" ] && cat "${_NOTESP}" "$_TPATH" >/tmp/notes_cli.tmp && mv -f /tmp/notes_cli.tmp "${_NOTESP}"
+  cat "${_NOTESP}" "${_NOTESA}/all.txt" | sort -u >/tmp/notes_cli.tmp && mv -f /tmp/notes_cli.tmp "${_NOTESA}/all.txt"
+  [ -f /tmp/notes_cli.tmp ] && rm -Rf /tmp/notes_cli.tmp
 }
 
 __server() {
@@ -152,7 +151,7 @@ __client() {
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   printf "%s\n" "$*" >"${_PATH}" 2>>/tmp/notes_client
   cat "$_PATH" 2>>/tmp/notes_client | nc_send "$_SERVER" "$_PORT" 2>>/tmp/notes_client || printf_red "failed to send massage"
-  __sync "$_PATH" "$NOTES_PATH" "$NOTES_DIRECTORY"
+  __sync "$NOTES_PATH" "$NOTES_DIRECTORY" "$_PATH"
   rm -Rf "$_PATH"
   return "$?"
 }
@@ -251,7 +250,7 @@ all)
   else
     printf "%s\n" "${*}" >>"${NOTES_PATH}"
   fi
-  __sync 2>/dev/null
+  __sync $NOTES_PATH $NOTES_DIRECTORY 2>/dev/null
 
   ;;
 
