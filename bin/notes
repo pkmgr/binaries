@@ -42,6 +42,7 @@ NOTES_EDITOR="${NOTES_EDITOR:-vim}"
 NOTES_SERVER_NAME="${NOTES_SERVER_NAME:-localhost}"
 NOTES_SERVER_PORT="${NOTES_SERVER_PORT:-65000}"
 NOTES_SERVER_DIRECTORY="/var/lib/notes_server"
+netcat="$(command -v netcat || command -v nc)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mkdir -p "${NOTES_DIRECTORY}/$NOTES_FOLDER"
@@ -103,7 +104,8 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 }
-__netcat() { __cmd_exists netcat || __cmd_exists nc || printf_exit "The program netcat is not installed"; }
+
+__netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
 
 __notes() {
   if [ ${#} -eq 0 ]; then
@@ -123,13 +125,13 @@ __notes() {
 
 __server() {
   local _PORT=${NOTES_SERVER_PORT}
-  __netcat
+  __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running"
   printf_green "Launching server on port $_PORT"
   echo "Starting notes server on port $_PORT" >/tmp/notes_server.log
   rm -Rf /tmp/kill_notes
   while :; do
-    netcat -l -p $_PORT | notes - 2>>/tmp/notes_server.log || break
+    $netcat -l -p $_PORT | notes - 2>>/tmp/notes_server.log || break
     notifications "New Note" "Posted to: ${NOTES_PATH}"
     if [ -f /tmp/kill_notes ]; then
       rm -Rf /tmp/kill_notes
@@ -143,14 +145,14 @@ __client() {
   local _SERVER="${NOTES_SERVER_NAME}"
   local _PORT=${NOTES_SERVER_PORT}
   local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
-  __netcat
+  __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   if [ ${#} -eq 0 ]; then
     cat - >"${_PATH}" 2>>/tmp/notes_client
   else
     printf "%s\n" "${*}" >"${_PATH}" 2>>/tmp/notes_client
   fi
-  cat $_PATH 2>>/tmp/notes_client | netcat $_SERVER $_PORT -c 2>>/tmp/notes_client
+  cat $_PATH 2>>/tmp/notes_client | $netcat $_SERVER $_PORT -c 2>>/tmp/notes_client
   cat $_PATH >>${_NOTES_PATH} 2>>/tmp/notes_client
   rm -Rf "$_PATH"
   return "$?"
