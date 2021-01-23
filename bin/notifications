@@ -46,7 +46,7 @@ __check_app notify-send
 notifications() {
   local title="$1"
   shift 1
-  local msg="$*"
+  if [ ${#} -eq 0 ]; then local msg="$(</dev/stdin)"; else local msg="$*"; fi
   shift
   __cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }

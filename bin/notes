@@ -108,51 +108,38 @@ EOF
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
 
 __notes() {
-  if [ ${#} -eq 0 ]; then
-    if [ -p "/dev/stdin" ]; then
-      (
-        cat -
-        printf "\n"
-      ) >>"${NOTES_PATH}"
-    else
-      eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null
-    fi
-  else
-    printf "%s\n" "${*}" >>"${NOTES_PATH}"
-  fi
-  cat ${NOTES_PATH} >${NOTES_DIRECTORY}/all.txt 2>/dev/null
+  eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null
 }
 
 __server() {
   local _PORT=${NOTES_SERVER_PORT}
+  local _PATH=/tmp/notes.XXXXXX.txt
   __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running"
   printf_green "Launching server on port $_PORT"
   echo "Starting notes server on port $_PORT" >/tmp/notes_server.log
   rm -Rf /tmp/kill_notes
   while :; do
-    $netcat -l -p $_PORT | notes - 2>>/tmp/notes_server.log || break
-    notifications "New Note" "Posted to: ${NOTES_PATH}"
+    $netcat -l -p $_PORT >"$_PATH"
+    cat $_PATH >>"${NOTES_PATH}" 2>>/tmp/notes_server.log || break
+    notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}"
     if [ -f /tmp/kill_notes ]; then
       rm -Rf /tmp/kill_notes
       echo "Notes server is shutting down" >>/tmp/notes_server.log
       break
     fi
   done
+  rm -Rf "$_PATH"
 }
 
 __client() {
   local _SERVER="${NOTES_SERVER_NAME}"
   local _PORT=${NOTES_SERVER_PORT}
-  local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
+  local _PATH="$(mktemp /tmp/notes.XXXXXX.txt)"
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
-  if [ ${#} -eq 0 ]; then
-    cat - >"${_PATH}" 2>>/tmp/notes_client
-  else
-    printf "%s\n" "${*}" >"${_PATH}" 2>>/tmp/notes_client
-  fi
-  cat $_PATH 2>>/tmp/notes_client | $netcat $_SERVER $_PORT -c 2>>/tmp/notes_client
+  printf "%s\n" "$*" >"${_PATH}" 2>>/tmp/notes_client
+  cat $_PATH 2>>/tmp/notes_client | $netcat -c $_SERVER $_PORT 2>>/tmp/notes_client || printf_red "failed to send massage"
   cat $_PATH >>${_NOTES_PATH} 2>>/tmp/notes_client
   rm -Rf "$_PATH"
   return "$?"
@@ -204,7 +191,7 @@ server)
     __server "$opts" 2>>/tmp/notes_server.log &
     ;;
   *)
-    printf_exit "Server is running\n" || printf_exit "Server is stopped\n"
+    printf_exit "Server is running" || printf_exit "Server is stopped"
     opts="$*"
     __server "$opts" 2>>/tmp/notes_server.log &
     ;;
@@ -215,7 +202,13 @@ client)
   shift 1
   [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
   [ -n "$NOTES_SERVER_NAME" ] || printf_help "Please set NOTES_SERVER_NAME variable to your server"
-  message="$*"
+  if [ ${#} -eq 0 ]; then
+    if [ -p "/dev/stdin" ]; then
+      message="$(printf "%s" "$(cat -)")"
+    fi
+  else
+    message="$*"
+  fi
   __client "$message" 2>/dev/null
   ;;
 
@@ -235,7 +228,19 @@ all)
   ;;
 
 *)
-  __notes "$@"
+  if [ ${#} -eq 0 ]; then
+    if [ -p "/dev/stdin" ]; then
+      (
+        cat -
+      ) >>"${NOTES_PATH}"
+    else
+      __notes
+    fi
+  else
+    printf "%s\n" "${*}" >>"${NOTES_PATH}"
+  fi
+  cat ${NOTES_PATH} >${NOTES_DIRECTORY}/all.txt 2>/dev/null
+
   ;;
 
 esac
