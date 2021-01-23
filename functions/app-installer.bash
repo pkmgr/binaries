@@ -49,7 +49,6 @@ sudo_pkmgr() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 cmd_exists() {
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
@@ -62,7 +61,6 @@ devnull() { "$@" >/dev/null 2>&1; }
 devnull2() { "$@" >/dev/null 2>&1; }
 
 # fail if git is not installed
-
 if ! command -v "git" >/dev/null 2>&1; then
   echo -e "\t\t\033[0;31mAttempting to install git\033[0m"
   if cmd_exists brew; then
@@ -86,11 +84,8 @@ if ! command -v "git" >/dev/null 2>&1; then
 fi
 
 ##################################################################################################
-
 # Set Main Repo for dotfiles
 export DOTFILESREPO="${DOTFILESREPO:-https://github.com/dfmgr}"
-
-# Set other Repos
 export DFMGRREPO="${DFMGRREPO:-https://github.com/dfmgr}"
 export PKMGRREPO="${PKMGRREPO:-https://github.com/pkmgr}"
 export DEVENVMGRREPO="${DEVENVMGR:-https://github.com/devenvmgr}"
@@ -101,7 +96,7 @@ export SYSTEMMGRREPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}"
 export WALLPAPERMGRREPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}"
 
 ##################################################################################################
-
+# Colors
 NC="$(tput sgr0 2>/dev/null)"
 RESET="$(tput sgr0 2>/dev/null)"
 BLACK="\033[0;30m"
@@ -399,7 +394,7 @@ __am_i_online() {
     pingExit=$?
   }
   test_http() {
-    timeout 1 __curl--disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    timeout 1 __curl --disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
     httpExit=$?
   }
   test_ping || test_http
