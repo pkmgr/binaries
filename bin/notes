@@ -34,16 +34,17 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-NOTES_DIRECTORY="${NOTES_DIRECTORY:-"$HOME/.local/share/editors/notes"}"
-NOTE_FOLDER="$(date +%Y)"
+NOTES_FOLDER="$(date +%Y)"
 NOTES_FILE="$(date +%m).txt"
-NOTES_PATH="${NOTES_DIRECTORY}/$NOTE_FOLDER/${NOTES_FILE}"
+NOTES_DIRECTORY="${NOTES_DIRECTORY:-"$HOME/.local/share/editors/notes"}"
+NOTES_PATH="${NOTES_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
 NOTES_EDITOR="${NOTES_EDITOR:-vim}"
 NOTES_SERVER_NAME="${NOTES_SERVER_NAME:-localhost}"
 NOTES_SERVER_PORT="${NOTES_SERVER_PORT:-65000}"
+NOTES_SERVER_DIRECTORY="/var/lib/notes_server"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-mkdir -p ${NOTES_DIRECTORY}/$NOTE_FOLDER
+mkdir -p "${NOTES_DIRECTORY}/$NOTES_FOLDER"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
@@ -77,6 +78,33 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
 fi
 
+systemd_service() {
+  cat <<EOF | sudo tee /etc/systemd/system/notes_server.service &>/dev/null
+[Unit]
+Description=Notes Server
+After=network.target
+
+[Service]
+Type=simple
+Environment=TERM=linux
+Environment=NOTES_DIRECTORY=$NOTES_SERVER_DIRECTORY
+Environment=NOTES_SERVER_NAME=$(hostname)
+Environment=NOTES_SERVER_PORT=65000
+Restart=always
+RestartSec=5
+ExecStartPre=/bin/mkdir -p $NOTES_DIRECTORY
+ExecStart=/bin/bash -c '/usr/local/bin/notes server run'
+ExecStop=/bin/kill -s STOP $MAILPID
+ExecReload=/bin/kill -HUP $MAILPID
+TimeoutSec=20
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+__netcat() { __cmd_exists netcat || printf_exit "The program netcat is not installed"; }
+
 __notes() {
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
@@ -90,73 +118,116 @@ __notes() {
   else
     printf "%s\n" "${*}" >>"${NOTES_PATH}"
   fi
+  cat ${NOTES_PATH} >${NOTES_DIRECTORY}/all.txt 2>/dev/null
 }
 
- __server() {
-   __cmd_exists netcat || printf_exit "The program netcat is not installed"
-   local _PORT=${NOTES_SERVER_PORT}
-   kill "$(pidof netcat)" &>/dev/null
-   printf_green "Launching server on port $_PORT"
-   echo "Starting notes server on port $_PORT" >/tmp/notes_server.log
-   rm -Rf /tmp/kill_notes
-   while :; do
-     netcat -l -p $_PORT | notes - 2>>/tmp/notes_server.log
-     echo "Message:$*" >>/tmp/notes_server.log
-      notifications "New Note" "$*"
-      if [ -f /tmp/kill_notes ]; then
-        rm -Rf /tmp/kill_notes
-        echo "Notes server is shutting down" >>/tmp/notes_server.log
-        break
-      fi
-   done
- }
+__server() {
+  local _PORT=${NOTES_SERVER_PORT}
+  __netcat
+  netstatg "$_PORT" &>/dev/null && printf_exit "Already Running"
+  printf_green "Launching server on port $_PORT"
+  echo "Starting notes server on port $_PORT" >/tmp/notes_server.log
+  rm -Rf /tmp/kill_notes
+  while :; do
+    netcat -l -p $_PORT | notes - 2>>/tmp/notes_server.log || break
+    echo "Message:$*" >>/tmp/notes_server.log
+    notifications "New Note" "$*"
+    if [ -f /tmp/kill_notes ]; then
+      rm -Rf /tmp/kill_notes
+      echo "Notes server is shutting down" >>/tmp/notes_server.log
+      break
+    fi
+  done
+  kill "$(pidof netcat)" 2>/dev/null 2>&1
+}
 
- __client() {
-   __cmd_exists netcat || printf_exit "The program netcat is not installed"
-   local _SERVER="${NOTES_SERVER_NAME}"
-   local _PORT=${NOTES_SERVER_PORT}
-   local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
-   printf_green "Attempting to send message to $_SERVER on $_PORT"
-   printf "%s\n" "$*" >"${_PATH}" 2>>/tmp/notes_client
-   cat $_PATH 2>>/tmp/notes_client | netcat $_SERVER $_PORT -c 2>>/tmp/notes_client
-   cat $_PATH >>${_NOTES_PATH} 2>>/tmp/notes_client
-   rm -Rf "$_PATH"
-   return "$?"
- }
+__client() {
+  local _SERVER="${NOTES_SERVER_NAME}"
+  local _PORT=${NOTES_SERVER_PORT}
+  local _PATH=$(mktemp /tmp/notes.XXXXXX.txt)
+  __netcat
+  printf_green "Attempting to send message to $_SERVER on $_PORT"
+  if [ ${#} -eq 0 ]; then
+    cat </dev/stdin >"${_PATH}" 2>>/tmp/notes_client
+  else
+    printf "%s\n" "${*}" >"${_PATH}" 2>>/tmp/notes_client
+  fi
+  cat $_PATH 2>>/tmp/notes_client | netcat -N $_SERVER $_PORT 2>>/tmp/notes_client
+  cat $_PATH >>${_NOTES_PATH} 2>>/tmp/notes_client
+  rm -Rf "$_PATH"
+  return "$?"
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
-  server)
+server)
+  shift 1
+  case "$1" in
+  install)
+    shift 1
+    NOTES_DIRECTORY="$NOTES_SERVER_DIRECTORY"
+    systemd_service
+    __system_service_exists notes_server && sudo systemctl enable -f notes_server
+    ;;
+  remove)
+    shift 1
+    __system_service_exists notes_server && sudo systemctl disable -f notes_server
+    __rm_rf /etc/systemd/system/notes_server.service
+    ;;
+  start)
+    shift 1
+    __system_service_exists notes_server && sudo systemctl start notes_server
+    ;;
+  stop)
+    shift 1
+    __system_service_exists notes_server && sudo systemctl stop notes_server
+    ;;
+  restart)
+    shift 1
+    __system_service_exists notes_server && sudo systemctl restart notes_server
+    ;;
+  status)
+    shift 1
+    __system_service_exists notes_server && sudo systemctl status notes_server
+    ;;
+  *)
     shift 1
     if [ "$1" = "--help" ]; then printf_help 'Usage: notes server  |  Start the server'; fi
     if [ "$1" = "--kill" ]; then touch /tmp/kill_notes && killall netcat && printf_help "Starting shutdown"; fi
-    if [ "$1" = "--status" ]; then netstatg $_PORT >/dev/null 2>&1 && \
+    if [ "$1" = "--status" ]; then netstatg $_PORT >/dev/null 2>&1 &&
       printf_exit "Server is running\n" || printf_exit "Server is stopped\n"; fi
     opts="$*"
     __server "$opts" 2>>/tmp/notes_server.log &
+    ;;
+  esac
   ;;
 
-  client)
-    shift 1
-    [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
-    [ -n "$NOTES_SERVER_NAME" ] || printf_help "Please set NOTES_SERVER_NAME variable to your server"
-    message="$*"
-    __client "$message" 2>/dev/null
+client)
+  shift 1
+  [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
+  [ -n "$NOTES_SERVER_NAME" ] || printf_help "Please set NOTES_SERVER_NAME variable to your server"
+  message="$*"
+  __client "$message" 2>/dev/null
   ;;
 
-  open)
-    shift 1
-    __notes "$@" 2>/dev/null
+open)
+  shift 1
+  __notes "$@" 2>/dev/null
   ;;
 
-  -)
-    shift 1
-    printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
+-)
+  shift 1
+  printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
   ;;
 
-  *)
-    __notes "$@"
+all)
+  shift 1
+  cat ${NOTES_DIRECTORY}/all.txt
+  ;;
+
+*)
+  __notes "$@"
   ;;
 
 esac

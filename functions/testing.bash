@@ -360,6 +360,13 @@ __system_service_disable() {
   __setexitstatus $?
   set --
 }
+#system_service_start "servicename"
+__system_service_start() {
+  if __system_service_exists; then __devnull "sudo systemctl start $1"; fi
+  __setexitstatus $?
+  set --
+}
+
 #perl_exists "perlpackage"
 __perl_exists() {
   local package=$1
@@ -830,6 +837,8 @@ __requiresudo() {
     return 1
   fi
 }
+
+user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
 
 ###################### spinner and execute funtion ######################
 #

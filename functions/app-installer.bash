@@ -584,6 +584,7 @@ sudoreq() { if [[ $UID != 0 ]]; then
   exit 1
 fi; }
 
+user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
 ######################
 
 can_i_sudo() {
