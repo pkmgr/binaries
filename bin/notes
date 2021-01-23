@@ -118,7 +118,7 @@ __sync() {
   local _NOTESA="${2:-$NOTES_DIRECTORY}"
   local _TPATH="${3:-$_PATH}"
   [ -n "$_TPATH" ] && cat "${_NOTESP}" "$_TPATH" >/tmp/notes_cli.tmp && mv -f /tmp/notes_cli.tmp "${_NOTESP}"
-  cat "${_NOTESP}" "${_NOTESA}/all.txt" | sort -u >/tmp/notes_cli.tmp && mv -f /tmp/notes_cli.tmp "${_NOTESA}/all.txt"
+  cat "${_NOTESP}" "${_NOTESA}/all.txt" | sort -u | sed '/^$/d' >/tmp/notes_cli.tmp && mv -f /tmp/notes_cli.tmp "${_NOTESA}/all.txt"
   [ -f /tmp/notes_cli.tmp ] && rm -Rf /tmp/notes_cli.tmp
   return 0
 }
