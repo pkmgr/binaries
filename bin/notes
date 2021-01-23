@@ -46,6 +46,7 @@ netcat="$(command -v netcat || command -v nc)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mkdir -p "${NOTES_DIRECTORY}/$NOTES_FOLDER"
+touch "${NOTES_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
@@ -140,7 +141,7 @@ __client() {
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   printf "%s\n" "$*" >"${_PATH}" 2>>/tmp/notes_client
   cat $_PATH 2>>/tmp/notes_client | $netcat -w 1 $_SERVER $_PORT 2>>/tmp/notes_client || printf_red "failed to send massage"
-  cat $_PATH >>${_NOTES_PATH} 2>>/tmp/notes_client
+  cat $_PATH >>${NOTES_PATH} 2>>/tmp/notes_client
   rm -Rf "$_PATH"
   return "$?"
 }
