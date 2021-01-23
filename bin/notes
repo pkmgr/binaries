@@ -103,7 +103,7 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 }
-__netcat() { __cmd_exists netcat || printf_exit "The program netcat is not installed"; }
+__netcat() { __cmd_exists netcat || __cmd_exists nc || printf_exit "The program netcat is not installed"; }
 
 __notes() {
   if [ ${#} -eq 0 ]; then
@@ -130,15 +130,13 @@ __server() {
   rm -Rf /tmp/kill_notes
   while :; do
     netcat -l -p $_PORT | notes - 2>>/tmp/notes_server.log || break
-    echo "Message:$*" >>/tmp/notes_server.log
-    notifications "New Note" "$*"
+    notifications "New Note" "Posted to: ${NOTES_PATH}"
     if [ -f /tmp/kill_notes ]; then
       rm -Rf /tmp/kill_notes
       echo "Notes server is shutting down" >>/tmp/notes_server.log
       break
     fi
   done
-  kill "$(pidof netcat)" 2>/dev/null 2>&1
 }
 
 __client() {
@@ -148,11 +146,11 @@ __client() {
   __netcat
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   if [ ${#} -eq 0 ]; then
-    cat </dev/stdin >"${_PATH}" 2>>/tmp/notes_client
+    cat - >"${_PATH}" 2>>/tmp/notes_client
   else
     printf "%s\n" "${*}" >"${_PATH}" 2>>/tmp/notes_client
   fi
-  cat $_PATH 2>>/tmp/notes_client | netcat -N $_SERVER $_PORT 2>>/tmp/notes_client
+  cat $_PATH 2>>/tmp/notes_client | netcat $_SERVER $_PORT -c 2>>/tmp/notes_client
   cat $_PATH >>${_NOTES_PATH} 2>>/tmp/notes_client
   rm -Rf "$_PATH"
   return "$?"
@@ -163,6 +161,13 @@ __client() {
 case "$1" in
 server)
   shift 1
+  if [ "$1" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
+  if [ "$1" = "--status" ]; then shift 1 && netstatg $_PORT >/dev/null 2>&1; fi
+  if [ "$1" = "--kill" ]; then
+    shift 1 && touch /tmp/kill_notes >/dev/null 2>&1
+    printf_exit "Starting shutdown"
+  fi
+
   case "$1" in
   install)
     shift 1
@@ -191,12 +196,13 @@ server)
     shift 1
     __system_service_exists notes_server && sudo systemctl status notes_server
     ;;
-  *)
+  run)
     shift 1
-    if [ "$1" = "--help" ]; then printf_help 'Usage: notes server  |  Start the server'; fi
-    if [ "$1" = "--kill" ]; then touch /tmp/kill_notes && killall netcat && printf_help "Starting shutdown"; fi
-    if [ "$1" = "--status" ]; then netstatg $_PORT >/dev/null 2>&1 &&
-      printf_exit "Server is running\n" || printf_exit "Server is stopped\n"; fi
+    opts="$*"
+    __server "$opts" 2>>/tmp/notes_server.log &
+    ;;
+  *)
+    printf_exit "Server is running\n" || printf_exit "Server is stopped\n"
     opts="$*"
     __server "$opts" 2>>/tmp/notes_server.log &
     ;;
