@@ -39,7 +39,7 @@ __options "$@"
 
 TrashDir="${TRASH_DIR:-$HOME/.local/share/Trash}"
 RestoreDir="${RESTORE_DIR}"
-_mkd "$TrashDir/files/" "$TrashDir/info"
+__mkd "$TrashDir/files/" "$TrashDir/info"
 
 get_name() {
   dirname="$(dirname "$(echo $PWD/$1)" 2>/dev/null || return 1)"
@@ -71,7 +71,7 @@ trash-put() {
     file="$t"
     create_trash_file "$file"
     if [ -d "$file" ]; then
-      _mkd "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+      __mkd "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
       rsync -a "$file/." "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
     else
       rsync -a "$file" "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
@@ -88,7 +88,7 @@ trash-restore() {
     if [ -e "$TrashDir/files/$file" ]; then
       local restorename="$(basename $(echo "$restorefile" | sed 's#^/##g' | sed 's#_-_#/#g'))"
       local restoredir="$RestoreDir"
-      _mkd "$restoredir/$(dirname "$restorename")"
+      __mkd "$restoredir/$(dirname "$restorename")"
       if [ -d "$TrashDir/files/$file" ]; then
         rsync -a "$TrashDir/files/$file/." "$restoredir/$restorefile/"
       else
@@ -123,7 +123,7 @@ trash-empty() {
   countfolders="$(find "$TrashDir/files"/* -type d 2>/dev/null | wc -l)"
   rm -Rf "$TrashDir/files/"
   rm -Rf "$TrashDir/info"
-  _mkd "$TrashDir/files/" "$TrashDir/info"
+  __mkd "$TrashDir/files/" "$TrashDir/info"
   printf_yellow "Deleted $countfiles file[s] and $countfolders folder[s] from your system"
 }
 
