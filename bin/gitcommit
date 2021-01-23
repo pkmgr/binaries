@@ -203,8 +203,8 @@ setup)
 
 *)
   if [ -n "$1" ]; then
-    [ ! "$(echo $* | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 5 characters"
-    mess="$newmess"
+    [ ! "$(echo $* | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 4 characters"
+    mess="${newmess:-$1}"
   else
     shift 1
     mess=" 🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "

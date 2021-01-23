@@ -41,6 +41,10 @@ TrashDir="${TRASH_DIR:-$HOME/.local/share/Trash}"
 RestoreDir="${RESTORE_DIR}"
 __mkd "$TrashDir/files/" "$TrashDir/info"
 
+filename_trash() { get_name "$1" | sed 's#/#_-_#g' | sed 's#"##g'; }
+filename_restore() { grep Path "$TrashDir/info/$(basename $1).trashinfo" 2>/dev/null | sed 's#Path=##g' | sed 's#"##g' || return 1; }
+test_filedir() { for fd in "$@"; do [ -e "$fd" ] && EXIT=0 || (EXIT=1 printf_exit "Refusing to delete non-existant file or folder"); done; }
+
 get_name() {
   dirname="$(dirname "$(echo $PWD/$1)" 2>/dev/null || return 1)"
   files=$(basename "$1")
@@ -55,8 +59,7 @@ get_name() {
   done
 }
 
-filename_trash() { get_name "$1" | sed 's#/#_-_#g' | sed 's#"##g'; }
-filename_restore() { grep Path "$TrashDir/info/$(basename $1).trashinfo" 2>/dev/null | sed 's#Path=##g' | sed 's#"##g' || return 1; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 create_trash_file() {
   cat <<EOF >"$TrashDir/info/$(filename_trash "$1")-$(basename "$1").trashinfo"
@@ -69,7 +72,7 @@ EOF
 trash-put() {
   for t in "$@"; do
     file="$t"
-    create_trash_file "$file"
+    test_filedir "$(get_name $file)" && printf_green "Removing $(get_name $file)" && create_trash_file "$file"
     if [ -d "$file" ]; then
       __mkd "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
       rsync -a "$file/." "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
@@ -77,6 +80,7 @@ trash-put() {
       rsync -a "$file" "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
     fi
     rm -Rf "$file"
+    return "$EXIT"
   done
 }
 
@@ -86,7 +90,7 @@ trash-restore() {
     local restorefile="$(filename_restore "$r")"
     #echo "file:$file restore:$restorefile restorename:$restorename restoredir:$restoredir"
     if [ -e "$TrashDir/files/$file" ]; then
-      local restorename="$(basename $(echo "$restorefile" | sed 's#^/##g' | sed 's#_-_#/#g'))"
+      local restorename="$(basename "$(echo "$restorefile" | sed 's#^/##g' | sed 's#_-_#/#g')")"
       local restoredir="$RestoreDir"
       __mkd "$restoredir/$(dirname "$restorename")"
       if [ -d "$TrashDir/files/$file" ]; then
