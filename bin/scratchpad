@@ -87,7 +87,7 @@ scratchpad() {
       exit $?
   }
   run_tmux() {
-    local title="${1:-TODO for $title}"
+    local title="${1:-Scratchpad for $title}"
     local filename="${2:-$filename}"
     if [ ! -f "$scratchdir/$filename" ]; then
       echo -e "$title\n\n" >"$scratchdir/$filename"

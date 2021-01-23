@@ -111,11 +111,6 @@ refactor)
   mess=" ✔️ 〰️ Refactor Code 〰️ ✔️  "
   ;;
 
-fixes)
-  shift 1
-  mess=" 🏠🐜❗ Minor Fixes ❗🐜🏠 "
-  ;;
-
 permission | permissions)
   shift 1
   mess=" 🏠🔥❗ Fixed Permissions ❗🔥🏠 "
@@ -126,7 +121,7 @@ bug | bugs)
   mess=" 🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
   ;;
 
-alot)
+alot | fixes)
   shift 1
   mess=" 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 "
   ;;
@@ -181,14 +176,14 @@ init)
   mess=" 🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
   ;;
 
-random)
-  shift 1
-  mess="🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜"
-  ;;
-
 emj | emojy | emojify)
   shift 1
   mess=" 🦈🏠🐜❗ ${1:-Well I did some things} ❗🐜🦈🏠 "
+  ;;
+
+random)
+  shift 1
+  mess="🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜"
   ;;
 
 custom)
@@ -207,12 +202,12 @@ setup)
   ;;
 
 *)
-  [ ! "$(echo $* | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 5 characters"
   if [ -n "$1" ]; then
+    [ ! "$(echo $* | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 5 characters"
     mess="$newmess"
   else
     shift 1
-    mess=" 🦈🏠❗ Major Fixes ❗🏠🦈 "
+    mess=" 🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
   fi
   ;;
 
