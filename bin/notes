@@ -107,9 +107,20 @@ EOF
 }
 
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
+nc_send() { $netcat -c $1 $2 2>>/tmp/notes_server.log && true || $netcat -w 1 $1 $2 2>>/tmp/notes_server.log; }
 
 __notes() {
   eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null
+}
+
+__sync() {
+  local _PATH="${1:-$_PATH}"
+  local NOTES_PATH="${2:-$NOTES_PATH}"
+  local NOTES_DIRECTORY="${3:-$NOTES_DIRECTORY}"
+  cat "$_PATH" "${NOTES_PATH}" >/tmp/notes_cli.tmp
+  mv -f /tmp/notes_cli.tmp "${NOTES_PATH}"
+  cat "${NOTES_PATH}" "${NOTES_DIRECTORY}/all.txt" | sort -u >/tmp/notes_cli.tmp
+  mv -f /tmp/notes_cli.tmp "${NOTES_DIRECTORY}/all.txt"
 }
 
 __server() {
@@ -140,8 +151,8 @@ __client() {
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   printf "%s\n" "$*" >"${_PATH}" 2>>/tmp/notes_client
-  cat $_PATH 2>>/tmp/notes_client | $netcat -w 1 $_SERVER $_PORT 2>>/tmp/notes_client || printf_red "failed to send massage"
-  cat $_PATH >>${NOTES_PATH} 2>>/tmp/notes_client
+  cat "$_PATH" 2>>/tmp/notes_client | nc_send "$_SERVER" "$_PORT" 2>>/tmp/notes_client || printf_red "failed to send massage"
+  __sync "$_PATH" "$NOTES_PATH" "$NOTES_DIRECTORY"
   rm -Rf "$_PATH"
   return "$?"
 }
@@ -240,7 +251,7 @@ all)
   else
     printf "%s\n" "${*}" >>"${NOTES_PATH}"
   fi
-  cat ${NOTES_PATH} >${NOTES_DIRECTORY}/all.txt 2>/dev/null
+  __sync 2>/dev/null
 
   ;;
 
