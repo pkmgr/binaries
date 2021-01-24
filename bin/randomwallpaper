@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : randomwallpaper
+# @Created     : 08/18/2020
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : Set a random wallpaper
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main function
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_installdirs
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+[ -n "$WALLPAPERS" ] || exit 1
+
+randomwallpaper() {
+  send_notify_wp() {
+    command -v notify-send >/dev/null 2>&1 &&
+      notify-send "Wallpaper Changer" "Wallpaper has been changed to $SHORTNAME" ||
+      notify-send "Wallpaper Changer" "Failed to change the wallpaper"
+  }
+
+  xfce_change_wp() {
+    xfconf-query --channel xfce4-desktop --list | grep last-image | while read path; do
+      xfconf-query --channel xfce4-desktop --property "$path" --set "$1"
+    done
+  }
+
+  WALLPAPERDIRS="$WALLPAPERS /usr/share/backgrounds"
+
+  RAND=$(find "$WALLPAPERDIRS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" 2>/dev/null | sort -R | head -1)
+  SHORTNAME="$(echo "${RAND/$WALLPAPERDIRS/}" | sed 's#^/##g')"
+
+  [ -n "$RAND" ] || exit 1
+  if cmd_exists variety >/dev/null 2>&1; then
+    variety --set="$RAND" >/dev/null 2>&1 && send_notify_wp
+
+  elif cmd_exists feh >/dev/null 2>&1; then
+    feh --bg-fill "$RAND" >/dev/null 2>&1 && send_notify_wp
+
+  elif cmd_exists xwallpaper >/dev/null 2>&1; then
+    xwallpaper --maximize "$RAND" >/dev/null 2>&1 && send_notify_wp
+
+  elif cmd_exists xfconf-query >/dev/null 2>&1 && [[ "$DESKTOP_SESSION" =~ "xfce4" ]]; then
+    xfce_change_wp "$RAND" >/dev/null 2>&1 && send_notify_wp
+
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute function
+randomwallpaper "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# end

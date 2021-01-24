@@ -1907,7 +1907,7 @@ run_postinst_global() {
       if [ "$wallpapers" != "0" ]; then
         wallpaperFiles="$(ls $INSTDIR/backgrounds)"
         for wallpaper in $wallpaperFiles; do
-          ln_sf "$INSTDIR/backgrounds/$wallpaper" "$WALLPAPERS/system/$wallpaper"
+          cp_rf "$INSTDIR/backgrounds/$wallpaper" "$WALLPAPERS/system/$wallpaper"
         done
       fi
     fi
@@ -1980,6 +1980,23 @@ run_postinst_global() {
       fi
       ln_rm "$FONTDIR/"
       cmd_exists fc-cache && fc-cache -f "$FONTDIR"
+      return 0
+    fi
+
+    if [ -d "$INSTDIR/icons" ]; then
+      local icons="$(ls "$INSTDIR/icons" 2>/dev/null | wc -l)"
+      if [ "$icons" != "0" ]; then
+        fFiles="$(ls $INSTDIR/icons --ignore='.uuid')"
+        for f in $fFiles; do
+          ln_sf "$INSTDIR/icons/$f" "$ICONDIR/$f"
+          find "$ICONDIR/$f" -mindepth 1 -maxdepth 1 -type d | while read -r ICON; do
+            if [ -f "$ICON/index.theme" ]; then
+              cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$ICON"
+            fi
+          done
+        done
+      fi
+      ln_rm "$ICONDIR/"
       return 0
     fi
   fi
