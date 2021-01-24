@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# _randomwallpaper completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for randomwallpaper
+
+_randomwallpaper_completions() {
+  local cur prev words cword
+  ARRAY="--help ."
+  _init_completion || return
+
+  case $prev in
+  -*)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return
+    ;;
+
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur")) && return
+    _filedir
+    return
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _randomwallpaper_completions -o default randomwallpaper
