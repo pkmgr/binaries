@@ -8,14 +8,23 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
+
 printf_help "2" "                 A simple notes app written in bash                   "
-printf_help "4" "notes                                |   Opens the file in vim"
+printf_help "4" "notes                                |   Opens your notes in vim"
 printf_help "4" "notes something you want to jot down |   Appends that text to the file"
 printf_help "4" "xclip -o | notes or notes -          |   Appends stdin to the file"
+
+printf_help "2" "                         Notes client usage                   "
 printf_help "4" "notes client                         |   used to send notes to the server - same syntax as notes"
+printf_help "4" "notes client message to send         |   Appends that text to the server file"
+printf_help "4" "xclip -o | notes client              |   Appends stdin to the server file"
+
+printf_help "2" "                         Notes server usage                   "
 printf_help "4" "notes service                        |   Run notes as a server using netcat"
 printf_help "4" "notes service --status               |   Shows the current status of the server"
 printf_help "4" "notes service --kill                 |   Initiates the kill to stop the server"
+
+printf_help "2" "                      Notes systemd server usage                   "
 printf_help "4" "notes service systemd                |   Systemd functions"
 printf_help "4" "notes service systemd install        |   Installs notes as a service using systemd"
 printf_help "4" "notes service systemd remove         |   Remove the notes systemd service"
@@ -24,5 +33,6 @@ printf_help "4" "notes service systemd stop           |   Stop the notes systemd
 printf_help "4" "notes service systemd restart        |   Restart the notes systemd service"
 printf_help "4" "notes service systemd status         |   Get the notes systemd service status"
 printf_help "4" "notes service systemd run/vars       |   Used by systemd to run the notes server"
+
+printf_help "3" "All variables can be overwritten by editing the file ~/.config/notes/config"
 printf_help "4" "notes config                         |   Generates the configuration file"
-printf_help "3" "All variable can be overwritten by editingthe file ~/.config/notes/config"

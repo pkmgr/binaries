@@ -46,6 +46,7 @@ NOTES_LOG_FILE="${NOTES_TMPDIR}/notes_server.log"
 NOTES_TMP_FILE="$(mktemp ${NOTES_TMPDIR}/notes.XXXXXX.txt)"
 NOTES_PATH="${NOTES_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
 NOTES_SERVER_PATH="${NOTES_SERVER_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
+NOTES_NOTIFY="yes"
 
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 
@@ -101,6 +102,7 @@ NOTES_LOG_FILE="${NOTES_TMPDIR}/notes_server.log"
 NOTES_TMP_FILE="$(mktemp ${NOTES_TMPDIR}/notes.XXXXXX.txt)"
 NOTES_PATH="${NOTES_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
 NOTES_SERVER_PATH="${NOTES_SERVER_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
+NOTES_NOTIFY="yes"
 ' >"$HOME/.config/notes/config"
 }
 
@@ -176,7 +178,7 @@ __server() {
   while :; do
     $netcat -l -p $_PORT >"$_PATH"
     cat $_PATH >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || break
-    notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}"
+    [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}"
     if [ -f $NOTES_TMPDIR/kill_notes ]; then
       rm -Rf $NOTES_TMPDIR/kill_notes
       echo "Notes server is shutting down" >>"$NOTES_LOG_FILE"
@@ -200,6 +202,7 @@ __run_service() {
     $netcat -l -p "$_PORT" >"$_PATH"
     cat "$_PATH" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || break
     echo "New note: $(cat $_PATH) in ${NOTES_PATH}"
+    [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}"
     rm -Rf "$_PATH"
   done
 }
@@ -241,6 +244,7 @@ server)
       NOTES_DIRECTORY="$NOTES_SERVER_DIRECTORY"
       systemd_service "/etc/systemd/system/notes_server.service" &&
         __devnull sudo systemctl daemon-reload &&
+        __devnull sudo systemctl start notes_server &&
         __devnull sudo systemctl enable -f notes_server && printf_green "Service has been created" || printf_red "Failed to create service"
       ;;
     remove)
@@ -272,7 +276,7 @@ server)
       ;;
     status | *)
       shift 2
-      sudo systemctl status notes_server | printf_readline "3"
+      sudo systemctl status notes_server | printf_readline "255"
       ;;
     esac
     ;;
