@@ -2,6 +2,7 @@
 
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
@@ -45,8 +46,9 @@ check_app chsh
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
-if [ -f "$(command -v $1)" ]; then
-  chsh -s "$(command -v $1)" "${USER}"
+newshell="$(grep $1 /etc/shells | head -n 1)"
+if [ -f "$newshell" ]; then
+  chsh -s "$newshell" "${USER}"
 else
   printf_red "Invalid shell"
 fi
