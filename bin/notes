@@ -170,18 +170,18 @@ __server() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __run_service() {
-  local _PORT=${NOTES_SERVER_PORT}
-  local _PATH=$NOTES_TMP_FILE
+  local _PORT="${NOTES_SERVER_PORT}"
+  local _PATH="${NOTES_TMP_FILE}"
   kill -s 9 "$(netstatg $_PORT | awk '{print $7}' | head -n 1 | sed 's#/.*##g')" || true
   echo "Launching server on port $_PORT"
-  echo "Starting notes server on port $_PORT" >$NOTES_LOG_FILE
-  rm -Rf $NOTES_TMPDIR/kill_notes
+  echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
+  rm -Rf "$NOTES_TMPDIR/kill_notes"
   while :; do
-    rm -Rf $_PATH
-    $netcat -l -p $_PORT >$_PATH
-    cat $_PATH >>${NOTES_PATH} 2>>$NOTES_LOG_FILE || break
+    rm -Rf "$_PATH"
+    $netcat -l -p "$_PORT" >"$_PATH"
+    cat "$_PATH" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || break
     echo "New note: $(cat $_PATH) in ${NOTES_PATH}"
-    rm -Rf $_PATH
+    rm -Rf "$_PATH"
   done
 }
 
