@@ -2013,7 +2013,7 @@ run_exit() {
   if [ ! -f "$APPDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed"
   fi
-  if [ -n "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
+  if [ -d "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed"
   fi
 
