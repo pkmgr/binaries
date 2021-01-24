@@ -88,6 +88,7 @@ After=network.target
 
 [Service]
 Type=simple
+KillMode=process
 Environment=TERM=linux
 Environment=NOTES_DIRECTORY=$NOTES_SERVER_DIRECTORY
 Environment=NOTES_SERVER_NAME=$(hostname)
@@ -95,7 +96,7 @@ Environment=NOTES_SERVER_PORT=65000
 Restart=always
 RestartSec=5
 ExecStartPre=/bin/mkdir -p $NOTES_DIRECTORY
-ExecStart=/bin/bash -c '/usr/local/bin/notes server run'
+ExecStart=/usr/local/bin/notes server run
 ExecStop=/bin/kill -s STOP $MAILPID
 ExecReload=/bin/kill -HUP $MAILPID
 TimeoutSec=20
@@ -106,12 +107,13 @@ WantedBy=multi-user.target
 EOF
 }
 
-__netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
-nc_send() { $netcat -c $1 $2 2>>/tmp/notes_server.log && true || $netcat -w 1 $1 $2 2>>/tmp/notes_server.log; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__notes() {
-  eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null
-}
+__netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
+__nc_send() { $netcat -c $1 $2 2>>/tmp/notes_server.log && true || $netcat -w 1 $1 $2 2>>/tmp/notes_server.log; }
+__notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null; }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __sync() {
   local _NOTESP="${1:-$NOTES_PATH}"
@@ -122,6 +124,8 @@ __sync() {
   [ -f /tmp/notes_cli.tmp ] && rm -Rf /tmp/notes_cli.tmp
   return 0
 }
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __server() {
   local _PORT=${NOTES_SERVER_PORT}
@@ -144,6 +148,8 @@ __server() {
   rm -Rf "$_PATH"
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 __client() {
   local _SERVER="${NOTES_SERVER_NAME}"
   local _PORT=${NOTES_SERVER_PORT}
@@ -151,7 +157,7 @@ __client() {
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   printf "%s\n" "$*" >"${_PATH}" 2>>/tmp/notes_client
-  cat "$_PATH" 2>>/tmp/notes_client | nc_send "$_SERVER" "$_PORT" 2>>/tmp/notes_client || printf_red "failed to send massage"
+  cat "$_PATH" 2>>/tmp/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>/tmp/notes_client || printf_red "failed to send massage"
   __sync "$NOTES_PATH" "$NOTES_DIRECTORY" "$_PATH"
   rm -Rf "$_PATH"
   return "$?"
@@ -200,7 +206,7 @@ server)
   run)
     shift 1
     opts="$*"
-    __server "$opts" 2>>/tmp/notes_server.log &
+    __server "$opts" 2>>/tmp/notes_server.log
     ;;
   *)
     printf_exit "Server is running" || printf_exit "Server is stopped"
