@@ -34,6 +34,7 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+NOTES_TMPDIR="${TMP:-/tmp}"
 NOTES_FOLDER="$(date +%Y)"
 NOTES_FILE="$(date +%m).txt"
 NOTES_DIRECTORY="${NOTES_DIRECTORY:-"$HOME/.local/share/editors/notes"}"
@@ -41,7 +42,11 @@ NOTES_PATH="${NOTES_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
 NOTES_EDITOR="${NOTES_EDITOR:-vim}"
 NOTES_SERVER_NAME="${NOTES_SERVER_NAME:-localhost}"
 NOTES_SERVER_PORT="${NOTES_SERVER_PORT:-65000}"
-NOTES_SERVER_DIRECTORY="/var/lib/notes_server"
+NOTES_SERVER_DIRECTORY="$NOTES_DIRECTORY"
+NOTES_SERVER_PATH="${NOTES_SERVER_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
+NOTES_TMP_FILE="$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt)"
+NOTES_LOG_FILE="$NOTES_TMPDIR/notes_server.log"
+
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -89,15 +94,23 @@ After=network.target
 
 [Service]
 Type=simple
+PrivateTmp=true
+Restart=always
+RestartSec=5
 KillMode=process
 Environment=TERM=linux
+Environment=HOME=/var/lib/notes_server
+Environment=NOTES_TMPDIR=${TMP:-/tmp/notes_server}
 Environment=NOTES_DIRECTORY=${NOTES_SERVER_DIRECTORY}
 Environment=NOTES_SERVER_NAME=$(hostname)
 Environment=NOTES_SERVER_PORT=65000
-Restart=always
-RestartSec=5
+Environment=NOTES_NOTES_TMPDIR=$TMP
+Environment=NOTES_TMP_FILE=$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt)
+Environment=NOTES_LOG_FILE=$NOTES_TMPDIR/notes_server.log
+
 ExecStartPre=/bin/mkdir -p $NOTES_DIRECTORY
 ExecStart=/usr/local/bin/notes server run
+ExecStopPost=/usr/bin/rm -Rf $NOTES_TMP_FILE $NOTES_LOG_FILE
 ExecStop=/bin/kill -KILL $MAINPID
 ExecReload=/bin/kill -HUP $MAINPID
 TimeoutSec=20
@@ -111,7 +124,7 @@ EOF
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
-__nc_send() { $netcat -c $1 $2 2>>/tmp/notes_server.log && true || $netcat -w 1 $1 $2 2>>/tmp/notes_server.log; }
+__nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE"; }
 __notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -120,9 +133,9 @@ __sync() {
   local _NOTESP="${1:-$NOTES_PATH}"
   local _NOTESA="${2:-$NOTES_DIRECTORY}"
   local _TPATH="${3:-$_PATH}"
-  [ -n "$_TPATH" ] && cat "${_NOTESP}" "$_TPATH" >/tmp/notes_cli.tmp && mv -f /tmp/notes_cli.tmp "${_NOTESP}"
-  cat "${_NOTESP}" "${_NOTESA}/all.txt" | sort -u | sed '/^$/d' >/tmp/notes_cli.tmp && mv -f /tmp/notes_cli.tmp "${_NOTESA}/all.txt"
-  [ -f /tmp/notes_cli.tmp ] && rm -Rf /tmp/notes_cli.tmp
+  [ -n "$_TPATH" ] && cat "${_NOTESP}" "$_TPATH" >$NOTES_TMPDIR/notes_cli.tmp && mv -f $NOTES_TMPDIR/notes_cli.tmp "${_NOTESP}"
+  cat "${_NOTESP}" "${_NOTESA}/all.txt" | sort -u | sed '/^$/d' >$NOTES_TMPDIR/notes_cli.tmp && mv -f $NOTES_TMPDIR/notes_cli.tmp "${_NOTESA}/all.txt"
+  [ -f $NOTES_TMPDIR/notes_cli.tmp ] && rm -Rf $NOTES_TMPDIR/notes_cli.tmp
   return 0
 }
 
@@ -130,19 +143,18 @@ __sync() {
 
 __server() {
   local _PORT=${NOTES_SERVER_PORT}
-  local _PATH=/tmp/notes.XXXXXX.txt
+  local _PATH="$NOTES_TMP_FILE"
   __netcat_test
-  netstatg "$_PORT" &>/dev/null && printf_exit "Already Running"
-  printf_green "Launching server on port $_PORT"
-  echo "Starting notes server on port $_PORT" >/tmp/notes_server.log
-  rm -Rf /tmp/kill_notes
+  netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
+  echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
+  rm -Rf $NOTES_TMPDIR/kill_notes
   while :; do
     $netcat -l -p $_PORT >"$_PATH"
-    cat $_PATH >>"${NOTES_PATH}" 2>>/tmp/notes_server.log || break
+    cat $_PATH >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || break
     notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}"
-    if [ -f /tmp/kill_notes ]; then
-      rm -Rf /tmp/kill_notes
-      echo "Notes server is shutting down" >>/tmp/notes_server.log
+    if [ -f $NOTES_TMPDIR/kill_notes ]; then
+      rm -Rf $NOTES_TMPDIR/kill_notes
+      echo "Notes server is shutting down" >>"$NOTES_LOG_FILE"
       break
     fi
   done
@@ -153,19 +165,17 @@ __server() {
 
 __run_service() {
   local _PORT="${NOTES_SERVER_PORT}"
-  local _PATH="$(mktemp /tmp/notes.XXXXXX.txt)"
-  netstatg "$_PORT" &>/dev/null && echo "Already Running"
-  echo "Launching server on port $_PORT"
-  echo "Starting notes server on port $_PORT" >/tmp/notes_server.log
-  rm -Rf /tmp/kill_notes
-  while :; do
+  local _PATH="$NOTES_TMP_FILE"
+  netstatg "$_PORT" &>/dev/null && echo "Already Running" && exit || echo "Launching server on port $_PORT"
+  echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
+  rm -Rf $NOTES_TMPDIR/kill_notes
+  while true; do
     rm -Rf "$_PATH"
     $netcat -l -p $_PORT >"$_PATH"
-    cat "$_PATH" >>"${NOTES_PATH}" 2>>/tmp/notes_server.log || break
+    cat "$_PATH" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || break
     echo "New note: $(cat $_PATH)"
     rm -Rf "$_PATH"
   done
-  rm -Rf "$_PATH"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -173,11 +183,11 @@ __run_service() {
 __client() {
   local _SERVER="${NOTES_SERVER_NAME}"
   local _PORT=${NOTES_SERVER_PORT}
-  local _PATH="$(mktemp /tmp/notes.XXXXXX.txt)"
+  local _PATH="$NOTES_TMP_FILE"
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
-  printf "%s\n" "$*" >"${_PATH}" 2>>/tmp/notes_client
-  cat "$_PATH" 2>>/tmp/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>/tmp/notes_client || printf_red "failed to send massage"
+  printf "%s\n" "$*" >"${_PATH}" 2>>$NOTES_TMPDIR/notes_client
+  cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client || printf_red "failed to send massage"
   __sync "$NOTES_PATH" "$NOTES_DIRECTORY" "$_PATH"
   rm -Rf "$_PATH"
   return "$?"
@@ -191,7 +201,7 @@ server)
   if [ "$1" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
   if [ "$1" = "--status" ]; then shift 1 && netstatg $_PORT >/dev/null 2>&1; fi
   if [ "$1" = "--kill" ]; then
-    shift 1 && touch /tmp/kill_notes >/dev/null 2>&1
+    shift 1 && touch $NOTES_TMPDIR/kill_notes >/dev/null 2>&1
     printf_exit "Starting shutdown"
   fi
 
@@ -228,12 +238,12 @@ server)
   run)
     shift 1
     opts="$*"
-    __run_service "$opts" 2>>/tmp/notes_server.log
+    __run_service "$opts" 2>>"$NOTES_LOG_FILE"
     ;;
   *)
     printf_exit "Server is running" || printf_exit "Server is stopped"
     opts="$*"
-    __server "$opts" 2>>/tmp/notes_server.log &
+    __server "$opts" 2>>"$NOTES_LOG_FILE" &
     ;;
   esac
   ;;
