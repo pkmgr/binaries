@@ -20,7 +20,7 @@ _trash_completions() {
 
   local special i
   for ((i = 1; i < ${#words[@]} - 1; i++)); do
-    if [[ ${words[i]} == @(restore|list) ]]; then
+    if [[ ${words[i]} == @(list|restore|ls|rs) ]]; then
       special=${words[i]}
       break
     fi
@@ -28,7 +28,7 @@ _trash_completions() {
 
   if [[ -v special ]]; then
     if [[ $cur == @(*/|[.~])* && \
-      $special == @(restore|list) ]]; then
+      $special == @(list|restore|ls|rs) ]]; then
       list_all
       return
     fi
@@ -38,17 +38,17 @@ _trash_completions() {
       list_all
       return
       ;;
-    remove | rm)
-      _filedir
-      return
-      ;;
-    empty)
-      return 0
-      ;;
     esac
   fi
 
   case $prev in
+  remove | rm)
+    _filedir
+    return
+    ;;
+  empty)
+    return 0
+    ;;
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     ;;
