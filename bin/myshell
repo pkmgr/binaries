@@ -12,7 +12,7 @@ PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 # @Created       : Monday Aug 24, 2020 03:14:35 EDT
 # @License       : WTFPL
 # @Copyright     : Copyright (c) Casjays Developments
-# @Description   : Change my shell
+# @Description   : Change the default shell for $USER
 # @Other         :
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -21,7 +21,7 @@ PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -36,21 +36,40 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ ! -z "$1" ] || __help
+[ -n "$1" ] || __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
 
-check_app chsh
+__check_app chsh
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# functions
+__success() {
+  printf_green "shell has been changed to $newshell"
+  printf_custom "3" "You will need to logout for the changes to take effect"
+}
+
+__failure() {
+  printf_exit "Failed to change the shell to $newshell"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# variables
+newshell="$(grep $1 /etc/shells | head -n 1)"
+newshellname="$(basename $newshell)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-
-newshell="$(grep $1 /etc/shells | head -n 1)"
-if [ -f "$newshell" ]; then
-  chsh -s "$newshell" "${USER}"
+if __getuser_shell "$newshell"; then
+  printf_custom "The old and new shell are both $newshellname"
 else
-  printf_red "Invalid shell"
+  if [ -f "$newshell" ]; then
+    echo -n "$(chsh -s "$newshell" "${USER}" | printf_readline "3" | grep -vq "chsh")"
+    __getuser_shell "$newshell" && __success || printf_exit
+  else
+    printf_red "Invalid shell"
+  fi
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -3,7 +3,7 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : applications.bash
+# @File        : testing.bash
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
@@ -15,7 +15,7 @@
 #setup paths
 TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
-APPNAME="${APPNAME:-applications}"
+APPNAME="${APPNAME:-testing}"
 
 TMPPATH+="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
@@ -465,7 +465,13 @@ __rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 #countwd file
 __countwd() { cat "$@" | wc -l | __rmcomments; }
 #getuser "username" "grep options"
-__getuser() { if [ -n "$1" ]; then cut -d: -f1 /etc/passwd | grep "${1:-USER}" | cut -d: -f1 /etc/passwd | grep "${1:-USER}" ${2:-}; fi; }
+__getuser() { if [ -n "${1:-$USER}" ]; then cut -d: -f1 /etc/passwd | grep "${1:-$USER}" | cut -d: -f1 /etc/passwd | grep "${1:-$USER}" ${2:-}; fi; }
+#getuser_shell "shellname"
+__getuser_shell() {
+  local SHELL=${1:-$SHELL} && shift 1
+  local USER=${1:-$USER} && shift 1
+  grep $USER /etc/passwd | cut -d: -f7 | grep -q "$SHELL" && return 0 || return 1
+}
 #countdir "dir"
 __countdir() { ls "$@" | wc -l; }
 
@@ -538,7 +544,7 @@ __curl() {
   __setexitstatus
 }
 #appversion "urlToVersion"
-__appversion() { __curl "${1:-REPORAW/master/version.txt}" || echo 011920210931-git; }
+__appversion() { __curl "${1:-$REPORAW/master/version.txt}" || echo 011920210931-git; }
 #curl_header "site" "code"
 __curl_header() { curl --disable -LSIs --connect-timeout 3 --retry 0 --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
