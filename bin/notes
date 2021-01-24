@@ -34,18 +34,18 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-NOTES_TMPDIR="${TMP:-/tmp}"
 NOTES_FOLDER="$(date +%Y)"
 NOTES_FILE="$(date +%m).txt"
+NOTES_TMPDIR="${TMP:-/tmp}"
 NOTES_DIRECTORY="${NOTES_DIRECTORY:-"$HOME/.local/share/editors/notes"}"
-NOTES_PATH="${NOTES_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
 NOTES_EDITOR="${NOTES_EDITOR:-vim}"
 NOTES_SERVER_NAME="${NOTES_SERVER_NAME:-localhost}"
 NOTES_SERVER_PORT="${NOTES_SERVER_PORT:-65000}"
-NOTES_SERVER_DIRECTORY="$NOTES_DIRECTORY"
+NOTES_SERVER_DIRECTORY="${NOTES_DIRECTORY}"
+NOTES_LOG_FILE="${NOTES_TMPDIR}/notes_server.log"
+NOTES_TMP_FILE="$(mktemp ${NOTES_TMPDIR}/notes.XXXXXX.txt)"
+NOTES_PATH="${NOTES_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
 NOTES_SERVER_PATH="${NOTES_SERVER_DIRECTORY}/$NOTES_FOLDER/${NOTES_FILE}"
-NOTES_TMP_FILE="$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt)"
-NOTES_LOG_FILE="$NOTES_TMPDIR/notes_server.log"
 
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 
@@ -98,6 +98,7 @@ PrivateTmp=true
 Restart=always
 RestartSec=5
 KillMode=process
+
 Environment=TERM=linux
 Environment=HOME=/var/lib/notes_server
 Environment=NOTES_TMPDIR=${TMP:-/tmp/notes_server}
