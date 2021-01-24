@@ -40,9 +40,7 @@ CAL_CONFIG="$HOME/.config/local/calendar.local"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -f "$HOME/.config/local/calendar.local" ]; then
-  source "$HOME/.config/local/calendar.local"
-else
+gen_config() {
   echo '
 #Calendar Configuration
 # directory for storing the events. Make sure this path exists
@@ -51,14 +49,23 @@ eventpath="$HOME/.local/share/ics"
 HOMETOWN="${MYLOCATIONCITY:-Albany}"
 HOMECOUNTRY="${MYLOCATIONCOUNTRY:-USA}"
 # sets $startdate below; "man 1 date" for details on modification
-DATEFORMAT="%a %e %b, %-l:%M%P"
+DATEFORMAT="%a %b %d, %Y %H:%M"
 # categories - no spaces in tags
 TAGS=(work meeting study party)
 TERSE="$startdate - $title"
 #FULL="$startdate - $title\n$desc\n$location ($category)"
-' >"$CAL_CONFIG"
+MESSAGE="$(date +"Today is: %A %B %d, %Y and the time is: %H:%M")"
+' >"$1"
+}
+
+if [ -f "$HOME/.config/local/calendar.local" ]; then
+  source "$HOME/.config/local/calendar.local"
+else
+  gen_config "$CAL_CONFIG"
   source "$HOME/.config/local/calendar.local"
 fi
+[ -z "$MESSAGE" ] && MESSAGE="$(date +'Today is: %A %B %d, %Y and the time is: %H:%M')"
+printf_custom "3" "$MESSAGE"
 
 # estonta - function file
 LERTA=$(mktemp)
@@ -127,9 +134,9 @@ list_appointment() {
   tail -n +7 "$found" >"$LERTA"
   generate_fields
   if [[ -n "${FULL+set}" ]]; then
-    echo -e "$FULL"
+    printf_custom "4" "$FULL"
   else
-    echo -e "$TERSE"
+    printf_custom "4" "$TERSE"
   fi
 }
 
@@ -142,7 +149,7 @@ list_all() {
   for file in $eventpath/*.ics; do
     tail -n +7 $file >$LERTA
     generate_fields
-    echo -e "$TERSE"
+    printf_custom "4" "$TERSE"
   done
 }
 
@@ -154,7 +161,7 @@ tagordo() {
   for file in $eventpath/*.ics; do
     tail -n +7 $file >$LERTA
     generate_fields
-    echo "$(date -d $DTSTART +"%Y-%m-%d") $SUMMARY ($(date -d $DTSTART +"%-l:%M%P"))"
+    printf_green "$(date -d $DTSTART +"%Y-%m-%d") $SUMMARY ($(date -d $DTSTART +"%-l:%M%P"))"
   done
 }
 
@@ -167,7 +174,7 @@ list_by_cat() {
     tail -n +7 $file >$LERTA
     generate_fields
     if [ $CATEGORIES == $FILTER ]; then
-      echo "$TERSE"
+      printf_info "$TERSE"
     fi
   done
 
@@ -181,7 +188,7 @@ list_by_text() {
   for file in $eventpath/*.ics; do
     tail -n +5 $file >$LERTA
     generate_fields
-    [[ $SUMMARY =~ ${FILTER} ]] && echo "$TERSE"
+    [[ $SUMMARY =~ ${FILTER} ]] && printf_custom "4" "$TERSE"
   done
 }
 
@@ -407,6 +414,10 @@ case $1 in
   tmpfile=$(mktemp)
   tagordo >$tmpfile
   gui_add_event 2>/dev/null
+  ;;
+
+config)
+  gen_config "$CAL_CONFIG"
   ;;
 
 *)
