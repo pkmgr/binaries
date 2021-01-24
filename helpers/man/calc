@@ -8,8 +8,9 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "2" "Console Based calculator"
-printf_help "4" "Addition:       calc 1+1"
-printf_help "4" "Subtraction:    calc 1-1"
-printf_help "4" "Multiplication: calc 1*1"
-printf_help "4" "Division:       calc 1/1"
+printf_help "2" "         Console Based calculator"
+printf_help "3" "Keep running    calc --term"
+printf_help "4" "Addition:       calc '1 + 1'  or  2 + 3"
+printf_help "4" "Subtraction:    calc '1 - 1'  or  3-99"
+printf_help "4" "Multiplication: calc '1 * 1'  or  88 \* 99"
+printf_help "4" "Division:       calc '1 / 1'  or  20 / 35"

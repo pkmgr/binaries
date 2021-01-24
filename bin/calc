@@ -2,6 +2,7 @@
 
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+shopt -u extglob direxpand globstar
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
@@ -11,7 +12,7 @@ USER="${SUDO_USER:-${USER}}"
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : calculator wrapper for qalc/bc
+# @Description : wrapper for qalc/bc
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -34,6 +35,11 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+__usage() {
+  printf_cyan 'Usage: "20 * 4/2 + 23 - 14"'
+  printf_red "press q or ctrl + c to exit"
+}
+
 [ -z "$1" ] && __help
 if [ $# -ne 1 ]; then
   printf_info 'You must quote your params IE: calc "2 + 4" or "2*2"'
@@ -42,14 +48,15 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ARG="$(echo "$*" | sed '/^$/d;s/[[:blank:]]//g')"
+INPUT="$*"
+OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if cmd_exists qalc; then
-  calc_app() { qalc "$ARG"; }
+  calc_app() { qalc -c "$OUTPUT"; }
 elif cmd_exists bc; then
-  calc_app() { echo "$ARG = $(echo "$ARG" | bc -q)"; }
+  calc_app() { echo "$INPUT = $(echo "$OUTPUT" | bc -q)"; }
 else
   printf_exit "Can't find a calculator app!"
 fi
@@ -57,17 +64,26 @@ fi
 if [ "$1" = "--term" ]; then
   clear
   echo -e "\n\n"
-  printf_cyan "Usage: 20*4/2+23-14"
-  printf_red "press q or ctrl + c to exit"
+  __usage
   while :; do
-    printf_custom_question "2" "What is it you would like to solve?  "
-    read ARG
-    if [ "$ARG" = "q" ]; then
-      exit 0
+    printf_custom_question "2" "What is it you would like to solve?"
+    printf_answer "INPUT" "200"
+    if [ "$INPUT" = "q" ]; then
+      break
     else
-      printf_custom "5" "  Your answer is: $(calc_app)"
+      clear
+      echo -e "\n\n"
+      if [ "$INPUT" = "h" ] || [ "$INPUT" = "?" ]; then
+        __usage
+      else
+        history -s "$INPUT"
+        OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
+        printf_custom "5" "Your answer is: $(calc_app "$OUTPUT")"
+      fi
+      echo -e "\n"
     fi
   done
+  echo ""
 else
   printf_green "$(calc_app)"
 fi
