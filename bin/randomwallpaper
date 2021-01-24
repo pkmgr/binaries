@@ -35,7 +35,7 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ -n "$WALLPAPERS" ] || printf_exit "No wallpaper directories specified"
-RANDOMWALLPAPER="${1:-RANDOMWALLPAPER}"
+RANDOMWALLPAPER="${1:-$RANDOMWALLPAPER}"
 
 randomwallpaper() {
   [ -d /usr/share/backgrounds ] && for l in $(ls /usr/share/backgrounds); do [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"; done
