@@ -1202,6 +1202,7 @@ user_installdirs() {
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
   DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
+  SYSTEMDDIR="$HOME/.config/systemd/user"
 }
 
 ###################### setup folders - system ######################
@@ -1228,6 +1229,7 @@ system_installdirs() {
     WALLPAPERS="/usr/local/share/wallpapers"
     USRUPDATEDIR="/usr/local/share/CasjaysDev/apps"
     SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    SYSTEMDDIR="/etc/systemd/system"
   else
     INSTALL_TYPE=system
     HOME="${HOME:-/home/$WHOAMI}"
@@ -1251,6 +1253,7 @@ system_installdirs() {
     WALLPAPERS="$HOME/.local/share/wallpapers"
     USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps"
     SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps"
+    SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
   INSTALLTYPE="system_installdirs"
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
@@ -1493,6 +1496,7 @@ ensure_dirs() {
     __mkd "$SHARE/applications"
     __mkd "$SHARE/CasjaysDev/functions"
     __mkd "$SHARE/wallpapers/system"
+    __mkd "$SYSTEMDDIR"
   fi
   return 0
 }
@@ -1532,6 +1536,7 @@ __debug() {
   printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
   printf_info "InstallType:               $INSTALLTYPE"
   printf_info "Prefix:                    $SCRIPTS_PREFIX"
+  printf_info "SystemD dir:               $SYSTEMDDIR"
   exit $?
 }
 

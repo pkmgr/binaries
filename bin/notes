@@ -101,7 +101,8 @@ KillMode=process
 User='${USER:-daemon}'
 Group='${USER:-daemon}'
 
-Environment=TERM=linux
+Environment=HOME='${HOME}'
+Environment=TERM='${TERM:-linux}'
 Environment=NOTES_TMPDIR='${TMP:-/tmp/notes_server}'
 Environment=NOTES_DIRECTORY='${HOME}/.local/share/editors/notes'
 Environment=NOTES_LOG_FILE='${NOTES_TMPDIR}/notes_server.log'
@@ -114,7 +115,6 @@ ExecStartPre=/bin/mkdir -p "$NOTES_DIRECTORY"
 ExecStart=/bin/bash -c "/usr/local/bin/notes server run"
 ExecStopPost=/usr/bin/rm -Rf "$NOTES_TMP_FILE $NOTES_LOG_FILE"
 ExecStop=/bin/kill -s KILL $MAINPID
-ExecReload=/bin/kill -s HUP $MAINPID
 TimeoutSec=20
 RemainAfterExit=yes
 
@@ -204,7 +204,6 @@ __client() {
 
 case "$1" in
 server)
-  shift 1
   if [ "$1" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
   if [ "$1" = "--status" ]; then shift 1 && netstatg $_PORT >/dev/null 2>&1; fi
   if [ "$1" = "--kill" ]; then
@@ -212,47 +211,48 @@ server)
     printf_exit "Starting shutdown"
   fi
 
-  case "$1" in
+  case "$2" in
   install)
-    shift 1
+    shift 2
     NOTES_DIRECTORY="$NOTES_SERVER_DIRECTORY"
-    systemd_service "/etc/systemd/system/notes_server.service"
-    sudo systemctl daemon-reload
-    sudo systemctl enable -f notes_server
+    systemd_service "/etc/systemd/system/notes_server.service" &&
+      __devnull sudo systemctl daemon-reload &&
+      __devnull sudo systemctl enable -f notes_server && printf_green "Service has been created" || printf_red "Failed to create service"
     ;;
   remove)
-    shift 1
-    sudo systemctl disable -f notes_server
-    sudo systemctl daemon-reload
-    __rm_rf /etc/systemd/system/notes_server.service
+    shift 2
+    __devnull sudo systemctl disable -f notes_server &&
+      __devnull sudo systemctl daemon-reload &&
+      __rm_rf /etc/systemd/system/notes_server.service && printf_green "Service has been deleted" || printf_red "Failed to delete service"
     ;;
   start)
-    shift 1
-    sudo systemctl start notes_server
+    shift 2
+    __devnull sudo systemctl start notes_server && printf_green "Service has been started" || printf_red "Failed to start service"
     ;;
   stop)
-    shift 1
-    sudo systemctl stop notes_server
+    shift 2
+    __devnull sudo systemctl stop notes_server && printf_green "Service has been stopped" || printf_red "Failed to stop service"
     ;;
   restart)
-    shift 1
-    sudo systemctl restart notes_server
+    shift 2
+    __devnull sudo systemctl restart notes_server && printf_green "Service has been restarted" || printf_red "Failed to restart service"
     ;;
   status)
-    shift 1
+    shift 2
     sudo systemctl status notes_server
     ;;
   run)
-    shift 1
+    shift 2
     opts="$*"
     __run_service "$opts" 2>>"$NOTES_LOG_FILE"
     ;;
   vars)
-    shift 1
+    shift 2
     export NOTES_FOLDER NOTES_FILE NOTES_TMPDIR NOTES_DIRECTORY NOTES_EDITOR NOTES_SERVER_NAME NOTES_SERVER_PORT NOTES_SERVER_DIRECTORY NOTES_LOG_FILE NOTES_TMP_FILE NOTES_PATH NOTES_SERVER_PATH
     ;;
 
   *)
+    shift 1
     printf_exit "Server is running" || printf_exit "Server is stopped"
     opts="$*"
     __server "$opts" 2>>"$NOTES_LOG_FILE" &
