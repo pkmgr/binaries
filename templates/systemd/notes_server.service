@@ -1,0 +1,31 @@
+[Unit]
+Description=Notes Server
+After=network.target
+
+[Service]
+Type=simple
+PrivateTmp=true
+Restart=always
+RestartSec=5
+KillMode=process
+
+Environment=TERM=linux
+Environment=HOME=/var/lib/notes_server
+Environment=NOTES_TMPDIR=${TMP:-/tmp/notes_server}
+Environment=NOTES_DIRECTORY=${NOTES_SERVER_DIRECTORY}
+Environment=NOTES_SERVER_NAME=$(hostname)
+Environment=NOTES_SERVER_PORT=65000
+Environment=NOTES_NOTES_TMPDIR=$TMP
+Environment=NOTES_TMP_FILE=$NOTES_TMPDIR/$(mktemp notes.XXXXXX.txt)
+Environment=NOTES_LOG_FILE=$NOTES_TMPDIR/notes_server.log
+
+ExecStartPre=/bin/mkdir -p $NOTES_DIRECTORY
+ExecStart=/usr/local/bin/notes server run
+ExecStopPost=/usr/bin/rm -Rf $NOTES_TMP_FILE $NOTES_LOG_FILE
+ExecStop=/bin/kill -KILL $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutSec=20
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -86,8 +86,8 @@ EOF
 fi
 
 systemd_service() {
-  [ -f "$1" ] && __rm_rf "$1"
-  cat <<EOF | sudo tee "$1" &>/dev/null
+  [ -f "$1" ] && sudo rm -Rf "$1"
+  echo '
 [Unit]
 Description=Notes Server
 After=network.target
@@ -98,30 +98,35 @@ PrivateTmp=true
 Restart=always
 RestartSec=5
 KillMode=process
+User='${USER:-daemon}'
+Group='${USER:-daemon}'
 
 Environment=TERM=linux
-Environment=HOME=/var/lib/notes_server
-Environment=NOTES_TMPDIR=${TMP:-/tmp/notes_server}
-Environment=NOTES_DIRECTORY=${NOTES_SERVER_DIRECTORY}
-Environment=NOTES_SERVER_NAME=$(hostname)
+Environment=NOTES_TMPDIR='${TMP:-/tmp/notes_server}'
+Environment=NOTES_DIRECTORY='${HOME}/.local/share/editors/notes'
+Environment=NOTES_LOG_FILE='${NOTES_TMPDIR}/notes_server.log'
+Environment=NOTES_SERVER_NAME="$(hostname -f)"
 Environment=NOTES_SERVER_PORT=65000
-Environment=NOTES_NOTES_TMPDIR=$TMP
-Environment=NOTES_TMP_FILE=$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt)
-Environment=NOTES_LOG_FILE=$NOTES_TMPDIR/notes_server.log
+Environment=NOTES_TMP_FILE="$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt)"
 
-ExecStartPre=/bin/mkdir -p $NOTES_DIRECTORY
-ExecStart=/usr/local/bin/notes server run
-ExecStopPost=/usr/bin/rm -Rf $NOTES_TMP_FILE $NOTES_LOG_FILE
-ExecStop=/bin/kill -KILL $MAINPID
-ExecReload=/bin/kill -HUP $MAINPID
+ExecStartPre=/usr/local/bin/notes server vars
+ExecStartPre=/bin/mkdir -p "$NOTES_DIRECTORY"
+ExecStart=/bin/bash -c "/usr/local/bin/notes server run"
+ExecStopPost=/usr/bin/rm -Rf "$NOTES_TMP_FILE $NOTES_LOG_FILE"
+ExecStop=/bin/kill -s KILL $MAINPID
+ExecReload=/bin/kill -s HUP $MAINPID
 TimeoutSec=20
 RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
-EOF
+' | sudo tee "$1" &>/dev/null
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_debug() {
+  echo $NOTES_FOLDER $NOTES_FILE $NOTES_TMPDIR $NOTES_DIRECTORY $NOTES_EDITOR $NOTES_SERVER_NAME $NOTES_SERVER_PORT $NOTES_SERVER_DIRECTORY $NOTES_LOG_FILE $NOTES_TMP_FILE $NOTES_PATH $NOTES_SERVER_PATH
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
@@ -165,17 +170,18 @@ __server() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __run_service() {
-  local _PORT="${NOTES_SERVER_PORT}"
-  local _PATH="$NOTES_TMP_FILE"
-  netstatg "$_PORT" &>/dev/null && echo "Already Running" && exit || echo "Launching server on port $_PORT"
-  echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
+  local _PORT=${NOTES_SERVER_PORT}
+  local _PATH=$NOTES_TMP_FILE
+  kill -s 9 "$(netstatg $_PORT | awk '{print $7}' | head -n 1 | sed 's#/.*##g')" || true
+  echo "Launching server on port $_PORT"
+  echo "Starting notes server on port $_PORT" >$NOTES_LOG_FILE
   rm -Rf $NOTES_TMPDIR/kill_notes
-  while true; do
-    rm -Rf "$_PATH"
-    $netcat -l -p $_PORT >"$_PATH"
-    cat "$_PATH" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || break
-    echo "New note: $(cat $_PATH)"
-    rm -Rf "$_PATH"
+  while :; do
+    rm -Rf $_PATH
+    $netcat -l -p $_PORT >$_PATH
+    cat $_PATH >>${NOTES_PATH} 2>>$NOTES_LOG_FILE || break
+    echo "New note: $(cat $_PATH) in ${NOTES_PATH}"
+    rm -Rf $_PATH
   done
 }
 
@@ -241,6 +247,11 @@ server)
     opts="$*"
     __run_service "$opts" 2>>"$NOTES_LOG_FILE"
     ;;
+  vars)
+    shift 1
+    export NOTES_FOLDER NOTES_FILE NOTES_TMPDIR NOTES_DIRECTORY NOTES_EDITOR NOTES_SERVER_NAME NOTES_SERVER_PORT NOTES_SERVER_DIRECTORY NOTES_LOG_FILE NOTES_TMP_FILE NOTES_PATH NOTES_SERVER_PATH
+    ;;
+
   *)
     printf_exit "Server is running" || printf_exit "Server is stopped"
     opts="$*"
