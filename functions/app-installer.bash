@@ -264,7 +264,7 @@ notifications() {
 
 ##################################################################################################
 __curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
-__appversion() { __curl "${1:-REPORAW/master/version.txt}" || echo 011920210931-git; }
+__appversion() { __curl "${1:-$REPORAW/master/version.txt}" || echo 012420211755-git; }
 
 die() { echo -e "$1" exit ${2:9999}; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
@@ -374,7 +374,7 @@ mkd() { if [ ! -e "$1" ]; then devnull mkdir -p "$@"; else return 0; fi; }
 replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
-urlcheck() { devnull __curl--config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+urlcheck() { devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
 urlinvalid() { if [ -z "$1" ]; then
   printf_red "\t\tInvalid URL\n"
   failexitcode
@@ -394,7 +394,7 @@ __am_i_online() {
     pingExit=$?
   }
   test_http() {
-    timeout 1 __curl --disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    timeout 1 __curl --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
     httpExit=$?
   }
   test_ping || test_http
