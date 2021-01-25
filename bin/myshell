@@ -45,6 +45,12 @@ __check_app chsh
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # functions
+
+_vars() {
+  newshell="$(grep $1 /etc/shells | head -n 1)"
+  newshellname="$(basename $newshell)"
+}
+
 __success() {
   printf_green "shell has been changed to $newshell"
   printf_custom "3" "You will need to logout for the changes to take effect"
@@ -55,10 +61,6 @@ __failure() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# variables
-newshell="$(grep $1 /etc/shells | head -n 1)"
-newshellname="$(basename $newshell)"
-
 case "$(uname -s)" in
 Linux)
   _chsh() { chsh -s "${1:-$newshell}" "${2:-$USER}"; }
@@ -75,16 +77,29 @@ esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-if __getuser_shell "$newshell"; then
-  printf_custom "The old and new shell are both $newshellname"
-else
-  if [ -f "$newshell" ]; then
-    echo -n "$(_chsh "$newshell" "${USER}" | printf_readline "3" | grep -vq "chsh")"
-    __getuser_shell "$newshell" && __success || printf_exit
+
+case "$1" in
+list)
+  printf_custom "2" "Available shells:"
+  [ -f "/etc/shells" ] && cat /etc/shells | grep -v "#" | printf_readline "3"
+  exit
+  ;;
+
+*)
+  _vars "$@"
+  if __getuser_shell "$newshell"; then
+    printf_custom "The old and new shell are both $newshellname"
   else
-    printf_red "Invalid shell"
+    if [ -f "$newshell" ]; then
+      echo -n "$(_chsh "$newshell" "${USER}" | printf_readline "3" | grep -vq "chsh")"
+      __getuser_shell "$newshell" && __success || printf_exit
+    else
+      printf_red "Invalid shell"
+    fi
   fi
-fi
+  ;;
+
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
