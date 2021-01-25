@@ -480,7 +480,7 @@ __countdir() { ls "$@" | wc -l; }
 vim="$(command -v /usr/local/bin/vim || command -v vim)"
 __vim() { $vim "$@"; }
 #mkd dir
-__mkd() { if [ ! -e "$1" ]; then mkdir -p "$@"; else return 0; fi; }
+__mkd() { for d in "$@"; do if [ ! -e "$d" ]; then devnull mkdir -p "$d"; else return 0; fi; done; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }
@@ -542,7 +542,7 @@ __kill() { kill -9 "$(pidof "$1")" >/dev/null 2>&1; }
 __running() { pidof "$1" >/dev/null 2>&1; }
 #start "app"
 __start() {
-    sleep 1 && "$@" >/dev/null 2>&1 &
+  sleep 1 && "$@" >/dev/null 2>&1 &
 }
 
 ###################### url functions ######################
