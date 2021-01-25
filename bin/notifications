@@ -35,18 +35,24 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ -z "$1" ] && [ -z "$2" ] && __help
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __check_app notify-send
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 notifications() {
-  local title="$1"
-  shift 1
-  if [ ${#} -eq 0 ]; then local msg="$(</dev/stdin)"; else local msg="$*"; fi
+  if [ ${#} -eq 0 ]; then
+    local title="Message from stdin"
+    local msg="$(</dev/stdin)"
+  else
+    if [ ${#} -eq 1 ]; then
+      local title="New notification"
+      local msg="$*"
+    else
+      local title="$1"
+      shift 1
+      local msg="$*"
+    fi
+  fi
   shift
   __cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }
