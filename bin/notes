@@ -153,7 +153,7 @@ _debug() {
 
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
 __nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE"; }
-__notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${NOTES_PATH}" &>/dev/null; }
+__notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${1:-$NOTES_PATH}" &>/dev/null; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
