@@ -480,7 +480,7 @@ __countdir() { ls "$@" | wc -l; }
 vim="$(command -v /usr/local/bin/vim || command -v vim)"
 __vim() { $vim "$@"; }
 #mkd dir
-__mkd() { for d in "$@"; do if [ ! -e "$d" ]; then __devnull mkdir -p "$d"; else return 0; fi; done; }
+__mkd() { for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done; return 0; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }

@@ -370,7 +370,7 @@ ln_sf() {
   devnull ln -sf "$@" || return 0
 }
 mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
-mkd() { for d in "$@"; do if [ ! -e "$d" ]; then devnull mkdir -p "$d"; else return 0; fi; done; }
+mkd() { for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done; return 0; }
 replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
