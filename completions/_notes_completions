@@ -8,7 +8,7 @@
 _notes_completions() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="- --help config client open server"
+  local ARRAY="- --help all config client open server"
   local SERVEROPTS="--kill systemd"
 
   _init_completion || return
