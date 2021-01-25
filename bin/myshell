@@ -59,13 +59,27 @@ __failure() {
 newshell="$(grep $1 /etc/shells | head -n 1)"
 newshellname="$(basename $newshell)"
 
+case "$(uname -s)" in
+Linux)
+  _chsh() { chsh -s "${1:-$newshell}" "${2:-$USER}"; }
+  __getuser_shell "${1:-$newshell}"
+  ;;
+Darwin)
+  _chsh() { chsh -u "${2:-$USER}" -s "${1:-$newshell}"; }
+  __getuser_shell() { true; }
+  ;;
+*)
+  printf_exit "Unsupported OS"
+  ;;
+esac
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 if __getuser_shell "$newshell"; then
   printf_custom "The old and new shell are both $newshellname"
 else
   if [ -f "$newshell" ]; then
-    echo -n "$(chsh -s "$newshell" "${USER}" | printf_readline "3" | grep -vq "chsh")"
+    echo -n "$(_chsh "$newshell" "${USER}" | printf_readline "3" | grep -vq "chsh")"
     __getuser_shell "$newshell" && __success || printf_exit
   else
     printf_red "Invalid shell"
