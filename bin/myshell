@@ -85,28 +85,32 @@ case "$1" in
   shell="$1"
   case "$(uname -s)" in
   Linux)
-    _chsh() { chsh -s "${1:-$newshell}" "${2:-$USER}"; }
-    _user_shell() { __getuser_shell "${1:-$newshell}"; }
+    __vars "$shell"
+    if __getuser_shell "$newshell"; then
+      printf_custom "The old and new shell are both $newshellname"
+    else
+      if [ -f "$newshell" ]; then
+        echo -n "$(chsh -s "$newshell" "$USER" | printf_readline "3" | grep -vq "chsh")"
+        __getuser_shell "$newshell" && __success || printf_exit
+      else
+        printf_red "Invalid shell"
+      fi
+    fi
+
     ;;
   Darwin)
-    _chsh() { chsh -u "${2:-$USER}" -s "${1:-$newshell}"; }
-    _user_shell() { __getuser_shell() { true; }; }
+    __vars "$shell"
+    if [ -f "$newshell" ]; then
+      echo -n "$(chsh -u "$USER" -s "$newshell" | printf_readline "3" | grep -vq "chsh")" && __success || printf_exit
+    else
+      printf_red "Invalid shell"
+    fi
+
     ;;
   *)
     printf_exit "Unsupported OS"
     ;;
   esac
-  __vars "$shell"
-  if _user_shell "$newshell"; then
-    printf_custom "The old and new shell are both $newshellname"
-  else
-    if [ -f "$newshell" ]; then
-      echo -n "$(_chsh "$newshell" "${USER}" | printf_readline "3" | grep -vq "chsh")"
-      _user_shell "$newshell" && __success || printf_exit
-    else
-      printf_red "Invalid shell"
-    fi
-  fi
   ;;
 
 esac
