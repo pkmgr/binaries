@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version     : 011320210202-git
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : notifications
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : send a notification to user
+# @
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+systemmgr_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+main() {
+  __kill() { kill -9 "$(pidof "$1")" >/dev/null 2>&1; }
+  __running() { pidof "$1" >/dev/null 2>&1; }
+  __start() {
+    sleep 1 && "$@" >/dev/null 2>&1 &
+  }
+
+  if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
+    __kill xfce4-notifyd
+    __start /usr/lib/xfce4/notifyd/xfce4-notifyd
+  elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
+    __kill xfce4-notifyd
+    __start /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd
+  elif cmd_exist dunst; then
+    __kill dunst
+    __start dunst
+  elif cmd_exist deadd-notification-center; then
+    __kill deadd-notification-center
+    __start deadd-notification-center
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+main "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End
