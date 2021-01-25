@@ -480,7 +480,7 @@ __countdir() { ls "$@" | wc -l; }
 vim="$(command -v /usr/local/bin/vim || command -v vim)"
 __vim() { $vim "$@"; }
 #mkd dir
-__mkd() { for d in "$@"; do if [ ! -e "$d" ]; then devnull mkdir -p "$d"; else return 0; fi; done; }
+__mkd() { for d in "$@"; do if [ ! -e "$d" ]; then __devnull mkdir -p "$d"; else return 0; fi; done; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }
@@ -673,7 +673,7 @@ addtocrontab() {
   local frequency="$1"
   local command="am_i_online && && sleep $(expr $RANDOM \% 300) && $2"
   local job="$frequency $command"
-  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | devnull2 crontab -
+  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | __devnull2 crontab -
 }
 
 removecrontab() {
