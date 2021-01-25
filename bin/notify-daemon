@@ -48,10 +48,10 @@ main() {
   elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
     __kill xfce4-notifyd
     __start /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd
-  elif __cmd_exist dunst; then
+  elif __cmd_exists dunst; then
     __kill dunst
     __start dunst
-  elif __cmd_exist deadd-notification-center; then
+  elif __cmd_exists deadd-notification-center; then
     __kill deadd-notification-center
     __start deadd-notification-center
   fi

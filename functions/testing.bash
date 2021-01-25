@@ -162,7 +162,7 @@ printf_execute_result() {
   return "$1"
 }
 
-printf_not_found() { if ! cmd_exists "$1"; then printf_exit "The $1 command is not installed"; fi; }
+printf_not_found() { if ! __cmd_exists "$1"; then printf_exit "The $1 command is not installed"; fi; }
 printf_execute_error_stream() { while read -r line; do printf_execute_error "↳ ERROR: $line"; done; }
 #used for printing console notifications
 printf_console() {
@@ -523,8 +523,7 @@ __ln_sf() {
 }
 #find "dir" "options"
 __find() {
-  local dir="$1"
-  shift 1
+  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="./"
   find "$dir" -not -path "$dir/.git/*" "$@"
 }
 #cd "dir"
@@ -536,6 +535,14 @@ __cd_into() {
       printf_green "Type exit to return to your previous directory" &&
       exec bash || exit 1
   fi
+}
+#kill "app"
+__kill() { kill -9 "$(pidof "$1")" >/dev/null 2>&1; }
+#running "app"
+__running() { pidof "$1" >/dev/null 2>&1; }
+#start "app"
+__start() {
+    sleep 1 && "$@" >/dev/null 2>&1 &
 }
 
 ###################### url functions ######################
@@ -950,17 +957,17 @@ __getexitcode() {
 }
 ###################### OS Functions ######################
 #alternative names
-mlocate() { cmd_exists locate || cmd_exists mlocate || return 1; }
-xfce4() { cmd_exists xfce4-about || return 1; }
-imagemagick() { cmd_exists convert || return 1; }
-fdfind() { cmd_exists fdind || cmd_exists fd || return 1; }
-speedtest() { cmd_exists speedtest-cli || cmd_exists speedtest || return 1; }
-neovim() { cmd_exists nvim || cmd_exists neovim || return 1; }
-chromium() { cmd_exists chromium || cmd_exists chromium-browser || return 1; }
-firefox() { cmd_exists firefox-esr || cmd_exists firefox || return 1; }
+mlocate() { __cmd_exists locate || __cmd_exists mlocate || return 1; }
+xfce4() { __cmd_exists xfce4-about || return 1; }
+imagemagick() { __cmd_exists convert || return 1; }
+fdfind() { __cmd_exists fdind || __cmd_exists fd || return 1; }
+speedtest() { __cmd_exists speedtest-cli || __cmd_exists speedtest || return 1; }
+neovim() { __cmd_exists nvim || __cmd_exists neovim || return 1; }
+chromium() { __cmd_exists chromium || __cmd_exists chromium-browser || return 1; }
+firefox() { __cmd_exists firefox-esr || __cmd_exists firefox || return 1; }
 gtk-2.0() { find /lib* /usr* -iname "*libgtk*2*.so*" -type f | grep -q . || return 0; }
 gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || return 0; }
-httpd() { cmd_exists httpd || cmd_exists apache2 || return 1; }
+httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 
 #export -f mlocate xfce4 imagemagick fdfind speedtest neovim chromium firefox gtk-2.0 gtk-3.0 httpd
 
@@ -970,7 +977,7 @@ notifications() {
   shift 1
   local msg="$*"
   shift
-  cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
+  __cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }
 #connection test
 __am_i_online() {
@@ -1004,7 +1011,7 @@ if [[ "$OSTYPE" =~ ^linux ]]; then
 fi
 #function to get network device
 __getlipaddr() {
-  if cmd_exists route || cmd_exists ip; then
+  if __cmd_exists route || __cmd_exists ip; then
     if [[ "$OSTYPE" =~ ^darwin ]]; then
       NETDEV="$(route get default | grep interface | awk '{print $2}')"
     else
