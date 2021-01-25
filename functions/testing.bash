@@ -390,7 +390,7 @@ __check_app() {
   for cmd in $ARGS; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
   if [ -n "$MISSING" ]; then
     printf_question "$cmd is not installed Would you like install it" [y/N]
-    read -n 1 -s choice && echo
+    read -t 10 -n 1 -s choice && echo
     if [[ $choice == "y" || $choice == "Y" ]]; then
       for miss in $MISSING; do
         __execute "pkmgr silent-install $miss" "Installing $miss" || return 1
