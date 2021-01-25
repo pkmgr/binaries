@@ -20,9 +20,11 @@ printf_help "4" "notes client message to send         |   Appends that text to t
 printf_help "4" "xclip -o | notes client              |   Appends stdin to the server file"
 
 printf_help "2" "                         Notes server usage                   "
-printf_help "4" "notes service                        |   Run notes as a server using netcat"
-printf_help "4" "notes service --status               |   Shows the current status of the server"
-printf_help "4" "notes service --kill                 |   Initiates the kill to stop the server"
+printf_help "4" "notes server                         |   Run notes as a server using netcat"
+printf_help "4" "notes server open                    |   Open your notes on remote server"
+printf_help "4" "notes server open all                |   Open all your notes on remote server"
+printf_help "4" "notes server --status                |   Shows the current status of the server"
+printf_help "4" "notes server --kill                  |   Initiates the kill to stop the server"
 
 printf_help "2" "                      Notes systemd server usage                   "
 printf_help "4" "notes service systemd                |   Systemd functions"
