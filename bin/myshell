@@ -81,7 +81,7 @@ esac
 case "$1" in
 list)
   printf_custom "2" "Available shells:"
-  [ -f "/etc/shells" ] && cat /etc/shells | grep -v "#" | printf_readline "3"
+  [ -f "/etc/shells" ] && cat /etc/shells | sed '/^\#/d;/^$/d' | sort -u | printf_readline "3"
   exit
   ;;
 

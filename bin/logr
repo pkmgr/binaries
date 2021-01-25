@@ -155,7 +155,7 @@ if [ -d "$logdir" ]; then
   for upd in "$logdir/$stdout" "$logdir/$stderr"; do
     if [ -f "$upd" ]; then
       sed -i 's,\x1B\[[0-9;]*[a-zA-Z],,g' "$upd"
-      sed -i '/^$/d' "$upd"
+      sed -i '/^\#/d;/^$/d' "$upd"
       sed -i 's#\t##g' "$upd"
       sed -i 's###g' "$upd"
     fi
