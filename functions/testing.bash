@@ -435,7 +435,14 @@ __check_cpan() {
 }
 #check_app "app"
 __require_app() { __check_app "$@" || exit 1; }
-
+__requires() {
+  local CMD
+  for cmd in "$@"; do
+    __cmd_exists "$cmd" || local CMD+="$cmd" && printf_red "$cmd is not installed"
+  done
+  [ -n "$CMD"] && __require_app "$CMD"
+  [ "$?" -eq 0 ] return 0 || exit 1
+  }
 ###################### get versions ######################
 __getpythonver() {
   if [[ "$(python3 -V 2>/dev/null)" =~ "Python 3" ]]; then
@@ -470,7 +477,7 @@ __getuser() { if [ -n "${1:-$USER}" ]; then cut -d: -f1 /etc/passwd | grep "${1:
 __getuser_shell() {
   local SHELL=${1:-$SHELL} && shift 1
   local USER=${1:-$USER} && shift 1
-  grep $USER /etc/passwd | cut -d: -f7 | grep -q "$SHELL" && return 0 || return 1
+  grep "$USER" /etc/passwd | cut -d: -f7 | grep -q "$SHELL" && return 0 || return 1
 }
 #countdir "dir"
 __countdir() { ls "$@" | wc -l; }
@@ -493,9 +500,9 @@ __while_loop() { while :; do "${@}" && sleep .3; done; }
 #for_each "option" "command"
 __for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
 #hostname ""
-__hostname() { __devnull2 hostname -s "$@"; }
+__hostname() { __devnull2 hostname -s "${1:-$HOSTNAME}"; }
 #domainname ""
-__domainname() { hostname -d "$@" 2>/dev/null || hostname -f "$@" 2>/dev/null; }
+__domainname() { hostname -d "${1:-$HOSTNAME}" 2>/dev/null || hostname -f "${1:-$HOSTNAME}" 2>/dev/null; }
 #hostname2ip "hostname"
 __hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
 #ip2hostname
@@ -503,7 +510,7 @@ __ip2hostname() { getent hosts "$1" | awk '{print $2}' | head -n1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
 #count_files "dir"
-__count_files() { __devnull2 find ${1:-.} -maxdepth 1 | wc -l; }
+__count_files() { __devnull2 find ${1:-./} -maxdepth 1 | wc -l; }
 #symlink "file" "dest"
 __symlink() { if [ -e "$1" ]; then __devnull ln -sf "${1}" "${2}"; fi; }
 #mv_f "file" "dest"
@@ -515,17 +522,9 @@ __rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@"; fi; }
 #ln_rm "file"
 __ln_rm() { if [ -e "$1" ]; then __devnull find "$1" -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
-__ln_sf() {
-  if [ -L "$2" ]; then
-    rm_rf "$2"
-  fi
-  __devnull ln -sf "$1" "$2"
-}
+__ln_sf() { [ -L "$2" ] && rm_rf "$2" ; __devnull ln -sf "$1" "$2"; }
 #find "dir" "options"
-__find() {
-  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="./"
-  find "$dir" -not -path "$dir/.git/*" "$@"
-}
+__find() { [ -n "$1" ] && local dir="$1" && shift 1 || local dir="./" ; find "$dir" -not -path "$dir/.git/*" "$@" ; }
 #cd "dir"
 __cd() { cd "$1" || return 1; }
 # cd into directory with message
