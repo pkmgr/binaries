@@ -354,7 +354,7 @@ backupapp() {
     echo -e "\n#################################" >>"$logdir/$myappname.log"
     echo -e "# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "#################################\n\n" >>"$logdir/$myappname.log"
-    rm_rf "$myappdir"
+    [ -f "$APPDIR/.installed" ] || rm_rf "$myappdir"
   fi
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
 }
@@ -1899,6 +1899,7 @@ run_postinst_global() {
     if [ "$APPDIR" != "$INSTDIR" ]; then
       [ -d "$APPDIR" ] || mkd "$APPDIR"
       cp_rf "$INSTDIR/etc/." "$APPDIR/"
+      date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed"
     fi
 
     if [ -d "$INSTDIR/backgrounds" ]; then
