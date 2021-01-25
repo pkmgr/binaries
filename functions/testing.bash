@@ -227,7 +227,7 @@ printf_question() {
 
 printf_custom_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
-  [ "$1" = "ICON" ] && shift 1 && local msg="$ICON_QUESTION $*" || local msg="$*"
+  local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
 }

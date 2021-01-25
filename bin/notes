@@ -90,8 +90,7 @@ fi
 
 gen_config() {
   __mkd "$HOME/.config/notes"
-  echo '
-NOTES_FOLDER="$(date +%Y)"
+  echo 'NOTES_FOLDER="$(date +%Y)"
 NOTES_FILE="$(date +%m).txt"
 NOTES_TMPDIR="'${TMP:-/tmp}'"
 NOTES_DIRECTORY="'${NOTES_DIRECTORY:-"$HOME/.local/share/editors/notes"}'"
