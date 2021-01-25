@@ -46,11 +46,14 @@ __check_app chsh
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # functions
 
-_vars() {
-  newshell="$(grep $1 /etc/shells | head -n 1)"
+__vars() {
+  newshell="$(grep $shell /etc/shells | head -n 1)"
   newshellname="$(basename $newshell)"
 }
 
+__list_shells() {
+  [ -f "/etc/shells" ] && cat /etc/shells | sed '/^\#/d;/^$/d' | sort -u | printf_readline "3"
+}
 __success() {
   printf_green "shell has been changed to $newshell"
   printf_custom "3" "You will need to logout for the changes to take effect"
@@ -61,38 +64,45 @@ __failure() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case "$(uname -s)" in
-Linux)
-  _chsh() { chsh -s "${1:-$newshell}" "${2:-$USER}"; }
-  __getuser_shell "${1:-$newshell}"
-  ;;
-Darwin)
-  _chsh() { chsh -u "${2:-$USER}" -s "${1:-$newshell}"; }
-  __getuser_shell() { true; }
-  ;;
-*)
-  printf_exit "Unsupported OS"
-  ;;
-esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
 case "$1" in
-list)
+--help)
+  shift 1
+  __help
+  ;;
+
+--list)
+  shift 1
   printf_custom "2" "Available shells:"
-  [ -f "/etc/shells" ] && cat /etc/shells | sed '/^\#/d;/^$/d' | sort -u | printf_readline "3"
+  __list_shells
   exit
   ;;
 
 *)
-  _vars "$@"
-  if __getuser_shell "$newshell"; then
+  shell="$1"
+  case "$(uname -s)" in
+  Linux)
+    _chsh() { chsh -s "${1:-$newshell}" "${2:-$USER}"; }
+    _user_shell() { __getuser_shell "${1:-$newshell}"; }
+    ;;
+  Darwin)
+    _chsh() { chsh -u "${2:-$USER}" -s "${1:-$newshell}"; }
+    _user_shell() { __getuser_shell() { true; }; }
+    ;;
+  *)
+    printf_exit "Unsupported OS"
+    ;;
+  esac
+  __vars "$shell"
+  if _user_shell "$newshell"; then
     printf_custom "The old and new shell are both $newshellname"
   else
     if [ -f "$newshell" ]; then
       echo -n "$(_chsh "$newshell" "${USER}" | printf_readline "3" | grep -vq "chsh")"
-      __getuser_shell "$newshell" && __success || printf_exit
+      _user_shell "$newshell" && __success || printf_exit
     else
       printf_red "Invalid shell"
     fi
@@ -102,5 +112,5 @@ list)
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

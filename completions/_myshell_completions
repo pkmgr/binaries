@@ -11,9 +11,12 @@ _myshell_completions() {
   local ARRAY=$(for line in $(cat /etc/shells | grep -v "#"); do basename "$line" | tr '\n' ' '; done && echo)
 
   _init_completion || return
-
-  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
-
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '--help ${ARRAY}' -- "$cur"))
+    return
+    ;;
+  esac
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
