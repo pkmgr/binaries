@@ -227,13 +227,13 @@ printf_question() {
 
 printf_custom_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
-  local msg="$*"
+  [ "$1" = "ICON" ] && shift 1 && local msg="$ICON_QUESTION $*" || local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
 }
 
 printf_answer() {
-  read -e -r -n "${2:-120}" -s "${1:-__ANSWER}"
+  read -t 10 -e -r -n "${2:-120}" -s "${1:-__ANSWER}"
   history -s "${1:-__ANSWER}"
 }
 
