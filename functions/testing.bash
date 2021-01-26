@@ -167,7 +167,7 @@ printf_execute_error_stream() { while read -r line; do printf_execute_error "↳
 #used for printing console notifications
 printf_console() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
-  local msg="$@"
+  local msg="$*"
   shift
   printf_color "\n\n\t\t$msg\n\n" "$color"
 }
@@ -440,9 +440,9 @@ __requires() {
   for cmd in "$@"; do
     __cmd_exists "$cmd" || local CMD+="$cmd" && printf_red "$cmd is not installed"
   done
-  [ -n "$CMD"] && __require_app "$CMD"
+  [ -n "$CMD" ] && __require_app "$CMD"
   [ "$?" -eq 0 ] return 0 || exit 1
-  }
+}
 ###################### get versions ######################
 __getpythonver() {
   if [[ "$(python3 -V 2>/dev/null)" =~ "Python 3" ]]; then
@@ -487,7 +487,10 @@ __countdir() { ls "$@" | wc -l; }
 vim="$(command -v /usr/local/bin/vim || command -v vim)"
 __vim() { $vim "$@"; }
 #mkd dir
-__mkd() { for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done; return 0; }
+__mkd() {
+  for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done
+  return 0
+}
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }
@@ -522,9 +525,15 @@ __rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@"; fi; }
 #ln_rm "file"
 __ln_rm() { if [ -e "$1" ]; then __devnull find "$1" -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
-__ln_sf() { [ -L "$2" ] && rm_rf "$2" ; __devnull ln -sf "$1" "$2"; }
+__ln_sf() {
+  [ -L "$2" ] && rm_rf "$2"
+  __devnull ln -sf "$1" "$2"
+}
 #find "dir" "options"
-__find() { [ -n "$1" ] && local dir="$1" && shift 1 || local dir="./" ; find "$dir" -not -path "$dir/.git/*" "$@" ; }
+__find() {
+  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="./"
+  find "$dir" -not -path "$dir/.git/*" "$@"
+}
 #cd "dir"
 __cd() { cd "$1" || return 1; }
 # cd into directory with message

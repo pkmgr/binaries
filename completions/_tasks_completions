@@ -7,7 +7,7 @@
 
 _tasks_completions() {
   local cur prev words cword
-  local ARRAY="list add report cleanup "
+  local ARRAY="list add report cleanup info done session switch stop start delete "
 
   _init_completion || return
 
