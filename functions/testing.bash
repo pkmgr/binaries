@@ -120,6 +120,8 @@ THEMEMGRREPO="https://github.com/thememgr"
 SYSTEMMGRREPO="https://github.com/systemmgr"
 WALLPAPERMGRREPO="https://github.com/wallpapermgr"
 
+scripts_version() { printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)\n"; }
+
 #setup colors
 NC="$(tput sgr0 2>/dev/null)"
 RESET="$(tput sgr0 2>/dev/null)"
@@ -170,6 +172,15 @@ printf_console() {
   local msg="$*"
   shift
   printf_color "\n\n\t\t$msg\n\n" "$color"
+}
+
+printf_single() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local COLUMNS=80
+  local TEXT="$*"
+  local LEN=${#TEXT}
+  local WIDTH=$(($LEN + ($COLUMNS - $LEN) / 2))
+  printf "%b" "$(tput setaf "$color" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
 }
 
 printf_exit() {
@@ -280,7 +291,7 @@ printf_header() {
   local msg6="$1" && shift 1 || msg6=
   local msg7="$1" && shift 1 || msg7=
   shift
-  [ -z "$msg1" ] || printf "##################################################\n"
+  [ -z "$msg1" ] || printf " ##################################################\n"
   [ -z "$msg1" ] || printf "$msg1\n"
   [ -z "$msg2" ] || printf "$msg2\n"
   [ -z "$msg3" ] || printf "$msg3\n"
@@ -556,8 +567,7 @@ __start() {
 
 ###################### url functions ######################
 __curl() {
-  __devnull2 __am_i_online && curl --disable -LSfs --connect-timeout 3 --retry 0 "$@"
-  __setexitstatus
+  __devnull2 __am_i_online && curl --disable -LSfs --connect-timeout 3 --retry 0 "$@" || return 1
 }
 #appversion "urlToVersion"
 __appversion() { __curl "${1:-$REPORAW/master/version.txt}" || echo 011920210931-git; }
@@ -570,7 +580,7 @@ __curl_version() { curl --disable -LSs --connect-timeout 3 --retry 0 "${1:-$REPO
 #curl_upload "file" "url"
 __curl_upload() { curl -disable -LSs --connect-timeout 3 --retry 0 --upload-file "$1" "$2"; }
 #curl_api "API URL"
-__curl_api() { __curl "$1" && return 0 || return 1; }
+__curl_api() { curl --disable -LSs --connect-timeout 3 --retry 0 "https://api.github.com/orgs/$SCRIPTS_PREFIX/repos?per_page=1000"; }
 #urlcheck "url"
 __urlcheck() { curl --disable --connect-timeout 2 --retry 0 --retry-delay 0 --output /dev/null --silent --head --fail "$1" && return 0 || return 1; }
 #urlverify "url"
@@ -1303,6 +1313,7 @@ dfmgr_install() {
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1310,7 +1321,7 @@ dfmgr_install() {
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="dfmgr_install"
+  export installtype="dfmgr_install"
 }
 
 ###################### devenv settings ######################
@@ -1326,6 +1337,7 @@ devenvmgr_install() {
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1333,7 +1345,7 @@ devenvmgr_install() {
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="devenvmgr_install"
+  export installtype="devenvmgr_install"
 }
 ###################### dockermgr settings ######################
 dockermgr_install() {
@@ -1349,6 +1361,7 @@ dockermgr_install() {
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1356,7 +1369,7 @@ dockermgr_install() {
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="dockermgr_install"
+  export installtype="dockermgr_install"
 }
 
 ###################### fontmgr settings ######################
@@ -1373,6 +1386,7 @@ fontmgr_install() {
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1381,7 +1395,7 @@ fontmgr_install() {
   __mkd "$USRUPDATEDIR"
   __mkd "$FONTDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="fontmgr_install"
+  export installtype="fontmgr_install"
   generate_font_index() {
     printf_green "Updating the fonts in $FONTDIR"
     FONTDIR="${FONTDIR:-$SHARE/fonts}"
@@ -1403,6 +1417,7 @@ iconmgr_install() {
   ICONDIR="${ICONDIR:-$SHARE/icons}"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1411,7 +1426,7 @@ iconmgr_install() {
   __mkd "$USRUPDATEDIR"
   __mkd "$ICONDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="iconmgr_install"
+  export installtype="iconmgr_install"
   generate_icon_index() {
     printf_green "Updating the icon cache in $ICONDIR"
     ICONDIR="${ICONDIR:-$SHARE/icons}"
@@ -1433,6 +1448,7 @@ pkmgr_install() {
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1440,7 +1456,7 @@ pkmgr_install() {
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="pkmgr_install"
+  export installtype="pkmgr_install"
 }
 
 ###################### systemmgr settings ######################
@@ -1457,9 +1473,9 @@ systemmgr_install() {
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1467,7 +1483,7 @@ systemmgr_install() {
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="systemmgr_install"
+  export installtype="systemmgr_install"
 }
 
 ###################### thememgr settings ######################
@@ -1484,6 +1500,7 @@ thememgr_install() {
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1491,7 +1508,7 @@ thememgr_install() {
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="thememgr_install"
+  export installtype="thememgr_install"
   generate_theme_index() {
     printf_green "Updating the theme index in $THEMEDIR"
     THEMEDIR="${THEMEDIR:-$SHARE/themes}"
@@ -1517,6 +1534,7 @@ wallpapermgr_install() {
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
   ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -1525,7 +1543,7 @@ wallpapermgr_install() {
   __mkd "$WALLPAPERS"
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  installtype="wallpapermgr_install"
+  export installtype="wallpapermgr_install"
 }
 
 ###################### create directories ######################
@@ -1561,7 +1579,6 @@ ensure_dirs() {
 path_info() { echo "$PATH" | tr ':' '\n' | sort -u; }
 ###################### debug settings ######################
 __debug() {
-  $installtype
   printf_info "APPNAME:                   $APPNAME"
   printf_info "App Dir:                   $APPDIR"
   printf_info "Install Dir:               $INSTDIR"
@@ -1607,13 +1624,12 @@ get_app_info() {
   local APPNAME="${APPNAME:-$(basename $0)}"
   local FILE="$(command -v $APPNAME)"
   if [ -f "$(command -v $FILE)" ]; then
-    echo ""
+    printf_green ""
     printf_green "Getting info for $APPNAME"
     cat "$FILE" | grep '^# @' | grep ' : ' >/dev/null 2>&1 &&
       cat "$FILE" | grep "^# @" | grep ' : ' | sed 's/# @//g' | printf_readline "3" &&
       printf_green "$(cat $FILE | grep "##@Version" | sed 's/##@//g')" ||
       printf_red "File was found, however, No information was provided"
-    echo ""
   else
     printf_red "File was not found"
   fi
@@ -1677,7 +1693,7 @@ __options() {
   fi
 }
 
-###################### run install/update/version ######################
+###################### *mgr scripts install/update/version ######################
 run_install_init() {
   local -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
@@ -1705,18 +1721,16 @@ run_install_init() {
 }
 
 run_install_update() {
-  if [ -z "$1" ]; then
+  if [ $# = 0 ]; then
     if [[ -d "$USRUPDATEDIR " && -n "$(ls -A $USRUPDATEDIR)" ]]; then
       for upd in $(ls $USRUPDATEDIR); do
         run_install_init "$upd"
-        echo ""
       done
     fi
     if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
       if [[ -d "$SYSUPDATEDIR" && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
         for updadmin in $(ls $SYSUPDATEDIR); do
           run_install_init "$updadmin"
-          echo ""
         done
       fi
     fi
@@ -1729,6 +1743,7 @@ run_install_update() {
 }
 
 run_install_list() {
+  echo ""
   if [ "$#" -ne 0 ]; then
     local args="$*"
     for f in $args; do
@@ -1737,62 +1752,73 @@ run_install_list() {
         if [ -f "$file" ]; then
           printf_green "Information about $f:"
           printf_green "$(bash -c "$file --version")"
-        else
-          printf_red "File was not found is it installed?"
         fi
+      elif [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A "$SYSUPDATEDIR/$f" 2>/dev/null)" ] && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
+        file="$(ls -A "$SYSUPDATEDIR/$f" 2>/dev/null)"
+        if [ -f "$file" ]; then
+          printf_green "Information about $f:"
+          printf_green "$(bash -c "$file --version")"
+        fi
+      else
+        printf_red "File was not found is it installed?"
       fi
     done
+    echo -e "\n"
   else
-    declare -a LSINST="$(ls "$USRUPDATEDIR" 2>/dev/null)"
-    if [ -z "$LSINST" ]; then
-      printf_red "No dotfiles are installed"
-    else
-      for df in ${LSINST[*]}; do
-        printf_green "$df"
-      done
-    fi
-  fi
-  # run as root
-  if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
-    if [ "$#" -ne 0 ]; then
-      local args="$*"
-      for f in $args; do
-        if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A "$SYSUPDATEDIR/$f" 2>/dev/null)" ]; then
-          file="$(ls -A "$SYSUPDATEDIR/$f" 2>/dev/null)"
-          if [ -f "$file" ]; then
-            printf_green "Information about $f:"
-            printf_green "$(bash -c "$file --version")"
-          else
-            printf_red "File was not found is it installed?"
-          fi
-        fi
-      done
-    else
-      declare -a LSINST="$(ls "$SYSUPDATEDIR" 2>/dev/null)"
-      if [ -z "$LSINST" ]; then
-        printf_red "No dotfiles are installed"
-      else
+    if [ "$(__countdir "$USRUPDATEDIR")" -ne 0 ]; then
+      declare -a LSINST="$(ls "$USRUPDATEDIR" 2>/dev/null)"
+      if [ -n "$LSINST" ]; then
         for df in ${LSINST[*]}; do
-          printf_green "$df"
+          printf_single "4" "$df"
         done
       fi
+    elif [ "$(__countdir "$SYSUPDATEDIR")" -ne 0 ]; then
+      declare -a LSINST="$(ls "$SYSUPDATEDIR" 2>/dev/null)"
+      if [ -n "$LSINST" ]; then
+        for df in ${LSINST[*]}; do
+          printf_single "$df"
+        done
+      fi
+    else
+      printf_red "Nothing was found"
     fi
+    echo -e "\n"
   fi
 }
 
-run_install_version() {
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1 2>/dev/null)" ]; then
-    file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: \n$(bash -c "$file --version")"
-    fi
-  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
-    printf_green "$(bash -c "$1 --version 2>/dev/null")"
-  else
-    printf_exit "File was not found is it installed?"
-  fi
-  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)\n"
+run_install_search() {
+  [ $# = 0 ] && printf_exit "Nothing to search for"
+  for search in "$@"; do
+    echo -n "$LIST" | tr ' ' '\n' 2>/dev/null | grep -Fi "$search" | printf_read "2" || printf_exit "Your seach produced no results"
+  done
   exit
+}
+
+run_install_available() { __api_test "Failed to load the API" && __curl_api | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"; }
+
+run_install_version() {
+  [ $# = 0 ] && local args="$APPNAME" || local args="$*"
+  local EXIT="0"
+  for version in $args; do
+    if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$version 2>/dev/null)" ]; then
+      file="$(ls -A $USRUPDATEDIR/$version 2>/dev/null)"
+      if [ -f "$file" ]; then
+        printf_green "Information about $version: \n$(bash -c "$file --version" | sed '/^\#/d;/^$/d')"
+      fi
+    elif [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A $SYSUPDATEDIR/$version 2>/dev/null)" ] && [ "$SYSUPDATEDIR" != "$USRUPDATEDIR" ]; then
+      file="$(ls -A $SYSUPDATEDIR/$version 2>/dev/null)"
+      if [ -f "$file" ]; then
+        printf_green "Information about $version: \n$(bash -c "$file --version" | sed '/^\#/d;/^$/d')"
+      fi
+    elif [ -f "$(command -v $version 2>/dev/null)" ]; then
+      printf_green "$(bash -c "$version --version 2>/dev/null" | sed '/^\#/d;/^$/d')"
+    else
+      printf_red "File was not found is it installed?"
+      EXIT+=1
+      return 1
+    fi
+  done
+  [ "$EXIT" = 0 ] && scripts_version || exit 1
 }
 
 ###################### export and call functions ######################

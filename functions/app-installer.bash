@@ -1362,15 +1362,13 @@ ensure_perms() {
 ##################################################################################################
 
 get_app_version() {
-  $installtype
-  if [ -f "$APPDIR/version.txt" ]; then
-    local version="$(cat "$APPDIR/version.txt" | grep -v "#" | tail -n 1)"
+  if [ -f "$INSTDIR/version.txt" ]; then
+    local version="$(cat "$INSTDIR/version.txt" | grep -v "#" | tail -n 1)"
   else
     local version="0000000"
   fi
   local GITREPO=""$REPO/$APPNAME""
   local APPVERSION="${APPVERSION:-$(__appversion)}"
-  printf_info "App info"
   [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
   [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
   [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
@@ -1601,7 +1599,7 @@ dfmgr_install() {
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dfmgr"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="dfmgr_install"
+  export installtype="dfmgr_install"
 }
 
 dfmgr_run_post() {
@@ -1633,7 +1631,7 @@ dockermgr_install() {
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/dockermgr"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="dockermgr_install"
+  export installtype="dockermgr_install"
 }
 
 dockermgr_run_post() {
@@ -1665,7 +1663,7 @@ fontmgr_install() {
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="fontmgr_install"
+  export installtype="fontmgr_install"
 }
 
 fontmgr_run_post() {
@@ -1700,7 +1698,7 @@ iconmgr_install() {
   ICONDIR="${ICONDIR:-$SHARE/icons}"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="iconmgr_install"
+  export installtype="iconmgr_install"
 }
 
 iconmgr_run_post() {
@@ -1741,7 +1739,7 @@ pkmgr_install() {
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="pkmgr_install"
+  export installtype="pkmgr_install"
 }
 
 pkmgr_run_postinst() {
@@ -1774,7 +1772,7 @@ systemmgr_install() {
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="systemmgr_install"
+  export installtype="systemmgr_install"
 }
 
 systemmgr_run_postinst() {
@@ -1805,7 +1803,7 @@ thememgr_install() {
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="thememgr_install"
+  export installtype="thememgr_install"
 }
 
 generate_theme_index() {
@@ -1848,7 +1846,7 @@ wallpapermgr_install() {
   WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
   INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  installtype="wallpapermgr_install"
+  export installtype="wallpapermgr_install"
 }
 
 wallpapermgr_run_postinst() {

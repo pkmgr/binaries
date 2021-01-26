@@ -20,7 +20,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,21 +35,8 @@ thememgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ARGS="$*"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 ARRAY="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/array)"
 LIST="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/list)"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if am_i_online cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/thememgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
-fi
-
-generate_theme_index() { true; }
-generate_icon_index() { true; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -59,9 +46,9 @@ mkd "$THEMEDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 removetheme() {
-  devnull sudo rm -Rf "$HOMEDIR/$1"
-  devnull sudo unlink "$THEMEDIR/$rmf"
-  devnull generate_theme_index "$THEMEDIR"
+  __devnull sudo rm -Rf "$HOMEDIR/$1"
+  __devnull sudo unlink "$THEMEDIR/$rmf"
+  __devnull generate_theme_index "$THEMEDIR"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -80,7 +67,7 @@ __themedir() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
-help | h | --h*)
+help | -*)
   __help
   ;;
 
@@ -94,8 +81,12 @@ list)
 
 search)
   shift 1
-  THEME="$1"
-  devnull2 echo $LIST | tr ' ' '\n' | grep --color=auto -Fi "$THEME" || printf_exit "That theme does not exist"
+  run_install_search "$@"
+  ;;
+
+available)
+  shift 1
+  run_install_available
   ;;
 
 list-installed)
@@ -112,7 +103,7 @@ search-installed)
 
 remove)
   shift 1
-  printf_green "Removing $ARGS from $HOMEDIR"
+  printf_green "Removing $* from $HOMEDIR"
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
     printf_yellow "Removing $rmf theme from your system"
@@ -124,57 +115,22 @@ remove)
 
 update)
   shift 1
-  if [ -z "$1" ]; then
-    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR)" ]]; then
-      printf_green "Updating the themes in $HOMEDIR"
-      for upd in $(ls $USRUPDATEDIR); do
-        if urlcheck $REPO/$upd/raw/master/install.sh; then
-          printf_yellow "Initializing the installer from"
-          printf_purple "$REPO/$upd"
-          devnull2 bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)"
-          getexitcode "$upd has been installed"
-        else
-          urlinvalid $REPO/$upd/raw/master/install.sh
-        fi
-        echo ""
-      done
-    fi
-
-    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-      printf_green "Updating the themes in $HOMEDIR"
-      for updadmin in $(ls $SYSUPDATEDIR); do
-        if urlcheck $REPO/$updadmin/raw/master/install.sh; then
-          printf_yellow "Initializing the installer from"
-          printf_purple "$REPO/$updadmin"
-          devnull2 sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)"
-          getexitcode "$updadmin has been installed"
-        else
-          urlinvalid $REPO/$updadmin/raw/master/install.sh
-        fi
-        echo ""
-      done
-    fi
-
-  else
-    thememgr install "$@"
+  printf_green "Updating the themes in $HOMEDIR"
+  if [[ -n $* ]]; then
+    run_install_update "$@"
+  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
+    for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
+      run_install_update "$upd"
+    done
   fi
   ;;
 
 install)
   shift 1
-  printf_green "Installing $ARGS to $THEMEDIR"
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
-    declare -a LISTARRAY="$*"
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+  printf_green "Installing $* to $THEMEDIR"
   for ins in ${LISTARRAY[*]}; do
-    if urlcheck $REPO/$ins/raw/master/install.sh; then
-      printf_yellow "Initializing the installer from"
-      printf_purple "$REPO/$ins"
-      devnull2 bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
-      getexitcode "$ins has been installed"
-    else
-      urlinvalid $REPO/$ins/raw/master/install.sh
-    fi
-    echo ""
+    run_install_init "$ins"
   done
   ;;
 
@@ -185,20 +141,7 @@ updater | cron)
 
 version)
   shift 1
-  [ $# = 0 ] && $APPNAME --version
-  ANAME="$1"
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1)" ]; then
-    file="$(devnull2 ls -A $USRUPDATEDIR/$1)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: \n$(bash -c "$file --version")"
-    fi
-  elif [ -f "$(devnull2 command -v $1)" ]; then
-    printf_green "Information about $1: $(bash -c "$ANAME --version")"
-  else
-    printf_exit "File was not found is it installed?"
-  fi
-  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
-  exit
+  run_install_version "$@"
   ;;
 
 *)

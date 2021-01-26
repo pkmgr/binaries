@@ -35,10 +35,6 @@ iconmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if am_i_online && cmd_exists jq; then
-  API="$(__curl_api "https://api.github.com/orgs/iconmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
-fi
-
 removeicon() {
   __devnull sudo rm -Rf "$HOMEDIR/$rmf"
   __devnull sudo unlink "$ICONDIR/$rmf"
@@ -61,7 +57,8 @@ __icondir() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
-help | h | --h*)
+
+help | -*)
   __help
   ;;
 
@@ -75,8 +72,12 @@ list)
 
 search)
   shift 1
-  ICON="$1"
-  echo "$LIST" | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$ICON" || printf_exit "That icon does not exist"
+  run_install_search "$@"
+  ;;
+
+available)
+  shift 1
+  run_install_available
   ;;
 
 list-installed)
@@ -98,88 +99,40 @@ remove)
   for rmf in ${LISTARRAY[*]}; do
     printf_yellow "Removing $rmf icon from your system"
     removeicon "$rmf"
-    getexitcode "$rmf has been removed"
+    __getexitcode "$rmf has been removed"
     echo ""
   done
   ;;
 
 update)
   shift 1
-  if [ -z "$1" ]; then
-    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR)" ]]; then
-      printf_green "Updating the icons in $HOMEDIR"
-      for upd in $(ls $USRUPDATEDIR); do
-        if urlcheck $REPO/$upd/raw/master/install.sh; then
-          printf_yellow "Initializing the installer from"
-          printf_purple "$REPO/$upd"
-          bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)" 2>/dev/null
-          getexitcode "$upd has been installed"
-        else
-          urlinvalid $REPO/$upd/raw/master/install.sh
-        fi
-        echo ""
-      done
-    fi
-
-    if [[ -d "$SYSUPDATEDIR" && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-      printf_green "Updating the icons in $HOMEDIR"
-      for updadmin in $(ls $SYSUPDATEDIR); do
-        if urlcheck $REPO/$updadmin/raw/master/install.sh; then
-          printf_yellow "Initializing the installer from"
-          printf_purple "$REPO/$updadmin"
-          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)" 2>/dev/null
-          getexitcode "$updadmin has been installed"
-        else
-          urlinvalid $REPO/$updadmin/raw/master/install.sh
-        fi
-        echo ""
-      done
-    fi
-
-  else
-    iconmgr install "$@"
+  printf_green "Updating icons in $ICONDIR"
+  if [[ -n $* ]]; then
+    run_install_update "$@"
+  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
+    for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
+      run_install_update "$upd"
+    done
   fi
   ;;
 
 install)
   shift 1
   printf_green "Installing icons to $ICONDIR"
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
-    declare -a LISTARRAY="$*"
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
-    if urlcheck $REPO/$ins/raw/master/install.sh; then
-      printf_yellow "Initializing the installer from"
-      printf_purple "$REPO/$ins"
-      bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" 2>/dev/null
-      getexitcode "$ins has been installed"
-    else
-      urlinvalid $REPO/$ins/raw/master/install.sh
-    fi
-    echo ""
+    run_install_init "$ins"
   done
   ;;
 
 updater | cron)
   shift 1
-  cron_updater "$*"
+  cron_updater "$@"
   ;;
 
 version)
   shift 1
-  [ $# = 0 ] && $APPNAME --version
-  ANAME="$1"
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1 2>/dev/null)" ]; then
-    file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: \n$(bash -c "$file --version")"
-    fi
-  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
-    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
-  else
-    printf_exit "File was not found is it installed?"
-  fi
-  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
-  exit
+  run_install_version "$@"
   ;;
 
 *)

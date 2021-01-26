@@ -20,7 +20,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,65 +35,24 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if am_i_online && cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/systemmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
-fi
-
-#---------------------------------------------------------------------------------------
-
 preupdate() {
-  return
-  # if [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
-  #   sudo git -C /usr/local/share/CasjaysDev/scripts pull -q
-  #   [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-  # fi
-}
-
-systemmgr_list() {
-  if [ -n "$1" ]; then
-    if [ -d "$SYSUPDATEDIR" ] && [ -n "$(devnull2 ls -A "$SYSUPDATEDIR/$1")" ]; then
-      file="$(devnull2 ls -A "$SYSUPDATEDIR/$1")"
-      if [ -f "$file" ]; then
-        printf_green "Information about $1: \n$(bash -c "$file --version")"
-      else
-        printf_exit "File was not found is it installed?"
-        exit
-      fi
-    fi
-  else
-    declare -a LSINST="$(devnull2 ls "$SYSUPDATEDIR/")"
-    if [ -z "$LSINST" ]; then
-      printf_red "No packages are installed"
-      exit
-    else
-      for df in ${LSINST[*]}; do
-        printf_green $df
-      done
-    fi
+  if __am_i_online && [ -d "/usr/local/share/CasjaysDev/scripts" ]; then
+    sudo git -C /usr/local/share/CasjaysDev/scripts pull -q
+    [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ] && source "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
   fi
-  exit
 }
 
-#---------------------------------------------------------------------------------------
-
-systemmgr_search() {
-  declare -a LISTARRAY=$*
-  for df in ${LISTARRAY[*]}; do
-    devnull2 echo $LIST | tr ' ' '\n' | grep --color=auto -Fi "$df" || printf_exit "That package does not exist"
-  done
-  exit
-}
 #---------------------------------------------------------------------------------------
 
 app_uninstall() {
   [ -z "$1" ] && APPNAME="$APPNAME" || APPNAME="$1"
   if [ -d "$HOMEDIR" ]; then
     printf_yellow "Removing $APPNAME from $HOMEDIR"
-    devnull sudo rm -Rf "$HOMEDIR" &&
-      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
-      devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
-      devnull sudo find $BIN $SHARE $COMPDIR -xtype l -exec rm {} \;
-    getexitcode "$APPNAME has been removed"
+    __devnull sudo rm -Rf "$HOMEDIR" &&
+      __devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
+      __devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
+      __devnull sudo find $BIN $SHARE $COMPDIR -xtype l -exec rm {} \;
+    __getexitcode "$APPNAME has been removed"
   else
     printf_red "$APPNAME doesn't seem to be installed"
     return 1
@@ -103,22 +62,29 @@ app_uninstall() {
 #---------------------------------------------------------------------------------------
 
 case "$1" in
-help | h | --h*)
+
+help | -*)
   __help
   ;;
 
 list)
   shift 1
-  systemmgr_list "$@"
+  run_install_list "$@"
   ;;
 
 search)
   shift 1
-  systemmgr_search "$@"
+  run_install_search "$@"
+  ;;
+
+available)
+  shift 1
+  run_install_available
   ;;
 
 remove)
   shift 1
+  __requiresudo true || exit 1
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
     app_uninstall "$rmf"
@@ -128,66 +94,36 @@ remove)
 
 update)
   shift 1
-  preupdate
-  if [ -z "$1" ]; then
-    if [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-      for updadmin in $(ls $SYSUPDATEDIR); do
-        if urlcheck $REPO/$updadmin/raw/master/install.sh; then
-          printf_yellow "Initializing the installer from"
-          printf_purple "$REPO/$updadmin"
-          devnull2 sudo -HE bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)"
-          getexitcode "$updadmin has been installed"
-        else
-          urlinvalid $REPO/$updadmin/raw/master/install.sh
-        fi
-        echo ""
-      done
-    fi
-
-  else
-    sudo -HE systemmgr install "$@"
+  __requiresudo true || exit 1
+  printf_green "Updating in $INSTDIR"
+  if [[ -n $* ]]; then
+    run_install_update "$@"
+  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
+    for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
+      run_install_update "$upd"
+    done
   fi
   ;;
 
 install)
   shift 1
-  preupdate
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
-    declare -a LISTARRAY="$*"
+  __requiresudo true || exit 1
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+  printf_green "Installing to $INSTDIR"
   for ins in ${LISTARRAY[*]}; do
-    if urlcheck $REPO/$ins/raw/master/install.sh; then
-      printf_yellow "Initializing the installer from"
-      printf_purple "$REPO/$ins"
-      devnull2 sudo -HE bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
-      getexitcode "$ins has been installed"
-    else
-      urlinvalid $REPO/$ins/raw/master/install.sh
-    fi
-    echo ""
+    run_install_init "$ins"
   done
   ;;
 
 updater | cron)
   shift 1
+  __requiresudo true || exit 1
   cron_updater "$*"
   ;;
 
 version)
   shift 1
-  [ $# = 0 ] && $APPNAME --version
-  ANAME="$1"
-  if [ -d "$SYSUPDATEDIR" ] && [ -n "$(devnull2 ls -A $SYSUPDATEDIR/$1)" ]; then
-    file="$(devnull2 ls -A $SYSUPDATEDIR/$1)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: \n$(bash -c "$file --version")"
-    fi
-  elif [ -f "$(devnull2 command -v $1)" ]; then
-    printf_green "Information about $1: $(devnull2 bash -c "$ANAME --version")"
-  else
-    printf_exit "File was not found is it installed?"
-  fi
-  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
-  exit
+  run_install_version "$@"
   ;;
 
 *)

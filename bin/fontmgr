@@ -35,12 +35,6 @@ fontmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if __am_i_online && __cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/fontmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
-fi
-
-#---------------------------------------------------------------------------------------
-
 removefont() {
   __devnull sudo rm -Rf "$HOMEDIR/$rmf"
   __devnull sudo unlink "$FONTDIR/$rmf"
@@ -57,7 +51,8 @@ __listfonts() {
 #---------------------------------------------------------------------------------------
 
 case "$1" in
-help | h | --h*)
+
+help | -*)
   __help
   ;;
 
@@ -71,8 +66,12 @@ list)
 
 search)
   shift 1
-  FONT="$1"
-  echo $LIST | tr ' ' '' 2>/dev/null | grep --color=auto -Fi "$FONT" || printf_exit "That font does not exist"
+  run_install_search "$@"
+  ;;
+
+available)
+  shift 1
+  run_install_available
   ;;
 
 list-installed)
@@ -94,7 +93,7 @@ remove)
   for rmf in ${LISTARRAY[*]}; do
     printf_yellow "Removing $rmf font from your system"
     removefont "$HOMEDIR/$rmf"
-    getexitcode "$rmf has been removed"
+    __getexitcode "$rmf has been removed"
     echo ""
   done
   ln_rm "$FONTDIR/"
@@ -105,9 +104,9 @@ update)
   printf_green "Updating fonts in $FONTDIR"
   if [[ -n $* ]]; then
     run_install_update "$@"
-  elif [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
+  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
     for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
-      run_install_update "$upd" 2>/dev/null
+      run_install_update "$upd"
     done
   fi
   ;;
@@ -115,8 +114,7 @@ update)
 install)
   shift 1
   printf_green "Installing fonts to $FONTDIR"
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
-    declare -a LISTARRAY="$*"
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
     run_install_init "$ins"
   done
@@ -124,25 +122,13 @@ install)
 
 updater | cron)
   shift 1
-  cron_updater "$*"
+  cron_updater "$@"
   ;;
 
 version)
   shift 1
-  [ $# = 0 ] && $APPNAME --version
-  ANAME="$1"
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1 2>/dev/null)" ]; then
-    file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: \n$(bash -c "$file --version")"
-    fi
-  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
-    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
-  else
-    printf_exit "File was not found is it installed?"
-  fi
-  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
-  exit
+  [ $# = 0 ] && "$APPNAME" --version
+  run_install_version "$@"
   ;;
 
 *)

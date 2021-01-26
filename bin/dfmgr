@@ -35,43 +35,12 @@ dfmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if __api_test; then
-  API="$(__curl_api "https://api.github.com/orgs/dfmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
-fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __gpg_import() {
   gpg --import "$1"/*.gpg 2>/dev/null
   gpg --import "$1"/*.sec 2>/dev/null
   gpg --import "$1"/*.asc 2>/dev/null
   gpg --import-ownertrust "$1"/*.trust 2>/dev/null
   return 0
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-dfmgr_available() { printf_custom "4" "$API"; }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-dfmgr_list() {
-  if [ $# = 0 ]; then
-    run_install_list
-  else
-    run_install_list "$@"
-  fi
-  exit
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-dfmgr_search() {
-  [ $# = 0 ] && printf_exit "Nothing to search for"
-  for search in "$@"; do
-    echo -n "$LIST" | tr ' ' '\n' 2>/dev/null | grep -Fi "$search" | printf_read "2" || printf_exit "That package does not exists"
-  done
-  exit
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -99,23 +68,24 @@ df_personal() {
 
 case "$1" in
 
-help | h | --h*)
+help | -*)
+  shift 1
   __help
   ;;
 
 list)
   shift 1
-  dfmgr_list "$@"
+  run_install_list "$@"
   ;;
 
 search)
   shift 1
-  dfmgr_search "$@"
+  run_install_search "$@"
   ;;
 
 available)
   shift 1
-  dfmgr_available
+  run_install_available
   ;;
 
 personal)
@@ -123,41 +93,39 @@ personal)
   df_personal
   ;;
 
-install)
-  shift 1
-  [ -z "$1" ] && echo "$LIST" && exit 1
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
-  printf_green "Installing Packages to $INSTDIR"
-  for ins in ${LISTARRAY[*]}; do
-    run_install_init "$ins" 2>/dev/null
-  done
-  ;;
-
 update)
   shift 1
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   printf_green "Updating Packages in $INSTDIR"
   if [[ -n $* ]]; then
-    run_install_update "$@"
-  elif [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
+    run_install_update "$LISTARRAY"
+  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
     for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
-      run_install_update "$upd" 2>/dev/null
+      run_install_update "$upd"
     done
   fi
   ;;
 
+install)
+  shift 1
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+  printf_green "Installing Packages to $INSTDIR"
+  for ins in ${LISTARRAY[*]}; do
+    run_install_init "$ins"
+  done
+  ;;
+
 updater | cron)
   shift 1
-  cron_updater "$*"
+  cron_updater "$@"
   ;;
 
 version)
   shift 1
-  [ $# = 0 ] && "$APPNAME" --version
-  run_install_version "$1"
+  run_install_version "$@"
   ;;
 
 *)
-  echo "$*"
   __help
   ;;
 
