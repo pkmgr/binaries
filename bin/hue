@@ -40,6 +40,7 @@ main() {
   local setopts="$1"
   local state="/tmp/automate_hue"
   local hue_device="$(__hostname2ip ${HUE_HUB_DEVICE:-$2})"
+  local hue_device_name="${HUE_HUB_DEVICE:-$2}"
   local hue_api_key="${HUE_ACCESS_TOKEN}"
   local hue_group="${HUE_GROUP:-0}"
   local api_url="${HUE_HUB_API:-http://$hue_device/api/$hue_api_key/groups/$hue_group}"
@@ -54,12 +55,12 @@ main() {
   # functions
   getstate() { cat "$state"; }
   hue_on() {
-    printf_green "Telling $hue_device to turn on the lights"
-    curl -LSsq -X PUT "$api_url/action" -d '{"on": true}' &>/dev/null && echo on >$state
+    printf_green "Telling $hue_device_name to turn on the lights"
+    curl -LSsq -X PUT "$api_url/action" -d '{"on": true}' &>/dev/null && echo on >"$state"
   }
   hue_off() {
-    printf_green "Telling $hue_device to turn off the lights"
-    curl -LSsq -X PUT "$api_url/action" -d '{"on": false}' &>/dev/null && echo off >$state
+    printf_green "Telling $hue_device_name to turn off the lights"
+    curl -LSsq -X PUT "$api_url/action" -d '{"on": false}' &>/dev/null && echo off >"$state"
   }
   hue_toggle() {
     if [ "$(cat $state)" = on ]; then
@@ -71,7 +72,7 @@ main() {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # main
-  if [ ! -s "$state" ]; then echo on >$state; fi
+  if [ ! -s "$state" ]; then echo on >"$state"; fi
 
   case "$setopts" in
   on | true | 0 | stop)
@@ -94,7 +95,7 @@ main() {
     ;;
 
   info)
-    printf_green "Getting info for group $hue_group from $hue_device"
+    printf_green "Getting info for group $hue_group from $hue_device_name"
     curl -LSs "$api_url" | jq
     ;;
   *)

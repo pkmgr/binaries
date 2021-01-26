@@ -46,6 +46,7 @@ main() {
   local setopts="$1"
   local state="/tmp/automate_roku"
   local roku_device="$(hostname2ip ${ROKU_DEVICE:-$3})"
+  local roku_device_name="${ROKU_DEVICE:-$3}"
   local roku_command="$1"
   local roku_option="$2"
   local api_url="http://$roku_device:8060"
@@ -57,16 +58,16 @@ main() {
   # functions
   getstate() { cat "$state"; }
   roku_play() {
-    printf_green "Telling $roku_device to play"
-    devnull curl -d '' $api_url/keypress/play && echo play >$state
+    printf_green "Telling $roku_device_name to play"
+    devnull curl -d '' "$api_url/keypress/play" && echo play >"$state"
   }
   roku_stop() {
-    printf_green "Telling $roku_device to stop"
-    devnull curl -d '' $api_url/keypress/stop && echo stop >$state
+    printf_green "Telling $roku_device_name to stop"
+    devnull curl -d '' "$api_url/keypress/stop" && echo stop >"$state"
   }
   roku_pause() {
-    printf_green "Telling $roku_device to pause/unpause"
-    devnull curl -d '' $api_url/keypress/play && echo pause >$state
+    printf_green "Telling $roku_device_name to pause/unpause"
+    devnull curl -d '' "$api_url/keypress/play" && echo pause >"$state"
   }
   roku_toggle() {
     if [ "$(getstate)" = "stop" ]; then
@@ -82,7 +83,7 @@ main() {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # main
-  if [ ! -s "$state" ]; then echo toggle >$state; fi
+  if [ ! -s "$state" ]; then echo toggle >"$state"; fi
 
   case "$setopts" in
   play)
@@ -103,7 +104,7 @@ main() {
   toggle)
     shift 1
     toggle
-    echo toggle >$state
+    echo toggle >"$state"
     ;;
 
   state)
@@ -117,7 +118,7 @@ main() {
     [ -z "$roku_command" ] && printf_exit "Please enter the the command you want to send to your roku"
     [ -z "$roku_option" ] && printf_exit "Please enter the the command you want to send to your roku"
     printf_green "Sending command $roku_command $roku_option to $roku_device"
-    devnull curl -d '' http://$roku_device:8060/$roku_command/$roku_option && echo $roku_option >$state
+    devnull curl -d '' "http://$roku_device:8060/$roku_command/$roku_option" && echo "$roku_option" >"$state"
     ;;
 
   *)
