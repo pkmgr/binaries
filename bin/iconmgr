@@ -20,7 +20,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -36,18 +36,13 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if am_i_online && cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/iconmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+  API="$(__curl_api "https://api.github.com/orgs/iconmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
-generate_theme_index() { true; }
-generate_icon_index() { true; }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 removeicon() {
-  devnull sudo rm -Rf "$HOMEDIR/$rmf"
-  devnull sudo unlink "$ICONDIR/$rmf"
-  devnull generate_icon_index $ICONDIR
+  __devnull sudo rm -Rf "$HOMEDIR/$rmf"
+  __devnull sudo unlink "$ICONDIR/$rmf"
+  __devnull generate_icon_index "$ICONDIR"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,7 +55,7 @@ __listicons() {
 __icondir() {
   [ -d "$ICONDIR" ] && icondir="$ICONDIR "
   [ -d "$SYSSHARE/icons" ] && icondir+="$SYSSHARE/icons"
-  ls "$icondir"
+  __devnull2 ls "$icondir/" | printf_readline
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -71,7 +66,7 @@ help | h | --h*)
   ;;
 
 makecache)
-  generate_theme_index "$ICONDIR"
+  generate_icon_index "$ICONDIR"
   ;;
 
 list)
@@ -81,7 +76,7 @@ list)
 search)
   shift 1
   ICON="$1"
-  echo $LIST | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$ICON" || printf_exit "That icon does not exist"
+  echo "$LIST" | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$ICON" || printf_exit "That icon does not exist"
   ;;
 
 list-installed)

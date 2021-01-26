@@ -62,7 +62,7 @@ help | h | --h*)
   ;;
 
 makecache)
-  fc-cache -f
+  generate_font_index "$@"
   ;;
 
 list)
@@ -78,13 +78,13 @@ search)
 list-installed)
   shift 1
   FONT="$1"
-  fc-list "$@" || printf_exit "Something went wrong 😕"
+  fc-list "$@" | printf_readline || printf_exit "Something went wrong 😕"
   ;;
 
 search-installed)
   shift 1
   FONT="$1"
-  fc-list | grep --color=auto -Fi "$FONT" || printf_exit printf_exit "That font does not exist"
+  fc-list | grep -Fi "$FONT" | printf_readline || printf_exit "That font does not exist"
   ;;
 
 remove)

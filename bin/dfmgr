@@ -51,9 +51,7 @@ __gpg_import() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-dfmgr_available() {
-  printf_custom "4" "$API"
-}
+dfmgr_available() { printf_custom "4" "$API"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -502,6 +502,7 @@ __tar_extract() { tar xfvz "$@"; }
 __while_loop() { while :; do "${@}" && sleep .3; done; }
 #for_each "option" "command"
 __for_each() { for item in ${1}; do ${2} ${item} && sleep .1; done; }
+__readline() { while read -r line; do echo "$line"; done <"$1"; }
 #hostname ""
 __hostname() { __devnull2 hostname -s "${1:-$HOSTNAME}"; }
 #domainname ""
@@ -1267,7 +1268,7 @@ system_installdirs() {
     STARTUP="$HOME/.config/autostart"
     SYSBIN="$HOME/.local/bin"
     SYSCONF="$HOME/.local/etc"
-    SYSSHARE="$HOME/.local/share"
+    SYSSHARE="/usr/local/share"
     SYSLOGDIR="$HOME/.local/log"
     COMPDIR="$HOME/.local/share/bash-completion/completions"
     THEMEDIR="$HOME/.local/share/themes"
@@ -1381,6 +1382,11 @@ fontmgr_install() {
   __mkd "$FONTDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="fontmgr_install"
+  generate_font_index() {
+    printf_green "Updating the fonts in $FONTDIR"
+    FONTDIR="${FONTDIR:-$SHARE/fonts}"
+    fc-cache -f "$FONTDIR"
+  }
 }
 
 ###################### iconmgr settings ######################
@@ -1406,6 +1412,11 @@ iconmgr_install() {
   __mkd "$ICONDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="iconmgr_install"
+  generate_icon_index() {
+    printf_green "Updating the icon cache in $ICONDIR"
+    ICONDIR="${ICONDIR:-$SHARE/icons}"
+    fc-cache -f "$ICONDIR"
+  }
 }
 
 ###################### pkmgr settings ######################
@@ -1481,6 +1492,15 @@ thememgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="thememgr_install"
+  generate_theme_index() {
+    printf_green "Updating the theme index in $THEMEDIR"
+    THEMEDIR="${THEMEDIR:-$SHARE/themes}"
+    sudo find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
+      if [ -f "$THEME/index.theme" ]; then
+        cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
+      fi
+    done
+  }
 }
 
 ###################### wallpapermgr settings ######################
