@@ -566,6 +566,7 @@ __start() {
 }
 
 ###################### url functions ######################
+__curl_exit() { EXIT=0 && return 0 || EXIT=1 && return 1; }
 __curl() {
   __devnull2 __am_i_online && curl --disable -LSfs --connect-timeout 3 --retry 0 "$@" || return 1
 }
@@ -582,7 +583,7 @@ __curl_upload() { curl -disable -LSs --connect-timeout 3 --retry 0 --upload-file
 #curl_api "API URL"
 __curl_api() { curl --disable -LSs --connect-timeout 3 --retry 0 "https://api.github.com/orgs/$SCRIPTS_PREFIX/repos?per_page=1000"; }
 #urlcheck "url"
-__urlcheck() { curl --disable --connect-timeout 2 --retry 0 --retry-delay 0 --output /dev/null --silent --head --fail "$1" && return 0 || return 1; }
+__urlcheck() { curl --disable --connect-timeout 2 --retry 0 --retry-delay 0 --output /dev/null --silent --head --fail "$1" && __curl_exit; }
 #urlverify "url"
 __urlverify() { __urlcheck "$1" || __urlinvalid "$1"; }
 #urlinvalid "url"
@@ -1698,23 +1699,19 @@ run_install_init() {
   local -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
     if user_is_root; then
+      printf_yellow "Initializing the installer from"
+      printf_purple "$REPO/$ins"
       if __urlcheck "$REPO/$ins/raw/master/install.sh"; then
-        printf_yellow "Initializing the installer from"
-        printf_purple "$REPO/$ins"
         sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
-        __getexitcode "$ins has been installed"
-      else
-        printf_exit "An error has occurred while initiating the install: Check the URL"
       fi
+      __getexitcode "$ins has been installed" "An error has occurred while initiating the install: Check the URL"
     else
+      printf_yellow "Initializing the installer from"
+      printf_purple "$REPO/$ins"
       if __urlcheck "$REPO/$ins/raw/master/install.sh"; then
-        printf_yellow "Initializing the installer from"
-        printf_purple "$REPO/$ins"
         bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
-        __getexitcode "$ins has been installed"
-      else
-        printf_exit "An error has occurred while initiating the install: Check the URL"
       fi
+      __getexitcode "$ins has been installed" "An error has occurred while initiating the install: Check the URL"
     fi
   done
   echo ""
