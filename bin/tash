@@ -34,10 +34,6 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Choose the day of the week on which to start the weekly report.  For my
 # current job timesheets are submitted on Thursday so the start of the week
 # for reporting is Friday.
@@ -61,8 +57,6 @@ FIELD_IFS=\|            # IFS for splitting lines into fields
 ### END CONFIGURATION
 
 ### FUNCTIONS
-
-[ "$1" = "--help" ] && __help
 
 init_db() {
   $SQLITE $DATABASE <<-SQL
