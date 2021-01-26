@@ -1706,16 +1706,25 @@ run_install_init() {
   for ins in ${LISTARRAY[*]}; do
     if user_is_root; then
       printf_yellow "Initializing the installer from"
-      printf_purple "$REPO/$ins"
-      __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      if [ -f "$INSTDIR/$ins/install.sh" ]; then
+        printf_purple "$INSTDIR/$ins/install.sh"
+        sudo bash -c "$INSTDIR/$ins/install.sh"
+      else
+        printf_purple "$REPO/$ins"
+        __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      fi
       __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
     else
       printf_yellow "Initializing the installer from"
-      printf_purple "$REPO/$ins"
-      __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      if [ -f "$INSTDIR/$ins/install.sh" ]; then
+        printf_purple "$INSTDIR/$ins/install.sh"
+        bash -c "$INSTDIR/$ins/install.sh"
+      else
+        printf_purple "$REPO/$ins"
+        __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      fi
       __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
     fi
-    __setexitstatus "$?"
   done
   echo ""
 }
