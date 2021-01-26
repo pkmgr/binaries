@@ -555,7 +555,7 @@ __start() {
 
 ###################### url functions ######################
 __curl() {
-  __devnull2 curl --disable -LSfs --connect-timeout 3 --retry 0 "$@"
+  __devnull2 __am_i_online && curl --disable -LSfs --connect-timeout 3 --retry 0 "$@"
   __setexitstatus
 }
 #appversion "urlToVersion"
@@ -568,8 +568,10 @@ __curl_download() { curl --disable --create-dirs -LSs --connect-timeout 3 --retr
 __curl_version() { curl --disable -LSs --connect-timeout 3 --retry 0 "${1:-$REPORAW/master/version.txt}"; }
 #curl_upload "file" "url"
 __curl_upload() { curl -disable -LSs --connect-timeout 3 --retry 0 --upload-file "$1" "$2"; }
+#curl_api "API URL"
+__curl_api() { __curl "$1" && return 0 || return 1; }
 #urlcheck "url"
-__urlcheck() { curl --disable --connect-timeout 1 --retry 1 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
+__urlcheck() { curl --disable --connect-timeout 2 --retry 0 --retry-delay 0 --output /dev/null --silent --head --fail "$1" && return 0 || return 1; }
 #urlverify "url"
 __urlverify() { __urlcheck "$1" || __urlinvalid "$1"; }
 #urlinvalid "url"
@@ -583,11 +585,11 @@ __urlinvalid() {
 }
 #very simple function to ensure connection
 __api_test() {
-  if __am_i_online; then
+  if __am_i_online && __cmd_exists jq; then
     return 0
   else
-    printf "\n"
-    printf_exit "1" "Unable to connect to the server\n"
+    [ -n "$1" ] && printf_red "$1"
+    return 1
   fi
 }
 #do_not_add_a_url "url"
@@ -807,6 +809,7 @@ __open_file_menus() {
 }
 
 ##################### sudo functions ####################
+__sudo() { sudo "$*"; }
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null && return 0 || return 1; }
 
 sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
@@ -852,7 +855,7 @@ __sudoexit() {
 
 __requiresudo() {
   if __can_i_sudo; then
-    __sudoask && __sudoexit && sudo "$@" 2>/dev/null
+    __sudoask && __sudoexit && __devnull2 sudo "$@" 2>/dev/null
   else
     printf_red "You dont have access to sudo\n\t\tPlease contact the syadmin for access"
     return 1
@@ -1195,6 +1198,7 @@ user_installdirs() {
     WALLPAPERS="${WALLPAPERS:-$SYSSHARE/wallpapers}"
     USRUPDATEDIR="$SHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
+    SYSTEMDDIR="/etc/systemd/system"
   else
     INSTALL_TYPE=user
     HOME="${HOME}"
@@ -1218,11 +1222,13 @@ user_installdirs() {
     WALLPAPERS="$HOME/.local/share/wallpapers"
     USRUPDATEDIR="$SHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
+    SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
   export installtype="user_installdirs"
+  export APPDIR=""
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
 }
 
 ###################### setup folders - system ######################
@@ -1249,6 +1255,7 @@ system_installdirs() {
     WALLPAPERS="/usr/local/share/wallpapers"
     USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
+    SYSTEMDDIR="/etc/systemd/system"
   else
     INSTALL_TYPE=system
     HOME="${HOME:-/home/$WHOAMI}"
@@ -1272,232 +1279,233 @@ system_installdirs() {
     WALLPAPERS="$HOME/.local/share/wallpapers"
     USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
+    SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
   export installtype="system_installdirs"
+  export APPDIR=""
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
 }
 
 user_installdirs
 ###################### dfmgr settings ######################
 dfmgr_install() {
-  export user_installdirs
-  export SCRIPTS_PREFIX="dfmgr"
-  export REPO="$DFMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$CONF"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/dfmgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  user_installdirs
+  SCRIPTS_PREFIX="dfmgr"
+  REPO="$DFMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$CONF"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/dfmgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/dfmgr"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="dfmgr_install"
+  installtype="dfmgr_install"
 }
 
 ###################### devenv settings ######################
 devenvmgr_install() {
-  export user_installdirs
-  export SCRIPTS_PREFIX="devenv"
-  export REPO="$DEVENVMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$CONF"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/devenv"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/devenv"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  user_installdirs
+  SCRIPTS_PREFIX="devenv"
+  REPO="$DEVENVMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SHARE"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/devenv"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/devenv"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="devenvmgr_install"
+  installtype="devenvmgr_install"
 }
 ###################### dockermgr settings ######################
 dockermgr_install() {
-  export user_installdirs
-  export SCRIPTS_PREFIX="dockermgr"
-  export REPO="$DFMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$CONF"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/dockermgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/dockermgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  user_installdirs
+  SCRIPTS_PREFIX="dockermgr"
+  REPO="$DFMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SHARE"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/dockermgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/dockermgr"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="dockermgr_install"
+  installtype="dockermgr_install"
 }
 
 ###################### fontmgr settings ######################
 fontmgr_install() {
-  export system_installdirs
-  export SCRIPTS_PREFIX="fontmgr"
-  export REPO="$FONTMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$SHARE/CasjaysDev/fontmgr"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/fontmgr"
-  export FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  system_installdirs
+  SCRIPTS_PREFIX="fontmgr"
+  REPO="$FONTMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SHARE/CasjaysDev/fontmgr"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/fontmgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/fontmgr"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  FONTDIR="${FONTDIR:-$SHARE/fonts}"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   __mkd "$FONTDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="fontmgr_install"
+  installtype="fontmgr_install"
 }
 
 ###################### iconmgr settings ######################
 iconmgr_install() {
-  export system_installdirs
-  export SCRIPTS_PREFIX="iconmgr"
-  export REPO="$ICONMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$SYSSHARE/CasjaysDev/iconmgr"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/iconmgr"
-  export ICONDIR="${ICONDIR:-$SHARE/icons}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export ICONDIR="${ICONDIR:-$SHARE/icons}"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  system_installdirs
+  SCRIPTS_PREFIX="iconmgr"
+  REPO="$ICONMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/iconmgr"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/iconmgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/iconmgr"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  ICONDIR="${ICONDIR:-$SHARE/icons}"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   __mkd "$ICONDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="iconmgr_install"
+  installtype="iconmgr_install"
 }
 
 ###################### pkmgr settings ######################
 pkmgr_install() {
-  export system_installdirs
-  export SCRIPTS_PREFIX="pkmgr"
-  export REPO="$PKMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$SYSSHARE/CasjaysDev/pkmgr"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/pkmgr"
-  export REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  system_installdirs
+  SCRIPTS_PREFIX="pkmgr"
+  REPO="$PKMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/pkmgr"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/pkmgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/pkmgr"
+  REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="pkmgr_install"
+  installtype="pkmgr_install"
 }
 
 ###################### systemmgr settings ######################
 systemmgr_install() {
   __requiresudo "true"
   system_installdirs
-  export SCRIPTS_PREFIX="systemmgr"
-  export REPO="$SYSTEMMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export CONF="/usr/local/etc"
-  export SHARE="/usr/local/share"
-  export HOMEDIR="/usr/local/etc"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  SCRIPTS_PREFIX="systemmgr"
+  REPO="$SYSTEMMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  CONF="/usr/local/etc"
+  SHARE="/usr/local/share"
+  HOMEDIR="/usr/local/etc"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="systemmgr_install"
+  installtype="systemmgr_install"
 }
 
 ###################### thememgr settings ######################
 thememgr_install() {
   system_installdirs
-  export SCRIPTS_PREFIX="thememgr"
-  export REPO="$THEMEMGRREPO"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$SYSSHARE/CasjaysDev/thememgr"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/thememgr"
-  export THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  SCRIPTS_PREFIX="thememgr"
+  REPO="$THEMEMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/thememgr"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/thememgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/thememgr"
+  THEMEDIR="${THEMEDIR:-$SHARE/themes}"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="thememgr_install"
+  installtype="thememgr_install"
 }
 
 ###################### wallpapermgr settings ######################
 wallpapermgr_install() {
   system_installdirs
-  export SCRIPTS_PREFIX="wallpapermgr"
-  export REPO="${WALLPAPERMGRREPO}"
-  export REPORAW="$REPO/$APPNAME/raw"
-  export HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers"
-  export APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
-  export USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapermgr"
-  export SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/wallpapermgr"
-  export WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
-  export DOWNLOADED_TO="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
-  export ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
-  export LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  SCRIPTS_PREFIX="wallpapermgr"
+  REPO="${WALLPAPERMGRREPO}"
+  REPORAW="$REPO/$APPNAME/raw"
+  HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers"
+  APPDIR="${APPDIR:-$HOMEDIR/$APPNAME}"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapermgr"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/wallpapermgr"
+  WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    export APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
-    export APPVERSION="N/A"
+    APPVERSION="N/A"
   fi
   __mkd "$WALLPAPERS"
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="wallpapermgr_install"
+  installtype="wallpapermgr_install"
 }
 
 ###################### create directories ######################
@@ -1534,6 +1542,9 @@ path_info() { echo "$PATH" | tr ':' '\n' | sort -u; }
 ###################### debug settings ######################
 __debug() {
   $installtype
+  printf_info "APPNAME:                   $APPNAME"
+  printf_info "App Dir:                   $APPDIR"
+  printf_info "Install Dir:               $INSTDIR"
   printf_info "UserHomeDir:               $HOME"
   printf_info "UserBinDir:                $BIN"
   printf_info "UserConfDir:               $CONF"
@@ -1567,6 +1578,7 @@ __debug() {
   printf_info "InstallType:               $installtype"
   printf_info "Prefix:                    $SCRIPTS_PREFIX"
   printf_info "SystemD dir:               $SYSTEMDDIR"
+  printf_info "HOMEDIR/APPNAME            $HOMEDIR/$APPNAME"
   exit $?
 }
 
@@ -1617,54 +1629,133 @@ __vdebug() {
   if [ -f ./applications.debug ]; then . ./applications.debug; fi
   DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
   printf_custom "4" "APP:$APPNAME - ARGS:$*"
-  printf_custom "4" "FUNCTIONSDir:$DIR"
   for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
     HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
     printf_custom "4" $path
   done
+  printf_custom "4" "FUNCTIONSDir:$DIR"
 }
 
 ###################### call options ######################
 
 __options() {
-  [ "$1" = "--vdebug" ] && shift 1 && __vdebug "$@"
-  [ "$1" = "--debug" ] && __debug
-  [ "$1" = "--help" ] && __help
-  [ "$1" = "--version" ] && get_app_info "$APPNAME"
+  if [ "$1" = "--vdebug" ]; then
+    shift 1
+    __vdebug "$@"
+  fi
+  if [ "$1" = "--debug" ]; then
+    shift 1
+    __debug "$@"
+  fi
+  if [ "$1" = "--help" ]; then
+    shift 1
+    __help
+  fi
+  if [ "$1" = "--version" ]; then
+    shift 1
+    get_app_info "$APPNAME"
+  fi
 }
 
-###################### export and call functions ######################
+###################### run install/update/version ######################
 run_install_init() {
-  if urlcheck "$REPO/$1/raw/master/install.sh"; then
-    printf_yellow "Initializing the installer from"
-    printf_purple "$REPO/$1"
-    bash -c "$(curl -LSs $REPO/$1/raw/master/install.sh)"
-    getexitcode "$1 has been installed"
-  else
-    urlinvalid "$REPO/$1/raw/master/install.sh"
-  fi
+  local -a LISTARRAY="$*"
+  for ins in ${LISTARRAY[*]}; do
+    if user_is_root; then
+      if __urlcheck "$REPO/$ins/raw/master/install.sh"; then
+        printf_yellow "Initializing the installer from"
+        printf_purple "$REPO/$ins"
+        sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+        __getexitcode "$ins has been installed"
+      else
+        printf_exit "An error has occurred while initiating the install: Check the URL"
+      fi
+    else
+      if __urlcheck "$REPO/$ins/raw/master/install.sh"; then
+        printf_yellow "Initializing the installer from"
+        printf_purple "$REPO/$ins"
+        bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+        __getexitcode "$ins has been installed"
+      else
+        printf_exit "An error has occurred while initiating the install: Check the URL"
+      fi
+    fi
+  done
   echo ""
 }
 
-run_install_list() {
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
-    file="$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1:"
-      printf_green "$(bash -c "$file --version")"
-    else
-      printf_exit "File was not found is it installed?"
-      exit
+run_install_update() {
+  if [ -z "$1" ]; then
+    if [[ -d "$USRUPDATEDIR " && -n "$(ls -A $USRUPDATEDIR)" ]]; then
+      for upd in $(ls $USRUPDATEDIR); do
+        run_install_init "$upd"
+        echo ""
+      done
+    fi
+    if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
+      if [[ -d "$SYSUPDATEDIR" && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
+        for updadmin in $(ls $SYSUPDATEDIR); do
+          run_install_init "$updadmin"
+          echo ""
+        done
+      fi
     fi
   else
-    declare -a LSINST="$(ls "$USRUPDATEDIR/" 2>/dev/null)"
+    local -a LISTARRAY="$*"
+    for ins in ${LISTARRAY[*]}; do
+      run_install_init "$ins"
+    done
+  fi
+}
+
+run_install_list() {
+  if [ "$#" -ne 0 ]; then
+    local args="$*"
+    for f in $args; do
+      if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$f" 2>/dev/null)" ]; then
+        file="$(ls -A "$USRUPDATEDIR/$f" 2>/dev/null)"
+        if [ -f "$file" ]; then
+          printf_green "Information about $f:"
+          printf_green "$(bash -c "$file --version")"
+        else
+          printf_red "File was not found is it installed?"
+        fi
+      fi
+    done
+  else
+    declare -a LSINST="$(ls "$USRUPDATEDIR" 2>/dev/null)"
     if [ -z "$LSINST" ]; then
       printf_red "No dotfiles are installed"
-      exit
     else
       for df in ${LSINST[*]}; do
         printf_green "$df"
       done
+    fi
+  fi
+  # run as root
+  if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
+    if [ "$#" -ne 0 ]; then
+      local args="$*"
+      for f in $args; do
+        if [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A "$SYSUPDATEDIR/$f" 2>/dev/null)" ]; then
+          file="$(ls -A "$SYSUPDATEDIR/$f" 2>/dev/null)"
+          if [ -f "$file" ]; then
+            printf_green "Information about $f:"
+            printf_green "$(bash -c "$file --version")"
+          else
+            printf_red "File was not found is it installed?"
+          fi
+        fi
+      done
+    else
+      declare -a LSINST="$(ls "$SYSUPDATEDIR" 2>/dev/null)"
+      if [ -z "$LSINST" ]; then
+        printf_red "No dotfiles are installed"
+      else
+        for df in ${LSINST[*]}; do
+          printf_green "$df"
+        done
+      fi
     fi
   fi
 }

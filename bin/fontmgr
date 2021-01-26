@@ -20,7 +20,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,16 +35,16 @@ fontmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if am_i_online && cmd_exists jq; then
+if __am_i_online && __cmd_exists jq; then
   API="$(curl -s "https://api.github.com/orgs/fontmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
 #---------------------------------------------------------------------------------------
 
 removefont() {
-  devnull sudo rm -Rf "$HOMEDIR/$rmf"
-  devnull sudo unlink "$FONTDIR/$rmf"
-  devnull sudo fc-cache -f
+  __devnull sudo rm -Rf "$HOMEDIR/$rmf"
+  __devnull sudo unlink "$FONTDIR/$rmf"
+  __devnull sudo fc-cache -f
 }
 
 #---------------------------------------------------------------------------------------
@@ -102,38 +102,13 @@ remove)
 
 update)
   shift 1
-  if [ -z "$1" ]; then
-    if [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR)" ]]; then
-      printf_green "Updating the fonts in $HOMEDIR"
-      for upd in $(ls $USRUPDATEDIR); do
-        if urlcheck $REPO/$upd/raw/master/install.sh; then
-          printf_yellow "Initializing the installer from"
-          printf_purple "$REPO/$upd"
-          bash -c "$(curl -LSs $REPO/$upd/raw/master/install.sh)" 2>/dev/null
-          getexitcode "$upd has been installed"
-        else
-          urlinvalid $REPO/$upd/raw/master/install.sh
-        fi
-        echo ""
-      done
-
-    elif [[ -d $SYSUPDATEDIR && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-      printf_green "Updating the fonts in $HOMEDIR"
-      for updadmin in $(ls $SYSUPDATEDIR); do
-        if urlcheck $REPO/$updadmin/raw/master/install.sh; then
-          printf_yellow "Initializing the installer from"
-          printf_purple "$REPO/$updadmin"
-          sudo bash -c "$(curl -LSs $REPO/$updadmin/raw/master/install.sh)" 2>/dev/null
-          getexitcode "$updadmin has been installed"
-        else
-          urlinvalid $REPO/$updadmin/raw/master/install.sh
-        fi
-        echo ""
-      done
-    fi
-
-  else
-    sudo fontmgr install "$@"
+  printf_green "Updating fonts in $FONTDIR"
+  if [[ -n $* ]]; then
+    run_install_update "$@"
+  elif [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
+    for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
+      run_install_update "$upd" 2>/dev/null
+    done
   fi
   ;;
 
@@ -143,15 +118,7 @@ install)
   [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
     declare -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
-    if urlcheck $REPO/$ins/raw/master/install.sh; then
-      printf_yellow "Initializing the installer from"
-      printf_purple "$REPO/$ins"
-      bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" 2>/dev/null
-      getexitcode "$ins has been installed"
-    else
-      urlinvalid $REPO/$ins/raw/master/install.sh
-    fi
-    echo ""
+    run_install_init "$ins"
   done
   ;;
 

@@ -35,12 +35,13 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if __am_i_online && __cmd_exists jq; then
-  API="$(__curl "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+  API="$(__curl_api "https://api.github.com/orgs/dockermgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __init() {
+  __am_i_online || printf_exit "Can not setup docker: No internet"
   if ! __cmd_exists docker; then
     printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"
@@ -55,7 +56,7 @@ __init() {
 
   if [ ! -f /etc/systemd/system/docker.service.d/docker.conf ]; then
     __requiresudo mkdir -p /etc/systemd/system/docker.service.d
-    devnull2 cat <<EOF | __requiresudo tee /etc/systemd/system/docker.service.d/docker.conf
+    __devnull2 cat <<EOF | __requiresudo tee /etc/systemd/system/docker.service.d/docker.conf
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
@@ -81,15 +82,15 @@ __install() {
   for container in ${LISTARRAY[*]}; do
     APPNAME="$1"
     if [ -d "$HOMEDIR/$APPNAME" ]; then
-      __requiresudo git -C "$HOMEDIR/$APPNAME" reset --hard -q
-      __requiresudo git -C "$HOMEDIR/$APPNAME" pull -q
+      git -C "$HOMEDIR/$APPNAME" reset --hard -q
+      git -C "$HOMEDIR/$APPNAME" pull -q
     else
-      __requiresudo git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
+      git clone -q "$REPO/$APPNAME" "$HOMEDIR/$APPNAME"
     fi
-    __requiresudo chmod -Rf 755 "$HOMEDIR/$APPNAME/install.sh"
+    chmod -Rf 755 "$HOMEDIR/$APPNAME/install.sh"
     __requiresudo -HE bash "$HOMEDIR/$APPNAME/install.sh"
     if [ -d "$HOMEDIR/$APPNAME/os" ]; then
-      __requiresudo cp -Rf "$HOMEDIR/$APPNAME/os/." /
+      __requiresudo cp -Rf "$SHARE/$APPNAME/os/." /
     fi
   done
 }
@@ -239,7 +240,7 @@ list)
   ;;
 
 *)
-  if ! cmd_exists docker; then
+  if ! __cmd_exists docker; then
     printf_read_question "Docker is not installed: would you like to install it?" "1"
     if printf_answer_yes; then
       __init

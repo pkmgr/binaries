@@ -20,7 +20,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -35,8 +35,8 @@ dfmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if am_i_online && cmd_exists jq; then
-  API="$(curl -s "https://api.github.com/orgs/dfmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
+if __api_test; then
+  API="$(__curl_api "https://api.github.com/orgs/dfmgr/repos?per_page=1000" | jq -r '.[] | .name' 2>/dev/null)"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -58,10 +58,10 @@ dfmgr_available() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 dfmgr_list() {
-  if [ -z "$1" ]; then
+  if [ $# = 0 ]; then
     run_install_list
   else
-    run_install_list "$1"
+    run_install_list "$@"
   fi
   exit
 }
@@ -69,37 +69,30 @@ dfmgr_list() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 dfmgr_search() {
-  declare -a LISTARRAY=$*
-  for df in ${LISTARRAY[*]}; do
-    echo $LIST | tr ' ' '\n' 2>/dev/null | grep --color=auto -Fi "$df" || printf_exit "That DotFile does not exist"
+  [ $# = 0 ] && printf_exit "Nothing to search for"
+  for search in "$@"; do
+    echo -n "$LIST" | tr ' ' '\n' 2>/dev/null | grep -Fi "$search" | printf_read "2" || printf_exit "That package does not exists"
   done
   exit
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-dfmgr_instupdate() {
-  declare -a LISTARRAY=$*
-  for ins_upd in ${LISTARRAY[*]}; do
-    run_install_init "$ins_upd"
-  done
-}
-
 df_personal() {
   shift 1
   dir="$HOME/.local/dotfiles/personal"
   if [ -f "$dir/install.sh" ]; then
     bash -c "$dir/install.sh"
-    getexitcode "Personal dotfiles has been updated"
+    __getexitcode "Personal dotfiles has been updated"
   elif [ -f "$dir/update.sh" ]; then
     bash -c "$dir/update.sh"
-    getexitcode "Personal dotfiles has been updated"
+    __getexitcode "Personal dotfiles has been updated"
   elif [ -d "$dir/.git" ]; then
     printf_purple "Updating your personal files"
     git -C "$dir" pull -q &&
       cp -Rfa "$dir"/etc/skel/. ~/ &&
       __gpg_import "$dir/tmp" &&
-      getexitcode "Personal dotfiles has been updated"
+      __getexitcode "Personal dotfiles has been updated"
   else
     printf_red "Can't install your personal dotfiles"
   fi
@@ -124,7 +117,7 @@ search)
 
 available)
   shift 1
-  available
+  dfmgr_available
   ;;
 
 personal)
@@ -135,19 +128,21 @@ personal)
 install)
   shift 1
   [ -z "$1" ] && echo "$LIST" && exit 1
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY=$*
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+  printf_green "Installing Packages to $INSTDIR"
   for ins in ${LISTARRAY[*]}; do
-    dfmgr_instupdate "$ins" 2>/dev/null
+    run_install_init "$ins" 2>/dev/null
   done
   ;;
 
 update)
   shift 1
+  printf_green "Updating Packages in $INSTDIR"
   if [[ -n $* ]]; then
-    dfmgr_instupdate "$@"
+    run_install_update "$@"
   elif [[ -d $USRUPDATEDIR && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
     for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
-      dfmgr_instupdate "$upd" 2>/dev/null
+      run_install_update "$upd" 2>/dev/null
     done
   fi
   ;;
@@ -159,11 +154,12 @@ updater | cron)
 
 version)
   shift 1
-  [ $# = 0 ] && $APPNAME --version
+  [ $# = 0 ] && "$APPNAME" --version
   run_install_version "$1"
   ;;
 
 *)
+  echo "$*"
   __help
   ;;
 
