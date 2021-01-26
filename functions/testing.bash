@@ -962,7 +962,6 @@ __returnexitcode() {
 #getexitcode "OK Message" "Error Message"
 __getexitcode() {
   local EXITCODE="$?"
-  EXIT=
   if [ ! -z "$1" ]; then
     local PSUCCES="$1"
   elif [ ! -z "$SUCCES" ]; then
@@ -983,6 +982,7 @@ __getexitcode() {
     printf_red "$PERROR"
   fi
   __returnexitcode "$EXITCODE"
+  return "$EXITCODE"
 }
 ###################### OS Functions ######################
 #alternative names
@@ -1707,19 +1707,15 @@ run_install_init() {
     if user_is_root; then
       printf_yellow "Initializing the installer from"
       printf_purple "$REPO/$ins"
-      if __urlcheck "$REPO/$ins/raw/master/install.sh"; then
-        sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
-      fi
-      __getexitcode "$ins has been installed" "An error has occurred while initiating the install: Check the URL"
+      __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
     else
       printf_yellow "Initializing the installer from"
       printf_purple "$REPO/$ins"
-      if __urlcheck "$REPO/$ins/raw/master/install.sh"; then
-        bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
-      fi
-      __getexitcode "$ins has been installed" "An error has occurred while initiating the install: Check the URL"
+      __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
     fi
-    __setexitstatus $?
+    __setexitstatus "$?"
   done
   echo ""
 }
