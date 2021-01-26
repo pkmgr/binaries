@@ -157,12 +157,12 @@ __notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s not
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __sync() {
-  local _NOTESP="${1:-$NOTES_PATH}"
-  local _NOTESA="${2:-$NOTES_DIRECTORY}"
+  local _NOTESA="${1:-$NOTES_DIRECTORY}"
+  local _NOTESP="${2:-$NOTES_PATH}"
   local _TPATH="${3:-$_PATH}"
-  [ -n "$_TPATH" ] && cat "${_NOTESP}" "$_TPATH" >$NOTES_TMPDIR/notes_cli.tmp && mv -f $NOTES_TMPDIR/notes_cli.tmp "${_NOTESP}"
-  cat "${_NOTESP}" "${_NOTESA}/all.txt" | sort -u | sed '/^\#/d;/^$/d' >$NOTES_TMPDIR/notes_cli.tmp && mv -f $NOTES_TMPDIR/notes_cli.tmp "${_NOTESA}/all.txt"
-  [ -f $NOTES_TMPDIR/notes_cli.tmp ] && rm -Rf $NOTES_TMPDIR/notes_cli.tmp
+  [ -n "$_TPATH" ] && cat "${_NOTESP}" "$_TPATH" >"$NOTES_TMPDIR/notes_cli.tmp" && mv -f "$NOTES_TMPDIR/notes_cli.tmp" "${_NOTESP}"
+  cat "${_NOTESP}" "${_NOTESA}/all.txt" | sort -u | sed '/^\#/d;/^$/d' >"$NOTES_TMPDIR/notes_cli.tmp" && mv -f "$NOTES_TMPDIR/notes_cli.tmp" "${_NOTESA}/all.txt"
+  [ -f "$NOTES_TMPDIR/notes_cli.tmp" ] && rm -Rf "$NOTES_TMPDIR/notes_cli.tmp"
   return 0
 }
 
@@ -216,7 +216,7 @@ __client() {
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   printf "%s\n" "$*" >"${_PATH}" 2>>$NOTES_TMPDIR/notes_client
-  cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client || \
+  cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client ||
     printf_red "failed to send massage"
   __sync "$NOTES_PATH" "$NOTES_DIRECTORY" "$_PATH"
   rm -Rf "$_PATH"
@@ -341,7 +341,7 @@ config)
   else
     printf "%s\n" "${*}" >>"${NOTES_PATH}"
   fi
-  __sync $NOTES_PATH $NOTES_DIRECTORY 2>/dev/null
+  __sync "$NOTES_DIRECTORY" "$NOTES_PATH" 2>/dev/null
 
   ;;
 
