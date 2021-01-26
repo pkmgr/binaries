@@ -927,9 +927,9 @@ __show_spinner() {
 ###################### exitcode functions ######################
 #setexitstatus || setexitstatus $?
 __setexitstatus() {
-  if [ -n "$EXIT" ]; then local EXIT=$EXIT; else local EXIT="$?"; fi
+  local EXIT="$?"
   if [ -z "$EXIT" ] || [ -n "$1" ]; then local EXIT="$1"; fi
-  local EXITSTATUS="$EXIT"
+  local EXITSTATUS+="$EXIT"
   if [ "$EXITSTATUS" -eq 0 ]; then
     BG_EXIT="${BG_GREEN}"
     unset EXIT
@@ -943,24 +943,26 @@ __setexitstatus() {
 
 #returnexitcode $?
 __returnexitcode() {
-  if [ -n "$EXIT" ]; then local EXIT=$EXIT; else local EXIT="$?"; fi
-  [ -z "$1" ] || EXIT=$1
+  [ -z "$1" ] || EXIT="$1"
   if [ "$EXIT" -eq 0 ]; then
     BG_EXIT="${BG_GREEN}"
     PS_SYMBOL=" 😺 "
-    unset EXIT
     return 0
+  elif [ "$EXIT" -gt 2 ]; then
+    BG_EXIT="${BG_RED}"
+    PS_SYMBOL=" ⁉️ "
+    return "$EXIT"
   else
     BG_EXIT="${BG_RED}"
     PS_SYMBOL=" 😟 "
-    unset EXIT
-    return 1
+    return "$EXIT"
   fi
 }
 
 #getexitcode "OK Message" "Error Message"
 __getexitcode() {
-  if [ -n "$EXIT" ]; then local EXIT=$EXIT; else local EXIT="$?"; fi
+  if [ -n "$EXIT" ]; then local EXITCODE=$EXIT; else local EXITCODE="$?"; fi
+  EXIT=
   if [ ! -z "$1" ]; then
     local PSUCCES="$1"
   elif [ ! -z "$SUCCES" ]; then
@@ -975,12 +977,12 @@ __getexitcode() {
   else
     local PERROR="Last command failed to complete"
   fi
-  if [ "$EXIT" -eq 0 ]; then
+  if [ "$EXITCODE" -eq 0 ]; then
     printf_cyan "$PSUCCES"
   else
     printf_red "$PERROR"
   fi
-  __returnexitcode $EXIT
+  __returnexitcode "$EXITCODE"
 }
 ###################### OS Functions ######################
 #alternative names
@@ -1717,6 +1719,7 @@ run_install_init() {
       fi
       __getexitcode "$ins has been installed" "An error has occurred while initiating the install: Check the URL"
     fi
+    __setexitstatus $?
   done
   echo ""
 }
