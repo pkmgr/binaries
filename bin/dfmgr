@@ -41,31 +41,27 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+__gpg_import() {
+  gpg --import "$1"/*.gpg 2>/dev/null
+  gpg --import "$1"/*.sec 2>/dev/null
+  gpg --import "$1"/*.asc 2>/dev/null
+  gpg --import-ownertrust "$1"/*.trust 2>/dev/null
+  return 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 dfmgr_available() {
   printf_custom "4" "$API"
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 dfmgr_list() {
-  if [ -n "$1" ]; then
-    if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
-      file="$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)"
-      if [ -f "$file" ]; then
-        printf_green "Information about $1: \n$(bash -c "$file --version")"
-      else
-        printf_exit "File was not found is it installed?"
-        exit
-      fi
-    fi
+  if [ -z "$1" ]; then
+    run_install_list
   else
-    declare -a LSINST="$(ls "$USRUPDATEDIR/" 2>/dev/null)"
-    if [ -z "$LSINST" ]; then
-      printf_red "No dotfiles are installed"
-      exit
-    else
-      for df in ${LSINST[*]}; do
-        printf_green $df
-      done
-    fi
+    run_install_list "$1"
   fi
   exit
 }
@@ -85,15 +81,7 @@ dfmgr_search() {
 dfmgr_instupdate() {
   declare -a LISTARRAY=$*
   for ins_upd in ${LISTARRAY[*]}; do
-    if urlcheck "$REPO/$ins_upd/raw/master/install.sh"; then
-      printf_yellow "Initializing the installer from"
-      printf_purple "$REPO/$ins_upd"
-      bash -c "$(curl -LSs $REPO/$ins_upd/raw/master/install.sh)"
-      getexitcode "$ins_upd has been installed"
-    else
-      urlinvalid "$REPO/$ins_upd/raw/master/install.sh"
-    fi
-    echo ""
+    run_install_init "$ins_upd"
   done
 }
 
@@ -110,10 +98,8 @@ df_personal() {
     printf_purple "Updating your personal files"
     git -C "$dir" pull -q &&
       cp -Rfa "$dir"/etc/skel/. ~/ &&
-      gpg --import "$dir"/tmp/*.gpg 2>/dev/null
-    gpg --import "$dir"/tmp/*.sec 2>/dev/null &&
-      gpg --import-ownertrust "$dir"/tmp/*.trust 2>/dev/null
-    getexitcode "Personal dotfiles has been updated"
+      __gpg_import "$dir/tmp" &&
+      getexitcode "Personal dotfiles has been updated"
   else
     printf_red "Can't install your personal dotfiles"
   fi
@@ -174,19 +160,7 @@ updater | cron)
 version)
   shift 1
   [ $# = 0 ] && $APPNAME --version
-  ANAME="$1"
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$1 2>/dev/null)" ]; then
-    file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: \n$(bash -c "$file --version")"
-    fi
-  elif [ -f "$(command -v $1 2>/dev/null)" ]; then
-    printf_green "Information about $1: $(bash -c "$ANAME --version 2>/dev/null")"
-  else
-    printf_exit "File was not found is it installed?"
-  fi
-  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
-  exit
+  run_install_version "$1"
   ;;
 
 *)

@@ -370,7 +370,10 @@ ln_sf() {
   devnull ln -sf "$@" || return 0
 }
 mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
-mkd() { for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done; return 0; }
+mkd() {
+  for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done
+  return 0
+}
 replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
@@ -1864,6 +1867,41 @@ wallpaper_install_version() {
   fi
 }
 
+##################################################################################################
+
+run_install_init() {
+  if urlcheck "$REPO/$1/raw/master/install.sh"; then
+    printf_yellow "Initializing the installer from"
+    printf_purple "$REPO/$1"
+    bash -c "$(curl -LSs $REPO/$1/raw/master/install.sh)"
+    getexitcode "$1 has been installed"
+  else
+    urlinvalid "$REPO/$1/raw/master/install.sh"
+  fi
+  echo ""
+}
+
+run_install_list() {
+  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
+    file="$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)"
+    if [ -f "$file" ]; then
+      printf_green "Information about $1: \n$(bash -c "$file --version")"
+    else
+      printf_exit "File was not found is it installed?"
+      exit
+    fi
+  else
+    declare -a LSINST="$(ls "$USRUPDATEDIR/" 2>/dev/null)"
+    if [ -z "$LSINST" ]; then
+      printf_red "No dotfiles are installed"
+      exit
+    else
+      for df in ${LSINST[*]}; do
+        printf_green "$df"
+      done
+    fi
+  fi
+}
 ##################################################################################################
 
 run_postinst_global() {
