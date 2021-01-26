@@ -961,7 +961,7 @@ __returnexitcode() {
 
 #getexitcode "OK Message" "Error Message"
 __getexitcode() {
-  if [ -n "$EXIT" ]; then local EXITCODE=$EXIT; else local EXITCODE="$?"; fi
+  local EXITCODE="$?"
   EXIT=
   if [ ! -z "$1" ]; then
     local PSUCCES="$1"
