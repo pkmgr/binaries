@@ -49,7 +49,7 @@ remove)
   PCKLIST=$*
   declare -a LISTARRAY=$PCKLIST
   for wallpaper in ${LISTARRAY[*]}; do
-    rm -Rf "${WALLPAPERS:-$SYSSHARE/wallpapers}/$wallpaper"
+    rm_rf "${WALLPAPERS:-$SYSSHARE/wallpapers}/$wallpaper"
   done
   ;;
 

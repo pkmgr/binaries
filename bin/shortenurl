@@ -32,7 +32,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_installdirs
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,7 +43,7 @@ url="$1"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-curl -LSsq 'http://is.gd/create.php?logstats=1&format=simple&url='"$(urlencode "$url")" | putclip
+__curl 'http://is.gd/create.php?logstats=1&format=simple&url='"$(urlencode "$url")" | putclip
 echo
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

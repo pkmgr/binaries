@@ -40,8 +40,8 @@ LIST="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/list)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-mkd "$HOMEDIR"
-mkd "$THEMEDIR"
+__mkd "$HOMEDIR"
+__mkd "$THEMEDIR"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

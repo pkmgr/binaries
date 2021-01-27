@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,31 +30,31 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_installdirs
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 TMPFILE="$(mktemp -t screencast-XXXXXXX).mkv"
-OUTPUT="$HOME/Pictures/Screencasts/$(date +%F-%H-%M-%S)"
+OUTPUT="$HOME/Pictures/Screencasts/$(date +%m-%d-%Y-%H-%M)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-mkd $OUTPUT
+__mkd "$OUTPUT"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 read -r X Y W H G ID < <(slop -f "%x %y %w %h %g %i")
 ffmpeg -f x11grab -s "$W"x"$H" -i :0.0+$X,$Y "$TMPFILE"
 
-notify-send 'generating palette'
+notifications "Screencast:" 'generating palette'
 ffmpeg -y -i "$TMPFILE" -vf fps=10,palettegen /tmp/palette.png
-notify-send 'generating gif'
+notifications "Screencast:" 'generating gif'
 ffmpeg -i "$TMPFILE" -i /tmp/palette.png -filter_complex "paletteuse" $OUTPUT.gif
-mv $TMPFILE $OUTPUT.mkv
+mv "$TMPFILE" "$OUTPUT.mkv"
 
-notify-send "size $(du -h $OUTPUT.gif | awk '{print $1}')"
+notifications "Screencast:" "size $(du -h $OUTPUT.gif | awk '{print $1}')"
 
-eog $OUTPUT.gif
+eog "$OUTPUT.gif"
 
 trap 'rm -f $TMPFILE' 0
 
