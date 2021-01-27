@@ -72,7 +72,7 @@ help | -*)
   ;;
 
 makecache)
-  fc-cache -f
+  generate_theme_index "$THEMEDIR"
   ;;
 
 list)
@@ -149,8 +149,6 @@ version)
   ;;
 
 esac
-
-generate_theme_index "$THEMEDIR"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
