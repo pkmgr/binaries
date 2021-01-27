@@ -170,14 +170,15 @@ printf_single() {
   local WIDTH=$(($LEN + ($COLUMNS - $LEN) / 2))
   printf "%b" "$(tput setaf "$color" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
 }
-
+#printf_exit "color" "exitcode" "message"
 printf_exit() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local exitCode="$1" && shift 1 || local exitCode="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg" "$color"
   echo ""
-  exit $?
+  exit "$exitCode"
 }
 
 printf_help() {

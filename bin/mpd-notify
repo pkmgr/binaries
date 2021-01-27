@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,97 +30,200 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-APP="$HOME/.config/mpd/mpd-notify"
-CONFIG="$APP/mpd-notify.cfg"
-BINLOC="/usr/local/bin/mpd-notify"
+__require_app mpd mpc
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+[ -d "$HOME/.config/mpd/mpd-notify" ] || printf_exit "1" "1" "Please install my mpd dotfiles | dfmgr install mpd"
+
 daemonName="mpd-notify"
+APP="$HOME/.config/mpd/mpd-notify"
+CONFIG="$APP/mpd-notify.cfg"
+MPDSERVER="${MPDSERVER:-localhost}"
+MPDSERVER_PORT=${MPDSERVER_PORT:-6600}
+NOTIFYSONG=true
+STATUSNOTIF=true
 pidFile="$APP/$daemonName.pid"
+logFile="$APP/$daemonName.log"
 runInterval=1
-logFile="$APP/$daemonName"
 logMaxSize="100"
 
-if [ -f "$APP/mpd-notify.cfg" ] && [ -f "$APP/mpd-notify-bin.sh" ]; then
+if [ -f "$APP/mpd-notify.cfg" ]; then
   source "$APP/mpd-notify.cfg"
-  source "$APP/mpd-notify-bin.sh"
-else
-  printf_red "Please install my mpd dotfiles"
-  exit 1
 fi
 
-myPid=$(echo $$)
+myPid="$(echo $$)"
 
+log() { echo "$1" >>"$logFile"; }
+__mpc() { mpc -h "$MPDSERVER" -p "$MPDSERVER_PORT" "$@" && return 0 || return 1; }
+
+getFile() {
+  file="$(__mpc -f %file% | head -n 1)"
+  albumPath="$(echo "$file" | sed 's/$(basename "$file")//')"
+  __mpc -f %file% | head -n 1
+}
+
+getArtAlb() {
+  __mpc -f "%artist% - %album%" | head -n 1
+}
+
+scrapeDiscogs() {
+  artAlb=$(getArtAlb)
+  log "$(python3 "$APP""/cogsCover.py" "$artAlb" "$DISCOGSKEY" "$DISCOGSSECRET")"
+  # cogsCover downloads to ${TMP:-/tmp}/image....
+  __cp_rf ${TMP:-/tmp}/image.jpg "$coverPath" >/dev/null 2>&1
+  __rm_rf ${TMP:-/tmp}/image.jpg >/dev/null 2>&1
+}
+
+notifyStatus() {
+  # Compare old and new status.
+  if $STATUSNOTIF; then
+    if [[ $curStatus != "$newStatus" ]]; then
+      if [[ $newStatus -eq 0 ]]; then
+        notifications "MPD" "Paused"
+      else
+        notifications "MPD" "Playing: $newTitleArtist"
+      fi
+    fi
+  fi
+}
+
+findCover() {
+  coverPath=
+  maxFile=
+  maxRes=
+  for file in "$MUSFOLDER$albumPath"*; do
+    if [[ "$file" == *".jpg" ]] || [[ "$file" == *".jpeg" ]] || [[ "$file" == *".png" ]]; then
+      curRes=$(identify -format "%W" "$file")
+      if [[ -z $maxFile ]]; then
+        maxFile="$file"
+        maxRes="$curRes"
+      elif [[ $curRes -gt $maxRes ]]; then
+        maxFile="$file"
+        maxRes="$curRes"
+      fi
+    fi
+  done
+
+  coverPath="$maxFile"
+  if [[ "$coverPath" == *".png" ]]; then
+    newPath="$(echo $coverPath | sed 's/png/jpg/g')"
+    convert "$coverPath" "$newPath"
+    coverPath=$newPath
+  fi
+
+  if [[ -z "$coverPath" ]]; then
+    coverPath=$MUSFOLDER$albumPath"cover.jpg"
+    if $AUTOSCRAPE; then
+      scrapeDiscogs
+    fi
+  fi
+}
+
+setWallpaper() {
+  curRes=$(xdpyinfo | grep dimensions | grep -E -o "   .+x" | sed -r 's/x.+?$//' | sed -r 's/^.+[^0-9]//g')
+  dimensions=$(xdpyinfo | grep dimensions | awk '{print $2}')
+  if $WALLPAPER; then
+    if [[ $maxRes -ge $curRes ]]; then
+      feh --bg-scale "$coverPath" >/dev/null 2>&1
+    else
+      if $CENTERED; then
+        if $COMMON; then
+          commonColor="$(convert "$coverPath" -colors 2 -depth 8 -unique-colors -format "%c" histogram:info: | grep -Eo "#.{6}" | tail -n 1)"
+          convert "$coverPath" -gravity center -background "$commonColor" -extent $dimensions "${TMP:-/tmp}/cover.jpg"
+          feh --bg-center "${TMP:-/tmp}/cover.jpg" >/dev/null 2>&1
+        else
+          convert "$coverPath" -gravity center -background "#$MATCOLOR" -extent $dimensions "${TMP:-/tmp}/cover.jpg"
+          feh --bg-center "${TMP:-/tmp}/cover.jpg" >/dev/null 2>&1
+        fi
+      else
+        feh --bg-tile "$coverPath" >/dev/null 2>&1
+      fi
+    fi
+  fi
+}
+
+notifySong() {
+  # Compare old and new songs.
+  if [[ $currTitleArtist != "$newTitleArtist" ]]; then
+    findCover
+    if [[ -e $coverPath ]]; then # If there's a cover...
+      setWallpaper
+    fi
+    if $NOTIFYSONG; then
+      notifications "MPD" "$newTitleArtist"
+    fi
+  fi
+}
+
+notifyVolume() {
+  if [[ $curVol != "$newVol" ]]; then
+    notifications "MPD" "$newVol"
+  fi
+}
+#############
 setupDaemon() {
   if [ ! -f "$logFile" ]; then
     touch "$logFile"
   else
     # Check to see if we need to rotate the logs.
     size=$(($(ls -l "$logFile" | cut -d " " -f 5) / 1024))
-    if [[ $size -gt $logMaxSize ]]; then
-      rm -R "$logFile"
+    if [[ "$size" -gt "$logMaxSize" ]]; then
+      __rm_rf "$logFile"
       touch "$logFile"
     fi
   fi
-  devnull mpc -p $PORT
+  __devnull __mpc
   if [[ $? -ne 0 ]]; then
-    echo -n "MPD not running. Attempting to start..."
-    mpd
+    printf_info "MPD not running. Attempting to start..."
+    __start mpd
     if [[ $? -ne 0 ]]; then
-      echo "Unable to start MPD. Please do it yourself then start mpd-notify."
+      printf_exit "Unable to start MPD. Please do it yourself then start mpd-notify."
     else
-      echo "Done."
+      printf_green "Everything is good!"
     fi
   fi
-
+  __running mpd || printf_exit "1" "1" "Failed to start mpd"
 }
 
 startDaemon() {
-
   setupDaemon
   if [[ "$(checkDaemon)" -eq 1 ]]; then
-    echo "ERROR: $daemonName is already running."
-    exit 1
+    printf_exit "2" "1" "ERROR: $daemonName is already running."
   fi
-  echo " *Starting $daemonName."
+  printf_green " *Starting $daemonName."
   echo "$myPid" >"$pidFile"
   log '*** '$(date +"%Y-%m-%d")": Starting up $daemonName."
-
-  # Begin main loop
   loop
 }
 
 stopDaemon() {
   if [[ "$(checkDaemon)" -eq 0 ]]; then
-    echo " ERROR: $daemonName is not running."
-    exit 1
+    printf_exit "1" "1" "ERROR: $daemonName is not running."
   fi
   echo "Stopping $daemonName"
   log '*** '$(date +"%Y-%m-%d")": $daemonName stopped."
-
-  if [[ ! -z $(cat $pidFile) ]]; then
-    kill -9 $(cat "$pidFile") &>/dev/null
+  if [[ -n "$(cat $pidFile)" ]]; then
+    __kill "$(cat "$pidFile")"
   fi
 }
 
 statusDaemon() {
   # Check if running
   if [[ "$(checkDaemon)" -eq 1 ]]; then
-    echo "$daemonName is running."
+    printf_exit "2" "0" "$daemonName is running."
   else
-    echo "$daemonName is not running."
+    printf_exit "1" "1" "$daemonName is not running."
   fi
-  exit 0
 }
 
 restartDaemon() {
   if [[ "$(checkDaemon)" -eq 0 ]]; then
-    echo "$daemonName isn't running."
+    printf_red "$daemonName isn't running."
     startDaemon
   fi
   stopDaemon
@@ -137,19 +240,13 @@ checkDaemon() {
   elif [[ $(ps aux | grep "$oldPid" | grep -v grep) > /dev/null ]]; then
     if [ -f "$pidFile" ]; then
       if [[ $(cat "$pidFile") == "$oldPid" ]]; then
-        echo 1
         # Daemon is running.
-        # echo 1
+        echo 1
       else
         # Daemon isn't running.
         return 0
       fi
     fi
-    # elif [[ `ps aux | grep "$daemonName" | grep -v grep | grep -v "$myPid" | grep -v "0:00.00"` > /dev/null ]]; then
-    #   # Daemon is running but without the correct PID. Restart it.
-    #   log '*** '`date +"%Y-%m-%d"`": $daemonName running with invalid PID; restarting."
-    #   restartDaemon
-    #   return 1
   else
     # Daemon not running.
     return 0
@@ -159,8 +256,8 @@ checkDaemon() {
 
 loop() {
   # Just get the song title and artist.
-  currentSong=$(mpc -p $PORT)
-  currTitleArtist="$(mpc -p $PORT | head -n 1)"
+  currentSong=$(__devnull2 __mpc)
+  currTitleArtist="$(__devnull2 __mpc | head -n 1)"
 
   # Via mpc call and awk, get the status of mpd. For some reason, comparing the two as strings would not work. Converting their status to integers and comparing those, does.
   if [[ $(echo "$currentSong" | awk '/\[(paused|playing)\]/ {print $1}') == "[playing]" ]]; then
@@ -174,8 +271,8 @@ loop() {
   # zzz
   sleep 1
 
-  newSong=$(mpc -p $PORT)
-  newTitleArtist="$(mpc -p $PORT | head -n 1)"
+  newSong=$(__devnull2 __mpc)
+  newTitleArtist="$(__devnull2 __mpc | head -n 1)"
 
   if [[ $(echo "$newSong" | awk '/\[(paused|playing)\]/ {print $1}') == "[playing]" ]]; then
     newStatus=1
@@ -187,7 +284,7 @@ loop() {
 
   # Get the path of the currently playing song as well as the cover.
   albumPath=$(getFile | sed -r 's/\/[^/]*$//')"/"
-  albumPath="$(mpc -p $PORT -f %file% | head -n 1)"
+  albumPath="$(__devnull2 __mpc -f %file% | head -n 1)"
 
   notifyStatus
   notifySong
@@ -196,16 +293,12 @@ loop() {
   loop
 }
 
-log() {
-  echo "$1" >>"$logFile"
-}
-
 ##################
 #    ArgParse    #
 ##################
 
 if [ -f "$pidFile" ]; then
-  oldPid=$(cat "$pidFile")
+  oldPid="$(cat "$pidFile")"
 fi
 checkDaemon
 case "$1" in
