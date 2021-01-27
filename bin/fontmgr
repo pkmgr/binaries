@@ -127,7 +127,6 @@ updater | cron)
 
 version)
   shift 1
-  [ $# = 0 ] && "$APPNAME" --version
   run_install_version "$@"
   ;;
 
