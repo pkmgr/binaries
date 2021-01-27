@@ -539,7 +539,7 @@ __rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@"; fi; }
 __ln_rm() { if [ -e "$1" ]; then __devnull find "$1" -mindepth 1 -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
 __ln_sf() {
-  [ -L "$2" ] && rm_rf "$2"
+  [ -L "$2" ] && __rm_rf "$2"
   __devnull ln -sf "$1" "$2"
 }
 #find "dir" "options"
@@ -621,7 +621,7 @@ __git_clone() {
   __git_username_repo "$1"
   local repo="$1"
   [ -n "$2" ] && local dir="$2" || local dir="$APPDIR"
-  [ ! -d "$dir" ] || rm_rf "$dir"
+  [ ! -d "$dir" ] || __rm_rf "$dir"
   git -C "$dir" clone -q --recursive "$repo"
 }
 #git_pull "dir"
@@ -633,7 +633,7 @@ __git_update() {
   git -C "$myappdir" submodule update --init --recursive -q
   git -C "$myappdir" reset --hard -q
   if [ "$?" -ne "0" ]; then
-    __backupapp "$myappdir" "$APPNAME" && rm_rf "$myappdir" && git clone -q "$repo" "$myappdir"
+    __backupapp "$myappdir" "$APPNAME" && __rm_rf "$myappdir" && git clone -q "$repo" "$myappdir"
   fi
 }
 #git_commit "dir"
@@ -769,7 +769,7 @@ __backupapp() {
     echo -e "#################################\n\n" >>"$logdir/$myappname.log"
     [ -f "$APPDIR/.installed" ] || rm -Rf "$myappdir"
   fi
-  if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
+  if [ "$count" -gt "3" ]; then __rm_rf $rmpre4vbackup; fi
 }
 ###################### menu functions ######################
 #attemp_install_menus "programname"
@@ -1351,7 +1351,7 @@ dfmgr_install() {
     install_version
     mkdir -p "$CASJAYSDEVSAPPDIR/dfmgr" "$CASJAYSDEVSAPPDIR/dfmgr"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
     fi
   }
 }
@@ -1411,7 +1411,7 @@ dockermgr_install() {
     install_version
     mkdir -p "$CASJAYSDEVSAPPDIR/dockermgr" "$CASJAYSDEVSAPPDIR/dockermgr"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dockermgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dockermgr/$APPNAME"
     fi
   }
 
@@ -1447,7 +1447,7 @@ fontmgr_install() {
     fontmgr_install
     run_postinst_global
     if [ -d "$HOME/Library/Fonts" ] && [ -d "$APPDIR/fonts" ]; then
-      ln_sf "$APPDIR/fonts" "$HOME/Library/Fonts"
+      __ln_sf "$APPDIR/fonts" "$HOME/Library/Fonts"
     fi
     fc-cache -f "$ICONDIR"
   }
@@ -1457,7 +1457,7 @@ fontmgr_install() {
     install_version
     mkdir -p "$CASJAYSDEVSAPPDIR/fontmgr" "$CASJAYSDEVSAPPDIR/fontmgr"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/fontmgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/fontmgr/$APPNAME"
     fi
   }
 
@@ -1493,7 +1493,7 @@ iconmgr_install() {
   iconmgr_run_post() {
     iconmgr_install
     run_postinst_global
-    [ -d "$ICONDIR/$APPNAME" ] || ln_sf "$APPDIR" "$ICONDIR/$APPNAME"
+    [ -d "$ICONDIR/$APPNAME" ] || __ln_sf "$APPDIR" "$ICONDIR/$APPNAME"
     devnull sudo find "$ICONDIR/$APPNAME" -type d -exec chmod 755 {} \;
     devnull sudo find "$ICONDIR/$APPNAME" -type f -exec chmod 644 {} \;
     devnull sudo gtk-update-icon-cache -q -t -f "$ICONDIR/$APPNAME"
@@ -1504,7 +1504,7 @@ iconmgr_install() {
     install_version
     mkdir -p "$CASJAYSDEVSAPPDIR/iconmgr" "$CASJAYSDEVSAPPDIR/apps/iconmgr"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/iconmgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/iconmgr/$APPNAME"
     fi
   }
 
@@ -1539,7 +1539,7 @@ pkmgr_install() {
     install_version
     mkdir -p "$CASJAYSDEVSAPPDIR/pkmgr" "$CASJAYSDEVSAPPDIR/pkmgr"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/pkmgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/pkmgr/$APPNAME"
     fi
   }
 }
@@ -1573,9 +1573,9 @@ systemmgr_install() {
   systemmgr_install_version() {
     systemmgr_install
     install_version
-    mkdir -p "$SYSUPDATEDIR"
+    __mkd "$SYSUPDATEDIR"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/systemmgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/systemmgr/$APPNAME"
     fi
 
   }
@@ -1606,23 +1606,23 @@ thememgr_install() {
     THEMEDIR="${THEMEDIR:-$SHARE/themes}"
     sudo find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
       if [ -f "$THEME/index.theme" ]; then
-        cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
+        __cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
       fi
     done
   }
   thememgr_run_post() {
     thememgr_install
     run_postinst_global
-    [ -d "$THEMEDIR/$APPNAME" ] || ln_sf "$APPDIR" "$THEMEDIR/$APPNAME"
+    [ -d "$THEMEDIR/$APPNAME" ] || __ln_sf "$APPDIR" "$THEMEDIR/$APPNAME"
     generate_theme_index
   }
 
   thememgr_install_version() {
     thememgr_install
     install_version
-    mkdir -p "$CASJAYSDEVSAPPDIR/thememgr" "$CASJAYSDEVSAPPDIR/thememgr"
+    __mkd "$CASJAYSDEVSAPPDIR/thememgr" "$CASJAYSDEVSAPPDIR/thememgr"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/thememgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/thememgr/$APPNAME"
     fi
   }
 
@@ -1656,9 +1656,9 @@ wallpapermgr_install() {
 
   wallpaper_install_version() {
     wallpapermgr_install
-    mkdir -p "$CASJAYSDEVSAPPDIR/wallpapermgr" "$CASJAYSDEVSAPPDIR/wallpapermgr"
+    __mkd "$CASJAYSDEVSAPPDIR/wallpapermgr" "$CASJAYSDEVSAPPDIR/wallpapermgr"
     if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/wallpapermgr/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/wallpapermgr/$APPNAME"
     fi
   }
 }
@@ -1994,7 +1994,7 @@ run_install_version() {
 
 scripts_check() {
   if __am_i_online; then
-    if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
+    if ! __cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
       printf_red "Please install my scripts repo - requires root/sudo"
       printf_question "Would you like to do that now" [y/N]
       read -n 1 -s choice && echo ""
@@ -2038,7 +2038,7 @@ installer_no_update() {
     true
   elif [ "$1" != "--force" ]; then
     if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d "$APPDIR" ]; then
-      ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
+      __ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
       printf_warning "Updating of $APPNAME has been disabled"
       exit 0
     fi
@@ -2049,16 +2049,16 @@ installer_version() {
   mkdir -p "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/dotfiles"
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
     if [ "$APPNAME" = "installer" ] && [ -d "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX" ]; then
-      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
-      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
+      __ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
+      __ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
     fi
-    ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
+    __ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
   fi
   if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
-    ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
+    __ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
   fi
   if [ -d "$INSTDIR" ] && [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
-    ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+    __ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   fi
 
 }
@@ -2067,9 +2067,9 @@ installer_delete() {
   if [ -d "$APPDIR" ]; then
     printf_yellow "Removing $APPNAME from your system"
     [ -d "$INSTDIR" ] && rm_rm "$INSTDIR"
-    rm_rf "$APPDIR" &&
-      rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
-      rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
+    __rm_rf "$APPDIR" &&
+      __rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
+      __rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
       broken_symlinks $BIN $SHARE $COMPDIR $CONF
     getexitcode "$APPNAME has been removed"
   else
@@ -2081,7 +2081,7 @@ installer_delete() {
 ###################### global post install ######################
 
 run_postinst_global() {
-  if [ ! -d "$INSTDIR" ] || [ ! -L "$INSTDIR" ] || [ "$APPDIR" != "$INSTDIR" ]; then ln_sf "$APPDIR" "$INSTDIR"; fi
+  if [ ! -d "$INSTDIR" ] || [ ! -L "$INSTDIR" ] || [ "$APPDIR" != "$INSTDIR" ]; then __ln_sf "$APPDIR" "$INSTDIR"; fi
   if [[ "$APPNAME" = "scripts" ]] || [[ "$APPNAME" = "installer" ]]; then
     # Only run on the scripts install
     __ln_rm "$SYSBIN/"
@@ -2094,7 +2094,7 @@ run_postinst_global() {
 
     # myfunctFiles="$(ls $INSTDIR/functions)"
     # for myfunct in $myfunctFiles; do
-    #   ln_sf "$INSTDIR/functions/$myfunct" "$HOME/.local/share/CasjaysDev/functions/$myfunct"
+    #   __ln_sf "$INSTDIR/functions/$myfunct" "$HOME/.local/share/CasjaysDev/functions/$myfunct"
     # done
 
     compFiles="$(ls $INSTDIR/completions)"

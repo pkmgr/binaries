@@ -30,23 +30,33 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-user_installdirs
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 [ -n "$WALLPAPERS" ] || printf_exit "No wallpaper directories specified"
-RANDOMWALLPAPER="${1:-$RANDOMWALLPAPER}"
 
 randomwallpaper() {
-  [ -d /usr/share/backgrounds ] && for l in $(ls /usr/share/backgrounds); do [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"; done
-  [ -d /usr/share/wallpapers ] && for l in $(ls /usr/share/wallpapers); do [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"; done
-  RAND="${RANDOMWALLPAPER:-$(find "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" 2>/dev/null | sort -R | head -1)}"
+  if [ -d /usr/share/backgrounds ]; then
+    for l in $(ls /usr/share/backgrounds); do
+      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"
+    done
+  fi
+  if [ -d /usr/share/wallpapers ]; then
+    for l in $(ls /usr/share/wallpapers); do
+      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"
+    done
+  fi
+
+  SETRANDOM="$(find "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" 2>/dev/null | sort -R | head -1)"
+  RANDOMWALLPAPER="${1:-$SETRANDOM}"
+  RAND="${RANDOMWALLPAPER}"
   SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 
   send_notify_wp() {
-    command -v notify-send >/dev/null 2>&1 &&
-      notify-send "Wallpaper Changer" "Wallpaper has been changed to $SHORTNAME" ||
-      notify-send "Wallpaper Changer" "Failed to change the wallpaper"
+    if command -v notifications >/dev/null 2>&1; then
+      notifications "Wallpaper Changer" "Wallpaper has been changed to $SHORTNAME" || notifications "Wallpaper Changer" "Failed to change the wallpaper"
+    fi
   }
 
   xfce_change_wp() {
@@ -56,16 +66,16 @@ randomwallpaper() {
   }
 
   [ -n "$RAND" ] || exit 1
-  if cmd_exists variety >/dev/null 2>&1; then
+  if __cmd_exists variety >/dev/null 2>&1; then
     variety --set="$RAND" >/dev/null 2>&1 && send_notify_wp
 
-  elif cmd_exists feh >/dev/null 2>&1; then
+  elif __cmd_exists feh >/dev/null 2>&1; then
     feh --bg-fill "$RAND" >/dev/null 2>&1 && send_notify_wp
 
-  elif cmd_exists xwallpaper >/dev/null 2>&1; then
+  elif __cmd_exists xwallpaper >/dev/null 2>&1; then
     xwallpaper --maximize "$RAND" >/dev/null 2>&1 && send_notify_wp
 
-  elif cmd_exists xfconf-query >/dev/null 2>&1 && [[ "$DESKTOP_SESSION" =~ "xfce4" ]]; then
+  elif __cmd_exists xfconf-query >/dev/null 2>&1 && [[ "$DESKTOP_SESSION" =~ "xfce4" ]]; then
     xfce_change_wp "$RAND" >/dev/null 2>&1 && send_notify_wp
 
   fi
