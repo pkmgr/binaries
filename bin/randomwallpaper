@@ -48,7 +48,7 @@ randomwallpaper() {
     done
   fi
 
-  SETRANDOM="$(find "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" 2>/dev/null | sort -R | head -1)"
+  SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" 2>/dev/null | sort -R | head -1)"
   RANDOMWALLPAPER="${1:-$SETRANDOM}"
   RAND="${RANDOMWALLPAPER}"
   SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
