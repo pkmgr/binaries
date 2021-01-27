@@ -231,17 +231,20 @@ printf_custom_question() {
   shift
   printf_color "\t\t$msg " "$color"
 }
-
+#printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -e -r -n "${2:-120}" -s "${1:-__ANSWER}"
-  history -s "${1:-$__ANSWER}"
+  answer=${1:-REPLY}
+  lines=${2:-120}
+  opts=${3:-}
+  read -t 10 -e -r -n "${lines}" $opts "${answer}"
+  history -s "${answer}"
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
-  test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local line="120"
+  test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-__ANSWER}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
