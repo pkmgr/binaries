@@ -38,7 +38,7 @@ xine-ui() { xine || xine-ui; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -z "$DISPLAY" ]; then printf_exit "No display server found.......exiting $(sleep2)"; fi
+if [ -z "$DISPLAY" ]; then printf_exit "No display server found.......exiting $(sleep 2)"; fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -162,5 +162,5 @@ while :; do
 done
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
