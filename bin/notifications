@@ -34,62 +34,83 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case "$(uname)" in
-Darwin)
+
+if [ "$(uname -s)" = "Darwin" ]; then
   __check_app osascript
-  __notify_send() { osascript -e "display notification \"$2\" with title \"$1\""; }
-  ;;
-Linux)
+  __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\""; }
+elif [ "$(uname -s)" = "Linux" ]; then
   __check_app notify-send
   __notify_send() { notify-send -u normal -i "notification-message-IM" "$@"; }
-  ;;
-*)
-  exit
-  ;;
-esac
+else
+  exit 1
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-notifications() {
+__notifications() {
   if [ ${#} -eq 0 ]; then
     local title="Message from stdin"
     local msg="$(</dev/stdin)"
+    shift
   else
     if [ ${#} -eq 1 ]; then
       local title="New notification"
-      local msg="$*"
+      local msg="${*}"
+      shift
     else
-      local title="$1"
+      local title="${1}"
       shift 1
-      local msg="$*"
+      local msg="${*}"
+      shift
     fi
   fi
   shift
   __notify_send "$title" "$msg" || return 0
 }
 
-send-to-all() {
-  shift 1
-  [ -z "$1" ] && [ -z "$2" ] && __help
-  XUSERS=($(who | grep -E "\(:[0-9](\.[0-9])*\)" | awk '{print $1$5}' | sort -u))
-  for XUSER in $XUSERS; do
-    NAME=(${XUSER/(/ })
-    DISPLAY=${NAME[1]/)/}
-    DBUS_ADDRESS=unix:path=/run/user/$(id -u ${NAME[0]})/bus
-    sudo -u ${NAME[0]} DISPLAY=${DISPLAY} \
-      DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} \
-      PATH=${PATH} \
-      __notify_send "$@"
-  done
+__notifications_all() {
+  if [ ${#} -eq 0 ]; then
+    local title="Message from stdin"
+    local msg="$(</dev/stdin)"
+    shift
+  else
+    if [ ${#} -eq 1 ]; then
+      local title="New notification"
+      local msg="${*}"
+      shift
+    else
+      local title="${1}"
+      shift 1
+      local msg="${*}"
+      shift
+    fi
+  fi
+  if [ "$(uname -s)" = "Linux" ]; then
+    shift
+    XUSERS=($(who | grep -E "\(:[0-9](\.[0-9])*\)" | awk '{print $1$5}' | sort -u))
+    for XUSER in $XUSERS; do
+      NAME=(${XUSER/(/ })
+      DISPLAY="${NAME[1]/)/}"
+      DBUS_ADDRESS=unix:path=/run/user/"$(id -u ${NAME[0]})"/bus
+      sudo -u "${NAME[0]}" DISPLAY="${DISPLAY}" \
+        DBUS_SESSION_BUS_ADDRESS="${DBUS_ADDRESS}" \
+        PATH="${PATH}" \
+        notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
+      __cmd_exists wall && echo "$title: $msg" | wall
+      printf_console "3" "$title: $msg" >/dev/fd/0
+    done
+  else
+    __notifications "$title" "$msg" || return 0
+    __cmd_exists wall && echo "$title: $msg" | wall
+  fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ "$1" = "--all" ]; then
-  send-to-all "$@"
-  __cmd_exists wall && echo "$@" | wall
-  printf_console "4" "$@" >/dev/fd/0
+  shift 1
+  __notifications_all "$@"
 else
-  notifications "$@"
+  __notifications "$@"
   #__cmd_exists wall && echo "$@" | wall
   #printf_console "3" "$@" >/dev/fd/0
 fi
