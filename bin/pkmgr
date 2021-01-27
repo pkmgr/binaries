@@ -20,7 +20,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -46,47 +46,51 @@ pkmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-rm_rf() { sudo rm -Rf; }
+__rm_rf() { sudo rm -Rf "$@"; }
+__cp_rf() { sudo cp -Rf "$@"; }
+__curl() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
+__curl_sudo() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Variables - Distro specific
-case "$(uname -s)" in
-Linux)
-  if [ -f "$(command -v apt-get)" ]; then
-    dotfilesrepo="$REPODF/apt"            #
-    pkgmgrbin="sudo -HE /usr/bin/apt-get" #
-    pkgmgrbinins="$pkgmgrbin install"     #
-    pkgmgrbininssil="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --ignore-missing -yy -qq --allow-unauthenticated --assume-yes "
-    pkgmgrbinremsil="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get remove -yy -qq --assume-yes --purge "
-    pkgmgrbinupdsil="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --ignore-missing -yy -qq --allow-unauthenticated --assume-yes " #
-    pkgmgrbinupdcron="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt-get dist-upgrade -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --ignore-missing -yy --allow-unauthenticated --assume-yes "    #
-    pkgmgrbindel="$pkgmgrbin remove --purge "                                                                                                                                                                                       #
-    pkgmgrbinsea="sudo -H /usr/bin/apt-cache search "                                                                                                                                                                               #
-    pkgmgrbinupd="$pkgmgrbin dist-upgrade "                                                                                                                                                                                         #
-    pkgmgrbincle="$pkgmgrbin clean "                                                                                                                                                                                                #
-    pkgmgrbincac="$pkgmgrbin update "                                                                                                                                                                                               #
-    pkgmgrexport() { dpkg -l | grep ^ii | awk '{print $2}' | sed "s#:.*##g" | sort -u; }
-  elif [ -f "$(command -v apt)" ]; then
-    dotfilesrepo="$REPODF/apt"        #
-    pkgmgrbin="sudo -HE /usr/bin/apt" #
-    pkgmgrbinins="$pkgmgrbin install" #
-    pkgmgrbininssil="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --ignore-missing -yy -qq --allow-unauthenticated --assume-yes "
-    pkgmgrbinremsil="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt remove -yy -qq --assume-yes --purge "
-    pkgmgrbinupdsil="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt dist-upgrade -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --ignore-missing -yy -qq --allow-unauthenticated --assume-yes " #
-    pkgmgrbinupdcron="sudo -H DEBIAN_FRONTEND=noninteractive /usr/bin/apt dist-upgrade -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --ignore-missing -yy --allow-unauthenticated --assume-yes "    #
-    pkgmgrbindel="$pkgmgrbin remove --purge "                                                                                                                                                                                   #
-    pkgmgrbinsea="sudo -H /usr/bin/apt-cache search "                                                                                                                                                                           #
-    pkgmgrbinupd="$pkgmgrbin dist-upgrade "                                                                                                                                                                                     #
-    pkgmgrbincle="$pkgmgrbin clean "                                                                                                                                                                                            #
-    pkgmgrbincac="$pkgmgrbin update "                                                                                                                                                                                           #
-    pkgmgrexport() { dpkg -l | grep ^ii | awk '{print $2}' | sed "s#:.*##g" | sort -u; }
-
-    #---------------------------------------------------------------------------------------
-
+case "$(uname -s)" in                                                                                                             #
+Linux)                                                                                                                            #
+  if [ -f "$(command -v apt-get)" ]; then                                                                                         #
+    export DEBIAN_FRONTEND=noninteractive                                                                                         #
+    export APT_OPTS="-o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold""                                   #
+    dotfilesrepo="$REPODF/apt"                                                                                                    #
+    pkgmgrbin="sudo -E /usr/bin/apt-get"                                                                                          #
+    pkgmgrbinins="$pkgmgrbin install"                                                                                             #
+    pkgmgrbininssil="$pkgmgrbin install $APT_OPTS --ignore-missing -yy -qq --allow-unauthenticated --assume-yes "                 #
+    pkgmgrbinremsil="$pkgmgrbin remove -yy -qq --assume-yes --purge "                                                             #
+    pkgmgrbinupdsil="$pkgmgrbin dist-upgrade $APT_OPTS --ignore-missing -yy -qq --allow-unauthenticated --assume-yes "            #
+    pkgmgrbinupdcron="$pkgmgrbin dist-upgrade $APT_OPTS --ignore-missing -yy --allow-unauthenticated --assume-yes "               #
+    pkgmgrbindel="$pkgmgrbin remove --purge "                                                                                     #
+    pkgmgrbinsea="sudo -E /usr/bin/apt-cache search "                                                                             #
+    pkgmgrbinupd="$pkgmgrbin dist-upgrade "                                                                                       #
+    pkgmgrbincle="$pkgmgrbin clean "                                                                                              #
+    pkgmgrbincac="$pkgmgrbin update "                                                                                             #
+    pkgmgrexport() { dpkg -l | grep ^ii | awk '{print $2}' | sed "s#:.*##g" | sort -u; }                                          #
+  elif [ -f "$(command -v apt)" ]; then                                                                                           #
+    export DEBIAN_FRONTEND=noninteractive                                                                                         #
+    export APT_OPTS="-o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold""                                   #
+    dotfilesrepo="$REPODF/apt"                                                                                                    #
+    pkgmgrbin="sudo -E /usr/bin/apt"                                                                                              #
+    pkgmgrbinins="$pkgmgrbin install"                                                                                             #
+    pkgmgrbininssil="$pkgmgrbin install $APT_OPTS --ignore-missing -yy -qq --allow-unauthenticated --assume-yes "                 #
+    pkgmgrbinremsil="$pkgmgrbin remove -yy -qq --assume-yes --purge "                                                             #
+    pkgmgrbinupdsil="$pkgmgrbin dist-upgrade $APT_OPTS --ignore-missing -yy -qq --allow-unauthenticated --assume-yes "            #
+    pkgmgrbinupdcron="$pkgmgrbin dist-upgrade $APT_OPTS --ignore-missing -yy --allow-unauthenticated --assume-yes "               #
+    pkgmgrbindel="$pkgmgrbin remove --purge "                                                                                     #
+    pkgmgrbinsea="sudo -E /usr/bin/apt-cache search "                                                                             #
+    pkgmgrbinupd="$pkgmgrbin dist-upgrade "                                                                                       #
+    pkgmgrbincle="$pkgmgrbin clean "                                                                                              #
+    pkgmgrbincac="$pkgmgrbin update "                                                                                             #
+    pkgmgrexport() { dpkg -l | grep ^ii | awk '{print $2}' | sed "s#:.*##g" | sort -u; }                                          #
   elif [ -f "$(command -v pacman)" ]; then                                                                                        #
     dotfilesrepo="$REPODF/pacman"                                                                                                 #
-    pkgmgrbin="sudo -H /usr/bin/pacman "                                                                                          #
+    pkgmgrbin="sudo -E /usr/bin/pacman "                                                                                          #
     pkgmgrbinins="$pkgmgrbin -S --noconfirm --overwrite='*' "                                                                     #
     pkgmgrbininssil="$pkgmgrbin -S --noconfirm --needed --overwrite='*' "                                                         #
     pkgmgrbinremsil="$pkgmgrbin -R --noconfirm "                                                                                  #
@@ -100,7 +104,7 @@ Linux)
     pkgmgrexport() { pacman -Qqe | grep -v "$(pacman -Qqm)" && echo '###' && pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; } #
   elif [ -f "$(command -v pamac)" ]; then                                                                                         #
     dotfilesrepo="$REPODF/pacman"                                                                                                 #
-    pkgmgrbin="sudo -HE /usr/bin/pamac"                                                                                           #
+    pkgmgrbin="sudo /usr/bin/pamac"                                                                                               #
     pkgmgrbinins="$pkgmgrbin install --noconfirm "                                                                                #
     pkgmgrbininssil="$pkgmgrbin install --noconfirm "                                                                             #
     pkgmgrbinremsil="$pkgmgrbin remove --noconfirm "                                                                              #
@@ -114,7 +118,7 @@ Linux)
     pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }                                                         #
   elif [ -f "$(command -v dnf)" ]; then                                                                                           #
     dotfilesrepo="$REPODF/yum"                                                                                                    #
-    pkgmgrbin="sudo -HE /usr/bin/dnf"                                                                                             #
+    pkgmgrbin="sudo /usr/bin/dnf"                                                                                                 #
     pkgmgrbinins="$pkgmgrbin install "                                                                                            #
     pkgmgrbininssil="$pkgmgrbin install -y -q "                                                                                   #
     pkgmgrbinremsil="$pkgmgrbin remove -y -q "                                                                                    #
@@ -128,7 +132,7 @@ Linux)
     pkgmgrexport() { rpm -qa --qf '%{name}\n' | grep -v gpg-pubkey | sort -u; }                                                   #
   elif [ -f "$(command -v yum)" ]; then                                                                                           #
     dotfilesrepo="$REPODF/yum"                                                                                                    #
-    pkgmgrbin="sudo -HE /usr/bin/yum"                                                                                             #
+    pkgmgrbin="sudo /usr/bin/yum"                                                                                                 #
     pkgmgrbinins="$pkgmgrbin install "                                                                                            #
     pkgmgrbininssil="$pkgmgrbin install -y -q "                                                                                   #
     pkgmgrbinremsil="$pkgmgrbin remove -y -q "                                                                                    #
@@ -142,7 +146,7 @@ Linux)
     pkgmgrexport() { rpm -qa --qf '%{name}\n' | grep -v gpg-pubkey | sort -u; }                                                   #
   elif [ -f "$(command -v xbps-install)" ]; then                                                                                  #
     dotfilesrepo="$REPODF/xbps"                                                                                                   #
-    pkgmgrbin="sudo -HE /usr/bin/xbps-install"                                                                                    #
+    pkgmgrbin="sudo /usr/bin/xbps-install"                                                                                        #
     pkgmgrbinins="$pkgmgrbin -S "                                                                                                 #
     pkgmgrbininssil="$pkgmgrbin -Sy "                                                                                             #
     pkgmgrbinremsil="sudo -H /usr/bin/xbps-remove -y "                                                                            #
@@ -160,9 +164,9 @@ Darwin)                                                                         
   if [ -f "$(command -v brew)" ]; then                                                                                            #
     dotfilesrepo="$REPODF/brew"                                                                                                   #
     if [ "$1" = "--cask" ]; then                                                                                                  #
-      pkgmgrbin="sudo -HE $USER brew"                                                                                             #
+      pkgmgrbin="sudo -u $USER brew --cask"                                                                                       #
     else                                                                                                                          #
-      pkgmgrbin="sudo -HE $USER brew --cask"                                                                                      #
+      pkgmgrbin="sudo -u $USER brew"                                                                                              #
     fi                                                                                                                            #
     pkgmgrbinins="$pkgmgrbin install"                                                                                             #
     pkgmgrbininssil="$pkgmgrbin install -f "                                                                                      #
@@ -174,7 +178,7 @@ Darwin)                                                                         
     pkgmgrbinupd="$pkgmgrbin upgrade "                                                                                            #
     pkgmgrbincle="$pkgmgrbin cleanup "                                                                                            #
     pkgmgrbincac="$pkgmgrbin update "                                                                                             #
-    pkgmgrexport() { echo "$($pkgmgrbin list --cask && $pkgmgrbin list --formula)" | sort -u; }                                   #
+    pkgmgrexport() { $pkgmgrbin list --cask && $pkgmgrbin list --formula | sort -u; }                                             #
   fi                                                                                                                              #
   ;;                                                                                                                              #
 CYGWIN* | MINGW32* | MSYS* | MINGW*)                                                                                              #
@@ -192,51 +196,46 @@ CYGWIN* | MINGW32* | MSYS* | MINGW*)                                            
   pkgmgrexport() { echo not enabled; }                                                                                            #
   ;;                                                                                                                              #
 *)                                                                                                                                #
-  echo -e "\t\tUnknown OS or OS not supported"                                                                                    #
-  exit                                                                                                                            #
+  printf_exit "Unknown OS or OS not supported"                                                                                    #
   ;;                                                                                                                              #
 esac                                                                                                                              #
 
-#---------------------------------------------------------------------------------------
-
-if [ -f "$(command -v yay)" ]; then
-  case "$1" in
-  --enable-aur)
-    shift 1
-    dotfilesrepo="$REPODF/pacman"               #
-    pkgmgrbin="sudo -HE -u $USER /usr/bin/yay " #
-    pkgmgrbinins="$pkgmgrbin -S --cleanafter --overwrite='*' "
-    pkgmgrbininssil="$pkgmgrbin -Sy --needed --noconfirm --cleanafter --overwrite='*' "
-    pkgmgrbinremsil="$pkgmgrbin -Ry --noconfirm --needed --noconfirm" #
-    pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "                   #
-    #pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                  #
-    pkgmgrbindel="$pkgmgrbin -R "                            #
-    pkgmgrbinsea="$pkgmgrbin -Ss "                           #
-    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'" #
-    pkgmgrbincle="$pkgmgrbin -Scc "                          #
-    pkgmgrbincac="$pkgmgrbin -Syy "                          #
-    pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }
-    ;;
-  esac
-fi
-
-#---------------------------------------------------------------------------------------
+if [ -f "$(command -v yay)" ]; then                                                     #
+  case "$1" in                                                                          #
+  --enable-aur)                                                                         #
+    shift 1                                                                             #
+    dotfilesrepo="$REPODF/pacman"                                                       #
+    pkgmgrbin="sudo -u -HE $USER /usr/bin/yay "                                         #
+    pkgmgrbinins="$pkgmgrbin -S --cleanafter --overwrite='*' "                          #
+    pkgmgrbininssil="$pkgmgrbin -Sy --needed --noconfirm --cleanafter --overwrite='*' " #
+    pkgmgrbinremsil="$pkgmgrbin -Ry --noconfirm --needed --noconfirm"                   #
+    pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "                                     #
+    pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                                    #
+    pkgmgrbindel="$pkgmgrbin -R "                                                       #
+    pkgmgrbinsea="$pkgmgrbin -Ss "                                                      #
+    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"                            #
+    pkgmgrbincle="$pkgmgrbin -Scc "                                                     #
+    pkgmgrbincac="$pkgmgrbin -Syy "                                                     #
+    pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }               #
+    ;;                                                                                  #
+  esac                                                                                  #
+fi                                                                                      #
 
 pip_run() {
-  if cmd_exists pip3; then
-    devnull2 bash -c "sudo -HE pip3 install --upgrade $*" | printf_readline
+  if __cmd_exists pip3; then
+    __devnull2 bash -c "sudo pip3 install --upgrade $*" | printf_readline
   elif cmd_exists pip; then
-    devnull2 bash -c "sudo -HE pip install --upgrade $*" | printf_readline
+    __devnull2 bash -c "sudo pip install --upgrade $*" | printf_readline
   else
     exit 1
   fi
 }
 
 pip_remove() {
-  if cmd_exists pip3; then
-    devnull2 bash -c "sudo -HE pip3 remove $*" | printf_readline
+  if __cmd_exists pip3; then
+    __devnull2 bash -c "sudo pip3 remove $*" | printf_readline
   elif cmd_exists pip; then
-    devnull2 bash -c "sudo -HE pip remove $*" | printf_readline
+    __devnull2 bash -c "sudo pip remove $*" | printf_readline
   else
     exit 1
   fi
@@ -245,43 +244,43 @@ pip_remove() {
 #---------------------------------------------------------------------------------------
 
 gem_run() {
-  devnull2 bash -c "sudo -HE gem install --no-user-install $*" | printf_readline
+  __devnull2 bash -c "sudo gem install --no-user-install $*" | printf_readline
 }
 
 gem_remove() {
-  devnull2 bash -c "sudo -HE gem uninstall --no-user-install --force -aIx $*" | printf_readline
+  __devnull2 bash -c "sudo gem uninstall --no-user-install --force -aIx $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
 
 npm_run() {
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
-  devnull2 bash -c "sudo -HE npm install -g $*" | printf_readline
+  __devnull2 bash -c "sudo npm install -g $*" | printf_readline
 }
 
 npm_remove() {
-  devnull2 bash -c "sudo -HE npm remove -g $*" | printf_readline
+  __devnull2 bash -c "sudo npm remove -g $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
 
 cpan_run() {
-  if cmd_exists cpan; then
-    local cpandir="$(devnull2 sudo -HE find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
+  if c__md_exists cpan; then
+    local cpandir="$(devnull2 sudo find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
     local cpanconf="https://raw.githubusercontent.com/casjay-base/centos/master/usr/share/perl5/CPAN/Config.pm"
     local cpanfile="$cpandir/Config.pm"
     if [ ! -f "$cpanfile" ] || [ ! -f "$cpandir/.init" ]; then
       printf_green "Grabbing the CPAN.pm file"
-      urlcheck "$cpanconf" &&
-        sudo curl -LSs "$cpanconf" -o "$cpanfile" &&
+      __urlcheck "$cpanconf" &&
+        __curl_sudo "$cpanconf" -o "$cpanfile" &&
         sudo touch "$cpandir/.init" || exit 1
     fi
-    bash -c "sudo -HE cpan notest install $*" | printf_readline
+    bash -c "sudo cpan notest install $*" | printf_readline
   fi
 }
 
 cpan_remove() {
-  bash -c "sudo -HE cpan --uninstall $*" | printf_readline
+  bash -c "sudo cpan --uninstall $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
@@ -293,13 +292,13 @@ curl_run() {
   local distroid="$(echo $DISTROID | tr '[:upper:]' '[:lower:]')"
   if [[ $1 =~ https?://.* ]] || [[ $1 =~ ftp?://.* ]]; then
     local url="$1"
-    urlverify "$url"
-    curl -LSs "$url" -o /tmp/pkmgr-curl.txt
+    __urlverify "$url"
+    __curl "$url" -o /tmp/pkmgr-curl.txt
   else
     local url="$REPO/$1/raw/master/lists/$2.list"
     shift "$#"
-    urlverify "$url"
-    curl -LSs "$url" -o /tmp/pkmgr-curl.txt
+    __urlverify "$url"
+    __curl "$url" -o /tmp/pkmgr-curl.txt
   fi
 }
 
@@ -308,10 +307,10 @@ curl_run() {
 script_run_if_is_url() {
   [ -z $1 ] && printf_red "Usage: pkmgr script filename or url " && exit
   if [[ $1 =~ https?://.* ]] || [[ $1 =~ ftp?://.* ]]; then
-    urlverify "$1"
-    curl -LSs "$1" -o /tmp/pkmgr-script.sh
+    __urlverify "$1"
+    __curl "$1" -o /tmp/pkmgr-script.sh
   else
-    cp -Rf "$1" "/tmp/pkmgr-script.sh"
+    __cp_rf "$1" "/tmp/pkmgr-script.sh"
   fi
   if [ -f /tmp/pkmgr-script.sh ]; then
     chmod 755 /tmp/pkmgr-script.sh
@@ -371,9 +370,9 @@ __schedule() {
     ;;
   run)
     shift 1
-    sudo su -c "echo -e ###########\n$date\n###########\n >> $logfile"
-    sudo su -c "echo -e ###########\n$date\n###########\n >> $loggerfile"
-    sudo $pkgmgrbinupdcron 2>>"$loggerfile.tmp" | sudo tee -a $logfile
+    echo -e "###########\n$date\n###########\n" | sudo tee -a "$logfile" &>/dev/null
+    echo -e "###########\n$date\n###########\n" | sudo tee -a "$loggerfile" &>/dev/null
+    sudo $pkgmgrbinupdcron 2>>"$loggerfile.tmp" | sudo tee -a "$logfile" &>/dev/null
     if [ -s "$loggerfile.tmp" ] && [ -f "$loggerfile.tmp" ] && [[ ! -z $(grep '[^[:space:]]' $loggerfile.tmp) ]]; then
       if cmd_exists mail; then
         MAILMESS="$(echo -e "Errors were reported and they are as follows:\n""$(cat $loggerfile.tmp)\n")"
@@ -386,7 +385,6 @@ __schedule() {
     [ -f "$file" ] && pkmgr cron remove || pkmgr cron add
     ;;
   esac
-
 }
 
 #---------------------------------------------------------------------------------------
@@ -394,26 +392,26 @@ __schedule() {
 dotfiles_run() {
   [ -z $1 ] && printf_red "Usage: pkmgr dotfiles name" && exit
   local url="$dotfilesrepo/$1.list"
-  urlverify "$url" && curl -LSsq "$url" >/tmp/pkmgr-curl.txt
+  __urlverify "$url" && __curl "$url" >/tmp/pkmgr-curl.txt
 }
 
 #---------------------------------------------------------------------------------------
 
 __aliases() {
   echo -e "
-  alias apt='sudo -HE $APPNAME'
-  alias apt-get='sudo -HE $APPNAME'
-  alias dnf='sudo -HE $APPNAME'
-  alias yum='sudo -HE $APPNAME'
-  alias pacman='sudo -HE $APPNAME'
-  alias brew='sudo -HE -u $USER $APPNAME'
+  alias apt='sudo $APPNAME '
+  alias apt-get='sudo $APPNAME '
+  alias dnf='sudo $APPNAME '
+  alias yum='sudo $APPNAME '
+  alias pacman='sudo $APPNAME '
+  alias brew='sudo -u $USER $APPNAME '
   "
 }
 
 #---------------------------------------------------------------------------------------
 
 show_info() {
-
+  printf_info "         System info for $(hostname -s)"
   printf_green "Repo:                       $dotfilesrepo"
   printf_green "system package manager:     $pkgmgrbin"
   printf_green "Install cmd:                $pkgmgrbinins"
@@ -425,12 +423,21 @@ show_info() {
   printf_green "Search cmd:                 $pkgmgrbinsea"
   printf_green "Clean cache cmd:            $pkgmgrbincle"
   printf_green "Make cache cmd:             $pkgmgrbincac"
-  printf_green "pip3 cmd:                   $PIP"
-  printf_green "Python version              $PYTHONVER"
-  if cmd_exists lsb_release; then
-    printf_green "Distribution                $(lsb_release -a | grep -i Distributor | awk '{print $3}')"
-    printf_green "Codename                    $(lsb_release -a | grep -i Codename | awk '{print $2}')"
-    printf_green "Release version             $(lsb_release -a | grep -i Release | awk '{print $2}')"
+  printf_green "Python:                     $(command -v python3 || command -v python2 || echo Not Installed)"
+  printf_green "PIP:                        $(command -v pip3 || command -v pip || echo Not Installed)"
+  printf_green "CPAN:                       $(command -v cpan || echo Not Installed)"
+  printf_green "Gem:                        $(command -v gem || echo Not Installed)"
+  printf_green "NPM:                        $(command -v node || echo Not Installed)"
+  if __cmd_exists sw_vers; then
+    printf_green "Release version             $(sw_vers -productVersion)"
+  elif [ -f "/etc/os-release" ]; then
+    printf_green "Distribution:               $(cat /etc/os-release 2>/dev/null | grep -i '^NAME=' | sed 's#NAME=##g;s#"##g')"
+    printf_green "Codename                    $(cat /etc/os-release 2>/dev/null | grep -i '^VERSION_CODENAME=' | sed 's#VERSION_CODENAME=##g;s#"##g')"
+    printf_green "Release version             $(cat /etc/os-release 2>/dev/null | grep -i '^VERSION=' | sed 's#VERSION=##g;s#"##g' | awk '{print $1}')"
+  elif __cmd_exists lsb_release; then
+    printf_green "Distribution                $(lsb_release -a 2>dev >null | grep -i Distributor | awk '{print $3}')"
+    printf_green "Codename                    $(lsb_release -a 2>dev >null | grep -i Codename | awk '{print $2}')"
+    printf_green "Release version             $(lsb_release -a 2>dev >null | grep -i Release | awk '{print $2}')"
   fi
   printf_green "Kernel version              $(uname -r)"
 }
@@ -438,7 +445,9 @@ show_info() {
 #---------------------------------------------------------------------------------------
 
 exportpkg() {
-  local pkgdir="$HOME/.local/tmp/$DISTRO"
+  [[ "$(uname -s)" =~ Darwin* ]] && DISTRO=MacOS
+  [[ "$(uname -s)" =~ ^MING*|WIN*|MSYS* ]] && DISTRO=Windows
+  local pkgdir="$HOME/.local/tmp/${DISTRO:-}"
   local pkglist="$pkgdir/$(hostname -s)"
   mkdir -p "$pkgdir"
   printf_green "Exporting package list to $pkglist"
@@ -510,7 +519,7 @@ cron)
 
 ask)
   shift 1
-  check_app "$@"
+  __check_app "$@" && printf_green "Installed: $*" || printf_exit 1 1 "Install of $* failed"
   echo
   ;;
 
@@ -601,7 +610,7 @@ init | -in)
 makecache | -ca)
   shift 1
   [ "$1" = "--help" ] && printf_help "Create the cache for the package manager"
-  devnull $pkgmgrbincac || exit 1
+  __devnull $pkgmgrbincac || exit 1
   ;;
 
 search | -s)
@@ -627,7 +636,7 @@ silent-install)
   [ "$1" = "--help" ] && printf_help "Silently install packages"
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
-    devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
+    __devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
   done
   ;;
 
@@ -636,7 +645,7 @@ silent-remove)
   [ "$1" = "--help" ] && printf_help "Silently remove packages"
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
-    devnull $pkgmgrbinremsil "*$pkg*" && exit 0 || exit 1
+    __devnull $pkgmgrbinremsil "*$pkg*" && exit 0 || exit 1
   done
   ;;
 
@@ -644,9 +653,9 @@ silent-upgrade | silent-update)
   shift 1
   [ "$1" = "--help" ] && printf_help "Silently upgrade your system"
   if [ -f "$(command -v dotfiles)" ]; then
-    devnull systemmgr install installer
+    __devnull systemmgr install installer
   fi
-  devnull $pkgmgrbinupdsil && exit 0 || exit 1
+  __devnull $pkgmgrbinupdsil && exit 0 || exit 1
   ;;
 
 cpan | perl)
@@ -779,7 +788,7 @@ silent)
     [ "$1" = "--help" ] && printf_help "Silently install packages"
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
-      devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
+      __devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
     done
     ;;
 
@@ -788,7 +797,7 @@ silent)
     [ "$1" = "--help" ] && printf_help "Silently remove packages"
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
-      devnull $pkgmgrbinremsil "*$pkg*" && exit 0 || exit 1
+      __devnull $pkgmgrbinremsil "*$pkg*" && exit 0 || exit 1
     done
     ;;
 
@@ -796,19 +805,19 @@ silent)
     shift 1
     [ "$1" = "--help" ] && printf_help "Silently upgrade your system"
     if [ -f "$(command -v systemmgr)" ]; then
-      devnull systemmgr install installer
+      __devnull systemmgr install installer
     fi
-    devnull $pkgmgrbinupdsil && exit 0 || exit 1
+    __devnull $pkgmgrbinupdsil && exit 0 || exit 1
     ;;
 
   *)
     [ "$1" = "--help" ] && printf_help "Silently install packages | defaults to a silent update"
     if [ -z "$1" ]; then
-      devnull $pkgmgrbinupdsil && exit 0 || exit 1
+      __devnull $pkgmgrbinupdsil && exit 0 || exit 1
     else
       declare -a LISTARRAY="$*"
       for pkg in ${LISTARRAY[*]}; do
-        devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
+        __devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
       done
     fi
     ;;
@@ -823,19 +832,7 @@ info)
 
 version)
   shift 1
-  [ $# = 0 ] && $APPNAME --version
-  ANAME="$1"
-  if [ -d "$SYSUPDATEDIR" ] && [ -n "$(devnull2 ls -A $SYSUPDATEDIR/$1)" ]; then
-    file="$(devnull2 ls -A $SYSUPDATEDIR/$1)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: \n$(bash -c "$file --version")"
-    fi
-  elif [ -f "$(devnull2 command -v $1)" ]; then
-    printf_green "Information about $1: $(devnull2 bash -c "$ANAME --version")"
-  else
-    printf_exit "File was not found is it installed?"
-  fi
-  printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)"
+  run_install_version "$@"
   exit
   ;;
 
