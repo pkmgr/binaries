@@ -1770,7 +1770,7 @@ systemmgr_install() {
   APPDIR="${APPDIR:-$HOMEDIR}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
-  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  INSTDIR="$SYSSHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   export installtype="systemmgr_install"
 }
