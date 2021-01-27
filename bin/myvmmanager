@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -49,11 +49,11 @@ create_link() {
           exit 0
         fi
         printf_green "Linking $HOME/.local/bin/myvmmanager to $1"
-        ln_sf "$(command -v $1)" "$HOME/.local/bin/myvmmanager"
+        __ln_sf "$(command -v $1)" "$HOME/.local/bin/myvmmanager"
         exit 0
       else
         printf_green "Linking $HOME/.local/bin/myvmmanager to $VMMANAGER"
-        ln_sf "$VMMANAGER" "$HOME/.local/bin/myvmmanager"
+        __ln_sf "$VMMANAGER" "$HOME/.local/bin/myvmmanager"
         exit 0
       fi
     fi
@@ -90,7 +90,7 @@ else
   if [ "$VMMANAGER" = docker ] || [ "$VMMANAGER" = kubectl ]; then
     run_in_term $VMMANAGER "$@"
   else
-    devnull2 $MYVMMANAGER "$@"
+    __devnull2 $MYVMMANAGER "$@"
   fi
 fi
 

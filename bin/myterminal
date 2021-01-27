@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,11 +41,11 @@ create_link() {
       shift 1
       if cmd_exists "$1"; then
         printf_green "Linking $HOME/.local/bin/myterminal to $1"
-        ln_sf "$(command -v $1)" "$HOME/.local/bin/myterminal"
+        __ln_sf "$(command -v $1)" "$HOME/.local/bin/myterminal"
         exit 0
       else
         printf_green "Linking $HOME/.local/bin/myterminal to $TERMINAL"
-        ln_sf "$TERMINAL" "$HOME/.local/bin/myterminal"
+        __ln_sf "$TERMINAL" "$HOME/.local/bin/myterminal"
         exit 0
       fi
     fi
@@ -85,9 +85,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$HOME/.local/bin/myterminal" ]; then
-  devnull2 "HOME/.local/bin/myterminal" "$@"
+  __devnull2 "HOME/.local/bin/myterminal" "$@"
 else
-  devnull2 "$TERMINAL" "$@"
+  __devnull2 "$TERMINAL" "$@"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

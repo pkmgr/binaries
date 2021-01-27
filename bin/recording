@@ -26,7 +26,7 @@ trap '' SIGTSTP # display message and pause
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -37,7 +37,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -66,31 +66,31 @@ while :; do
 
   a)
     shift 1
-    run_prog_menus asciinema rec demo.cast $HOME/Videos/record_term-$(date +"%Y-%m-%d-%H-%M").ogv
+    __run_prog_menus asciinema rec demo.cast "$HOME/Videos/record_term-$(date +"%Y-%m-%d-%H-%M").ogv"
     ;;
   b)
     shift 1
-    run_prog_menus recordmydesktop
+    __run_prog_menus recordmydesktop
     ;;
   c)
     shift 1
-    run_prog_menus obs
+    __run_prog_menus obs
     ;;
   d)
     shift 1
-    run_prog_menus vokoscreen
+    __run_prog_menus vokoscreen
     ;;
   e)
     shift 1
-    run_prog_menus simplescreenrecorder
+    __run_prog_menus simplescreenrecorder
     ;;
   x)
     shift 1
-    run_prog_menus ss_screenkey
+    __run_prog_menus ss_screenkey
     ;;
   y)
     shift 1
-    custom
+    __custom
     ;;
   z) break ;;
   *)

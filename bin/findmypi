@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,28 +43,28 @@ __gethostname() {
 
 [ -z "$1" ] && ip="10.0.0.0" || ip="$1"
 [ -z "$2" ] && nm="16" || nm="$2"
-[ -f /tmp/raspi.search.txt ] && sudo rm -Rf /tmp/raspi.search.txt
+[ -f "${TMP:-/tmp}/raspi.search.txt" ] && rm -Rf "${TMP:-/tmp}/raspi.search.txt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# we need sudo
-__requiresudo
 __require_app nmap
+sudoreq
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 printf_green "Searching the $ip/$nm network for your Raspberry PI"
 printf_green "Depending on your network range this may take some time\n"
-sudo nmap -sP "$ip"/"$nm" 2>/dev/null | awk '/^Nmap/{ip=$NF}/Raspberry Pi/{print ip}' | sed 's#(##g' | sed 's#)##g' >/tmp/raspi.search.txt 2>/dev/null
+nmap -sP "$ip"/"$nm" 2>/dev/null | awk '/^Nmap/{ip=$NF}/Raspberry Pi/{print ip}' | sed 's#(##g' | sed 's#)##g' >"${TMP:-/tmp}/raspi.search.txt" 2>/dev/null
 
-if [ -s /tmp/raspi.search.txt ]; then
+if [ -s "${TMP:-/tmp}/raspi.search.txt" ]; then
   while IFS="" read -r device || [ -n "$device" ]; do
     printf_cyan "I have found the following device[s]: $device"
     __gethostname "$device"
-  done </tmp/raspi.search.txt
+  done <"${TMP:-/tmp}/raspi.search.txt"
   echo "" && printf_blue "Saved the list to $HOME/Documents/raspis.txt"
 else
   printf_red "I didn't find a Raspberry PI on your network"
 fi
 
-sudo rm -Rf /tmp/raspi.search.txt
+rm -Rf "${TMP:-/tmp}/raspi.search.txt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

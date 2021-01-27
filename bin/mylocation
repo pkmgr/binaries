@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -40,7 +40,7 @@ __options "$@"
 
 check_app jq
 
-OUTPUT_FILE=/tmp/server_location.txt
+OUTPUT_FILE="${TMP:-/tmp}/server_location.txt"
 PUBLIC_IP="$(curl -LSs -4 http:/ifconfig.co/ip)"
 curl -s http://api.ipstack.com/${PUBLIC_IP}?access_key=$IPSTACK_ACCESS_TOKEN |
   jq '.latitude,.longitude,.city,.region_name,.country_name,.zip' |
@@ -50,14 +50,13 @@ curl -s http://api.ipstack.com/${PUBLIC_IP}?access_key=$IPSTACK_ACCESS_TOKEN |
     read -r REGION
     read -r COUNTRY
     read -r ZIP
-    echo -e "\n\t\tLAT: ${LATITUDE}\n\t\tLON: ${LONGITUDE}\n\t\tCity: ${CITY}\n\t\tRegion: ${REGION}\n\t\tCountry: ${COUNTRY}\n\t\tZip: ${ZIP}" |
-      tr -d \" >${OUTPUT_FILE}
+    echo -e "\n\t\tLAT: ${LATITUDE}\n\t\tLON: ${LONGITUDE}\n\t\tCity: ${CITY}\n\t\tRegion: ${REGION}\n\t\tCountry: ${COUNTRY}\n\t\tZip: ${ZIP}" | tr -d \" >${OUTPUT_FILE}
   done
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 printf_green "$(cat "${OUTPUT_FILE}")\n"
-rm -Rf "${OUTPUT_FILE}"
+__rm_rf "${OUTPUT_FILE}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

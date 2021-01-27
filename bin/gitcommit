@@ -31,7 +31,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -203,7 +203,7 @@ setup)
 
 *)
   if [ -n "$1" ]; then
-    [ ! "$(echo $* | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 4 characters"
+    [ ! "$(echo "$@" | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 4 characters"
     mess="${newmess:-$1}"
   else
     shift 1

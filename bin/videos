@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -82,71 +82,71 @@ while :; do
 
   a)
     shift 1
-    open_file_menus vlc
+    __open_file_menus vlc
     ;;
   b)
     shift 1
-    open_file_menus mpv
+    __open_file_menus mpv
     ;;
   c)
     shift 1
-    open_file_menus mplayer
+    __open_file_menus mplayer
     ;;
   d)
     shift 1
-    open_file_menus smtube
+    __open_file_menus smtube
     ;;
   e)
     shift 1
-    open_file_menus smplayer
+    __open_file_menus smplayer
     ;;
   f)
     shift 1
-    open_file_menus xine-ui
+    __open_file_menus xine-ui
     ;;
   g)
     shift 1
-    open_file_menus banshee
+    __open_file_menus banshee
     ;;
   h)
     shift 1
-    open_file_menus bomi
+    __open_file_menus bomi
     ;;
   i)
     shift 1
-    open_file_menus dragonplayer
+    __open_file_menus dragonplayer
     ;;
   j)
     shift 1
-    open_file_menus snappy
+    __open_file_menus snappy
     ;;
   k)
     shift 1
-    open_file_menus celluloid
+    __open_file_menus celluloid
     ;;
   l)
     shift 1
-    open_file_menus parole
+    __open_file_menus parole
     ;;
   m)
     shift 1
-    open_file_menus xmbc
+    __open_file_menus xmbc
     ;;
   n)
     shift 1
-    open_file_menus kodi
+    __open_file_menus kodi
     ;;
   o)
     shift 1
-    open_file_menus totem
+    __open_file_menus totem
     ;;
   p)
     shift 1
-    open_file_menus miro
+    __open_file_menus miro
     ;;
   y)
     shift 1
-    custom_menus
+    __custom_menus
     continue
     ;;
   $'\e' | z) break ;;

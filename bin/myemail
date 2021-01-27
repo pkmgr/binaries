@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,11 +41,11 @@ create_link() {
       shift 1
       if cmd_exists "$1"; then
         printf_green "Linking $HOME/.local/bin/myemail to $1"
-        ln_sf "$(command -v $1)" "$HOME/.local/bin/myemail"
+        __ln_sf "$(command -v $1)" "$HOME/.local/bin/myemail"
         exit 0
       else
         printf_green "Linking $HOME/.local/bin/myemail to $EMAIL"
-        ln_sf "$EMAIL" "$HOME/.local/bin/myemail"
+        __ln_sf "$EMAIL" "$HOME/.local/bin/myemail"
         exit 0
       fi
     fi

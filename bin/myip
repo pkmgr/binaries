@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,13 +30,13 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if cmd_exists ifconfig; then
-  getlipaddr
-  myip-local4() { sudo ifconfig $NETDEV | grep -E "venet|inet" | grep -Ev "docker|127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s#addr:##g | head -n1; }
+if __cmd_exists ifconfig; then
+  __getlipaddr
+  myip-local4() { sudo ifconfig $NETDEV | grep -E "venet|inet" | grep -Ev "docker|127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1; }
   myip-local6() { sudo ifconfig $NETDEV | grep -E "venet|inet" | grep -v "docker" | grep 'inet6' | grep -i global | awk '{print $2}' | head -n1; }
   myip-public4() { timeout 1 curl -I4qs ifconfig.co/ip 2>/dev/null | head -1 | grep 404 >/dev/null && if [ $? == 0 ]; then curl --config /dev/null -4qs ifconfig.co/ip 2>/dev/null; fi; }
   myip-public6() { timeout 1 curl -I6qs ifconfig.co/ip 2>/dev/null | head -1 | grep 404 >/dev/null && if [ $? == 0 ]; then curl --config /dev/null -6qs ifconfig.co/ip 2>/dev/null; fi; }

@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -41,11 +41,11 @@ create_link() {
       shift 1
       if cmd_exists "$1"; then
         printf_green "Linking $HOME/.local/bin/mytorrent to $1"
-        ln_sf "$(command -v $1)" "$HOME/.local/bin/mytorrent"
+        __ln_sf "$(command -v $1)" "$HOME/.local/bin/mytorrent"
         exit 0
       else
         printf_green "Linking $HOME/.local/bin/mytorrent to $TORRENT"
-        ln_sf "$TORRENT" "$HOME/.local/bin/mytorrent"
+        __ln_sf "$TORRENT" "$HOME/.local/bin/mytorrent"
         exit 0
       fi
     fi
@@ -93,12 +93,12 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ "$TORRENT" = "transmission-remote-cli" ]; then
-  devnull2 myterminal -e bash -c "$TORRENT $*"
+  __devnull2 myterminal -e bash -c "$TORRENT $*"
 else
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
-    devnull2 "$HOME/.local/bin/mytorrent" "$@" &
+    __devnull2 "$HOME/.local/bin/mytorrent" "$@" &
   else
-    devnull2 $TORRENT "$@" &
+    __devnull2 $TORRENT "$@" &
   fi
 fi
 

@@ -17,7 +17,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -28,7 +28,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -51,23 +51,23 @@ Usage: $0 [options]
 Post text from stdin to pastebin.com.
 
 Options:
-	-l				Log into pastebin.com
-	-u				Your pastebin.com username
-	-p				Your pastebin.com password
-	-n name				Paste title
-	-f format			Syntax highlightig format (you can find list
-					of formats at http://pastebin.com/api#5)
-	-e expire			Paste expire time:
-					  n (or never) - never
-					  10M          - 10 minutes
-					  1H           - 1 hour
-					  1D           - 1 day
-					  1M           - 1 month
-	-r private			Private settings: public (or 0), unlisted (or 1)
-					or private (or 2, need to login)
-	-h				Show this message
-	-o				Print sample config
-	-c /path/to/pastebin.conf	Set path to config file
+  -l    Log into pastebin.com
+  -u    Your pastebin.com username
+  -p    Your pastebin.com password
+  -n name    Paste title
+  -f format   Syntax highlightig format (you can find list
+      of formats at http://pastebin.com/api#5)
+  -e expire   Paste expire time:
+        n (or never) - never
+        10M          - 10 minutes
+        1H           - 1 hour
+        1D           - 1 day
+        1M           - 1 month
+  -r private   Private settings: public (or 0), unlisted (or 1)
+      or private (or 2, need to login)
+  -h    Show this message
+  -o    Print sample config
+  -c /path/to/pastebin.conf Set path to config file
 
 EOF
 }

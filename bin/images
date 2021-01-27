@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -62,31 +62,31 @@ while :; do
 
   a)
     shift 1
-    run_prog_menus gimp
+    __run_prog_menus gimp
     ;;
   b)
     shift 1
-    run_prog_menus shotwell
+    __run_prog_menus shotwell
     ;;
   c)
     shift 1
-    open_file_menus sxiv
+    __open_file_menus sxiv
     ;;
   d)
     shift 1
-    run_prog_menus ristretto
+    __run_prog_menus ristretto
     ;;
   e)
     shift 1
-    run_prog_menus kphotoalbum
+    __run_prog_menus kphotoalbum
     ;;
   f)
     shift 1
-    run_prog_menus gomephotos
+    __run_prog_menus gomephotos
     ;;
   y)
     shift 1
-    custom_menus
+    __custom_menus
     ;;
   z) break ;;
   *)

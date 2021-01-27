@@ -13,17 +13,17 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #setup paths
-TMP="${TMP:-/tmp}"
-TEMP="${TEMP:-/tmp}"
-APPNAME="${APPNAME:-testing}"
+export TMP="${TMP:-/tmp}"
+export TEMP="${TEMP:-/tmp}"
+export APPNAME="${APPNAME:-testing}"
 
-TMPPATH+="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
-TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
-TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
+export TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
+export TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
+export TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
 
-WHOAMI="${USER}"
-PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
-SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m\n")"
+export WHOAMI="${USER}"
+export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
+export SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m\n")"
 
 #fail if git is not installed
 if ! command -v "git" >/dev/null 2>&1; then
@@ -31,6 +31,10 @@ if ! command -v "git" >/dev/null 2>&1; then
   exit 1
 fi
 
+###################### devnull handling ######################
+__devnull() { "$@" >/dev/null 2>&1; }
+__devnull1() { "$@" 1>/dev/null >&2; }
+__devnull2() { "$@" 2>/dev/null; }
 ###################### error handling ######################
 #err "commands"
 __err() {
@@ -375,13 +379,13 @@ __system_service_start() {
 #perl_exists "perlpackage"
 __perl_exists() {
   local package=$1
-  if devnull2 perl -M$package -le 'print $INC{"$package/Version.pm"}'; then return 0; else return 1; fi
+  if __devnull2 perl -M$package -le 'print $INC{"$package/Version.pm"}'; then return 0; else return 1; fi
 }
 #python_exists "pythonpackage"
 __python_exists() {
   __getpythonver
   local package=$1
-  if devnull2 "$PYTHONVER" -c "import $package"; then return 0; else return 1; fi
+  if __devnull2 "$PYTHONVER" -c "import $package"; then return 0; else return 1; fi
 }
 #gem_exists "gemname"
 __gem_exists() {
@@ -691,7 +695,7 @@ __addtocrontab() {
 }
 
 __removecrontab() {
-  crontab -l | grep -v -F "$command" | devnull2 crontab -
+  crontab -l | grep -v -F "$command" | __devnull2 crontab -
 }
 
 __cron_updater() {
@@ -780,7 +784,7 @@ __custom_menus() {
   read custom
   printf_custom_question "6" "Enter any additional options [type file to choose] : "
   read opts
-  if [ "$opts" = "file" ]; then opts="$(open_file_menus $custom)"; fi
+  if [ "$opts" = "file" ]; then opts="$(__open_file_menus $custom)"; fi
   $custom "$opts" >/dev/null 2>&1 || clear
   printf_red "$custom is an invalid program"
 }
@@ -823,7 +827,7 @@ sudorerun() {
 
 sudoreq() {
   if [[ $UID != 0 ]]; then
-    echo "" && printf_error "Please run this script with sudo"
+    printf_error "Please run this script with sudo\n"
     exit 1
   fi
 }
@@ -1231,7 +1235,7 @@ user_installdirs() {
     SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
-  APPDIR="${APPDIR:-}"
+  APPDIR=""
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1288,7 +1292,7 @@ system_installdirs() {
     SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
-  APPDIR="${APPDIR:-}"
+  APPDIR=""
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1459,7 +1463,7 @@ iconmgr_install() {
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
   __mkd "$USRUPDATEDIR"
-  __mkd "$ICONDIR" "$HOMEDIR"
+  __mkd "$ICONDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   export installtype="iconmgr_install"
 

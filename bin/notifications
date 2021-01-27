@@ -34,9 +34,19 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__check_app notify-send
-
+case "$(uname)" in
+Darwin)
+  __check_app osascript
+  __notify_send() { osascript -e "display notification \"$2\" with title \"$1\""; }
+  ;;
+Linux)
+  __check_app notify-send
+  __notify_send() { notify-send -u normal -i "notification-message-IM" "$@"; }
+  ;;
+*)
+  exit
+  ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 notifications() {
@@ -54,7 +64,7 @@ notifications() {
     fi
   fi
   shift
-  __cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
+  __notify_send "$title" "$msg" || return 0
 }
 
 send-to-all() {
@@ -68,7 +78,7 @@ send-to-all() {
     sudo -u ${NAME[0]} DISPLAY=${DISPLAY} \
       DBUS_SESSION_BUS_ADDRESS=${DBUS_ADDRESS} \
       PATH=${PATH} \
-      notify-send "$@"
+      __notify_send "$@"
   done
 }
 
