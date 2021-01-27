@@ -15,13 +15,6 @@ USER="${SUDO_USER:-${USER}}"
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-shopt -s extglob
-trap '' SIGINT
-trap '' SIGQUIT
-trap '' SIGTSTP # display message and pause
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
@@ -41,7 +34,14 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-while true; do
+shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP # display message and pause
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+while :; do
   # show menu
   clear
   printf_head "MultiMedia Menu"
@@ -50,13 +50,12 @@ while true; do
   printf_green "3. launch images"
   printf_green "4. launch recording"
   printf_green "y. launch custom application"
-  printf_green "z. Exit"
+  printf_green "z. or escape to Exit"
   printf_green "---------------------------------"
-  printf_custom_question "6" "Enter your choice [a-z] : "
-  read -n 1 -s main && echo ""
+  printf_read_question "6" "Enter your choice [a-z] : " "1" "main" "-s"
 
   # take action
-  case $main in
+  case "$main" in
   1)
     shift 1
     music
@@ -77,10 +76,13 @@ while true; do
     shift 1
     __custom_menus
     ;;
-  z) break ;;
+  $'\e' | z)
+    break
+    ;;
   *)
-    printf_custom_question "6" "Enter your choice [a-z] : "
-    read multmedia
+    printf_custom "42" "$main was invalid choice - Please try a different selection"
+    sleep 3
+    continue
     ;;
   esac
 done

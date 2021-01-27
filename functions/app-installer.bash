@@ -155,7 +155,6 @@ printf_execute_error_stream() { while read -r line; do printf_execute_error "? E
 
 ##################################################################################################
 printf_question() {
-  history -s
   printf_color "\t\t$ICON_QUESTION $1 " 6
 }
 
@@ -248,7 +247,7 @@ ask_for_input() {
 }
 
 ask_question() {
-  printf_question "$1 (y/n) "
+  printf_question "$1 (y/N) "
   read -re -n 1 "REPLY"
 }
 

@@ -16,6 +16,13 @@ shopt -u extglob direxpand globstar
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP # display message and pause
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # Set functions
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
@@ -66,9 +73,9 @@ if [ "$1" = "--term" ]; then
   echo -e "\n\n"
   __usage
   while :; do
-    printf_custom_question "2" "What is it you would like to solve?"
-    printf_answer "INPUT" "200"
-    if [ "$INPUT" = "q" ]; then
+    printf_read_question "2" "What is it you would like to solve? " "200" "INPUT"
+    if [ "$INPUT" = "q" ] || [ -z "$INPUT" ]; then
+      echo -e "\n\n"
       break
     else
       clear
@@ -76,7 +83,6 @@ if [ "$1" = "--term" ]; then
       if [ "$INPUT" = "h" ] || [ "$INPUT" = "?" ]; then
         __usage
       else
-        history -s "$INPUT"
         OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
         printf_custom "5" "Your answer is: $(calc_app "$OUTPUT")"
       fi

@@ -241,15 +241,17 @@ printf_answer() {
 printf_read_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
-  local lines="${1:-120}" && shift 1
-  local reply="${1:-__ANSWER}" && shift 1
-  local readopts=${1:-} && shift 1
+  test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local line="120"
+  reply="${1:-__ANSWER}" && shift 1
+  readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  printf_answer "$reply" "$lines" "$readopts"
+  #printf_answer "$reply" "$lines" "$readopts"
+  read -t 20 -e -r -n $lines $readopts $reply
+  [ -n "$reply" ] || return 1
   history -s $reply
 }
 
-printf_answer_yes() { [[ "${1:-__ANSWER}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
+printf_answer_yes() { [[ "${1:-REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -770,35 +772,41 @@ __backupapp() {
 #attemp_install_menus "programname"
 __attemp_install_menus() {
   local prog="$1"
-  if (dialog --timeout 10 --trim --cr-wrap --colors --title "install $1" --yesno "$prog in not installed! \nshould I try to install it?" 15 40); then
+  if (dialog --timeout 10 --trim --cr-wrap --colors --title "install $1" --yesno "$prog in not installed! \nshould I try to install it?" 15 40 || return 1); then
     sleep 2
     clear
     printf_custom "191" "\n\n\n\n\t\tattempting install of $prog\n\t\tThis could take a bit...\n\n\n"
     __devnull pkmgr silent "$1"
-    [ "$?" -ne 0 ] && dialog --timeout 10 --trim --cr-wrap --colors --title "failed" --msgbox "$1 failed to install" 10 41
-    clear
+    [ "$?" -ne 0 ] && dialog --timeout 10 --trim --cr-wrap --colors --title "failed" --msgbox "$1 failed to install" 10 41 || clear
   fi
 }
 
 __custom_menus() {
-  printf_custom_question "6" "Enter your custom program : "
-  read custom
-  printf_custom_question "6" "Enter any additional options [type file to choose] : "
-  read opts
+  # printf_custom_question "6" "Enter your custom program : "
+  # read custom
+  # printf_custom_question "6" "Enter any additional options [type file to choose] : "
+  # read opts
+  printf_read_question "6" "Enter your custom program : " "120" "custom"
+  printf_read_question "6" "Enter any additional options [type file to choose] : " "120" "opts"
   if [ "$opts" = "file" ]; then opts="$(__open_file_menus $custom)"; fi
-  $custom "$opts" >/dev/null 2>&1 || clear
+  $custom "$opts" 2>/dev/null || clear
   printf_red "$custom is an invalid program"
 }
-
+#run_command "full command"
+__run_command() {
+  "$@" 2>/dev/null
+  clear
+}
 #run_prog_menus
 __run_prog_menus() {
   local prog="$1"
   shift 1
   local args="$*"
-  if __cmd_exists $prog; then
-    __devnull2 "$prog $*" || clear printf_red "An error has occured"
+  shift
+  if __cmd_exists "$prog"; then
+    __devnull2 "$prog" "$args" || clear printf_red "An error has occured"
   else
-    attemp_install_menus "$prog" &&
+    __attemp_install_menus "$prog" &&
       __devnull2 "$prog" "$args" || return 1
   fi
 }
@@ -807,12 +815,16 @@ __open_file_menus() {
   local prog="$1"
   shift 1
   local args="$*"
+  shift
   if __cmd_exists "$prog"; then
-    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48)
-    [ -z "$file" ] && __devnull2 "$prog" "$file" || clear
-    printf_red "No file selected"
+    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)
+    if [ -f "$file" ] || [ -d "$file" ]; then
+      __devnull2 "$prog" "$file"
+    else
+      clear && printf_red "No file selected"
+    fi
   else
-    attemp_install_menus "$prog" &&
+    __attemp_install_menus "$prog" &&
       __devnull2 "$prog" "$args" || return 1
   fi
 }

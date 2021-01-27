@@ -52,13 +52,12 @@ while :; do
   printf_green "e. launch kphotoalbum"
   printf_green "f. launch gomephotos"
   printf_green "y. launch custom application"
-  printf_green "z. Exit"
+  printf_green "z. or escape to Exit"
   printf_green "---------------------------------"
-  printf_custom_question "6" "Enter your choice [a-z] : "
-  read -n 1 -s main && echo ""
+  printf_read_question "6" "Enter your choice [a-z] : " "1" "main" "-s"
 
   # take action
-  case $main in
+  case "$main" in
 
   a)
     shift 1
@@ -88,7 +87,10 @@ while :; do
     shift 1
     __custom_menus
     ;;
-  z) break ;;
+  $'\e' | z)
+    clear
+    break
+    ;;
   *)
     printf_custom "42" "$main was invalid choice - Please try a different selection"
     sleep 3
