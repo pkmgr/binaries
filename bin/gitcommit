@@ -44,8 +44,10 @@ __check_app git
 # Main application
 
 if [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  gitdir="$2"
-  shift 2
+  shift 1
+  gitdir="$1"
+  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
+  shift 1
 fi
 
 if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--message" ]; then
@@ -216,7 +218,8 @@ esac
 
 oldpwd="$(pwd)"
 gitdir="${gitdir:-$(__git_top_dir)}"
-repo="$(__git_fetch_remote)"
+repo="$(__git_fetch_remote $gitdir)"
+dirname="$(basename $gitdir)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
   printf_error "You are not in a git repo"
@@ -248,7 +251,7 @@ else
   else
     git commit -q -S -m "$mess" 2>/dev/null
   fi
-  __getexitcode "Successfully committed the changes" "Failed to commit the changes"
+  __getexitcode "Successfully committed the changes to $dirname" "Failed to commit the changes"
 
   if __am_i_online && [ -z "$push" ]; then
     if [ "$repo" != "localdir" ]; then

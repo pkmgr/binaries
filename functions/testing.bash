@@ -602,7 +602,7 @@ __urlinvalid() {
   fi
   return 1
 }
-#very simple function to ensure connection
+#very simple function to ensure connection and jq exists
 __api_test() {
   if __am_i_online && __cmd_exists jq; then
     return 0
@@ -628,19 +628,23 @@ __git_clone() {
   local repo="$1"
   [ -n "$2" ] && local dir="$2" || local dir="${APPDIR:-.}"
   [ ! -d "$dir" ] || __rm_rf "$dir"
-  git -C "$dir" clone -q --recursive "$repo"
+  git -C "$dir" clone -q --recursive "$repo" || return 1
+  if [ "$?" -ne "0" ]; then
+    printf_error "Failed to clone the repo"
+  fi
 }
 #git_pull "dir"
 __git_update() {
   [ -n "$1" ] && local dir="$1" || local dir="${APPDIR:-.}"
   local repo="$(git -C "$dir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
   local appname="${APPNAME:-$(basename $dir)}"
-  git -C "$dir" reset --hard
-  git -C "$dir" pull --recurse-submodules -fq
-  git -C "$dir" submodule update --init --recursive -q
-  git -C "$dir" reset --hard -q
+  git -C "$dir" reset --hard || return 1
+  git -C "$dir" pull --recurse-submodules -fq || return 1
+  git -C "$dir" submodule update --init --recursive -q || return 1
+  git -C "$dir" reset --hard -q || return 1
   if [ "$?" -ne "0" ]; then
-    __backupapp "$dir" "$appname" && __rm_rf "$dir" && git clone -q "$repo" "$dir"
+    printf_error "Failed to update the repo"
+    #__backupapp "$dir" "$appname" && __rm_rf "$dir" && git clone -q "$repo" "$dir"
   fi
 }
 #git_commit "dir"
@@ -692,6 +696,7 @@ __git_username_repo() {
     return 1
   fi
 }
+#usage: git_CMD gitdir
 __git_status() { git -C "${1:-.}" status -b -s 2>/dev/null && return 0 || return 1; }
 __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)' 2>/dev/null && return 0 || return 1; }
 __git_pull() { git -C "${1:-.}" pull -q 2>/dev/null && return 0 || return 1; }
@@ -699,7 +704,8 @@ __git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null && retu
 __git_fetch_remote() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null && return 0 || return 1; }
 __git_porcelain() { __git_porcelain_count "${1:-.}" && return 0 || return 1; }
 __git_remote_origin() { git -C "${1:-.}" remote show origin 2>/dev/null | grep Push | awk '{print $3}' && return 0 || return 1; }
-__git_porcelain_count() { [ -d "${1:-.}"/.git ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
+__git_porcelain_count() { [ -d "${1:-.}/.git" ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
+
 ###################### crontab functions ######################
 
 __setupcrontab() {

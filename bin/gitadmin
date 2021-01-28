@@ -37,8 +37,12 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  gitdir="$2"
-  shift 2
+  shift 1
+  gitdir="$1"
+  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
+  shift 1
+else
+  gitdir="$PWD"
 fi
 
 # defaults
@@ -49,9 +53,8 @@ REPO_URL="https://github.com/$USERNAME"
 PROJECT_BASE="$HOME/Projects"
 PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
-WTFLICENSE="${MY_LICENSE_FILE:-$SCRIPTSAPPFUNCTDIR/templates/wtfpl.md}"
-GITDIR="${gitdir:-.}"
-
+WTFLICENSE="${MY_LICENSE_FILE:-$SCRIPTSFUNCTDIR/templates/wtfpl.md}"
+REPODIR="${gitdir:-$PROJECT_DIR}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -60,17 +63,25 @@ GITDIR="${gitdir:-.}"
 # Creates a README.md file if one doesn't exist
 
 create_new_readme_template() {
-  local BaseDir="$(git -C "$GITDIR" rev-parse --show-toplevel 2>/dev/null || echo $PWD)"
-  cat $SCRIPTSFUNCTDIR/templates/readmes/project.md |
-    sed 's#ProjectName#'${BaseDir##*/}'#g' |
-    sed 's#AuthorName#'${USER}'#g' >"${GITDIR}/README.md"
+  local me="$(git config --show-scope user.name | grep global || echo $USER)"
+  local author="$(echo $me | sed 's#global ##g')"
+  local GitBaseDir="$(git -C "$REPODIR" rev-parse --show-toplevel 2>/dev/null || echo $PWD)"
+  local BaseDir="${GitBaseDir##*/}"
+  cat "$SCRIPTSFUNCTDIR/templates/readmes/project.md" >"${REPODIR}/README.md"
+  [ -f ${REPODIR}/README.md ] && sed -i "s#ProjectName#${BaseDir}#g" "${REPODIR}/README.md"
+  [ -f ${REPODIR}/README.md ] && sed -i "s#AuthorName#${author}#g" "${REPODIR}/README.md"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a WTFPL license if a LICENSE.md file doesn't exist
 
 create_new_wtfpl() {
-  __cp_rf "$WTFLICENSE" "${GITDIR}/LICENSE.md"
+  local me="$(git config --show-scope user.name | grep global || echo $USER)"
+  local author="$(echo $me | sed 's#global ##g')"
+  local year="$(date +'%Y')"
+  cat "$WTFLICENSE" >"${REPODIR}/LICENSE.md"
+  [ -f ${REPODIR}/LICENSE.md ] && sed -i "s#CURYEAR#${year}#g" "${REPODIR}/LICENSE.md"
+  [ -f ${REPODIR}/LICENSE.md ] && sed -i "s#AuthorName#${author}#g" "${REPODIR}/LICENSE.md"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,9 +141,9 @@ do_not_add_a_url() {
 # The initialize git function
 
 run_git_init() {
-  GITDIR="${1:-$GITDIR}"
+  REPODIR="${1:-$REPODIR}"
   if [ ! -z "$repo" ]; then
-    git -C ${GITDIR} remote add origin "$repo"
+    git -C ${REPODIR} remote add origin "$repo"
     printf_green "$repo has been added"
     printf_question "Should I push to the new repo? [y/n]"
     read -r -n 1 push && echo
@@ -140,9 +151,9 @@ run_git_init() {
       printf_question "This will overwrite the repo if it exists. Continue? [y/n]"
       read -r -n 1 confirm_repo && echo
       if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
-        if [ -f "${GITDIR}/gitmasterconfig" ]; then cp -Rf "${GITDIR}/gitmasterconfig" "${GITDIR}/.git/config"; fi
-        __devnull git -C ${GITDIR} push -q --set-upstream origin master -f &&
-          __devnull git -C ${GITDIR} push -q -f &&
+        if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
+        __devnull git -C ${REPODIR} push -q --set-upstream origin master -f &&
+          __devnull git -C ${REPODIR} push -q -f &&
           printf_green "Successfully pushed to $repo" ||
           printf_red "Push to $repo has failed"
       else
@@ -158,9 +169,9 @@ run_git_init() {
 # Setup a new git repo
 
 run_git_setup() {
-  GITDIR="${1:-$GITDIR}"
-  if [ -d "${GITDIR}/.git" ]; then
-    PREVREPO="$(git -C "${GITDIR}" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
+  REPODIR="${1:-$REPODIR}"
+  if [ -d "${REPODIR}/.git" ]; then
+    PREVREPO="$(git -C "${REPODIR}" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
     printf_error "This project already has git setup"
     if [ ! -z "$PREVREPO" ]; then
       printf_info "Repo is: $PREVREPO"
@@ -168,7 +179,7 @@ run_git_setup() {
     printf_question "Should I continue to reset this repo? [y/n]"
     read -r -n 1 continue && echo ""
     if [[ $continue == "y" || $continue == "Y" ]]; then
-      rm -Rf "${GITDIR}/.git"
+      rm -Rf "${REPODIR}/.git"
     else
       printf_red "Initialization has failed due to user"
       exit 1
@@ -176,11 +187,11 @@ run_git_setup() {
   fi
 
   date +"%m%d%Y%H%M-git" >version.txt
-  ls ${GITDIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
-  ls ${GITDIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  __devnull git -C "${GITDIR}" init . &&
-    __devnull git -C "${GITDIR}" add . &&
-    git -C "${GITDIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
+  ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
+  ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
+  __devnull git -C "${REPODIR}" init . &&
+    __devnull git -C "${REPODIR}" add . &&
+    git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
     printf_green "Success: Repo has been initialized"
 
   if [ ! -z "$PREVREPO" ]; then
@@ -193,14 +204,14 @@ run_git_setup() {
   if [[ $reuse == "y" || $reuse == "Y" ]]; then
     remote="y"
     repo="$PREVREPO"
-    run_git_init "$GITDIR"
+    run_git_init "$REPODIR"
   else
     printf_question "Should I add a remote repo? [y/n]"
     read -r -n 1 remote && echo
     if [[ $remote == "y" || $remote == "Y" ]]; then
       printf_custom_question "3" "Enter remote repo: "
       read -r repo
-      run_git_init "$GITDIR"
+      run_git_init "$REPODIR"
     else
       printf_info "You have decided not to add a remote repository"
     fi
@@ -217,9 +228,9 @@ run_git_setup() {
 # Run git setup with no interactions
 
 run_git_setup_automated() {
-  GITDIR="${1:-$GITDIR}"
-  PREVREPO="$(git -C "${GITDIR}" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
-  if [ ! -d "${GITDIR}/.git" ]; then
+  REPODIR="${1:-$REPODIR}"
+  PREVREPO="$(git -C "${REPODIR}" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
+  if [ ! -d "${REPODIR}/.git" ]; then
     printf_red "This does not seem to be a git repo"
     exit 1
   fi
@@ -230,15 +241,15 @@ run_git_setup_automated() {
   printf_red "Setting up the repo as requested" && sleep 5
   rm -Rf .git
   date +"%m%d%Y%H%M-git" >version.txt
-  ls ${GITDIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
-  ls ${GITDIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
-  __devnull git -C "${GITDIR}" init &&
-    git -C "${GITDIR}" remote add origin $PREVREPO &&
-    if [ -f "${GITDIR}/gitmasterconfig" ]; then cp -Rf "${GITDIR}/gitmasterconfig" "${GITDIR}/.git/config"; fi &&
-    __devnull git -C "${GITDIR}" add . &&
-    git -C "${GITDIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    __devnull git -C "${GITDIR}" push -q --set-upstream origin master -f &&
-    __devnull git -C "${GITDIR}" push -q -f &&
+  ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
+  ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
+  __devnull git -C "${REPODIR}" init &&
+    git -C "${REPODIR}" remote add origin $PREVREPO &&
+    if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi &&
+    __devnull git -C "${REPODIR}" add . &&
+    git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
+    __devnull git -C "${REPODIR}" push -q --set-upstream origin master -f &&
+    __devnull git -C "${REPODIR}" push -q -f &&
     printf_green "Successfully pushed to: $PREVREPO" ||
     printf_red "Push to $PREVREPO has failed"
   echo ""
@@ -251,7 +262,7 @@ run_git_setup_automated() {
 make_newsite() {
   git -C "$HOME/Public/sites/$1" clone https://github.com/casjay-templates/domain-template &&
     rm -Rf "$HOME/Public/sites/new/.git" && cd "$HOME/Public/sites/$1" && "$EDITOR" _config.yml || return 1
-  git setup "${GITDIR}"
+  git setup "${REPODIR}"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -268,27 +279,27 @@ git_all_orgs() {
 # Initializes a repo with default options
 
 repos_init() {
-  GITDIR="${1:-$GITDIR}"
+  REPODIR="${1:-$REPODIR}"
   date +"%m%d%Y%H%M-git" >version.txt
-  git -C "${GITDIR}" add .
-  if [ -f "${GITDIR}/gitmasterconfig" ]; then cp -Rf "${GITDIR}/gitmasterconfig" "${GITDIR}/.git/config"; fi
-  git -C "${GITDIR}" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
+  git -C "${REPODIR}" add .
+  if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
+  git -C "${REPODIR}" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initializes a repo for github
 
 git_init() {
-  GITDIR="${1:-$GITDIR}"
+  REPODIR="${1:-$REPODIR}"
   [ "$1" = "" ] && printf_red "Usage: userName repoName\n" && return 1
   [ "$2" = "" ] && printf_red "Usage: userName repoName\n" && return 1
-  git_setup "$GITDIR"
+  git_setup "$REPODIR"
   date +"%m%d%Y%H%M-git" >version.txt
-  git -C "$GITDIR" add .
-  if [ -f "$GITDIR/gitmasterconfig" ]; then cp -Rf "$GITDIR/gitmasterconfig" "$GITDIR/.git/config"; fi
-  git -C "$GITDIR" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
-  git -C "$GITDIR" remote add origin "https://github.com/$1/$2"
-  git -C "$GITDIR" push -u origin master
+  git -C "$REPODIR" add .
+  if [ -f "$REPODIR/gitmasterconfig" ]; then cp -Rf "$REPODIR/gitmasterconfig" "$REPODIR/.git/config"; fi
+  git -C "$REPODIR" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
+  git -C "$REPODIR" remote add origin "https://github.com/$1/$2"
+  git -C "$REPODIR" push -u origin master
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -385,7 +396,7 @@ main() {
       ERROR="Git pull $USERNAME/$i failed"
       SUCCES="Git pull $USERNAME/$i completed"
       printf_purple "Now running git pull $USERNAME/$i"
-      if [ -f "$GITDIR/gitmasterconfig" ]; then cp -Rf "$GITDIR/gitmasterconfig" "$GITDIR/.git/config"; fi
+      if [ -f "$REPODIR/gitmasterconfig" ]; then cp -Rf "$REPODIR/gitmasterconfig" "$REPODIR/.git/config"; fi
       __devnull git -C "$PROJECT_DIR/$USERNAME/$i" pull --recurse-submodules -f -q
       getexitcode "$SUCCES" "$ERROR"
     else
@@ -404,17 +415,17 @@ main() {
 
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
-  if [ -d "$GITDIR/.git" ]; then
+  if [ -d "$REPODIR/.git" ]; then
     printf_custom "4" "Pushing the repo in $PWD"
-    __devnull git -C "$GITDIR" push -q
+    __devnull git -C "$REPODIR" push -q
     getexitcode "Push has completed"
   else
     if [ -n "$1" ]; then
       projdir="$1"
-      gitdirname="$(get_githost "$1")"
+      REPODIRname="$(get_githost "$1")"
       git_username_repo "$1"
     else
-      projdir="$PROJECT_BASE/$gitdirname/$username/$userrepo"
+      projdir="$PROJECT_BASE/$REPODIRname/$username/$userrepo"
     fi
     if [ -d "$projdir/.git" ]; then
       printf_custom "4" "Pushing the repo in $projdir"
@@ -431,17 +442,17 @@ git_push_single() {
 
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
-  if [ -d "$GITDIR/.git" ]; then
+  if [ -d "$REPODIR/.git" ]; then
     printf_custom "4" "Pulling the repo in $PWD"
-    __devnull git -C "$GITDIR" pull -q
+    __devnull git -C "$REPODIR" pull -q
     getexitcode "Pulling has completed"
   else
     if [ -n "$1" ]; then
       projdir="$1"
-      gitdirname="$(git_hostname "$1")"
+      REPODIRname="$(git_hostname "$1")"
       git_username_repo "$1"
     else
-      projdir="$PROJECT_BASE/$gitdirname/$username/$userrepo"
+      projdir="$PROJECT_BASE/$REPODIRname/$username/$userrepo"
     fi
     if [ -d "$projdir/.git" ]; then
       printf_custom "4" "Pulling the repo in $projdir"
@@ -458,9 +469,9 @@ git_pull_single() {
 
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
-  gitdirname="$(get_githost "$1")"
+  REPODIRname="$(get_githost "$1")"
   get_username_repo "$1"
-  projdir="${2:-$PROJECT_BASE/$gitdirname/$username/$userrepo}"
+  projdir="${2:-$PROJECT_BASE/$REPODIRname/$username/$userrepo}"
   if [ -d "$projdir/.git" ]; then
     printf_custom "4" "Updating the repo in $projdir"
     __devnull git -C "$projdir" pull -q
@@ -523,12 +534,17 @@ updater | cron)
 
 s | status)
   shift 1
-  git -C "$GITDIR" status -b -s
+  git -C "$REPODIR" status -b -s
   ;;
 
 l | log)
   shift 1
-  git -C "$GITDIR" log --pretty="%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+  git -C "$REPODIR" log --pretty="%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+  ;;
+
+commit)
+  shift 1
+  gitcommit -d $REPODIR "$@"
   ;;
 
 remote)
@@ -536,17 +552,17 @@ remote)
   show)
     shift 2
     [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote show | Show remote"
-    git -C "$GITDIR" remote show origin
+    git -C "$REPODIR" remote show origin
     ;;
   add)
     shift 2
     [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote add MyURL | Add remote"
-    git -C "$GITDIR" remote add origin "$1"
+    git -C "$REPODIR" remote add origin "$1"
     ;;
   *)
     shift 1
     [ "$1" = "--help" ] && printf_help "Usage: $APPNAME remote | Show remote"
-    git -C "$GITDIR" remote show origin
+    git -C "$REPODIR" remote show origin
     ;;
   esac
   ;;
@@ -728,7 +744,7 @@ github) # github repo
     homerepo="$(echo "$HOME/Projects/github/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     mkdir -p "$HOME/Projects/github/$1"
     __cd_into "$homerepo"
-    repos_init $GITDIR
+    repos_init $REPODIR
     exit "$?"
     ;;
 
@@ -770,7 +786,7 @@ gitlab)
     homerepo="$(echo "$HOME/Projects/gitlab/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     mkdir -p "$HOME/Projects/gitlab/$1"
     __cd_into "$homerepo"
-    repos_init $GITDIR
+    repos_init $REPODIR
     exit "$?"
     ;;
 
@@ -814,7 +830,7 @@ private)
     homerepo="$(echo "$HOME/Projects/private/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     mkdir -p "$HOME/Projects/private/$1"
     __cd_into "$homerepo"
-    repos_init $GITDIR
+    repos_init $REPODIR
     exit "$?"
     ;;
 
