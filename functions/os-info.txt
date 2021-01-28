@@ -1,0 +1,55 @@
+__if_os_id() {
+  if [ -f "/etc/os-release" ]; then
+    distroname=$(cat /etc/os-release | grep '^ID=' | sed 's#ID=##g' | sed 's#"##g' | tr '[:upper:]' '[:lower:]')
+    distroversion=$(cat /etc/os-release | grep '^VERSION="' | sed 's#VERSION="##g;s#"##g')
+  elif [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
+    distroname="$(lsb_release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+    distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
+  elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
+    distroname="$(lsb-release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
+    distroversion="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
+  elif [ -f "/etc/redhat-release" ]; then
+    distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+    distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+  elif [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
+    distroname="MacOS"
+    distroversion="$(sw_vers -productVersion)"
+  fi
+  for id_like in "${@:-$distroname}"; do
+    if [[ "$(echo "$id_like" | tr '[:upper:]' '[:lower:]')" =~ $distroname ]]; then
+      case "$id_like" in
+      archlinux | arcolinux | *arch* | *arco*)
+        distro_id=Arch
+        distro_version="$(cat /etc/os-release | grep '^BUILD_ID' | sed 's#BUILD_ID=##g')"
+        code_name="N/A"
+        ;;
+      rhel* | centos* | fedora* | scientific | redhat | casjay)
+        distro_id=RHEL
+        distro_version="$distroversion"
+        code_name="N/A"
+        ;;
+      debian* | ubuntu* | kali* | parrot* | raspbian* | linuxmint* | elementary* | kde*)
+        distro_id="$distroname"
+        distro_version="$distroversion"
+        code_name=$(lsb_release -a 2>/dev/null | grep Code | sed 's#Codename:##g' | awk '{print $1}')
+        ;;
+      darwin | mac | macos)
+        distro_id="Mac"
+        distro_version="$distroversion"
+        code_name="N/A"
+        ;;
+      *)
+        code_name="$code_name"
+        distro_id="$distroname"
+        distro_version="$distroversion"
+        #   [ -z "$distro_id" ] || distro_id="Unknown"
+        #   [ -z "$distro_version" ] || distro_version="Unknown"
+        ;;
+      esac
+    fi
+  done
+  #[ -n "$distro_id" ] || distro_id="Unknown"
+  #[ -n "$distro_version" ] || distro_version="Unknown"
+  #echo "$id_like" $distro_id $distro_version
+  #export id_like distro_id distro_version
+}
