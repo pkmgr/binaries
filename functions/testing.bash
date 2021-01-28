@@ -11,6 +11,8 @@
 # @TODO        : Better error handling/refactor code
 # @
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# OS Settings
+[ -f "$(command -v detectostype)" ] && . "$(command -v detectostype)"
 
 #setup paths
 export TMP="${TMP:-/tmp}"
@@ -1143,63 +1145,66 @@ __if_os_id() {
     local distroname=$(cat /etc/redhat-release | awk '{print $1}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
     local distroversion=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
   elif [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
-    distroname="MacOS"
-    distroversion="$(sw_vers -productVersion)"
+    local distroname="darwin"
+    local distroversion="$(sw_vers -productVersion)"
   else
     return 1
   fi
-  for id_like in "$@"; do
-    if [[ "$(echo $1 | tr '[:upper:]' '[:lower:]')" =~ $id_like ]]; then
-      case "$1" in
-      arch* | arco*)
-        if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
-          distro_id=Arch
-          distro_version="$(cat /etc/os-release | grep '^BUILD_ID' | sed 's#BUILD_ID=##g')"
-          return 0
-        else
-          return 1
-        fi
-        ;;
-      rhel* | centos* | fedora*)
-        if [[ "$distroname" =~ ^scientific ]] || [[ "$distroname" =~ ^redhat ]] || [[ "$distroname" =~ ^centos ]] || [[ "$distroname" =~ ^casjay ]] || [[ "$distroname" =~ ^fedora ]]; then
-          distro_id=RHEL
-          distro_version="$distroversion"
-          return 0
-        else
-          return 1
-        fi
-        ;;
-      debian* | ubuntu*)
-        if [[ "$distroname" =~ ^kali ]] || [[ "$distroname" =~ ^parrot ]] || [[ "$distroname" =~ ^debian ]] || [[ "$distroname" =~ ^raspbian ]] ||
-          [[ "$distroname" =~ ^ubuntu ]] || [[ "$distroname" =~ ^linuxmint ]] || [[ "$distroname" =~ ^elementary ]] || [[ "$distroname" =~ ^kde ]]; then
-          distro_id=Debian
-          distro_version="$distroversion"
-          return 0
-        else
-          return 1
-        fi
-        ;;
-      darwin | mac | macos)
-        if [[ "$distroname" =~ ^mac ]] || [[ "$distroname" =~ ^darwin ]]; then
-          distro_id="Mac"
-          distro_version="$distroversion"
-          return 0
-        else
-          return 1
-        fi
-        ;;
-      *)
-        return
-        ;;
-      esac
-    else
+  local in="$*"
+  local def="${DISTRO}"
+  local args="$(echo "${*:-$def}" | tr '[:upper:]' '[:lower:]')"
+  for id_like in $args; do
+    case "$id_like" in
+    arch* | arco*)
+      if [[ $distroname =~ ^arco ]] || [[ "$distroname" =~ ^arch ]]; then
+        distro_id=Arch
+        distro_version="$(cat /etc/os-release | grep '^BUILD_ID' | sed 's#BUILD_ID=##g')"
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    rhel* | centos* | fedora*)
+      if [[ "$distroname" =~ ^scientific ]] || [[ "$distroname" =~ ^redhat ]] || [[ "$distroname" =~ ^centos ]] || [[ "$distroname" =~ ^casjay ]] || [[ "$distroname" =~ ^fedora ]]; then
+        distro_id=RHEL
+        distro_version="$distroversion"
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    debian* | ubuntu*)
+      if [[ "$distroname" =~ ^kali ]] || [[ "$distroname" =~ ^parrot ]] || [[ "$distroname" =~ ^debian ]] || [[ "$distroname" =~ ^raspbian ]] ||
+        [[ "$distroname" =~ ^ubuntu ]] || [[ "$distroname" =~ ^linuxmint ]] || [[ "$distroname" =~ ^elementary ]] || [[ "$distroname" =~ ^kde ]]; then
+        distro_id=Debian
+        distro_version="$distroversion"
+        distro_codename="$codename"
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    darwin* | mac*)
+      if [[ "$distroname" =~ ^mac ]] || [[ "$distroname" =~ ^darwin ]]; then
+        distro_id=MacOS
+        distro_version="$distroversion"
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    *)
       return 1
-    fi
+      ;;
+    esac
+    # else
+    #   return 1
+    # fi
   done
-  [ -z $distro_id ] || distro_id="Unknown"
-  [ -z $distro_version ] || distro_version="Unknown"
-  [ -n "$codename" ] && distro_codename="$codename" || distro_codename="N/A"
-  #echo $id_like $distroname $distroversion $distro_codename
+  # [ -z $distro_id ] || distro_id="Unknown"
+  # [ -z $distro_version ] || distro_version="Unknown"
+  # [ -n "$codename" ] && distro_codename="$codename" || distro_codename="N/A"
+  # echo $id_like $distroname $distroversion $distro_codename
 }
 
 ###################### setup folders - user ######################

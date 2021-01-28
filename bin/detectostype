@@ -127,9 +127,9 @@ fi
 
 if [[ "$OS" =~ Mac|Darwin ]]; then
   if [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
-    DISTRO="$(sw_vers -productName)"
+    DISTRO="MacOS"
     DISTRO_VERSION="$(sw_vers -productVersion)"
-    CODENAME="$(N/A)"
+    CODENAME="$(echo N/A)"
   else
     DISTRO_VERSION=""
   fi

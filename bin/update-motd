@@ -157,9 +157,12 @@ display() {
     shift 1
     cat /etc/issue /etc/motd
   fi
-  if [ "$1" = "--debug" ]; then
+  if [ "$1" = "--app-debug" ]; then
     shift 1
     cat /etc/issue /etc/motd
+    __if_os_id
+    printf_green "distro name    : $distro_id"
+    printf_green "distro version : $distro_version"
     printf_green "scripts version: $scriptsversion"
     printf_green "configs version: $configsversion"
     printf_green "scripts date   : $scriptsdate"
