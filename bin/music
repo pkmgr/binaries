@@ -76,8 +76,8 @@ while :; do
 
   # take action
   case "$main" in
-
   a)
+    clear
     shift 1
     printf_custom "4" "connected to $MPDSERVER"
     printf_green "a. toggle"
@@ -95,6 +95,7 @@ while :; do
     s) mpc -h "${MPDSERVER}" stop ;;
     *) false ;;
     esac
+    clear
     ;;
   b)
     shift 1
@@ -172,7 +173,11 @@ while :; do
     shift 1
     __custom_menus
     ;;
-  $'\e' | z)
+  z)
+    clear
+    break
+    ;;
+  $'\e')
     clear
     break
     ;;
@@ -181,7 +186,6 @@ while :; do
     sleep 3
     continue
     ;;
-
   esac
 done
 
