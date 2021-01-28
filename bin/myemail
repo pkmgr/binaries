@@ -55,29 +55,29 @@ create_link() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -z "$EMAIL" ]; then
-  if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
-    export EMAIL="thunderbird"
-  elif [ -f "$(command -v evolution 2>/dev/null)" ]; then
-    export EMAIL="evolution"
-  elif [ -f "$(command -v clawsmail 2>/dev/null)" ]; then
-    export EMAIL="clawsmail"
-  elif [ -f "$(command -v geary 2>/dev/null)" ]; then
-    export EMAIL="geary"
-  elif [ -f "$(command -v neomutt 2>/dev/null)" ]; then
-    export EMAIL="myterminal -e neomutt"
-  elif [ -f "$(command -v mutt 2>/dev/null)" ]; then
-    export EMAIL="myterminal -e mutt"
-  elif [ -f "$(command -v kmail 2>/dev/null)" ]; then
-    export EMAIL="kmail"
-  elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
-    export EMAIL="emacs"
-  elif [ -f "$(command -v gmail 2>/dev/null)" ]; then
-    EMAIL="mybrowser https://gmail.com"
-  elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
-    export EMAIL="sylpheed"
-  fi
+#if [ -z "$EMAIL" ]; then
+if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
+  export EMAIL="thunderbird"
+elif [ -f "$(command -v evolution 2>/dev/null)" ]; then
+  export EMAIL="evolution"
+elif [ -f "$(command -v clawsmail 2>/dev/null)" ]; then
+  export EMAIL="clawsmail"
+elif [ -f "$(command -v geary 2>/dev/null)" ]; then
+  export EMAIL="geary"
+elif [ -f "$(command -v neomutt 2>/dev/null)" ]; then
+  export EMAIL="myterminal -e neomutt"
+elif [ -f "$(command -v mutt 2>/dev/null)" ]; then
+  export EMAIL="myterminal -e mutt"
+elif [ -f "$(command -v kmail 2>/dev/null)" ]; then
+  export EMAIL="kmail"
+elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
+  export EMAIL="emacs"
+elif [ -f "$(command -v gmail 2>/dev/null)" ]; then
+  EMAIL="mybrowser https://gmail.com"
+elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
+  export EMAIL="sylpheed"
 fi
+#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

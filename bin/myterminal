@@ -55,27 +55,27 @@ create_link() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -z "$TERMINAL" ]; then
-  if [ -f "$(command -v termite 2>/dev/null)" ]; then
-    export TERMINAL="termite"
-  elif [ -f "$(command -v terminology 2>/dev/null)" ]; then
-    export TERMINAL="terminology"
-  elif [ -f "$(command -v xfce4-terminal 2>/dev/null)" ]; then
-    export TERMINAL="xfce4-terminal"
-  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
-    export TERMINAL="qterminal-terminal"
-  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
-    export TERMINAL="qterminal-terminal"
-  elif [ -f "$(command -v xterm 2>/dev/null)" ]; then
-    export TERMINAL="xterm"
-  elif [ -f "$(command -v uxterm 2>/dev/null)" ]; then
-    export TERMINAL="uxterm"
-  elif [ -f "/Applications/iTerm.app/Contents/MacOS/iTerm" ]; then
-    export TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"
-  elif [ -f "/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" ]; then
-    export TERMINAL="/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
-  fi
+#if [ -z "$TERMINAL" ]; then
+if [ -f "$(command -v termite 2>/dev/null)" ]; then
+  export TERMINAL="termite"
+elif [ -f "$(command -v terminology 2>/dev/null)" ]; then
+  export TERMINAL="terminology"
+elif [ -f "$(command -v xfce4-terminal 2>/dev/null)" ]; then
+  export TERMINAL="xfce4-terminal"
+elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+  export TERMINAL="qterminal-terminal"
+elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+  export TERMINAL="qterminal-terminal"
+elif [ -f "$(command -v xterm 2>/dev/null)" ]; then
+  export TERMINAL="xterm"
+elif [ -f "$(command -v uxterm 2>/dev/null)" ]; then
+  export TERMINAL="uxterm"
+elif [ -f "/Applications/iTerm.app/Contents/MacOS/iTerm" ]; then
+  export TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"
+elif [ -f "/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" ]; then
+  export TERMINAL="/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
 fi
+#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

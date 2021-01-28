@@ -63,19 +63,19 @@ create_link() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -z "$VMMANAGER" ]; then
-  if [ -f "$(command -v VirtualBox 2>/dev/null)" ]; then
-    export VMMANAGER="VirtualBox"
-  elif [ -f "$(command -v VMWare 2>/dev/null)" ]; then
-    export VMMANAGER="VMWare"
-  elif [ -f "$(command -v virt-manager 2>/dev/null)" ]; then
-    export VMMANAGER="virt-manager"
-  elif [ -f "$(command -v kubectl 2>/dev/null)" ]; then
-    export VMMANAGER="kubectl"
-  elif [ -f "$(command -v docker 2>/dev/null)" ]; then
-    export VMMANAGER="docker"
-  fi
+#if [ -z "$VMMANAGER" ]; then
+if [ -f "$(command -v VirtualBox 2>/dev/null)" ]; then
+  export VMMANAGER="VirtualBox"
+elif [ -f "$(command -v VMWare 2>/dev/null)" ]; then
+  export VMMANAGER="VMWare"
+elif [ -f "$(command -v virt-manager 2>/dev/null)" ]; then
+  export VMMANAGER="virt-manager"
+elif [ -f "$(command -v kubectl 2>/dev/null)" ]; then
+  export VMMANAGER="kubectl"
+elif [ -f "$(command -v docker 2>/dev/null)" ]; then
+  export VMMANAGER="docker"
 fi
+#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

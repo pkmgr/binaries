@@ -55,31 +55,31 @@ create_link() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ -z "$EDITOR" ]; then
-  if [ -f "$(command -v code 2>/dev/null)" ]; then
-    export EDITOR="code -w"
-  elif [ -f "$(command -v vscode 2>/dev/null)" ]; then
-    export EDITOR="vscode"
-  elif [ -f "$(command -v vim 2>/dev/null)" ]; then
-    export EDITOR="vim"
-  elif [ -f "$(command -v nvim 2>/dev/null)" ]; then
-    export EDITOR="nvim"
-  elif [ -f "$(command -v geany 2>/dev/null)" ]; then
-    export EDITOR="geany"
-  elif [ -f "$(command -v gedit 2>/dev/null)" ]; then
-    export EDITOR="gedit"
-  elif [ -f "$(command -v atom 2>/dev/null)" ]; then
-    export EDITOR="atom"
-  elif [ -f "$(command -v brackets 2>/dev/null)" ]; then
-    export EDITOR="brackets"
-  elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
-    export EDITOR="emacs"
-  elif [ -f "$(command -v mousepad 2>/dev/null)" ]; then
-    export EDITOR="mousepad"
-  elif [ -f "$(command -v nano 2>/dev/null)" ]; then
-    export EDITOR="nano"
-  fi
+#if [ -z "$EDITOR" ]; then
+if [ -f "$(command -v code 2>/dev/null)" ]; then
+  export EDITOR="code -w"
+elif [ -f "$(command -v vscode 2>/dev/null)" ]; then
+  export EDITOR="vscode"
+elif [ -f "$(command -v vim 2>/dev/null)" ]; then
+  export EDITOR="vim"
+elif [ -f "$(command -v nvim 2>/dev/null)" ]; then
+  export EDITOR="nvim"
+elif [ -f "$(command -v geany 2>/dev/null)" ]; then
+  export EDITOR="geany"
+elif [ -f "$(command -v gedit 2>/dev/null)" ]; then
+  export EDITOR="gedit"
+elif [ -f "$(command -v atom 2>/dev/null)" ]; then
+  export EDITOR="atom"
+elif [ -f "$(command -v brackets 2>/dev/null)" ]; then
+  export EDITOR="brackets"
+elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
+  export EDITOR="emacs"
+elif [ -f "$(command -v mousepad 2>/dev/null)" ]; then
+  export EDITOR="mousepad"
+elif [ -f "$(command -v nano 2>/dev/null)" ]; then
+  export EDITOR="nano"
 fi
+#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
