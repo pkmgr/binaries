@@ -41,7 +41,7 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
 
-__check_app chsh
+__requires chsh
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # functions

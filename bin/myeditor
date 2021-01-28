@@ -89,9 +89,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$HOME/.local/bin/myeditor" ]; then
-  "$HOME/.local/bin/myeditor" "$@"
+  __devnull2 eval "$HOME/.local/bin/myeditor" "$@"
 else
-  $EDITOR "$@"
+  __devnull2 eval $EDITOR "$@"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

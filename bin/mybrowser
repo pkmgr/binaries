@@ -39,7 +39,7 @@ create_link() {
   *)
     if [ ! -z "$2" ]; then
       shift 1
-      if cmd_exists "$1"; then
+      if __cmd_exists "$1"; then
         printf_green "Linking $HOME/.local/bin/mybrowser to $1"
         __ln_sf "$(command -v $1)" "$HOME/.local/bin/mybrowser"
         exit 0
@@ -97,9 +97,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$HOME/.local/bin/mybrowser" ]; then
-  $HOME/.local/bin/mybrowser "$@" >/dev/null 2>&1 &
+  __devnull2 $HOME/.local/bin/mybrowser "$@"
 else
-  $BROWSER "$@" >/dev/null 2>&1 &
+  __devnull2 eval $BROWSER "$@"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
