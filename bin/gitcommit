@@ -219,7 +219,8 @@ gitdir="${gitdir:-$(__git_top_dir)}"
 repo="$(__git_fetch_remote)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
-  printf_exit "You are not in a git repo"
+  printf_error "You are not in a git repo"
+  printf_read_question "2"
 fi
 
 [ ! -z "$repo" ] || repo="localdir"
