@@ -87,9 +87,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$HOME/.local/bin/myemail" ]; then
-  __devnull2 eval "$HOME/.local/bin/myemail" "$@"
+  __devnull2 ~/.local/bin/myemail "$@"
 else
-  __devnull2 eval $EMAIL "$@"
+  __devnull2 $EMAIL "$@"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

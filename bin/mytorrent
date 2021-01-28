@@ -96,9 +96,9 @@ if [ "$TORRENT" = "transmission-remote-cli" ]; then
   __devnull2 eval myterminal -e bash -c "$TORRENT $*"
 else
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
-    __devnull2 eval "$HOME/.local/bin/mytorrent" "$@" &
+    __devnull2 ~/.local/bin/mytorrent "$@" &
   else
-    __devnull2 eval $TORRENT "$@" &
+    __devnull2 $TORRENT "$@" &
   fi
 fi
 

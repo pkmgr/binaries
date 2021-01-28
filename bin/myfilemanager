@@ -106,8 +106,8 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ "$1" = "" ]; then
-  __devnull2 $FILEMANAGER "$HOME"
+if [ -f "$HOME/.local/bin/myfilemanager" ]; then
+  __devnull2 ~/.local/bin/myfilemanager "$@"
 else
   __devnull2 $FILEMANAGER "$@"
 fi

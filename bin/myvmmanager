@@ -85,12 +85,12 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$HOME/.local/bin/myvmmanager" ]; then
-  "$HOME/.local/bin/myvmmanager" "$@" >/dev/null 2>&1 &
+  __devnull2 ~/.local/bin/myvmmanager "$@" >/dev/null 2>&1 &
 else
   if [ "$VMMANAGER" = docker ] || [ "$VMMANAGER" = kubectl ]; then
-    run_in_term $VMMANAGER "$@"
+    __devnull2 run_in_term $VMMANAGER "$@"
   else
-    __devnull2 eval $MYVMMANAGER "$@"
+    __devnull2 $MYVMMANAGER "$@"
   fi
 fi
 

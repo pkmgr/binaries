@@ -85,9 +85,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$HOME/.local/bin/myterminal" ]; then
-  __devnull2 eval "HOME/.local/bin/myterminal" "$@"
+  __devnull2 ~/.local/bin/myterminal "$@"
 else
-  __devnull2 eval "$TERMINAL" "$@"
+  __devnull2 $TERMINAL "$@"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
