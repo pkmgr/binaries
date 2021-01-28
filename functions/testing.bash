@@ -1132,6 +1132,7 @@ __if_os_id() {
     #local distroname=$(grep "ID_LIKE=" /etc/os-release | sed 's#ID_LIKE=##' | tr '[:upper:]' '[:lower:]' | sed 's#"##g' | awk '{print $1}')
     local distroname=$(cat /etc/os-release | grep '^ID=' | sed 's#ID=##g' | sed 's#"##g' | tr '[:upper:]' '[:lower:]')
     local distroversion=$(cat /etc/os-release | grep '^VERSION="' | sed 's#VERSION="##g;s#"##g')
+    local codename="$(grep VERSION_CODENAME /etc/os-release && cat /etc/os-release | grep ^VERSION_CODENAME | sed 's#VERSION_CODENAME="##g;s#"##g' || true)"
   elif [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
     local distroname="$(lsb_release -a 2>/dev/null | grep 'Distributor ID' | awk '{print $3}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')"
     local distroversion="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
@@ -1197,7 +1198,8 @@ __if_os_id() {
   done
   [ -z $distro_id ] || distro_id="Unknown"
   [ -z $distro_version ] || distro_version="Unknown"
-  #echo $id_like $distroname $distroversion
+  [ -n "$codename" ] && distro_codename="$codename" || distro_codename="N/A"
+  #echo $id_like $distroname $distroversion $distro_codename
 }
 
 ###################### setup folders - user ######################

@@ -125,11 +125,11 @@ elif [[ "$distroname" =~ "Fedora" ]]; then
   DISTRO=Fedora
 fi
 
-if [[ "$OS" =~ "Mac" ]]; then
+if [[ "$OS" =~ Mac|Darwin ]]; then
   if [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
-    DISTRO=MacOS
+    DISTRO="$(sw_vers -productName)"
     DISTRO_VERSION="$(sw_vers -productVersion)"
-    CODENAME="$(sw_vers -productVersion)"
+    CODENAME="$(N/A)"
   else
     DISTRO_VERSION=""
   fi
