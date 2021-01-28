@@ -34,9 +34,9 @@ if ! command -v "git" >/dev/null 2>&1; then
 fi
 
 ###################### devnull handling ######################
-__devnull() { eval "$@" >/dev/null 2>&1; }
-__devnull1() { eval "$@" 1>/dev/null >&2; }
-__devnull2() { eval "$@" 2>/dev/null; }
+__devnull() { "$@" >/dev/null 2>&1; }
+__devnull1() { "$@" 1>/dev/null >&0; }
+__devnull2() { "$@" 2>/dev/null; }
 ###################### error handling ######################
 #err "commands"
 __err() {
