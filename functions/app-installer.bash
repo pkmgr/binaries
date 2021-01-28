@@ -1199,7 +1199,7 @@ if_os_id() {
 user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     INSTALL_TYPE=user
-    if [[ $(uname -s) =~ Darwin ]]; then HOME="/usr/local/home/root"; else HOME=${HOME}; fi
+    if [[ $(uname -s) =~ Darwin ]]; then HOME="/usr/local/home/root"; else HOME="${HOME}"; fi
     BIN="$HOME/.local/bin"
     CONF="$HOME/.config"
     SHARE="$HOME/.local/share"
@@ -1256,7 +1256,7 @@ user_installdirs() {
 system_installdirs() {
   APPNAME="${APPNAME:-installer}"
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
-    if [[ $(uname -s) =~ Darwin ]]; then HOME="/usr/local/home/root"; else HOME=${HOME}; fi
+    if [[ $(uname -s) =~ Darwin ]]; then HOME="/usr/local/home/root"; else HOME="${HOME}"; fi
     BACKUPDIR="$HOME/.local/backups"
     BIN="/usr/local/bin"
     CONF="/usr/local/etc"
