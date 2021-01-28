@@ -1,3 +1,4 @@
+#!/bin/bash
 __if_os_id() {
   if [ -f "/etc/os-release" ]; then
     distroname=$(cat /etc/os-release | grep '^ID=' | sed 's#ID=##g' | sed 's#"##g' | tr '[:upper:]' '[:lower:]')

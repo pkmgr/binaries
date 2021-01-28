@@ -84,12 +84,27 @@ else
   distroname="$(uname -s) $(uname -r)"
 fi
 
+#Version
+if [ -f "/etc/os-release" ]; then
+  DISTRO_VERSION=$(cat /etc/os-release | grep '^VERSION="' | sed 's#VERSION="##g;s#"##g')
+elif [ -f "$(command -v lsb_release 2>/dev/null)" ]; then
+  DISTRO_VERSION="$(lsb_release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
+elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
+  DISTRO_VERSION="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
+elif [ -f "/etc/redhat-release" ]; then
+  DISTRO_VERSION=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
+elif [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
+  DISTRO_VERSION="$(sw_vers -productVersion)"
+fi
+
 #Various Arch Distros
 if [[ "$distroname" =~ "ArcoLinux" ]] || [[ "$distroname" =~ "Arch" ]] || [[ "$distroname" =~ "BlackArch" ]]; then
   DISTRO=Arch
+  DISTRO_VERSION="$(cat /etc/os-release | grep '^BUILD_ID' | sed 's#BUILD_ID=##g')"
 #Raspberry pi
 elif [[ "$distroname" =~ "Raspbian" ]]; then
   DISTRO=Raspbian
+  CODENAME=$(lsb_release -a 2>/dev/null | grep Code | sed 's#Codename:##g' | awk '{print $1}')
 #Various RedHat Distros
 elif [[ "$distroname" =~ "Scientific" ]] || [[ "$distroname" =~ "RedHat" ]] || [[ "$distroname" =~ "CentOS" ]] || [[ "$distroname" =~ "Casjay" ]]; then
   DISTRO=RHEL
@@ -116,7 +131,7 @@ if [ -f /etc/os-release ]; then
   DISTROID="$(grep ID_LIKE /etc/os-release | sed 's/^.*=//')"
 fi
 
-export DISTRO DISTROID CODENAME OS
+export DISTRO DISTROID CODENAME OS DISTRO_VERSION
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

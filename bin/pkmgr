@@ -50,6 +50,7 @@ __rm_rf() { sudo rm -Rf "$@"; }
 __cp_rf() { sudo cp -Rf "$@"; }
 __curl() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
 __curl_sudo() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
+__not_installed() { echo -ne $RED"Not Installed"$NC; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -423,22 +424,20 @@ show_info() {
   printf_green "Search cmd:                 $pkgmgrbinsea"
   printf_green "Clean cache cmd:            $pkgmgrbincle"
   printf_green "Make cache cmd:             $pkgmgrbincac"
-  printf_green "Python:                     $(command -v python3 || command -v python2 || echo Not Installed)"
-  printf_green "PIP:                        $(command -v pip3 || command -v pip || echo Not Installed)"
-  printf_green "CPAN:                       $(command -v cpan || echo Not Installed)"
-  printf_green "Gem:                        $(command -v gem || echo Not Installed)"
-  printf_green "NPM:                        $(command -v node || echo Not Installed)"
-  if __cmd_exists sw_vers; then
-    printf_green "Distribution:               MacOS/Darwin"
-    printf_green "Release version             $(sw_vers -productVersion)"
-  elif [ -f "/etc/os-release" ]; then
-    printf_green "Distribution:               $(__if_os_id && echo $distro_id)"
-    printf_green "Codename                    $(__if_os_id && echo $code_name)"
-    printf_green "Release version             $(__if_os_id && echo $distro_version)"
+  printf_green "Python:                     $(command -v python3 || command -v python2 || __not_installed)"
+  printf_green "PIP:                        $(command -v pip3 || command -v pip || __not_installed)"
+  printf_green "CPAN:                       $(command -v cpan || __not_installed)"
+  printf_green "Gem:                        $(command -v gem || __not_installed)"
+  printf_green "NPM:                        $(command -v node || __not_installed)"
+  if [ -n "$DISTRO" ]; then
+  printf_green "Distribution:               $DISTRO"
+  printf_green "Distro Version:             $DISTRO_VERSION"
+[ -z "$CODENAME"] || \
+  printf_green "Release version:            $CODENAME"
   elif __cmd_exists lsb_release; then
-    printf_green "Distribution                $(lsb_release -a 2>dev >null | grep -i Distributor | awk '{print $3}')"
-    printf_green "Codename                    $(lsb_release -a 2>dev >null | grep -i Codename | awk '{print $2}')"
-    printf_green "Release version             $(lsb_release -a 2>dev >null | grep -i Release | awk '{print $2}')"
+    printf_green "Distribution:               $(lsb_release -a 2>dev >null | grep -i Distributor | awk '{print $3}')"
+    printf_green "Codename:                   $(lsb_release -a 2>dev >null | grep -i Codename | awk '{print $2}')"
+    printf_green "Release version:            $(lsb_release -a 2>dev >null | grep -i Release | awk '{print $2}')"
   fi
   printf_green "Kernel version              $(uname -r)"
 }
