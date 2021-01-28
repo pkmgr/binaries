@@ -324,10 +324,15 @@ printf_result() {
 __cmd_exists() {
   [ $# -eq 0 ] && return 1
   local args=$*
+  local exitTmp
   local exitCode
   for cmd in $args; do
-    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(which --skip-alias --skip-functions "$cmd" 2>/dev/null)" >/dev/null 2>&1; then exitCode=0; else exitCode=1; fi
-    local exitCode+="$exitCode"
+    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(which --skip-alias --skip-functions "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
+      local exitTmp=0
+    else
+      local exitTmp=1
+    fi
+    local exitCode+="$exitTmp"
   done
   [ "$exitCode" -eq 0 ] && return 0 || return 1
 }
@@ -452,7 +457,7 @@ __require_app() { __check_app "$@" || exit 1; }
 __requires() {
   local CMD
   for cmd in "$@"; do
-    __cmd_exists "$cmd" || local CMD+="$cmd" && printf_red "$cmd is not installed"
+    __cmd_exists "$cmd" || local CMD+="$cmd"
   done
   [ -n "$CMD" ] && __require_app "$CMD"
   [ "$?" -eq 0 ] return 0 || exit 1
@@ -621,42 +626,52 @@ __do_not_add_a_url() {
 #git "commands"
 #git_clone "url" "dir"
 __git_clone() {
+  [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
   __git_username_repo "$1"
   local repo="$1"
-  [ -n "$2" ] && local dir="$2" || local dir="$APPDIR"
+  [ -n "$2" ] && local dir="$2" || local dir="${APPDIR:-.}"
   [ ! -d "$dir" ] || __rm_rf "$dir"
   git -C "$dir" clone -q --recursive "$repo"
 }
 #git_pull "dir"
 __git_update() {
-  [ -n "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
-  local repo="$(git -C "$myappdir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-  git -C "$myappdir" reset --hard
-  git -C "$myappdir" pull --recurse-submodules -fq
-  git -C "$myappdir" submodule update --init --recursive -q
-  git -C "$myappdir" reset --hard -q
+  [ -n "$1" ] && local dir="$1" || local dir="${APPDIR:-.}"
+  local repo="$(git -C "$dir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
+  local appname="${APPNAME:-$(basename $dir)}"
+  git -C "$dir" reset --hard
+  git -C "$dir" pull --recurse-submodules -fq
+  git -C "$dir" submodule update --init --recursive -q
+  git -C "$dir" reset --hard -q
   if [ "$?" -ne "0" ]; then
-    __backupapp "$myappdir" "$APPNAME" && __rm_rf "$myappdir" && git clone -q "$repo" "$myappdir"
+    __backupapp "$dir" "$appname" && __rm_rf "$dir" && git clone -q "$repo" "$dir"
   fi
 }
 #git_commit "dir"
 __git_commit() {
-  local dir="$1"
+  local dir="${1:-.}"
   if [ ! -d "$dir" ]; then
     __mkd "$dir"
     git -C "$dir" init -q
   fi
   touch "$dir/README.md"
   git -C "$dir" add -A .
-  if ! __git_porcelain "$dir"; then git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "2"; fi || return 0
+  if ! __git_porcelain "$dir"; then
+    git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "2"
+  else
+    return 0
+  fi
 }
 #git_init "dir"
 __git_init() {
-  local dir="$1"
+  local dir="${1:-.}"
   __mkd "$dir"
-  git -C "$dir" init -q
-  git -C "$dir" add -A .
-  if ! __git_porcelain "$dir"; then git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " | printf_readline "2"; fi || return 0
+  git -C "$dir" init -q &>/dev/null
+  git -C "$dir" add -A . &>/dev/null
+  if ! __git_porcelain "$dir"; then
+    git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " | printf_readline "2"
+  else
+    return 0
+  fi
 }
 #set folder name based on githost
 __git_hostname() {

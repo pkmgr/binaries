@@ -40,12 +40,13 @@ __options "$@"
 
 __check_app git
 
-if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
-  printf_exit "You are not in a git repo"
-fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
+
+if [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  gitdir="$2"
+  shift 2
+fi
 
 if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--message" ]; then
   MESSAGE="$1"
@@ -214,8 +215,12 @@ setup)
 esac
 
 oldpwd="$(pwd)"
-gitdir="$(__git_top_dir)"
+gitdir="${gitdir:-$(__git_top_dir)}"
 repo="$(__git_fetch_remote)"
+
+if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
+  printf_exit "You are not in a git repo"
+fi
 
 [ ! -z "$repo" ] || repo="localdir"
 

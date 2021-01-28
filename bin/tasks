@@ -34,7 +34,7 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__cmd_exists tash sqlite3
+__requires tash sqlite3 #|| printf_exit "1" "1" "This requires sqlite3"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __tash() { tash "$@" | printf_readline "3"; }
