@@ -82,6 +82,12 @@ elif [ -f "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
   export BROWSER="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 elif [ -f "/Applications/Firefox.app/Contents/MacOS/firefox-bin" ]; then
   export BROWSER="/Applications/Firefox.app/Contents/MacOS/firefox-bin"
+elif [ -f "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" ]; then
+  export BROWSER="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
+elif [ -f "/Applications/Opera.app/Contents/MacOS/Opera" ]; then
+  export BROWSER="/Applications/Opera.app/Contents/MacOS/Opera"
+elif [ -f "/Applications/Tor Browser.app/Contents/MacOS/firefox" ]; then
+  export BROWSER="/Applications/Tor Browser.app/Contents/MacOS/firefox"
 elif [ -f "$(command -v lynx 2>/dev/null)" ]; then
   export BROWSER="lynx"
 elif [ -f "$(command -v links 2>/dev/null)" ]; then
