@@ -93,8 +93,6 @@ elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
   DISTRO_VERSION="$(lsb-release -a 2>/dev/null | grep 'Release' | awk '{print $2}')"
 elif [ -f "/etc/redhat-release" ]; then
   DISTRO_VERSION=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
-elif [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
-  DISTRO_VERSION="$(sw_vers -productVersion)"
 fi
 
 #Various Arch Distros
@@ -125,6 +123,16 @@ elif [[ "$distroname" =~ "Ubuntu" ]] || [[ "$distroname" =~ "Mint" ]] || [[ "$di
   CODENAME=$(lsb_release -a 2>/dev/null | grep Code | sed 's#Codename:##g' | awk '{print $1}')
 elif [[ "$distroname" =~ "Fedora" ]]; then
   DISTRO=Fedora
+fi
+
+if [[ "$OS" =~ "Mac" ]]; then
+  if [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
+    DISTRO=MacOS
+    DISTRO_VERSION="$(sw_vers -productVersion)"
+    CODENAME="$(sw_vers -productVersion)"
+  else
+    DISTRO_VERSION=""
+  fi
 fi
 
 if [ -f /etc/os-release ]; then
