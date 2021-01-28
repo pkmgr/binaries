@@ -34,7 +34,9 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__cmd_exists tash
+__cmd_exists tash sqlite3
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __tash() { tash "$@" | printf_readline "3"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
