@@ -22,7 +22,7 @@
 
 --------------------------------------------------------------
 
-       MY Hostname is:      MYHOSTNAME
-       MY IP Address is:    MYHOSTIP
+      MY Hostname is:      MYHOSTNAME
+      MY IP Address is:    MYHOSTIP
 
 --------------------------------------------------------------

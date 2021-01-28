@@ -1,41 +1,39 @@
 ; Default zone
-$ORIGIN                                       "$DOMAIN".
+$ORIGIN                                       $DOMAIN.
 $TTL                                          38400
 
-; default soa records
+;  **********soa settings**********
 @                            IN  SOA          dns1 dns-admin ( 2020072202 10800 3600 1209600 38400)
 
-;default nameservers
+;  **********nameserver settings**********
 @                            IN  NS           dns1
 @                            IN  NS           dns2
-;@                           IN  NS           dns1.casjaydns.com.
-;@                           IN  NS           dns2.casjaydns.com.
 
-;dns1 and dns2 on vultr
-dns                          IN  A            149.28.32.84
-dns1                         IN  A            149.28.32.84
-dns2                         IN  A            149.28.32.84
+;  **********dns settings**********
+dns                          IN  A            ${DNSIP4:-149.28.32.84}
+dns1                         IN  A            ${DNSIP4:-149.28.32.84}
+dns2                         IN  A            ${DNSIP4:-149.28.32.84}
 
-dns                          IN  AAAA         2001:19f0:5:2653:5400:02ff:fee3:f42e
-dns1                         IN  AAAA         2001:19f0:5:2653:5400:02ff:fee3:f42e
-dns2                         IN  AAAA         2001:19f0:5:2653:5400:02ff:fee3:f42e
+dns                          IN  AAAA         ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
+dns1                         IN  AAAA         ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
+dns2                         IN  AAAA         ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
 
-;  ***********CHANGE THESE TO MATCH PROVIDER***************
-@                            IN  A            185.199.108.153
-@                            IN  A            185.199.109.153
-@                            IN  A            185.199.110.153
-@                            IN  A            185.199.111.153
-*                            IN  A            185.199.108.153
-*                            IN  A            185.199.109.153
-*                            IN  A            185.199.110.153
-*                            IN  A            185.199.111.153
+;  **********host settings**********
+@                            IN  A            ${HOSTIP:-185.199.108.153}
+@                            IN  A            ${HOSTIP:-185.199.109.153}
+@                            IN  A            ${HOSTIP:-185.199.110.153}
+@                            IN  A            ${HOSTIP:-185.199.111.153}
+*                            IN  A            ${HOSTIP:-185.199.108.153}
+*                            IN  A            ${HOSTIP:-185.199.109.153}
+*                            IN  A            ${HOSTIP:-185.199.110.153}
+*                            IN  A            ${HOSTIP:-185.199.111.153}
 
 @                            IN  HINFO       "Web" "Shared Hosting"
 @                            IN  TXT         "Free Web Hosted"
 *                            IN  HINFO       "Web" "Shared Hosting"
 *                            IN  TXT         "Free Web Hosted"
 
-;  **********Common Options**********
+;  **********xmpp settings**********
 ;xmpp
 irc                          IN  CNAME       chat.freenode.net.
 webchat                      IN  CNAME       webchat.freenode.net.
@@ -45,26 +43,28 @@ chat                         IN  CNAME       xmpp
 userdata                     IN  CNAME       xmpp
 pubsub                       IN  CNAME       xmpp
 conference                   IN  CNAME       xmpp
-
 ;_xmpp-server.conference     IN  SRV         10  1   5269    xmpp
 ;_xmpp-server.pubsub._tcp    IN  SRV         10  1   5269    xmpp
 ;_xmpp-client._tcp           IN  SRV         10  1   5222    xmpp
 ;_xmpp-server._tcp           IN  SRV         10  1   5269    xmpp
-
 _xmpp-server._tcp            IN  SRV         5   0   5269    xmpp-server.l.google.com.
 _xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server1.l.google.com.
 _xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server2.l.google.com.
 _xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server3.l.google.com.
 _xmpp-server._tcp            IN  SRV         20  0   5269    xmpp-server4.l.google.com.
+
+;  **********jabber settings**********
 _jabber._tcp                 IN  SRV         5   0   5269    xmpp-server.l.google.com.
 _jabber._tcp                 IN  SRV         20  0   5269    xmpp-server1.l.google.com.
 _jabber._tcp                 IN  SRV         20  0   5269    xmpp-server2.l.google.com.
 _jabber._tcp                 IN  SRV         20  0   5269    xmpp-server3.l.google.com.
 _jabber._tcp                 IN  SRV         20  0   5269    xmpp-server4.l.google.com.
+
+;  **********irc settings**********
 _irc._tcp                    IN  SRV         10 10   6667    chat.freenode.net.
 _ircs._tcp                   IN  SRV         10 10   6697    chat.freenode.net.
 
-;default email server on google
+;  **********email settings**********
 gsuite                       IN  CNAME       gsuite.mail.casjay.net.redirect.center.
 client                       IN  CNAME       gsuite.mail.casjay.net.redirect.center.
 mail                         IN  CNAME       ASPMX.L.GOOGLE.COM.
@@ -88,13 +88,13 @@ news                         IN  CNAME       mail
 @                            IN  TXT         "v=spf1 a mx ptr all"
 *                            IN  TXT         "v=spf1 a mx ptr all"
 
-;ntp options
+;  **********ntp settings**********
 ;machines on ntp.org
 ntp                          IN  CNAME       0.casjay.pool.ntp.org.
 pool.ntp                     IN  CNAME	 	   ntp
 *.pool.ntp                   IN  CNAME       ntp
 
-;gsuite
+;  **********gsuite settings**********
 office      3600             IN  CNAME       gsuite.casjay.net.redirect.center.
 sites       3600             IN  CNAME       gsuite.sites.casjay.net.redirect.center.
 drive       3600             IN  CNAME       gsuite.drive.casjay.net.redirect.center.
@@ -102,29 +102,29 @@ cloud       3600             IN  CNAME       gsuite.drive.casjay.net.redirect.ce
 groups      3600             IN  CNAME       gsuite.groups.casjay.net.redirect.center.
 calendar    3600             IN  CNAME       gsuite.calendar.casjay.net.redirect.center.
 
-;sip server
-;pbx                         IN  A           149.28.32.84
-;sip                         IN  A           149.28.32.84
-;tel                         IN  A           149.28.32.84
-;iax                         IN  A           149.28.32.84
+;  **********sip settings**********
+;pbx                         IN  A           ${HOSTIP:-149.28.32.84}
+;sip                         IN  A           ${HOSTIP:-149.28.32.84}
+;tel                         IN  A           ${HOSTIP:-149.28.32.84}
+;iax                         IN  A           ${HOSTIP:-149.28.32.84}
 
-;database server
-sql                          IN  CNAME       149.28.32.84
-*.sql                        IN  CNAME       149.28.32.84
+;  **********database settings**********
+;sql                          IN  CNAME       ${HOSTIP:-149.28.32.84}
+;*.sql                        IN  CNAME       ${HOSTIP:-149.28.32.84}
 
-;support servers
-wiki                         IN  CNAME       help.casjay.net.redirect.center.
-support                      IN  CNAME       help.casjay.net.redirect.center.
+;  **********support settings**********
+;wiki                         IN  CNAME       help.casjay.net.redirect.center.
+;support                      IN  CNAME       help.casjay.net.redirect.center.
 
-;vpn server
-ppp                          IN  A           149.28.32.84
-vpn                          IN  A           149.28.32.84
+;  **********vpn settings**********
+;ppp                          IN  A           ${HOSTIP:-149.28.32.84}
+;vpn                          IN  A           ${HOSTIP:-149.28.32.84}
 
-;misc settings
-invoice                      IN  A           149.28.32.84
-piwik                        IN  A           149.28.32.84
+;  **********misc settings**********
+;invoice                      IN  A           ${HOSTIP:-149.28.32.84}
+;piwik                        IN  A           ${HOSTIP:-149.28.32.84}
 
-
+;  **********other settings**********
 localhost                    IN  A           127.0.0.1
 localhost                    IN  AAAA        ::1
 @                            IN  CAA         0 issue "letsencrypt.org"
