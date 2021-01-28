@@ -221,6 +221,30 @@ if [ -f "$(command -v yay)" ]; then                                             
     ;;                                                                                  #
   esac                                                                                  #
 fi                                                                                      #
+pkginit="$pkgmgrbincle ; $pkgmgrbincac ; $pkgmgrbinupdsil"
+
+#---------------------------------------------------------------------------------------
+
+cpan_run() {
+  if c__md_exists cpan; then
+    local cpandir="$(devnull2 sudo find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
+    local cpanconf="https://raw.githubusercontent.com/casjay-base/centos/master/usr/share/perl5/CPAN/Config.pm"
+    local cpanfile="$cpandir/Config.pm"
+    if [ ! -f "$cpanfile" ] || [ ! -f "$cpandir/.init" ]; then
+      printf_green "Grabbing the CPAN.pm file"
+      __urlcheck "$cpanconf" &&
+        __curl_sudo "$cpanconf" -o "$cpanfile" &&
+        sudo touch "$cpandir/.init" || exit 1
+    fi
+    bash -c "sudo cpan notest install $*" | printf_readline
+  fi
+}
+
+cpan_remove() {
+  bash -c "sudo cpan --uninstall $*" | printf_readline
+}
+
+#---------------------------------------------------------------------------------------
 
 pip_run() {
   if __cmd_exists pip3; then
@@ -255,33 +279,15 @@ gem_remove() {
 #---------------------------------------------------------------------------------------
 
 npm_run() {
+  if command -v nvm &>/dev/null; then nvm unload; fi
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
   __devnull2 bash -c "sudo npm install -g $*" | printf_readline
 }
 
 npm_remove() {
+  if command -v nvm &>/dev/null; then nvm unload; fi
+  NODEINSTDIR="$(command -v node | sed 's#/node##g')"
   __devnull2 bash -c "sudo npm remove -g $*" | printf_readline
-}
-
-#---------------------------------------------------------------------------------------
-
-cpan_run() {
-  if c__md_exists cpan; then
-    local cpandir="$(devnull2 sudo find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
-    local cpanconf="https://raw.githubusercontent.com/casjay-base/centos/master/usr/share/perl5/CPAN/Config.pm"
-    local cpanfile="$cpandir/Config.pm"
-    if [ ! -f "$cpanfile" ] || [ ! -f "$cpandir/.init" ]; then
-      printf_green "Grabbing the CPAN.pm file"
-      __urlcheck "$cpanconf" &&
-        __curl_sudo "$cpanconf" -o "$cpanfile" &&
-        sudo touch "$cpandir/.init" || exit 1
-    fi
-    bash -c "sudo cpan notest install $*" | printf_readline
-  fi
-}
-
-cpan_remove() {
-  bash -c "sudo cpan --uninstall $*" | printf_readline
 }
 
 #---------------------------------------------------------------------------------------
@@ -430,10 +436,10 @@ show_info() {
   printf_green "Gem:                        $(command -v gem || __not_installed)"
   printf_green "NPM:                        $(command -v node || __not_installed)"
   if [ -n "$DISTRO" ]; then
-  printf_green "Distribution:               $DISTRO"
-  printf_green "Distro Version:             $DISTRO_VERSION"
-[ -z "$CODENAME"] || \
-  printf_green "Release version:            $CODENAME"
+    printf_green "Distribution:               $DISTRO"
+    printf_green "Distro Version:             $DISTRO_VERSION"
+    [ -z "$CODENAME" ] ||
+      printf_green "Release version:            $CODENAME"
   elif __cmd_exists lsb_release; then
     printf_green "Distribution:               $(lsb_release -a 2>dev >null | grep -i Distributor | awk '{print $3}')"
     printf_green "Codename:                   $(lsb_release -a 2>dev >null | grep -i Codename | awk '{print $2}')"
@@ -603,8 +609,7 @@ clean | -c)
 init | -in)
   shift 1
   [ "$1" = "--help" ] && printf_help "Initialize the system by making the cache and updating"
-  init="$pkgmgrbincle ; $pkgmgrbincac ; $pkgmgrbinupdsil"
-  execute "$init" "Initializing System"
+  execute "$pkginit" "Initializing System"
   ;;
 
 makecache | -ca)
@@ -618,7 +623,7 @@ search | -s)
   [ "$1" = "--help" ] && printf_help "Search for a package"
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
-    $pkgmgrbinsea "$pkg" | grep --color=always -z "$pkg" | printf_readline || printf_error "$pkg not found"
+    $pkgmgrbinsea "$pkg" | grep -z "$pkg" | printf_readline || printf_error "$pkg not found"
   done
   ;;
 
@@ -627,7 +632,7 @@ required)
   [ "$1" = "--help" ] && printf_help "Install required packages"
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
-    execute "$pkgmgrbininssil $pkg" "Installing $pkg"
+    execute "$pkgmgrbininssil $pkg" "Installing $pkg" || exit 1
   done
   ;;
 
@@ -839,8 +844,6 @@ version)
 *)
   shift 0
   __help
-  sleep 5
-  $pkgmgrbin || exit 1
   ;;
 
 esac

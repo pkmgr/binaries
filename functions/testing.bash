@@ -563,10 +563,11 @@ __cd_into() {
 #kill "app"
 __kill() { kill -9 "$(pidof "$1")" >/dev/null 2>&1; }
 #running "app"
-__running() { pidof "$1" >/dev/null 2>&1; }
+__running() { pidof "$1" >/dev/null 2>&1 && return 1 || return 0; }
 #start "app"
 __start() {
-  sleep 1 && "$@" >/dev/null 2>&1 &
+  sleep 1 && eval "$*" 2>/dev/null &
+  disown
 }
 
 ###################### url functions ######################
@@ -774,6 +775,8 @@ __backupapp() {
   if [ "$count" -gt "3" ]; then __rm_rf $rmpre4vbackup; fi
 }
 ###################### menu functions ######################
+__run_menu_start() { reset && __running "$1" && __start eval "$@" && return 0 || reset && echo -e "\n\n\n\n" && printf_red "$1 is already running" && sleep 5 && return 1; }
+__run_menu_failed() { reset && echo -e "\n\n\n\n\n\n" && printf_red "${1:-An error has occured}" && sleep 3 && return 1; }
 #attemp_install_menus "programname"
 __attemp_install_menus() {
   local prog="$1"
@@ -794,27 +797,9 @@ __custom_menus() {
   printf_read_question "6" "Enter your custom program : " "120" "custom"
   printf_read_question "6" "Enter any additional options [type file to choose] : " "120" "opts"
   if [ "$opts" = "file" ]; then opts="$(__open_file_menus $custom)"; fi
-  $custom "$opts" 2>/dev/null || clear
-  printf_red "$custom is an invalid program"
+  __start $custom "$opts" 2>/dev/null || __run_menu_failed "$custom is an invalid program"
 }
-#run_command "full command"
-__run_command() {
-  "$@" 2>/dev/null
-  clear
-}
-#run_prog_menus
-__run_prog_menus() {
-  local prog="$1"
-  shift 1
-  local args="$*"
-  shift
-  if __cmd_exists "$prog"; then
-    __devnull2 "$prog" "$args" || clear printf_red "An error has occured"
-  else
-    __attemp_install_menus "$prog" &&
-      __devnull2 "$prog" "$args" || return 1
-  fi
-}
+
 #open_file_menus
 __open_file_menus() {
   local prog="$1"
@@ -822,15 +807,31 @@ __open_file_menus() {
   local args="$*"
   shift
   if __cmd_exists "$prog"; then
-    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)
+    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME"/ 14 48 || return 1)
     if [ -f "$file" ] || [ -d "$file" ]; then
-      __devnull2 "$prog" "$file"
+      __run_menu_start "$prog" "$file"
     else
-      clear && printf_red "No file selected"
+      __run_menu_start "$prog"
     fi
   else
-    __attemp_install_menus "$prog" &&
-      __devnull2 "$prog" "$args" || return 1
+    __attemp_install_menus "$prog" && __run_menu_start "$prog" "$args" || __run_menu_failed
+  fi
+}
+#run_command "full command" - terminal apps
+__run_command() {
+  "$@" 2>/dev/null
+  clear
+}
+#run_prog_menus - graphical apps
+__run_prog_menus() {
+  local prog="$1"
+  shift 1
+  local args="$*"
+  shift
+  if __cmd_exists "$prog"; then
+    __run_menu_start "$prog" "$args"
+  else
+    __attemp_install_menus "$prog" && __run_menu_start "$prog" "$args"
   fi
 }
 
