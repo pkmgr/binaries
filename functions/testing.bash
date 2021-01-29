@@ -134,7 +134,7 @@ ICON_WARN="[ ❗ ]"
 ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
 
-printf_newline() { printf "\n"; }
+printf_newline() { printf "${*:-\n}"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
 printf_green() { printf_color "\t\t$1\n" 2; }
@@ -244,7 +244,7 @@ printf_read_question() {
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
   #printf_answer "$reply" "$lines" "$readopts"
-  read -t 20 -e -r -n $lines $readopts $reply
+  read -t 20 -r -n $lines $readopts $reply
   [ -n "$reply" ] || return 1
 }
 
@@ -316,7 +316,20 @@ printf_result() {
     return 1
   fi
 }
-
+#printf_counter "color" "time" "message"
+printf_counter() {
+  printf_newline "\n\n"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local wait_time="$1" && shift 1 || local wait_time="5"
+  message="$*" && shift
+  temp_cnt=${wait_time}
+  while [[ ${temp_cnt} -gt 0 ]]; do
+    printf "%s\r" "$(printf_custom $color $message: ${temp_cnt})"
+    sleep 1
+    ((temp_cnt--))
+  done
+  printf_newline "\n\n"
+}
 ###################### checks ######################
 #cmd_exists command
 __cmd_exists() {

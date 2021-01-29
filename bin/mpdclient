@@ -15,6 +15,12 @@ USER="${SUDO_USER:-${USER}}"
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP # display message and pause
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
@@ -34,11 +40,81 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__check_app mpd mpc
+__check_app mpc
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
+MPDSERVER="${MPDSERVER:-localhost}"
+NOTIFY="on"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-main() {
+__mpc() { mpc -h "${MPDSERVER}" "$@" || return 1; }
+get_prev() { cat "$TEMPDIR/mpdclient_prev"; }
+get_next() { __mpc queued | grep '^'; }
+get_curr() { __mpc current | grep '^'; }
+playtime() { __mpc status | grep playing | cut -d' ' -f5,6; }
+next() { echo -en "Next: $(get_next || echo Nothing is in the queue)\n"; }
+volume() { echo -en "Volume: $(__mpc status | grep -i volume | awk '{print $2}')\n"; }
+
+mpc_status() {
+  status() {
+    echo "MPD @ ${MPDSERVER} Status: $(playtime) "
+    if __mpc status | grep -iq playing >/dev/null 2>&1; then
+      echo -n "Playing: "
+    elif __mpc status | grep -iq stopped >/dev/null 2>&1; then
+      echo -n "Stopped: "
+    elif __mpc status | grep -iq paused >/dev/null 2>&1; then
+      echo -n "Paused: "
+    else
+      echo -n ""
+    fi
+
+  }
+
+  display() {
+    status
+    if __mpc status | head -n 1 | grep -iqv volume; then
+      echo -en "$(__mpc status | head -n 1 | grep -Ev '[*]|volume')\n"
+    else
+      echo -e "MPD Server is stopped"
+    fi
+  }
+
+  display && next && notify && return 0 || return 1
+}
+
+notify() {
+  if [ "$(get_curr)" != "$(get_prev)" ] && [ "$NOTIFY" = "on" ]; then
+    __cmd_exists notifications && notifications "MPD Client" "Now playing $(get_curr)"
+  fi
+  prevSong="$(get_curr >"$TEMPDIR/mpdclient_prev")"
+  currSong="$(get_curr && get_curr >"$TEMPDIR/mpdclient_curr")"
+  nextSong="$(get_next && get_next >"$TEMPDIR/mpdclient_next")"
+}
+
+notify_toggle() {
+  if [ "$NOTIFY" = "on" ]; then
+    export NOTIFY="off"
+  elif [ "$NOTIFY" = "off" ]; then
+    export NOTIFY="on"
+  fi
+  #printf_blue "prevSong:$prevSong\n\t\tcurrSong:$currSong\n\t\tnotification:$NOTIFY"
+  printf_green "Notifications has been set to $NOTIFY"
+  return
+}
+
+volume_toggle() {
+  if __mpc volume | grep volume: | grep -Fq ' 0%'; then
+    __mpc volume 100
+  else
+    __mpc volume 0
+  fi
+  return 0
+}
+
+client() {
+  clear
   if [ -n "$MPDSERVER" ]; then
     GETMPDSERVER="$(__hostname2ip "$MPDSERVER")"
     CONNECT_TO="$GETMPDSERVER"
@@ -46,20 +122,110 @@ main() {
     CONNECT_TO="localhost"
   fi
 
-  if __cmd_exists mpd; then
+  if __cmd_exists ncmpcpp; then
     if __cmd_exists ncmpcpp; then
-      myterminal -e "ncmpcpp -q -h $CONNECT_TO"
+      ncmpcpp -q -h $CONNECT_TO
     elif __cmd_exists mpc; then
-      myterminal -e "mpc -q -h $CONNECT_TO"
+      mpc -q -h $CONNECT_TO
     fi
   else
-    exit 1
+    printf_newline "\n\n"
+    printf_counter "1" "5" "ncmpcpp is not installed"
+    clear
+    return 1
   fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
-
+__mkd "$TEMPDIR"
+[ -f "$TEMPDIR/mpdclient_prev" ] || echo "" >"$TEMPDIR/mpdclient_prev"
+[ -f "$TEMPDIR/mpdclient_curr" ] || echo "" >"$TEMPDIR/mpdclient_curr"
+[ -f "$TEMPDIR/mpdclient_next" ] || echo "" >"$TEMPDIR/mpdclient_next"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+while :; do
+  clear
+  shift 1
+  printf_newline "\n\n\n\n"
+  mpc_status | printf_readline "6" || break
+  printf_newline "\n"
+  printf_green "1. turn notifications on/off"
+  printf_green "/. mute/unmute volume"
+  printf_green "+. volume up"
+  printf_green "-. volume down"
+  printf_green "a. toggle"
+  printf_green "b. consume"
+  printf_green "n. next"
+  printf_green "p. prev"
+  printf_green "r. play"
+  printf_green "s. stop"
+  printf_green "u. update database"
+  printf_green "y. launch ncmpcpp"
+  printf_green "z. back to menu"
+  printf_read_question "6" "Enter your choice  : " "1" "main" "-s"
+  printf_newline
+
+  case "$main" in
+  1)
+    shift 1
+    notify_toggle
+    ;;
+  /)
+    shift 1
+    __devnull volume_toggle
+    ;;
+  +)
+    shift 1
+    __devnull __mpc volume +5%
+    ;;
+  -)
+    shift 1
+    __devnull __mpc volume -5%
+    ;;
+  a)
+    shift 1
+    __devnull __mpc toggle
+    ;;
+  b)
+    shift 1
+    __devnull __mpc consume
+    ;;
+  n)
+    shift 1
+    __devnull __mpc next
+    ;;
+  p)
+    shift 1
+    __devnull __mpc prev
+    ;;
+  r)
+    shift 1
+    __devnull __mpc play
+    ;;
+  s)
+    shift 1
+    __devnull __mpc stop
+    ;;
+  u)
+    shift 1
+    __devnull __mpc update
+    ;;
+  y)
+    shift 1
+    __devnull2 client
+    ;;
+  $'\E' | z)
+    shift 1
+    clear
+    break
+    ;;
+  *) shift ;;
+
+  esac
+  printf_newline "\n\n"
+  printf_counter "5" "3" "Re-loading menu in"
+done
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
 # end

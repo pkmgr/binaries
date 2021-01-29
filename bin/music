@@ -34,10 +34,6 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-MPDSERVER="${MPDSERVER:-localhost}"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 shopt -s extglob
 trap '' SIGINT
 trap '' SIGQUIT
@@ -73,33 +69,13 @@ while :; do
   printf_green "z. or escape to Exit"
   printf_green "---------------------------------"
   printf_read_question "6" "Enter your choice [a-z] : " "1" "main" "-s"
+  printf_newline
 
   # take action
   case "$main" in
   a)
-    while :; do
-      clear
-      echo -e "\n\n\n\n"
-      shift 1
-      printf_custom "4" "connected to $MPDSERVER"
-      printf_green "a. toggle"
-      printf_green "n. next"
-      printf_green "p. prev"
-      printf_green "r. play"
-      printf_green "s. stop"
-      printf_green "z. back to menu"
-      printf_read_question "6" "Enter your choice  : " "1" "mpc" "-s"
-      case "$mpc" in
-      a) mpc -h "${MPDSERVER}" toggle ;;
-      n) mpc -h "${MPDSERVER}" next ;;
-      p) mpc -h "${MPDSERVER}" prev ;;
-      r) mpc -h "${MPDSERVER}" play ;;
-      s) mpc -h "${MPDSERVER}" stop ;;
-      z) break ;;
-      *) continue ;;
-      esac
-    done
-    clear
+    shift 1
+    __run_command mpdclient
     ;;
   b)
     shift 1
@@ -177,20 +153,16 @@ while :; do
     shift 1
     __custom_menus
     ;;
-  z)
+  $'\E' | z)
+    shift 1
     clear
     break
     ;;
-  $'\e')
-    clear
-    break
-    ;;
-  *)
-    printf_custom "42" "$main was invalid choice - Please try a different selection"
-    sleep 3
-    continue
-    ;;
+  *) shift ;;
+
   esac
+  printf_newline "\n\n"
+  printf_counter "5" "3" "Re-loading menu in"
 done
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
