@@ -193,7 +193,7 @@ run_git_setup() {
   __devnull git -C "${REPODIR}" init . &&
     __devnull git -C "${REPODIR}" add . &&
     git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    printf_green "Success: Repo has been initialized"
+    printf_green "Success: $REPODIR has been initialized"
 
   if [ ! -z "$PREVREPO" ]; then
     printf_question "Should I reuse the remote repo? [y/n]"
