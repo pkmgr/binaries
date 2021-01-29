@@ -49,7 +49,7 @@ randomwallpaper() {
     done
   fi
 
-  SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" 2>/dev/null | sort -R | head -1)"
+  SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
   RANDOMWALLPAPER="${1:-$SETRANDOM}"
   RAND="${RANDOMWALLPAPER}"
   SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
@@ -68,7 +68,7 @@ randomwallpaper() {
 
   [ -n "$RAND" ] || exit 1
   if __cmd_exists variety >/dev/null 2>&1; then
-    variety --set="$RAND" >/dev/null 2>&1 && send_notify_wp
+    variety --set="$RAND" >/dev/null 2>&1 && send_notify_wp &
 
   elif __cmd_exists feh >/dev/null 2>&1; then
     feh --bg-fill "$RAND" >/dev/null 2>&1 && send_notify_wp
