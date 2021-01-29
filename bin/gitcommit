@@ -69,7 +69,8 @@ fi
 case "$MESSAGE" in
 files | modified | deleted | added)
   shift
-  ARGS="$(git -C "$gitdir" status -b -s | sed 's,##..*,,g' | tr ' \n ' ' | ')"
+  ARGS="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
+  [ "${#ARGS}" -lt 100 ] || printf_exit "To many characters"
   mess=" ➕ $ARGS ➕ "
   ;;
 
