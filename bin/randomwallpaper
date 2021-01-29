@@ -39,24 +39,29 @@ __options "$@"
 
 
 background_job() {
+  pid="$$"
+  bpid="$!"
+  pidfile="/tmp/randomwallpaper.$USER"
   sleeptime="${1:-300}"
+  __kill_proc() { kill -15 $(cat /tmp/randomwallpaper.$USER); rm -Rf "/tmp/randomwallpaper.$USER" && break; }
+  
   if [ -f "$HOME/.config/variety/variety.conf" ] && \
     grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq True; then
     printf_exit "Refusing to run because it seems variety is already changing the wallpaper"
   fi
-
   if [ -f "/tmp/randomwallpaper.$USER" ]; then
-    kill -15 $(cat /tmp/randomwallpaper.$USER 2>/dev/null && sleep 3) >/dev/null 2>&1 || \
-    printf_exit "Aleady running: /tmp/randomwallpaper.$USER"
+      kill -15 "$(cat "$pidfile" 2>/dev/null && sleep 3)" >/dev/null 2>&1
+      rm -Rf "/tmp/randomwallpaper.$USER" 2>/dev/null
   fi
   shift 1
+  #echo "$pid $bpid"
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $sleeptime"
-  bash -c "trap 'rm -Rf /tmp/randomwallpaper.$USER' EXIT
-    while :; do
-      randomwallpaper "${1:-$RANDOMWALLPAPER}"
-      echo "$$" >"/tmp/randomwallpaper.$USER"
-      sleep $sleeptime || (kill -15 $(cat /tmp/randomwallpaper.$USER); rm -Rf "/tmp/randomwallpaper.$USER" && break)
-    done &"
+  trap 'rm -Rf /tmp/randomwallpaper.$USER' EXIT
+  while :; do
+    randomwallpaper "${1:-$RANDOMWALLPAPER}"
+    echo "$pid" >"/tmp/randomwallpaper.$USER"
+    sleep $sleeptime || __kill_proc
+  done &
 }
 
 randomwallpaper() {
