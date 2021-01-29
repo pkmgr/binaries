@@ -241,7 +241,8 @@ fi
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
 else
-  printf_info "Commiting Changes with message: $mess"
+  printf_info "Commiting Changes with message:"
+  printf_yellow "  $mess"
 
   date +"%m%d%Y%H%M-git" >"$gitdir/version.txt"
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/git" ]; then
