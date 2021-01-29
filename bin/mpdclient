@@ -96,8 +96,10 @@ notify() {
 notify_toggle() {
   if [ "$NOTIFY" = "on" ]; then
     export NOTIFY="off"
+    __cmd_exists notifications && notifications "MPD Client" "Notications have been disabled"
   elif [ "$NOTIFY" = "off" ]; then
     export NOTIFY="on"
+    __cmd_exists notifications && notifications "MPD Client" "Notications have been enabled"
   fi
   #printf_blue "prevSong:$prevSong\n\t\tcurrSong:$currSong\n\t\tnotification:$NOTIFY"
   printf_green "Notifications has been set to $NOTIFY"
