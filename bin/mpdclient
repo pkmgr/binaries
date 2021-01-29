@@ -91,7 +91,7 @@ notify() {
   if [ "$(get_curr)" != "$(get_prev)" ] && [ "$NOTIFY" = "on" ]; then
     __cmd_exists notifications && notifications "MPD Client" "Now playing $(get_curr)"
   fi
-  prevSong="$(sleep 1 && get_curr >"$TEMPDIR/mpdclient_prev" 2>/dev/null)"
+  prevSong="$(get_curr >"$TEMPDIR/mpdclient_prev" 2>/dev/null)"
 }
 
 notify_toggle() {
