@@ -53,14 +53,18 @@ main() {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # functions
+  return_ok() { curl -LSsq -X PUT "$api_url/action" -d '{"'$1'": '$2'}' | grep -q success && printf_green "Telling $hue_device_name to $3"; }
+
+  _return_error() { printf_error "Failed to send the command: $*" && printf_newline "\n" && return 1; }
+
+  _curlapi() { return_ok "$1" "$2" "$3" || _return_error "$1 $2"; }
   getstate() { cat "$state"; }
   hue_on() {
-    printf_green "Telling $hue_device_name to turn on the lights"
-    curl -LSsq -X PUT "$api_url/action" -d '{"on": true}' &>/dev/null && echo on >"$state"
+    _curlapi "on" "true" "turn on the lights" && echo on >"$state"
   }
   hue_off() {
-    printf_green "Telling $hue_device_name to turn off the lights"
-    curl -LSsq -X PUT "$api_url/action" -d '{"on": false}' &>/dev/null && echo off >"$state"
+    _curlapi "on" "false" "turn off the lights" && echo off >"$state"
+
   }
   hue_toggle() {
     if [ "$(cat $state)" = on ]; then
@@ -99,17 +103,20 @@ main() {
 
   brightness | bright | b)
     shift 1
-    curl -LSsq -X PUT "$api_url/action" -d '{"bri": '$1'}'
-    ;;
-
-  hue | h)
-    shift 1
-    curl -LSsq -X PUT "$api_url/action" -d '{"hue": '$1'}'
+    [ "$1" -gt "255" ] && printf_exit "Enter a number between 0 and 255"
+    hue_on >/dev/null && _curlapi "bri" "$1" "set the brightness to $1"
     ;;
 
   sat | s)
     shift 1
-    curl -LSsq -X PUT "$api_url/action" -d '{"sat": '$1'}'
+    [ "$1" -gt "255" ] && printf_exit "Enter a number between 0 and 255"
+    hue_on >/dev/null && _curlapi "sat" "$1" "set the saturation to $1"
+    ;;
+
+  hue | h)
+    shift 1
+    #curl -LSsq -X PUT "$api_url/action" -d '{"hue": '$1'}'
+    hue_on >/dev/null && _curlapi "hue" "$1" "set the hue to $1"
     ;;
 
   info)
