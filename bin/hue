@@ -89,15 +89,34 @@ main() {
 
   state)
     case "$2" in
+
     text) echo -e "$(getstate)" ;;
+
     json | *) echo -e '{"status":"'$(getstate)'"}' ;;
     esac
+
+    ;;
+
+  brightness | bright | b)
+    shift 1
+    curl -LSsq -X PUT "$api_url/action" -d '{"bri": '$1'}'
+    ;;
+
+  hue | h)
+    shift 1
+    curl -LSsq -X PUT "$api_url/action" -d '{"hue": '$1'}'
+    ;;
+
+  sat | s)
+    shift 1
+    curl -LSsq -X PUT "$api_url/action" -d '{"sat": '$1'}'
     ;;
 
   info)
     printf_green "Getting info for group $hue_group from $hue_device_name"
     curl -LSs "$api_url" | jq
     ;;
+
   *)
     hue_toggle
     ;;

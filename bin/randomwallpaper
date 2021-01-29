@@ -92,11 +92,20 @@ randomwallpaper() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute function
 if [ "$1" = "--bg" ]; then
-  shift 1
-  while :; do
-    randomwallpaper "${1:-$RANDOMWALLPAPER}"
-    sleep 300
-  done &
+  [ ! -f "/tmp/randomwallpaper.$USER" ] || printf_exit "Aleady running: /tmp/randomwallpaper.$USER"
+  if [ -f "$HOME/.config/variety/variety.conf" ] && grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq False; then
+    shift 1
+    (
+      while :; do
+        randomwallpaper "${1:-$RANDOMWALLPAPER}"
+        trap 'kill -9 $$' EXIT
+        echo "$!" >"/tmp/randomwallpaper.$USER"
+        sleep 300 || rm -Rf touch "/tmp/randomwallpaper.$USER" && break
+      done &
+    )
+  else
+    randomwallpaper "$@"
+  fi
 else
   randomwallpaper "$@"
 fi
