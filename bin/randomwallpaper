@@ -67,11 +67,11 @@ randomwallpaper() {
   }
 
   [ -n "$RAND" ] || exit 1
-  if __cmd_exists feh >/dev/null 2>&1; then
-    feh --bg-fill "$RAND" >/dev/null 2>&1 && send_notify_wp
-
-  elif __cmd_exists variety >/dev/null 2>&1; then
+  if __cmd_exists variety >/dev/null 2>&1; then
     variety --set="$RAND" >/dev/null 2>&1 && send_notify_wp
+
+  elif __cmd_exists feh >/dev/null 2>&1; then
+    feh --bg-fill "$RAND" >/dev/null 2>&1 && send_notify_wp
 
   elif __cmd_exists xwallpaper >/dev/null 2>&1; then
     xwallpaper --maximize "$RAND" >/dev/null 2>&1 && send_notify_wp
