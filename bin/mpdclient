@@ -48,6 +48,8 @@ MPDSERVER="${MPDSERVER:-localhost}"
 NOTIFY="on"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__devnull() { "$@" >/dev/null 2>&1 && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
+__devnull2() { "$@" 2>/dev/null && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
 
 __mpc() { mpc -h "${MPDSERVER}" "$@" || return 1; }
 get_prev() { cat "$TEMPDIR/mpdclient_prev" 2>/dev/null; }
@@ -163,7 +165,8 @@ while :; do
   printf_green "r. play"
   printf_green "s. stop"
   printf_green "u. update database"
-  printf_green "y. launch ncmpcpp"
+  printf_green "x. launch ncmpcpp"
+  printf_green "y. send command to mpd"
   printf_green "z. back to menu"
   printf_read_question "6" "Enter your choice  : " "1" "main" "-s"
   printf_newline
@@ -213,9 +216,18 @@ while :; do
     shift 1
     __devnull __mpc update
     ;;
-  y)
+  x)
     shift 1
     __devnull2 client
+    ;;
+  y)
+    shift 1
+    printf_read_question "6" "Enter command to send : " "120" "opts"
+    clear
+    printf_newline "\n\n\n"
+    printf_custom "26" "Results for $opts"
+    __mpc "$opts" | printf_readline "3"
+    printf_read_question "6" "Press enter to continue " "120"
     ;;
   $'\E' | z)
     shift 1
