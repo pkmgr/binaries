@@ -37,6 +37,28 @@ __options "$@"
 
 [ -n "$WALLPAPERS" ] || printf_exit "No wallpaper directories specified"
 
+
+background_job() {
+  sleeptime="${1:-300}"
+  if [ -f "$HOME/.config/variety/variety.conf" ] && \
+    grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq True; then
+    printf_exit "Refusing to run because it seems variety is already changing the wallpaper"
+  fi
+
+  if [ -f "/tmp/randomwallpaper.$USER" ]; then
+    kill -15 $(cat /tmp/randomwallpaper.$USER 2>/dev/null && sleep 3) >/dev/null 2>&1 || \
+    printf_exit "Aleady running: /tmp/randomwallpaper.$USER"
+  fi
+  shift 1
+  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $sleeptime"
+  bash -c "trap 'rm -Rf /tmp/randomwallpaper.$USER' EXIT
+    while :; do
+      randomwallpaper "${1:-$RANDOMWALLPAPER}"
+      echo "$$" >"/tmp/randomwallpaper.$USER"
+      sleep $sleeptime || (kill -15 $(cat /tmp/randomwallpaper.$USER); rm -Rf "/tmp/randomwallpaper.$USER" && break)
+    done &"
+}
+
 randomwallpaper() {
   if [ -d /usr/share/backgrounds ]; then
     for l in $(ls /usr/share/backgrounds); do
@@ -48,18 +70,6 @@ randomwallpaper() {
       [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"
     done
   fi
-
-  if [ -f "$1" ]; then
-    RANDOMWALLPAPER="$1"
-  elif [ -d "$1" ]; then
-    RANDOMWALLPAPER="$(find -L "$1" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
-  else
-    SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
-  fi
-
-  RANDOMWALLPAPER="${RANDOMWALLPAPER:-$SETRANDOM}"
-  RAND="${RANDOMWALLPAPER}"
-  SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 
   send_notify_wp() {
     if command -v notifications >/dev/null 2>&1; then
@@ -90,25 +100,30 @@ randomwallpaper() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# execute function
+# variables
+if [ -f "$1" ]; then
+  RANDOMWALLPAPER="$1"
+  shift 1
+elif [ -d "$1" ]; then
+  RANDOMWALLPAPER="$(find -L "$1" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
+  shift 1
+else
+  SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
+fi
+
+RANDOMWALLPAPER="${RANDOMWALLPAPER:-$SETRANDOM}"
+RAND="${RANDOMWALLPAPER}"
+SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute application
 if [ "$1" = "--bg" ]; then
-  [ ! -f "/tmp/randomwallpaper.$USER" ] || printf_exit "Aleady running: /tmp/randomwallpaper.$USER"
-  if [ -f "$HOME/.config/variety/variety.conf" ] && grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq False; then
-    shift 1
-    (
-      while :; do
-        randomwallpaper "${1:-$RANDOMWALLPAPER}"
-        trap 'kill -9 $$' EXIT
-        echo "$!" >"/tmp/randomwallpaper.$USER"
-        sleep 300 || rm -Rf touch "/tmp/randomwallpaper.$USER" && break
-      done &
-    )
-  else
-    randomwallpaper "$@"
-  fi
+  shift 1
+  background_job "$@"
 else
   randomwallpaper "$@"
 fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
 # end
