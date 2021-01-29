@@ -4,7 +4,7 @@ APPNAME="mpdclient"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
+##@Version     : 012920210415-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : mpdclient
@@ -50,9 +50,9 @@ NOTIFY="on"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __mpc() { mpc -h "${MPDSERVER}" "$@" || return 1; }
-get_prev() { cat "$TEMPDIR/mpdclient_prev"; }
-get_next() { __mpc queued | grep '^'; }
-get_curr() { __mpc current | grep '^'; }
+get_prev() { cat "$TEMPDIR/mpdclient_prev" 2>/dev/null; }
+get_next() { cat "$TEMPDIR/mpdclient_next" 2>/dev/null; }
+get_curr() { cat "$TEMPDIR/mpdclient_curr" 2>/dev/null; }
 playtime() { __mpc status | grep playing | cut -d' ' -f5,6; }
 next() { echo -en "Next: $(get_next || echo Nothing is in the queue)\n"; }
 volume() { echo -en "Volume: $(__mpc status | grep -i volume | awk '{print $2}')\n"; }
@@ -81,16 +81,17 @@ mpc_status() {
     fi
   }
 
-  display && next && notify && return 0 || return 1
+  notify && display && next && return 0 || return 1
 }
 
 notify() {
+  # Order here matters
+  currSong="$(get_curr && __mpc current | grep '^' >"$TEMPDIR/mpdclient_curr")"
+  nextSong="$(get_next && __mpc queued | grep '^' >"$TEMPDIR/mpdclient_next")"
   if [ "$(get_curr)" != "$(get_prev)" ] && [ "$NOTIFY" = "on" ]; then
     __cmd_exists notifications && notifications "MPD Client" "Now playing $(get_curr)"
   fi
-  prevSong="$(get_curr >"$TEMPDIR/mpdclient_prev")"
-  currSong="$(get_curr && get_curr >"$TEMPDIR/mpdclient_curr")"
-  nextSong="$(get_next && get_next >"$TEMPDIR/mpdclient_next")"
+  prevSong="$(sleep 1 && get_curr >"$TEMPDIR/mpdclient_prev" 2>/dev/null)"
 }
 
 notify_toggle() {
@@ -118,7 +119,7 @@ volume_toggle() {
 client() {
   clear
   if [ -n "$MPDSERVER" ]; then
-    GETMPDSERVER="$(__hostname2ip "$MPDSERVER")"
+    GETMPDSERVER="$(__hostname2ip "$MPDSERVER" || return 1)"
     CONNECT_TO="$GETMPDSERVER"
   else
     CONNECT_TO="localhost"

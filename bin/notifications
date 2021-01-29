@@ -36,8 +36,7 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ "$(uname -s)" = "Darwin" ]; then
-  __check_app osascript
-  __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\""; }
+  __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\"" || return; }
 elif [ "$(uname -s)" = "Linux" ]; then
   __check_app notify-send
   __notify_send() { notify-send -u normal -i "notification-message-IM" "$@"; }
