@@ -13,7 +13,7 @@ shopt -s extglob
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
-# @Description : push/clone/pull from github
+# @Description : push/clone/pull from github/gitlab/private repo
 # @TODO        : Organize this a lot better
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -65,7 +65,6 @@ REPODIR="${gitdir:-$PROJECT_DIR}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a README.md file if one doesn't exist
-
 create_new_readme_template() {
   local author="$(__git_globaluser)"
   local GitBaseDir="$(git -C "$REPODIR" rev-parse --show-toplevel 2>/dev/null || echo $PWD)"
@@ -77,7 +76,6 @@ create_new_readme_template() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a WTFPL license if a LICENSE.md file doesn't exist
-
 create_new_wtfpl() {
   local author="$(__git_globaluser)"
   local year="$(date +'%Y')"
@@ -88,7 +86,6 @@ create_new_wtfpl() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The template to create a new private github repo
-
 create_new_private_repo_template() {
   read -r -d '' JSON_TEMPLATE <<EOF
 {
@@ -103,12 +100,11 @@ create_new_private_repo_template() {
   "has_projects" : false
 }
 EOF
-  JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "http://$DOMAIN")
+  JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "https://$DOMAIN")
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The template to create a new public github repo
-
 create_new_repo_template() {
   read -r -d '' JSON_TEMPLATE <<EOF
 {
@@ -123,12 +119,11 @@ create_new_repo_template() {
   "has_projects" : false
 }
 EOF
-  JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "http://$DOMAIN")
+  JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "https://$DOMAIN")
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check if input is a url
-
 do_not_add_a_url() {
   regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
   string="$1"
@@ -141,7 +136,6 @@ do_not_add_a_url() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The initialize git function
-
 run_git_init() {
   REPODIR="${1:-$REPODIR}"
   if [ ! -z "$repo" ]; then
@@ -169,7 +163,6 @@ run_git_init() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup a new git repo
-
 run_git_setup() {
   REPODIR="${1:-$REPODIR}"
   if [ -d "${REPODIR}/.git" ]; then
@@ -188,7 +181,7 @@ run_git_setup() {
     fi
   fi
 
-  date +"%m%d%Y%H%M-git" >version.txt
+  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
   ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
   ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
   __devnull git -C "${REPODIR}" init . &&
@@ -228,7 +221,6 @@ run_git_setup() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Run git setup with no interactions
-
 run_git_setup_automated() {
   REPODIR="${1:-$REPODIR}"
   PREVREPO="$(git -C "${REPODIR}" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
@@ -242,7 +234,7 @@ run_git_setup_automated() {
   fi
   printf_red "Setting up the repo as requested" && sleep 5
   rm -Rf .git
-  date +"%m%d%Y%H%M-git" >version.txt
+  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
   ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
   ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
   __devnull git -C "${REPODIR}" init &&
@@ -260,7 +252,6 @@ run_git_setup_automated() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Makes a new jeckyll site
-
 make_newsite() {
   git -C "$HOME/Public/sites/$1" clone https://github.com/casjay-templates/domain-template &&
     rm -Rf "$HOME/Public/sites/new/.git" && cd "$HOME/Public/sites/$1" && "$EDITOR" _config.yml || return 1
@@ -269,7 +260,6 @@ make_newsite() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Gets the organizations from the user
-
 git_all_orgs() {
   ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=owner"
   for org in "$GITHUB_USERNAME" "$(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
@@ -279,10 +269,9 @@ git_all_orgs() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initializes a repo with default options
-
 repos_init() {
   REPODIR="${1:-$REPODIR}"
-  date +"%m%d%Y%H%M-git" >version.txt
+  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
   git -C "${REPODIR}" add .
   if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
   git -C "${REPODIR}" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
@@ -290,13 +279,12 @@ repos_init() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initializes a repo for github
-
 git_init() {
   REPODIR="${1:-$REPODIR}"
   [ "$1" = "" ] && printf_red "Usage: userName repoName\n" && return 1
   [ "$2" = "" ] && printf_red "Usage: userName repoName\n" && return 1
   git_setup "$REPODIR"
-  date +"%m%d%Y%H%M-git" >version.txt
+  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
   git -C "$REPODIR" add .
   if [ -f "$REPODIR/gitmasterconfig" ]; then cp -Rf "$REPODIR/gitmasterconfig" "$REPODIR/.git/config"; fi
   git -C "$REPODIR" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
@@ -306,7 +294,6 @@ git_init() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a new gist
-
 ghgist() {
   [ "$1" = "--help" ] && printf_green "Usage: --gist name description text\n" && return 1
   [ "$1" = "" ] && printf_red "Usage: --gist name description text\n" && return 1
@@ -326,7 +313,6 @@ ghgist() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Deletes a github repo
-
 ghdelete() {
   [ "$1" = "--help" ] && printf_green "Usage: --delete userName repoName\n" && return 1
   [ "$1" = "" ] && printf_red "Usage: --delete userName repoName\n" && return 1
@@ -345,18 +331,17 @@ ghdelete() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Reusable function for delete
-
 ghdelete-user() {
   curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a new repo on github
-
 ghcreate() {
   [ "$TOKEN" = "" ] && printf_red "No auth token set - GITHUB_ACCESS_TOKEN\n" && return 1
   [ "$1" = "--help" ] && printf_green "Usage: --create userName repoName Description\n" && return 1
   [ "$1" = "" ] && printf_red "Usage: --create userName repoName Description\n" && return 1
+  local USERNAME="$1"
   local REPONAME="$2"
   local DESCR="$3"
   local ERROR="Creation of $REPONAME failed"
@@ -372,7 +357,6 @@ ghcreate() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # clone a single repo from user
-
 ghsinglerepo() {
   [ "$1" = "" ] && printf_red "Usage: --single userName repoName" && return 1
   [ "$2" = "" ] && printf_red "Usage: --create userName repoName Description" && return 1
@@ -381,7 +365,6 @@ ghsinglerepo() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Reusable function for create
-
 ghcreate-user() {
   __devnull2 curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
   sleep 1
@@ -390,7 +373,6 @@ ghcreate-user() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main program
-
 main() {
   sleep 3
   for i in $(cat $TMPFILE); do
@@ -414,7 +396,7 @@ main() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# push local repo
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d "$REPODIR/.git" ]; then
@@ -441,7 +423,7 @@ git_push_single() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# pull a single repo
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d "$REPODIR/.git" ]; then
@@ -451,7 +433,7 @@ git_pull_single() {
   else
     if [ -n "$1" ]; then
       projdir="$1"
-      REPODIRname="$(git_hostname "$1")"
+      REPODIRname="$(__git_hostname "$1")"
       git_username_repo "$1"
     else
       projdir="$PROJECT_BASE/$REPODIRname/$username/$userrepo"
@@ -468,10 +450,10 @@ git_pull_single() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# clone a single repo
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
-  REPODIRname="$(get_githost "$1")"
+  REPODIRname="$(__git_hostname "$1")"
   get_username_repo "$1"
   projdir="${2:-$PROJECT_BASE/$REPODIRname/$username/$userrepo}"
   if [ -d "$projdir/.git" ]; then
@@ -486,6 +468,7 @@ git_clone_single() {
   exit "$?"
 }
 
+#continue pulling
 git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
@@ -501,6 +484,7 @@ git_update_loop() {
   fi
 }
 
+# cron functions
 __run_cron() {
   local frequency="0 4 * * 6"
   local croncmd="$APPNAME cron run"
@@ -522,6 +506,7 @@ __run_cron() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main application
 
 case "$1" in
 --help)
@@ -546,7 +531,7 @@ l | log)
 
 commit)
   shift 1
-  gitcommit -d $REPODIR "$@"
+  gitcommit -d "$REPODIR" "$@"
   ;;
 
 remote)
