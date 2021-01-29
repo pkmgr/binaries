@@ -77,24 +77,28 @@ while :; do
   # take action
   case "$main" in
   a)
-    clear
-    shift 1
-    printf_custom "4" "connected to $MPDSERVER"
-    printf_green "a. toggle"
-    printf_green "n. next"
-    printf_green "p. prev"
-    printf_green "r. play"
-    printf_green "s. stop"
-    printf_green "z. back to menu"
-    printf_read_question "6" "Enter your choice  : " "1" "mpc" "-s"
-    case "$mpc" in
-    a) mpc -h "${MPDSERVER}" toggle ;;
-    n) mpc -h "${MPDSERVER}" next ;;
-    p) mpc -h "${MPDSERVER}" prev ;;
-    r) mpc -h "${MPDSERVER}" play ;;
-    s) mpc -h "${MPDSERVER}" stop ;;
-    *) false ;;
-    esac
+    while :; do
+      clear
+      echo -e "\n\n\n\n"
+      shift 1
+      printf_custom "4" "connected to $MPDSERVER"
+      printf_green "a. toggle"
+      printf_green "n. next"
+      printf_green "p. prev"
+      printf_green "r. play"
+      printf_green "s. stop"
+      printf_green "z. back to menu"
+      printf_read_question "6" "Enter your choice  : " "1" "mpc" "-s"
+      case "$mpc" in
+      a) mpc -h "${MPDSERVER}" toggle ;;
+      n) mpc -h "${MPDSERVER}" next ;;
+      p) mpc -h "${MPDSERVER}" prev ;;
+      r) mpc -h "${MPDSERVER}" play ;;
+      s) mpc -h "${MPDSERVER}" stop ;;
+      z) break ;;
+      *) continue ;;
+      esac
+    done
     clear
     ;;
   b)

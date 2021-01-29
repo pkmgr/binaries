@@ -41,26 +41,37 @@ __options "$@"
 __check_app git
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main application
-
-if [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  shift 1
+# I'm sure there is a better way to do this
+if [ -d "$1" ]; then
   gitdir="$1"
-  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
   shift 1
+elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  gitdir="$2"
+  shift 2
+  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
+else
+  gitdir="$PWD"
 fi
 
+####
 if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--message" ]; then
+  shift 1
   MESSAGE="$1"
   if [ -n "$2" ]; then
-    newmess="$2"
+    newmess="$*"
   fi
 else
   MESSAGE="$1"
 fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main application
 case "$MESSAGE" in
-
+files)
+  shift
+  ARGS="$(git -C "$gitdir" status -b -s | sed 's,##..*,,g' | tr ' \n ' ' | ')"
+  mess=" ➕ Added: $ARGS ➕ "
+  ;;
 added)
   shift 1
   ARGS="$*"
@@ -200,14 +211,14 @@ custom)
 
 setup)
   shift 1
-  gitadmin setup
+  gitadmin setup "$@"
   exit
   ;;
 
 *)
   if [ -n "$1" ]; then
-    [ ! "$(echo "$@" | wc -m)" -lt "5" ] || printf_exit "Message must be longer than 4 characters"
-    mess="${newmess:-$1}"
+    [ ! "$(echo "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
+    mess="${newmess:-$@}"
   else
     shift 1
     mess=" 🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
@@ -216,22 +227,20 @@ setup)
 
 esac
 
-oldpwd="$(pwd)"
 gitdir="${gitdir:-$(__git_top_dir)}"
 repo="$(__git_fetch_remote $gitdir)"
-dirname="$(basename $gitdir)"
+dirname="$(basename $gitdir 2>/dev/null)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
   printf_error "You are not in a git repo"
-  printf_read_question "2"
+  exit 1
+  #printf_read_question "2"
 fi
 
 [ ! -z "$repo" ] || repo="localdir"
 
 if [ ! -d "$gitdir" ]; then
   printf_exit "$gitdir doesn't seem to be a git repo"
-else
-  __cd "$gitdir"
 fi
 
 if __git_porcelain "$gitdir"; then
@@ -239,17 +248,17 @@ if __git_porcelain "$gitdir"; then
 else
   printf_info "Commiting Changes with message: $mess"
 
-  date +"%m%d%Y%H%M-git" >version.txt
-  if [ -f gitmasterconfig ] && [ -d .git ]; then
-    cp -Rf gitmasterconfig .git/config
+  date +"%m%d%Y%H%M-git" >"$gitdir/version.txt"
+  if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/git" ]; then
+    cp -Rf "$gitdir/gitmasterconfig" "$gitdir/git/config"
   fi
 
-  git add . >/dev/null 2>&1
+  git -C "$gitdir" add . >/dev/null 2>&1
 
   if [ -z "$mess" ]; then
-    git commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
+    git -C "$gitdir" commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
   else
-    git commit -q -S -m "$mess" 2>/dev/null
+    git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null
   fi
   __getexitcode "Successfully committed the changes to $dirname" "Failed to commit the changes"
 
@@ -257,24 +266,22 @@ else
     if [ "$repo" != "localdir" ]; then
       if [[ "$*" =~ --automated ]]; then
         printf_green "Pushing the changes to $repo"
-        git push -q
-        __getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
+        git -C "$gitdir" push -q
+        __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
       else
         printf_question "Should I push to $repo? [y/n]"
         read -r -n 1 -s push && echo
         if [[ $push == "y" || $push == "Y" ]]; then
           printf_green "Pushing the changes to $repo"
-          git push -q
-          __getexitcode "Successfully pushed the changes for commit ID: $(git rev-parse --short HEAD)" "Failed to push the changes"
+          git -C "$gitdir" push -q
+          __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
         fi
       fi
     fi
   else
-    printf_green "commit ID: $(git rev-parse --short HEAD)"
+    printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)"
     printf_red "No internet connection. Skipping push"
   fi
-
-  __cd "$oldpwd"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

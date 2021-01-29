@@ -109,6 +109,7 @@ FONTMGRREPO="https://github.com/fontmgr"
 THEMEMGRREPO="https://github.com/thememgr"
 SYSTEMMGRREPO="https://github.com/systemmgr"
 WALLPAPERMGRREPO="https://github.com/wallpapermgr"
+WHICH_LICENSE_URL="https://github.com/devenvmgr/licenses/raw/master"
 
 scripts_version() { printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)\n"; }
 
@@ -620,15 +621,30 @@ __do_not_add_a_url() {
   fi
 }
 ###################### git commands ######################
-#git "commands"
+#git_globaluser
+__git_globaluser() {
+  local me="$(git config --show-scope user.name | grep global || echo "$USER")"
+  local author="$(echo $me | sed 's#global ##g')"
+  echo "$author"
+}
+#git_globalemail
+__git_globalemail() {
+  local me="$(git config --show-scope user.email | grep global || echo "$USER"@"$(hostname -s)".local)"
+  local email="$(echo $me | sed 's#global ##g')"
+  echo "$email"
+}
 #git_clone "url" "dir"
 __git_clone() {
   [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
   __git_username_repo "$1"
   local repo="$1"
   [ -n "$2" ] && local dir="$2" || local dir="${APPDIR:-.}"
-  [ ! -d "$dir" ] || __rm_rf "$dir"
-  git -C "$dir" clone -q --recursive "$repo" || return 1
+  if [ -d "$dir/.git" ]; then
+    __git_update "$dir" || return 1
+  else
+    [ -d "$dir" ] && __rm_rf "$dir"
+    git clone -q --recursive "$repo" "$dir" || return 1
+  fi
   if [ "$?" -ne "0" ]; then
     printf_error "Failed to clone the repo"
   fi
@@ -705,7 +721,6 @@ __git_fetch_remote() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | hea
 __git_porcelain() { __git_porcelain_count "${1:-.}" && return 0 || return 1; }
 __git_remote_origin() { git -C "${1:-.}" remote show origin 2>/dev/null | grep Push | awk '{print $3}' && return 0 || return 1; }
 __git_porcelain_count() { [ -d "${1:-.}/.git" ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
-
 ###################### crontab functions ######################
 
 __setupcrontab() {

@@ -35,16 +35,19 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  shift 1
+# I'm sure there is a better way to do this
+if [ -d "$1" ]; then
   gitdir="$1"
-  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
   shift 1
+elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  gitdir="$2"
+  shift 2
+  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
 else
   gitdir="$PWD"
 fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults
 unset PREVREPO
 USERNAME="${GITHUB_USERNAME:-$2}"
@@ -63,8 +66,7 @@ REPODIR="${gitdir:-$PROJECT_DIR}"
 # Creates a README.md file if one doesn't exist
 
 create_new_readme_template() {
-  local me="$(git config --show-scope user.name | grep global || echo $USER)"
-  local author="$(echo $me | sed 's#global ##g')"
+  local author="$(__git_globaluser)"
   local GitBaseDir="$(git -C "$REPODIR" rev-parse --show-toplevel 2>/dev/null || echo $PWD)"
   local BaseDir="${GitBaseDir##*/}"
   cat "$SCRIPTSFUNCTDIR/templates/readmes/project.md" >"${REPODIR}/README.md"
@@ -76,8 +78,7 @@ create_new_readme_template() {
 # Creates a WTFPL license if a LICENSE.md file doesn't exist
 
 create_new_wtfpl() {
-  local me="$(git config --show-scope user.name | grep global || echo $USER)"
-  local author="$(echo $me | sed 's#global ##g')"
+  local author="$(__git_globaluser)"
   local year="$(date +'%Y')"
   cat "$WTFLICENSE" >"${REPODIR}/LICENSE.md"
   [ -f ${REPODIR}/LICENSE.md ] && sed -i "s#CURYEAR#${year}#g" "${REPODIR}/LICENSE.md"

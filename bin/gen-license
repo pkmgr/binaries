@@ -36,77 +36,129 @@ __options "$@"
 __check_app curl
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-get_lic() { __curl "$1" >LICENSE.md 2>/dev/null || printf_exit "Failed to get the license file"; }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$1" ] || __help
-if [ $# -ne 1 ]; then __help; fi
+[ -f "$HOME/.config/gen-license/settings" ] && . "$HOME/.config/gen-license/settings"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-license_url="${WHICH_LICENSE_URL:-https://github.com/devenvmgr/licenses/raw/master}"
+licenseDir="${licenseDir:-$HOME/.config/gen-license/files}"
+licenseURL="${licenseURL:-$WHICH_LICENSE_URL}"
+licenseFile="${licenseFile:-wtfpl.md}"
 whichLicense="$(echo "$1" | tr [A-Z] [a-z])"
+gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
+gitconfig_email="${gitconfig_email:-$(__git_globalemail)}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -d "$licenseDir" ] && [ "$(__count_files "$licenseDir")" -ne 0 ]; then
+  licenseURL="$licenseDir"
+  get_lic() { cat "$1" >LICENSE.md 2>/dev/null || printf_exit "Failed to get the license file"; }
+else
+  get_lic() { __curl "$1" >LICENSE.md 2>/dev/null || printf_exit "Failed to get the license file"; }
+fi
+
+gen_config() {
+  cat <<EOF
+# Settings for $APPNAME
+licenseFile="$licenseFile"
+licenseDir="$licenseDir"
+licenseURL="$WHICH_LICENSE_URL"
+gitconfig_user="$gitconfig_user"
+gitconfig_email="$gitconfig_email"
+
+EOF
+}
+
+create_new_wtfpl() {
+  if [[ "$licenseFile" =~ wtfpl ]]; then
+    [ -f ./LICENSE.md ] && sed -i "s# 2004 # $(date +'%Y') #g" "./LICENSE.md"
+    [ -f ./LICENSE.md ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "./LICENSE.md"
+    [ -f ./LICENSE.md ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "./LICENSE.md"
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$whichLicense" in
+
+list)
+  shift 1
+  cat "${SCRIPTSFUNCTDIR}/helpers/gen-license/array" | printf_readline "2"
+  ;;
+
+config)
+  shift
+  printf_green "Generating the config file $HOME/.config/gen-license/settings"
+  gen_config >"$HOME/.config/gen-license/settings"
+  ;;
+
+download)
+  shift
+  printf_green "Cloning the repo to $licenseDir/files"
+  __git_clone "$licenseURL " "$licenseDir/files"
+  ;;
+
 wtfpl)
   shift
-  get_lic "$license_url/wtfpl.md"
+  printf_green "Using the WTFPL license"
+  get_lic "$licenseURL/wtfpl.md"
+  create_new_wtfpl
   ;;
 
 gpl1)
   shift
-  get_lic "$license_url/gnu-gpl-v1.0.md"
+  printf_green "Using the GPL V1 license"
+  get_lic "$licenseURL/gnu-gpl-v1.0.md"
   ;;
 
 gpl2)
   shift
-  get_lic "$license_url/gnu-gpl-v2.0.md"
+  printf_green "Using the GPL V2 license"
+  get_lic "$licenseURL/gnu-gpl-v2.0.md"
   ;;
 
 gpl3)
   shift
-  get_lic "$license_url/gnu-gpl-v3.0.md"
+  printf_green "Using the GPL V3 license"
+  get_lic "$licenseURL/gnu-gpl-v3.0.md"
   ;;
 
 agpl)
   shift
-  get_lic "$license_url/gnu-agpl-v3.0.md"
+  printf_green "Using the AGPL license"
+  get_lic "$licenseURL/gnu-agpl-v3.0.md"
   ;;
 
 fdl)
   shift
-  get_lic "$license_url/gnu-fdl-v1.3.md"
+  printf_green "Using the FDL license"
+  get_lic "$licenseURL/gnu-fdl-v1.3.md"
   ;;
 
 mit)
   shift
-  get_lic "$license_url/mit.md"
+  printf_green "Using the MIT license"
+  get_lic "$licenseURL/mit.md"
   ;;
 
 apache)
   shift
-  get_lic "$license_url/apache-v2.0.md"
+  printf_green "Using the Apache license"
+  get_lic "$licenseURL/apache-v2.0.md"
   ;;
 
-bds3)
+bsd3)
   shift
-  get_lic "$license_url/gnu-fdl-v1.3.md"
-  ;;
-
-list)
-  shift 1
-  cat ${SCRIPTSFUNCTDIR}/helpers/gen-license/array | printf_readline "2"
+  printf_green "Using the BSD license"
+  get_lic "$licenseURL/gnu-fdl-v1.3.md"
   ;;
 
 *)
   shift
-  __help
+  printf_green "Using the default license: $licenseFile"
+  get_lic "$licenseURL/$licenseFile"
+  create_new_wtfpl
   ;;
 
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
