@@ -225,7 +225,6 @@ esac
 
 gitdir="${gitdir:-$(__git_top_dir)}"
 repo="$(__git_fetch_remote $gitdir)"
-dirname="$(basename $gitdir 2>/dev/null)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
   printf_error "You are not in a git repo"
@@ -256,7 +255,7 @@ else
   else
     git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null
   fi
-  __getexitcode "Successfully committed the changes to $dirname" "Failed to commit the changes"
+  __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
 
   if __am_i_online && [ -z "$push" ]; then
     if [ "$repo" != "localdir" ]; then

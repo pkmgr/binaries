@@ -726,6 +726,7 @@ __git_username_repo() {
   fi
 }
 #usage: git_CMD gitdir
+__git_repobase() { basename $(__git_top_dir "${1:-.}") ; }
 __git_status() { git -C "${1:-.}" status -b -s 2>/dev/null && return 0 || return 1; }
 __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)' 2>/dev/null && return 0 || return 1; }
 __git_pull() { git -C "${1:-.}" pull -q 2>/dev/null && return 0 || return 1; }
