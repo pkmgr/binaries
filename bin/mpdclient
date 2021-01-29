@@ -179,11 +179,11 @@ while :; do
     ;;
   +)
     shift 1
-    __devnull __mpc volume +5%
+    __devnull __mpc volume +1
     ;;
   -)
     shift 1
-    __devnull __mpc volume -5%
+    __devnull __mpc volume -1
     ;;
   a)
     shift 1
