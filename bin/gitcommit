@@ -67,15 +67,10 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$MESSAGE" in
-files)
+files | modified | deleted | added)
   shift
   ARGS="$(git -C "$gitdir" status -b -s | sed 's,##..*,,g' | tr ' \n ' ' | ')"
-  mess=" ➕ Added: $ARGS ➕ "
-  ;;
-added)
-  shift 1
-  ARGS="$*"
-  mess=" 📦➕ Added: $ARGS 📦➕ "
+  mess=" ➕ $ARGS ➕ "
   ;;
 
 new)
