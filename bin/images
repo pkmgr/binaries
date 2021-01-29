@@ -44,6 +44,8 @@ trap '' SIGTSTP # display message and pause
 while :; do
   # show menu
   clear
+  shift 1
+  printf_newline "\n\n\n\n"
   printf_head "Image Menu"
   printf_green "a. launch gimp"
   printf_green "b. launch shotwell"
@@ -62,31 +64,31 @@ while :; do
 
   a)
     shift 1
-    __run_prog_menus gimp
+    __open_file_menus gimp "$@"
     ;;
   b)
     shift 1
-    __run_prog_menus shotwell
+    __open_file_menus shotwell "$@"
     ;;
   c)
     shift 1
-    __open_file_menus sxiv
+    __open_file_menus sxiv "$@"
     ;;
   d)
     shift 1
-    __run_prog_menus ristretto
+    __open_file_menus ristretto "$@"
     ;;
   e)
     shift 1
-    __run_prog_menus kphotoalbum
+    __open_file_menus kphotoalbum "$@"
     ;;
   f)
     shift 1
-    __run_prog_menus gomephotos
+    __open_file_menus gomephotos "$@"
     ;;
   y)
     shift 1
-    __custom_menus
+    __custom_menus "$@"
     ;;
   $'\E' | z)
     shift 1
@@ -99,6 +101,7 @@ while :; do
   printf_newline "\n\n"
   printf_counter "5" "3" "Re-loading menu in"
 done
+clear
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?

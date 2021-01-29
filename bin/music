@@ -44,6 +44,8 @@ trap '' SIGTSTP # display message and pause
 while :; do
   # show menu
   clear
+  shift 1
+  printf_newline "\n\n\n\n"
   printf_head "Music Menu"
   printf_green "a. launch mpc"
   printf_green "b. launch deadbeef"
@@ -75,83 +77,83 @@ while :; do
   case "$main" in
   a)
     shift 1
-    __run_command mpdclient
+    __run_command mpdclient "$@"
     ;;
   b)
     shift 1
-    __run_prog_menus deadbeef
+    __run_prog_menus deadbeef "$@"
     ;;
   c)
     shift 1
-    __run_command cmus
+    __run_command cmus "$@"
     ;;
   d)
     shift 1
-    __run_command ncmpcpp -h "$MPDSERVER"
+    __run_command ncmpcpp -h "$MPDSERVER" "$@"
     ;;
   e)
     shift 1
-    __open_file_menus vlc
+    __open_file_menus vlc "$@"
     ;;
   f)
     shift 1
-    __run_command castero
+    __run_command castero "$@"
     ;;
   g)
     shift 1
-    __run_prog_menus spotifyd
+    __run_prog_menus spotifyd "$@"
     ;;
   h)
     shift 1
-    __run_command pianobar
+    __run_command pianobar "$@"
     ;;
   i)
     shift 1
-    __run_command curseradio-improved
+    __run_command curseradio-improved "$@"
     ;;
   j)
     shift 1
-    __run_prog_menus youtube-viewer
+    __run_prog_menus youtube-viewer "$@"
     ;;
   k)
     shift 1
-    __run_prog_menus tizonia
+    __run_prog_menus tizonia "$@"
     ;;
   l)
     shift 1
-    __run_prog_menus clementine
+    __run_prog_menus clementine "$@"
     ;;
   m)
     shift 1
-    __run_prog_menus rhythmbox
+    __run_prog_menus rhythmbox "$@"
     ;;
   n)
     shift 1
-    __run_prog_menus tomahawk
+    __run_prog_menus tomahawk "$@"
     ;;
   o)
     shift 1
-    __run_prog_menus amarok
+    __run_prog_menus amarok "$@"
     ;;
   p)
     shift 1
-    __run_prog_menus qmmp
+    __run_prog_menus qmmp "$@"
     ;;
   q)
     shift 1
-    __run_prog_menus lollyop
+    __run_prog_menus lollyop "$@"
     ;;
   r)
     shift 1
-    __run_prog_menus moc
+    __run_prog_menus moc "$@"
     ;;
   s)
     shift 1
-    __run_prog_menus parole
+    __run_prog_menus parole "$@"
     ;;
   y)
     shift 1
-    __custom_menus
+    __custom_menus "$@"
     ;;
   $'\E' | z)
     shift 1
@@ -164,6 +166,7 @@ while :; do
   printf_newline "\n\n"
   printf_counter "5" "3" "Re-loading menu in"
 done
+clear
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?

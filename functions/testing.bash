@@ -821,8 +821,8 @@ __backupapp() {
   if [ "$count" -gt "3" ]; then __rm_rf $rmpre4vbackup; fi
 }
 ###################### menu functions ######################
-__run_menu_start() { reset && __running "$1" && __start eval "$@" && return 0 || reset && echo -e "\n\n\n\n" && printf_red "$1 is already running" && sleep 5 && return 1; }
-__run_menu_failed() { reset && echo -e "\n\n\n\n\n\n" && printf_red "${1:-An error has occured}" && sleep 3 && return 1; }
+__run_menu_start() { clear && __running "$1" && __start eval "$@" && return 0 || clear && echo -e "\n\n\n\n" && printf_red "$1 is already running" && sleep 5 && return 1; }
+__run_menu_failed() { clear && echo -e "\n\n\n\n\n\n" && printf_red "${1:-An error has occured}" && sleep 3 && return 1; }
 #attemp_install_menus "programname"
 __attemp_install_menus() {
   local prog="$1"
@@ -853,11 +853,11 @@ __open_file_menus() {
   local args="$*"
   shift
   if __cmd_exists "$prog"; then
-    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME"/ 14 48 || return 1)
+    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)
     if [ -f "$file" ] || [ -d "$file" ]; then
-      __run_menu_start "$prog" "$file"
+      __run_menu_start "$prog" "$file" || __run_menu_failed
     else
-      __run_menu_start "$prog"
+      __run_menu_start "$prog" || __run_menu_failed
     fi
   else
     __attemp_install_menus "$prog" && __run_menu_start "$prog" "$args" || __run_menu_failed
