@@ -58,6 +58,8 @@ PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
 WTFLICENSE="${MY_LICENSE_FILE:-$SCRIPTSFUNCTDIR/templates/wtfpl.md}"
 REPODIR="${gitdir:-$PROJECT_DIR}"
+REPOBASE="$(basename $REPODIR)"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -193,7 +195,7 @@ run_git_setup() {
   __devnull git -C "${REPODIR}" init . &&
     __devnull git -C "${REPODIR}" add . &&
     git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    printf_green "Success: $REPODIR has been initialized"
+    printf_green "Success: $REPOBASE has been initialized"
 
   if [ ! -z "$PREVREPO" ]; then
     printf_question "Should I reuse the remote repo? [y/n]"
