@@ -4,7 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 012920210806-git
+##@Version     : 012920210959-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : randomwallpaper
@@ -49,8 +49,15 @@ randomwallpaper() {
     done
   fi
 
-  SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
-  RANDOMWALLPAPER="${1:-$SETRANDOM}"
+  if [ -f "$1" ]; then
+    RANDOMWALLPAPER="$1"
+  elif [ -d "$1" ]; then
+    RANDOMWALLPAPER="$(find -L "$1" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
+  else
+    SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
+  fi
+
+  RANDOMWALLPAPER="${RANDOMWALLPAPER:-$SETRANDOM}"
   RAND="${RANDOMWALLPAPER}"
   SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 
@@ -84,7 +91,15 @@ randomwallpaper() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute function
-randomwallpaper "$@"
+if [ "$1" = "--bg" ]; then
+  shift 1
+  while :; do
+    randomwallpaper "${1:-$RANDOMWALLPAPER}"
+    sleep 300
+  done &
+else
+  randomwallpaper "$@"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # end
