@@ -329,6 +329,9 @@ config)
   gen_config && printf_green "config file was created in ~/.config/notes/config"
   ;;
 
+show)
+  [ -f "$NOTES_PATH" ] && cat "$NOTES_PATH" 2>/dev/null | printf_readline "5" || printf_exit ""
+  ;;
 *)
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
