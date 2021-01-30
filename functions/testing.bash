@@ -636,13 +636,13 @@ __do_not_add_a_url() {
 ###################### git commands ######################
 #git_globaluser
 __git_globaluser() {
-  local me="$(git config --show-scope user.name | grep global || echo "$USER")"
+  local me="$(git config --get user.name | grep global || echo "$USER")"
   local author="$(echo $me | sed 's#global ##g')"
   echo "$author"
 }
 #git_globalemail
 __git_globalemail() {
-  local me="$(git config --show-scope user.email | grep global || echo "$USER"@"$(hostname -s)".local)"
+  local me="$(git config --get user.email | grep global || echo "$USER"@"$(hostname -s)".local)"
   local email="$(echo $me | sed 's#global ##g')"
   echo "$email"
 }
