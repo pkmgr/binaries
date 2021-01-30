@@ -77,118 +77,118 @@ files | modified | deleted | added)
 new)
   shift 1
   ARGS="$*"
-  mess=" 🆕📦 NEW: $ARGS 📦🆕 "
+  mess="🆕📦 NEW: $ARGS 📦🆕 "
   ;;
 
 improve)
   shift 1
   ARGS="$*"
-  mess=" 👌 IMPROVE: $ARGS 👌 "
+  mess="👌 IMPROVE: $ARGS 👌 "
   ;;
 
 fixed)
   shift 1
   ARGS="$*"
-  mess=" 🐛 FIXED: $ARGS 🐛 "
+  mess="🐛 FIXED: $ARGS 🐛 "
   ;;
 
 release)
   shift 1
   ARGS="$*"
-  mess=" 🚀 RELEASE: $ARGS 🚀 "
+  mess="🚀 RELEASE: $ARGS 🚀 "
   ;;
 
 docs)
   shift 1
   ARGS="$*"
-  mess=" 📖 DOCS: $ARGS 📖 "
+  mess="📖 DOCS: $ARGS 📖 "
   ;;
 
 test)
   shift 1
   ARGS="$*"
-  mess=" 🤖 TEST: $ARGS 🤖 "
+  mess="🤖 TEST: $ARGS 🤖 "
   ;;
 
 breaking)
   shift 1
   ARGS="$*"
-  mess=" ⚒️ BREAKING: $ARGS ⚒️ "
+  mess="⚒️ BREAKING: $ARGS ⚒️ "
   ;;
 
 refactor)
   shift 1
-  mess=" ✔️ 〰️ Refactor Code 〰️ ✔️  "
+  mess="✔️ 〰️ Refactor Code 〰️ ✔️  "
   ;;
 
 permission | permissions)
   shift 1
-  mess=" 🏠🔥❗ Fixed Permissions ❗🔥🏠 "
+  mess="🏠🔥❗ Fixed Permissions ❗🔥🏠 "
   ;;
 
 bug | bugs)
   shift 1
-  mess=" 🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
+  mess="🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
   ;;
 
 alot | fixes)
   shift 1
-  mess=" 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 "
+  mess="🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 "
   ;;
 
 docker)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added Docker Workflow ❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added Docker Workflow ❗🏠🦈❇🐜 "
   ;;
 
 node)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added nodejs Workflow ❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added nodejs Workflow ❗🏠🦈❇🐜 "
   ;;
 
 ruby)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added ruby Workflow ❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added ruby Workflow ❗🏠🦈❇🐜 "
   ;;
 
 php)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added php Workflow ❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added php Workflow ❗🏠🦈❇🐜 "
   ;;
 
 perl)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added perl Workflow ❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added perl Workflow ❗🏠🦈❇🐜 "
   ;;
 
 python)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added python Workflow ❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added python Workflow ❗🏠🦈❇🐜 "
   ;;
 
 scratchpad)
   shift 1
-  mess=" 🐜📓❇📓 Modified my scratchpad 📓❇📓🐜 "
+  mess="🐜📓❇📓 Modified my scratchpad 📓❇📓🐜 "
   ;;
 
 todo)
   shift 1
-  mess=" 🐜📓❇📓 Modified my todo list 📓❇📓🐜 "
+  mess="🐜📓❇📓 Modified my todo list 📓❇📓🐜 "
   ;;
 
 notes)
   shift 1
-  mess=" 🐜📓❇📓 Modified my notes 📓❇📓🐜 "
+  mess="🐜📓❇📓 Modified my notes 📓❇📓🐜 "
   ;;
 
 init)
   shift 1
-  mess=" 🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
+  mess="🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
   ;;
 
 emj | emojy | emojify)
   shift 1
-  mess=" 🦈🏠🐜❗ ${1:-Well I did some things} ❗🐜🦈🏠 "
+  mess="🦈🏠🐜❗ ${1:-Well I did some things} ❗🐜🦈🏠 "
   ;;
 
 random)
@@ -201,7 +201,7 @@ custom)
   if [ -n "$1" ]; then
     mess="$1"
   else
-    printf_yellow "You must specify your commit message"
+    printf_exit "You must specify your commit message"
   fi
   ;;
 
@@ -217,7 +217,7 @@ setup)
     mess="${newmess:-$@}"
   else
     shift 1
-    mess=" 🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
+    mess="🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
   fi
   ;;
 
@@ -228,8 +228,11 @@ repo="$(__git_fetch_remote $gitdir)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
   printf_error "You are not in a git repo"
-  exit 1
-  #printf_read_question "2"
+  printf_read_question "4" "Would you like to turn $gitdir into a git repo? y/N" "1" "makerepo" "-s"
+  if printf_answer_yes $makerepo; then
+    gitadmin $gitdir setup
+    exit $?
+  fi
 fi
 
 [ ! -z "$repo" ] || repo="localdir"
