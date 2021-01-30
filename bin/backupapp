@@ -56,17 +56,15 @@ main() {
   mkdir -p "$backupdir" "$logdir"
 
   printf_green "Starting backup"
-  echo -e " ##################################################################" >>"$logdir/$appname.log"
-  echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
-  echo -e "# Backing up $appdir" >>"$logdir/$appname.log"
-  echo -e "##################################################################\n" >>"$logdir/$appname.log"
+  printf_header "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" \
+    "# Backing up $appdir" >>"$logdir/$appname.log" >>"$logdir/$appname.log"
 
   tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1
   exitCode=$?
 
-  echo -e "\n##################################################################" >>"$logdir/$appname.log"
-  echo -e "#Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
-  echo -e "##################################################################\n\n" >>"$logdir/$appname.log"
+  printf_header "#Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
+  printf_newline "\n\n" >>"$logdir/$appname.log"
+
   if [ "$exitCode" = 0 ]; then
     printf_green "The backup has completed successfully."
     printf_green "Saved to: $backupdir/$filename"

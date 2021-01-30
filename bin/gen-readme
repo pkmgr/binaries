@@ -7,7 +7,7 @@ USER="${SUDO_USER:-${USER}}"
 ##@Version       : 013020210039-git
 # @Author        : Jason
 # @Contact       : jason@casjaysdev.com
-# @License       : WTFPL
+# @readme       : WTFPL
 # @Copyright     : Copyright (c) 2021, Casjays Developments
 # @Created       : Saturday Jan 30, 2021 00:39:26 EST
 # @File          : gen-readme
@@ -33,24 +33,121 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-#  printf_help "Usage: gen-readme templatename ProjectName tofilename.md"
-#  #exit
-#fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-templateName="${1:-default}"
-projectName="${2:-$(basename $PWD)}"
-fileName="${3:-$PWD/README.md}"
+# I'm sure there is a better way to do this
+if [ -d "$1" ]; then
+  curDir="$1"
+  shift 1
+elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  curDir="$2"
+  shift 2
+  [ -d "$curDir" ] || printf_exit "$curDir doesn't seem to be a directory"
+else
+  curDir="$PWD"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/gen-readme/settings" ] && . "$HOME/.config/gen-readme/settings"
 
-case $templateName in
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+readmeFile="$1"
+readmeDefault="${readmeDefault:-default.md}"
+readmeDir="${readmeDir:-$HOME/.config/gen-readme/files}"
+gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
+gitconfig_email="${gitconfig_email:-$(__git_globalemail)}"
+__mkd "$readmeDir"
 
-  *)
-    printf_help "Coming Soon"
-    ;;
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__file_failed() { printf_exit "Failed to get the readme file: $readmeFile"; }
+create_local_file() { cat "$1" >"$curDir/README.md" 2>/dev/null || __file_failed; }
+get_remote_file() { __curl "$1" >"$curDir/README.md" 2>/dev/null || __file_failed; }
+
+generate_readme() {
+  local readmeFile="${1:-$readmeDefault}"
+  local whichreadme="$(__strip_ext $readmeFile || exit 1)"
+  local author="$gitconfig_user"
+  local curDir="$(dirname $curDir/README.md)"
+  local BaseDir="${curDir##*/}"
+
+  if [ -f "$readmeDir/$readmeFile" ]; then
+    printf_green "Using the $whichreadme README for $curDir"
+    create_local_file "$readmeDir/$readmeFile"
+    [ -f ${curDir}/README.md ] && sed -i "s#AuthorName#${author}#g" "${curDir}/README.md"
+    [ -f ${curDir}/README.md ] && sed -i "s#ProjectName#${BaseDir} #g" "${curDir}/README.md"
+  else
+    printf_exit 1 1 "$readmeDir/$readmeFile does not exist"
+  fi
+}
+
+gen_config() {
+  cat <<EOF
+# Settings for $APPNAME
+readmeDir="$readmeDir"
+readmeDefault="$readmeDefault"
+gitconfig_user="$gitconfig_user"
+gitconfig_email="$gitconfig_email"
+
+EOF
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Init
+if [ "$(__count_files $readmeDir)" -eq 0 ]; then
+  __mkd "$readmeDir"
+  if [ "$(__count_files "$SCRIPTSFUNCTDIR/templates/readmes")" -ne 0 ]; then
+    printf_green "Setting up the README directory"
+    __cp_rf "$SCRIPTSFUNCTDIR/templates/readmes/." "$readmeDir/"
+    __help
+  else
+    printf_exit "1" "1" "No readme files exist"
+  fi
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case "$readmeFile" in
+
+list)
+  shift 1
+  __find "$readmeDir" | printf_readline "2"
+  ;;
+
+config)
+  shift 1
+  printf_green "Generating the config file $HOME/.config/gen-readme/settings"
+  gen_config >"$HOME/.config/gen-readme/settings"
+  ;;
+
+download)
+  shift 1
+  printf_green "Cloning the repo to $readmeDir/files"
+  __git_clone "$1 " "$readmeDir/files"
+  ;;
+
+custom)
+  shift 1
+  if [ -f "$readmeFile" ]; then
+    generate_readme "$readmeFile"
+  else
+    get_remote_file "$1"
+  fi
+  ;;
+
+pro | proj | project*)
+  shift 1
+  generate_readme "project.md"
+  ;;
+
+install*)
+  shift 1
+  generate_readme "installers.md"
+  ;;
+
+*)
+  generate_readme "$@"
+  ;;
+
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit 1
+exit $?
 # end

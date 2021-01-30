@@ -8,4 +8,4 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Generate a LICENSE file"
+printf_help "4" "Generate a README file"

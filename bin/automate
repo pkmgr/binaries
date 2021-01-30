@@ -86,13 +86,18 @@ main() {
 
   state)
     case "$2" in
-    text) echo -e "$(getstate)" ;;
-    json | *) echo -e '{"status":"'$(getstate)'"}' ;;
+    text)
+      shift 2
+      echo -e "$(getstate)"
+      ;;
+    json | *)
+      shift 2
+      echo -e '{"status":"'$(getstate)'"}'
+      ;;
     esac
     ;;
 
   *)
-    shift 0
     automate_toggle
     ;;
 

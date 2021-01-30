@@ -67,11 +67,43 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$MESSAGE" in
-files | modified | deleted | added)
+files)
   shift
-  ARGS="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
-  [ "${#ARGS}" -lt 100 ] || printf_exit "To many characters"
-  mess=" ➕ $ARGS ➕ "
+  files="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
+  mess="➕ $files ➕ "
+  ;;
+
+modified)
+  shift 1
+  if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
+    files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
+    mess=":file_folder: $files :file_folder: "
+    git -C "$gitdir" add $files >/dev/null 2>&1
+  else
+    printf_exit 1 0 "Nothing has been modified"
+  fi
+  ;;
+
+deleted)
+  shift 1
+  if git -C "$gitdir" status -s -b | grep -F 'D ' >/dev/null 2>&1; then
+    files="$(git -C "$gitdir" status -s -b | grep -F 'D ' | awk '{print $2}' | tr '\n' ' ')"
+    mess=":heavy_minus_sign: $files :heavy_minus_sign: "
+    git -C "$gitdir" add $files >/dev/null 2>&1
+  else
+    printf_exit 1 0 "Nothing has been deleted"
+  fi
+  ;;
+
+added)
+  shift 1
+  if git -C "$gitdir" status -s -b | grep -F '?? ' >/dev/null 2>&1; then
+    files="$(git -C "$gitdir" status -s -b | grep -F '?? ' | awk '{print $2}' | tr '\n' ' ')"
+    mess="❓ $files ❓"
+    git -C "$gitdir" add $files >/dev/null 2>&1
+  else
+    printf_exit 1 0 "Nothing has been added"
+  fi
   ;;
 
 new)
@@ -254,7 +286,7 @@ else
     cp -Rf "$gitdir/gitmasterconfig" "$gitdir/git/config"
   fi
 
-  git -C "$gitdir" add . >/dev/null 2>&1
+  [ -n "$files" ] || git -C "$gitdir" add . >/dev/null 2>&1
 
   if [ -z "$mess" ]; then
     git -C "$gitdir" commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null

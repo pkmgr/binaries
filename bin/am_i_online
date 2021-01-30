@@ -33,39 +33,46 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main() {
+  case $1 in
+  --console)
+    shift 1
+    console="yes"
+    site="${1:-1.1.1.1}"
+    ;;
+  *)
+    site="${1:-1.1.1.1}"
+    ;;
+  esac
+  shift
 
-case $* in
---console)
-  shift 1
-  console="yes"
-  ;;
-esac
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  test_ping() {
+    timeout 1 ping -c1 $site &>/dev/null
+    pingExit=$?
+  }
 
-site="${1:-1.1.1.1}"
+  test_http() {
+    timeout 1 curl --disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    httpExit=$?
+  }
 
-test_ping() {
-  timeout 1 ping -c1 $site &>/dev/null
-  pingExit=$?
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  test_ping || test_http
+
+  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
+    [ "$console" = "yes" ] && printf_green "$site is up: you seem to be connected to the internet"
+    exitCode=0
+  else
+    [ "$console" = "yes" ] && printf_red "$site is down: you appear to not be connected to the internet" >&2
+    exitCode=1
+  fi
 }
-
-test_http() {
-  timeout 1 curl --disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
-  httpExit=$?
-}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-test_ping || test_http
-
-if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-  [ "$console" = "yes" ] && printf_green "$site is up: you seem to be connected to the internet"
-  exitCode=0
-else
-  [ "$console" = "yes" ] && printf_red "$site is down: you appear to not be connected to the internet" >&2
-  exitCode=1
-fi
+#execute
+main "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $exitCode
-
 # end

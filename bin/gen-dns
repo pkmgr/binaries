@@ -42,7 +42,7 @@ fi
 
 EDITOR="${EDITOR:-vim}"
 DNSROOT="$HOME/Documents/dns"
-dnsTemplate="$(cat /usr/local/share/CasjaysDev/scripts/templates/dns-zone.txt)"
+dnsTemplate="$(cat $SCRIPTSFUNCTDIR/templates/dns-zone.txt)"
 
 DOMAIN="$1"
 WWWIP="$2"

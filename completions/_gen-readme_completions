@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# _gen-readme_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for gen-readme
+
+_gen-readme_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gen-readme/array)"
+
+  _init_completion || return
+
+  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# enable completions
+complete -F _gen-readme_completions -o default gen-readme
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

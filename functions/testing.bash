@@ -288,7 +288,7 @@ printf_header() {
   local msg6="$1" && shift 1 || msg6=
   local msg7="$1" && shift 1 || msg7=
   shift
-  [ -z "$msg1" ] || printf " ##################################################\n"
+  [ -z "$msg1" ] || printf "##################################################\n"
   [ -z "$msg1" ] || printf "$msg1\n"
   [ -z "$msg2" ] || printf "$msg2\n"
   [ -z "$msg3" ] || printf "$msg3\n"
@@ -498,6 +498,14 @@ __getphpver() {
 }
 
 ###################### tools ######################
+#to_lowercase "args"
+__to_lowercase() { echo "$@" | tr [A-Z] [a-z]; }
+#to_uppercase "args"
+__to_uppercase() { echo "$@" | tr [a-z] [A-Z]; }
+#strip_ext "Filename"
+__strip_ext() { echo "$@" | sed 's#\..*##g'; }
+#get_full_file "file"
+__get_full_file() { ls -A "$*" 2>/dev/null; }
 #cat file | rmcomments
 __rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 #countwd file
@@ -543,7 +551,7 @@ __ip2hostname() { getent hosts "$1" | awk '{print $2}' | head -n1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
 #count_files "dir"
-__count_files() { __devnull2 find "${1:-./}" -not -path "${1:-./}/.git/*" -mindepth 1 -maxdepth 1 | wc -l; }
+__count_files() { __devnull2 find "${1:-./}" -not -path "${1:-./}/.git/*" -mindepth 1 -maxdepth 1 -type f | wc -l; }
 #count_dir "dir"
 __count_dir() { __devnull2 find "${1:-./}" -mindepth 1 -maxdepth 1 -type d | wc -l; }
 #symlink "file" "dest"
@@ -605,7 +613,7 @@ __curl_upload() { curl -disable -LSsk --connect-timeout 3 --retry 0 --upload-fil
 #curl_api "API URL"
 __curl_api() { curl --disable -LSsk --connect-timeout 3 --retry 0 "https://api.github.com/orgs/$SCRIPTS_PREFIX/repos?per_page=1000"; }
 #urlcheck "url"
-__urlcheck() { curl --disable -k --connect-timeout 2 --retry 0 --retry-delay 0 --output /dev/null --silent --head --fail "$1" && __curl_exit; }
+__urlcheck() { curl --disable -k --connect-timeout 1 --retry 0 --retry-delay 0 --output /dev/null --silent --head --fail "$1" && __curl_exit; }
 #urlverify "url"
 __urlverify() { __urlcheck "$1" || __urlinvalid "$1"; }
 #urlinvalid "url"
@@ -725,7 +733,7 @@ __git_username_repo() {
   fi
 }
 #usage: git_CMD gitdir
-__git_repobase() { basename $(__git_top_dir "${1:-.}") ; }
+__git_repobase() { basename $(__git_top_dir "${1:-.}"); }
 __git_status() { git -C "${1:-.}" status -b -s 2>/dev/null && return 0 || return 1; }
 __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)' 2>/dev/null && return 0 || return 1; }
 __git_pull() { git -C "${1:-.}" pull -q 2>/dev/null && return 0 || return 1; }
