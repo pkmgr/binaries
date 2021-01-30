@@ -637,14 +637,12 @@ __do_not_add_a_url() {
 ###################### git commands ######################
 #git_globaluser
 __git_globaluser() {
-  local me="$(git config --get user.name | grep global || echo "$USER")"
-  local author="$(echo $me | sed 's#global ##g')"
+  local author="$(git config --get user.name || echo "$USER")"
   echo "$author"
 }
 #git_globalemail
 __git_globalemail() {
-  local me="$(git config --get user.email | grep global || echo "$USER"@"$(hostname -s)".local)"
-  local email="$(echo $me | sed 's#global ##g')"
+  local email="$(git config --get user.email || echo "$USER"@"$(hostname -s)".local)"
   echo "$email"
 }
 #git_clone "url" "dir"
