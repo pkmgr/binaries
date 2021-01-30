@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 013020210039-git
+# @Author        : Jason
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @Copyright     : Copyright (c) 2021, Casjays Developments
+# @Created       : Saturday Jan 30, 2021 00:39:26 EST
+# @File          : gen-readme
+# @Description   : create a readme from template
+# @Other         :
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
+
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+#  printf_help "Usage: gen-readme templatename ProjectName tofilename.md"
+#  #exit
+#fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+templateName="${1:-default}"
+projectName="${2:-$(basename $PWD)}"
+fileName="${3:-$PWD/README.md}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+case $templateName in
+
+  *)
+    printf_help "Coming Soon"
+    ;;
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit 1
+# end
