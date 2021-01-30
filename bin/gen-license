@@ -58,7 +58,7 @@ licenseFile="${licenseFile:-wtfpl.md}"
 whichLicense="$(echo "$1" | tr [A-Z] [a-z])"
 gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
 gitconfig_email="${gitconfig_email:-$(__git_globalemail)}"
-__mkd licenseDir
+__mkd "$licenseDir"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 create_local_file() { cat "$1" >"$licDir/LICENSE.md" 2>/dev/null || printf_exit "Failed to get the license file"; }
