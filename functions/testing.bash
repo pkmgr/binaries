@@ -243,14 +243,15 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  #printf_answer "$reply" "$lines" "$readopts"
   read -t 20 -r -n $lines $readopts $reply
+  printf_newline "\n"
   [ -n "$reply" ] || return 1
 }
 
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -e -r -n "${2:-120}" ${3:-} "${1:-REPLY}" && echo ""
+  read -t 10 -e -r -n "${2:-120}" ${3:-} "${1:-REPLY}"
+  printf_newline "\n"
   #history -s "${answer}"
 }
 

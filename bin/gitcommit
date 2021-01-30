@@ -229,9 +229,11 @@ repo="$(__git_fetch_remote $gitdir)"
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
   printf_error "You are not in a git repo"
   printf_read_question "4" "Would you like to turn $gitdir into a git repo? y/N" "1" "makerepo" "-s"
-  if printf_answer_yes $makerepo; then
+  if printf_answer_yes "$makerepo"; then
     gitadmin $gitdir setup
     exit $?
+  else
+    exit
   fi
 fi
 
