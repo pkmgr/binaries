@@ -80,11 +80,13 @@ discover)
 
 status)
   shift 1
+  printf_green "Bluetooth status"
   bluetoothctl info "$DEVICE" | printf_readline "4"
   ;;
 
 *)
   shift
+  printf_green "Paired devices"
   bluetoothctl paired-devices | printf_readline "4"
   ;;
 
