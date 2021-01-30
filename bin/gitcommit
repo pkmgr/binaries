@@ -67,6 +67,18 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$MESSAGE" in
+s | status)
+  shift 1
+  __git_status "$gitdir"
+  exit $?
+  ;;
+
+l | log)
+  shift 1
+  __git_log "$gitdir"
+  exit $?
+  ;;
+
 files)
   shift
   files="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
@@ -256,7 +268,7 @@ setup)
 esac
 
 gitdir="${gitdir:-$(__git_top_dir)}"
-repo="$(__git_fetch_remote $gitdir)"
+repo="$(__git_remote_fetch $gitdir)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
   printf_error "You are not in a git repo"

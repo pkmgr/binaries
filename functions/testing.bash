@@ -686,28 +686,36 @@ __git_update() {
 #git_commit "dir"
 __git_commit() {
   local dir="${1:-.}"
-  if [ ! -d "$dir" ]; then
-    __mkd "$dir"
-    git -C "$dir" init -q
-  fi
-  touch "$dir/README.md"
-  git -C "$dir" add -A .
-  if ! __git_porcelain "$dir"; then
-    git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "2"
+  if __cmd_exists gitcommit; then
+    gitcommit "$dir" "$@"
   else
-    return 0
+    if [ ! -d "$dir" ]; then
+      __mkd "$dir"
+      git -C "$dir" init -q
+    fi
+    touch "$dir/README.md"
+    git -C "$dir" add -A .
+    if ! __git_porcelain "$dir"; then
+      git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "2"
+    else
+      return 0
+    fi
   fi
 }
 #git_init "dir"
 __git_init() {
   local dir="${1:-.}"
-  __mkd "$dir"
-  git -C "$dir" init -q &>/dev/null
-  git -C "$dir" add -A . &>/dev/null
-  if ! __git_porcelain "$dir"; then
-    git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " | printf_readline "2"
+  if __cmd_exists gitadmin; then
+    gitadmin "$dir" setup "$@"
   else
-    return 0
+    __mkd "$dir"
+    git -C "$dir" init -q &>/dev/null
+    git -C "$dir" add -A . &>/dev/null
+    if ! __git_porcelain "$dir"; then
+      git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " | printf_readline "2"
+    else
+      return 0
+    fi
   fi
 }
 #set folder name based on githost
@@ -733,15 +741,16 @@ __git_username_repo() {
   fi
 }
 #usage: git_CMD gitdir
-__git_repobase() { basename $(__git_top_dir "${1:-.}"); }
 __git_status() { git -C "${1:-.}" status -b -s 2>/dev/null && return 0 || return 1; }
 __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)' 2>/dev/null && return 0 || return 1; }
 __git_pull() { git -C "${1:-.}" pull -q 2>/dev/null && return 0 || return 1; }
 __git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null && return 0 || return 1; }
-__git_fetch_remote() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null && return 0 || return 1; }
-__git_porcelain() { __git_porcelain_count "${1:-.}" && return 0 || return 1; }
+__git_remote_fetch() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null && return 0 || return 1; }
 __git_remote_origin() { git -C "${1:-.}" remote show origin 2>/dev/null | grep Push | awk '{print $3}' && return 0 || return 1; }
 __git_porcelain_count() { [ -d "${1:-.}/.git" ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
+__git_porcelain() { __git_porcelain_count "${1:-.}" && return 0 || return 1; }
+__git_repobase() { basename "$(__git_top_dir "${1:-.}")"; }
+
 ###################### crontab functions ######################
 
 __setupcrontab() {

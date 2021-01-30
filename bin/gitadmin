@@ -521,12 +521,14 @@ updater | cron)
 
 s | status)
   shift 1
-  git -C "$REPODIR" status -b -s
+  __git_status "$REPODIR"
+  exit $?
   ;;
 
 l | log)
   shift 1
-  git -C "$REPODIR" log --pretty="%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
+  __git_log "$REPODIR"
+  exit $?
   ;;
 
 commit)
