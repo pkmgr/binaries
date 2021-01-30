@@ -56,7 +56,7 @@ get_prev() { cat "$TEMPDIR/mpdclient_prev" 2>/dev/null; }
 get_next() { cat "$TEMPDIR/mpdclient_next" 2>/dev/null; }
 get_curr() { cat "$TEMPDIR/mpdclient_curr" 2>/dev/null; }
 next() { echo -en "Next: $(get_next || echo Nothing is in the queue)\n"; }
-playtime() { echo -en "Time: $(__mpc status | grep -Fi [ | cut -d' ' -f6)\n"; }
+playtime() { echo -en "Time: $(__mpc status | grep -Fi [ | cut -d' ' -f5,6)\n"; }
 volume() { echo -en "Volume: $(__mpc status | grep -i volume | awk '{print $2}')\n"; }
 stats() { echo -e "$(volume) | $(playtime)"; }
 
@@ -158,8 +158,10 @@ while :; do
   printf_newline "\n"
   printf_green "1. turn notifications on/off"
   printf_green "/. mute/unmute volume"
-  printf_green "+. volume up"
-  printf_green "-. volume down"
+  printf_green "+. volume up +5"
+  printf_green "-. volume down -5"
+  printf_green "]. volume up +1"
+  printf_green "[. volume down -1"
   printf_green "a. toggle"
   printf_green "b. consume"
   printf_green "n. next"
@@ -184,12 +186,22 @@ while :; do
     ;;
   +)
     shift 1
-    __devnull __mpc volume +1
+    __devnull __mpc volume +5
     ;;
   -)
     shift 1
+    __devnull __mpc volume -5
+    ;;
+  ])
+    shift 1
+    __devnull __mpc volume +1
+    ;;
+
+  [)
+    shift 1
     __devnull __mpc volume -1
     ;;
+
   a)
     shift 1
     __devnull __mpc toggle
@@ -228,7 +240,7 @@ while :; do
     clear
     printf_newline "\n\n\n"
     printf_custom "26" "Results for $opts"
-    __mpc "$opts" | printf_readline "3"
+    __mpc "$opts" 2>/dev/null | printf_readline "3"
     printf_read_question "6" "Press enter to continue " "120"
     ;;
   $'\E' | z)
@@ -240,7 +252,7 @@ while :; do
 
   esac
   printf_newline "\n\n"
-  printf_counter "5" "3" "Re-loading menu in"
+  printf_counter "5" "1" "Re-loading menu in"
 done
 clear
 

@@ -243,7 +243,7 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -r -n $lines $readopts $reply
+  read -t 20 -e -r -n $lines $readopts $reply
   printf_newline "\n"
   [ -n "$reply" ] || return 1
 }
