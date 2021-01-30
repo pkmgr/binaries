@@ -55,7 +55,7 @@ __mpc() { mpc -h "${MPDSERVER}" "$@" || return 1; }
 get_prev() { cat "$TEMPDIR/mpdclient_prev" 2>/dev/null; }
 get_next() { cat "$TEMPDIR/mpdclient_next" 2>/dev/null; }
 get_curr() { cat "$TEMPDIR/mpdclient_curr" 2>/dev/null; }
-playtime() { echo -n Time: $(__mpc status | grep playing | cut -d' ' -f5,6); }
+playtime() { echo -n Time: $(__mpc status | grep -Fi [ | cut -d' ' -f6); }
 next() { echo -en "Next: $(get_next || echo Nothing is in the queue)\n"; }
 volume() { echo -en "Volume: $(__mpc status | grep -i volume | awk '{print $2}')\n"; }
 
