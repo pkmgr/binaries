@@ -36,6 +36,19 @@ __options "$@"
 __check_app curl
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# I'm sure there is a better way to do this
+if [ -d "$1" ]; then
+  licDir="$1"
+  shift 1
+elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  licDir="$2"
+  shift 2
+  [ -d "$licDir" ] || printf_exit "$licDir doesn't seem to be a directory"
+else
+  licDir="$PWD"
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-license/settings" ] && . "$HOME/.config/gen-license/settings"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,12 +60,14 @@ gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
 gitconfig_email="${gitconfig_email:-$(__git_globalemail)}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+create_local_file() { cat "$1" >"$licDir/LICENSE.md" 2>/dev/null || printf_exit "Failed to get the license file"; }
+get_remote_file() { __curl "$1" >"$licDir/LICENSE.md" 2>/dev/null || printf_exit "Failed to get the license file"; }
 
 if [ -d "$licenseDir" ] && [ "$(__count_files "$licenseDir")" -ne 0 ]; then
   licenseURL="$licenseDir"
-  get_lic() { cat "$1" >LICENSE.md 2>/dev/null || printf_exit "Failed to get the license file"; }
+  get_lic() { create_local_file "$1"; }
 else
-  get_lic() { __curl "$1" >LICENSE.md 2>/dev/null || printf_exit "Failed to get the license file"; }
+  get_lic() { get_remote_file "$1"; }
 fi
 
 gen_config() {
@@ -69,9 +84,9 @@ EOF
 
 create_new_wtfpl() {
   if [[ "$licenseFile" =~ wtfpl ]]; then
-    [ -f ./LICENSE.md ] && sed -i "s# 2004 # $(date +'%Y') #g" "./LICENSE.md"
-    [ -f ./LICENSE.md ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "./LICENSE.md"
-    [ -f ./LICENSE.md ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "./LICENSE.md"
+    [ -f "$licDir/LICENSE.md" ] && sed -i "s# 2004 # $(date +'%Y') #g" "./LICENSE.md"
+    [ -f "$licDir/LICENSE.md" ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "./LICENSE.md"
+    [ -f "$licDir/LICENSE.md" ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "./LICENSE.md"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -148,6 +163,15 @@ bsd3)
   shift
   printf_green "Using the BSD license"
   get_lic "$licenseURL/gnu-fdl-v1.3.md"
+  ;;
+
+custom)
+  shift
+  if [ -f "$1" ]; then
+    create_local_file "$1"
+  else
+    get_remote_file "$1"
+  fi
   ;;
 
 *)
