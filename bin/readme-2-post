@@ -30,17 +30,13 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ ! -z "$1" ] || [ ! -z "$2" ] || [ ! -z "$3" ] ||
-  printf_help "Usage: readme-2-post Title Content Author"
-
+  printf_help "Usage: readme-2-post Title Author ContentFromFile >/tofilename.md"
+  content="$(<$3)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 echo -e "---
@@ -50,14 +46,14 @@ categories: [blog]
 tags: [readmes]
 date: $(date '+%Y-%m-%d %H:%M')
 comments: true
-author: $3
+author: $2
 ---
 
-$2
+$content
 
 
 ## Author
-👤 **$3**
+👤 **$2**
 ##
 </p>
 "
