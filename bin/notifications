@@ -38,8 +38,10 @@ __options "$@"
 if [ "$(uname -s)" = "Darwin" ]; then
   __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\"" || return; }
 elif [ "$(uname -s)" = "Linux" ]; then
-  __check_app notify-send
+  __cmd_exists notify-send
   __notify_send() { notify-send -u normal -i "notification-message-IM" "$@"; }
+elif __cmd_exists notify-send.sh; then
+  __notify_send() { notify-send.sh -u normal -i "notification-message-IM" "$@"; }
 else
   exit 1
 fi
