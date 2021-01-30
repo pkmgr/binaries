@@ -84,9 +84,9 @@ EOF
 
 create_new_wtfpl() {
   if [[ "$licenseFile" =~ wtfpl ]]; then
-    [ -f "$licDir/LICENSE.md" ] && sed -i "s# 2004 # $(date +'%Y') #g" "./LICENSE.md"
-    [ -f "$licDir/LICENSE.md" ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "./LICENSE.md"
-    [ -f "$licDir/LICENSE.md" ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "./LICENSE.md"
+    [ -f "$licDir/LICENSE.md" ] && sed -i "s# 2004 # $(date +'%Y') #g" "$licDir/LICENSE.md"
+    [ -f "$licDir/LICENSE.md" ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "$licDir/LICENSE.md"
+    [ -f "$licDir/LICENSE.md" ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "$licDir/LICENSE.md"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -99,74 +99,75 @@ list)
   ;;
 
 config)
-  shift
+  shift 1
   printf_green "Generating the config file $HOME/.config/gen-license/settings"
   gen_config >"$HOME/.config/gen-license/settings"
   ;;
 
 download)
-  shift
+  shift 1
   printf_green "Cloning the repo to $licenseDir/files"
   __git_clone "$licenseURL " "$licenseDir/files"
   ;;
 
 wtfpl)
-  shift
-  printf_green "Using the WTFPL license"
+  shift 1
+  printf_green "Using the WTFPL license for $licDir"
   get_lic "$licenseURL/wtfpl.md"
   create_new_wtfpl
   ;;
 
 gpl1)
-  shift
-  printf_green "Using the GPL V1 license"
+  shift 1
+  printf_green "Using the GPL V1 license for $licDir"
   get_lic "$licenseURL/gnu-gpl-v1.0.md"
   ;;
 
 gpl2)
-  shift
-  printf_green "Using the GPL V2 license"
+  shift 1
+  printf_green "Using the GPL V2 license for $licDir"
   get_lic "$licenseURL/gnu-gpl-v2.0.md"
   ;;
 
 gpl3)
-  shift
-  printf_green "Using the GPL V3 license"
+  shift 1
+  printf_green "Using the GPL V3 license for $licDir"
   get_lic "$licenseURL/gnu-gpl-v3.0.md"
   ;;
 
 agpl)
-  shift
-  printf_green "Using the AGPL license"
+  shift 1
+  printf_green "Using the AGPL license for $licDir"
   get_lic "$licenseURL/gnu-agpl-v3.0.md"
   ;;
 
 fdl)
-  shift
-  printf_green "Using the FDL license"
+  shift 1
+  printf_green "Using the FDL license for $licDir"
   get_lic "$licenseURL/gnu-fdl-v1.3.md"
   ;;
 
 mit)
-  shift
-  printf_green "Using the MIT license"
+  shift 1
+  printf_green "Using the MIT license for $licDir"
   get_lic "$licenseURL/mit.md"
   ;;
 
 apache)
-  shift
-  printf_green "Using the Apache license"
+  shift 1
+  printf_green "Using the Apache license for $licDir"
   get_lic "$licenseURL/apache-v2.0.md"
   ;;
 
 bsd3)
-  shift
-  printf_green "Using the BSD license"
+  shift 1
+  printf_green "Using the BSD license for $licDir"
   get_lic "$licenseURL/gnu-fdl-v1.3.md"
   ;;
 
 custom)
-  shift
+  shift 1
+  printf_green "Using the custom license for $licDir"
   if [ -f "$1" ]; then
     create_local_file "$1"
   else
@@ -176,7 +177,7 @@ custom)
 
 *)
   shift
-  printf_green "Using the default license: $licenseFile"
+  printf_green "Using the default license: $licenseFile for $licDir"
   get_lic "$licenseURL/$licenseFile"
   create_new_wtfpl
   ;;
