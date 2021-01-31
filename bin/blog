@@ -116,10 +116,15 @@ __newpage_template() {
 __mkd "$blogdir/_posts" "$blogdir/_pages"
 
 if [ ! -d "$blogdir/.git" ]; then
-  printf_read_question "3" "If you already have a repo enter the url here: " "120" "url" && __git_clone "$url" "$blogdir"
   printf_green "Initializing the repo"
-  __blog_init && $APPNAME page index welcome &&
-    printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
+  printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N]" "1" "Yn" "-s"
+  if printf_answer_yes "Yn"; then
+    printf_read_question "3" "If you already have a repo enter the url here: " "120" "url"
+    __git_clone "$url" "$blogdir"
+  else
+    __blog_init && $APPNAME page index welcome
+  fi
+  printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
 fi
 
 case "$1" in
