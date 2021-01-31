@@ -90,7 +90,7 @@ main() {
   ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
 }
 
-__local_cron_add() { __setupcrontab "0 0 1 * *" "$APPNAME $1 $2 >/dev/null 2>&1"; }
+__local_cron_add() { __setupcrontab "${3:-0 0 1 * *}" "$APPNAME $1 $2 >/dev/null 2>&1"; }
 __local_cron_del() { __removecrontab "$APPNAME $1 $2"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,14 +111,15 @@ case "$1" in
   *add)
     shift 1
     if [ $# -eq 2 ]; then
-      __local_cron_add "$1" "$2"
-      if [ "$(crontab -l | grep -F "$1" "$2" 2>/dev/null)" ]; then
-        printf_green "$1 $2 has been added to your cron jobs"
-      else
-        printf_red "failed to add $1 $2"
-      fi
+      __local_cron_add "$1" "$2" "$3"
+      #if [ "$(crontab -l | grep -q "$1 $2" 2>/dev/null)" ]; then
+      printf_green "$1 $2 has been added to your cron jobs"
+      #else
+      #  printf_red "failed to add $1 $2"
+      #fi
     else
-      printf_help 'Usage: '$APPNAME' cron --add "Backupname" "BackupDir"'
+      printf_custom "4" 'Usage: '$APPNAME' cron --add "Backupname" "BackupDir" "Frequency"'
+      printf_custom "4" 'Example: '$APPNAME' cron --add "Documents" "~/Documents" "0 0 * * *"'
     fi
     exit $?
     ;;
@@ -126,9 +127,11 @@ case "$1" in
     shift 1
     if [ $# -eq 2 ]; then
       __local_cron_del "$1" "$2"
-      if [ "$(crontab -l | grep -F "$1" "$2" 2>/dev/null)" ]; then
-        printf_green "$1 $2 has been removed from your cron jobs"
-      fi
+      #if [ "$(crontab -l | grep -qv "$1 $2" 2>/dev/null)" ]; then
+      printf_green "$1 $2 has been removed from your cron jobs"
+      #else
+      #  printf_red "failed to delete $1 $2"
+      #fi
     else
       printf_help 'Usage: '$APPNAME' cron --del "Backupname" "BackupDir"'
     fi

@@ -798,7 +798,7 @@ __addtocrontab() {
   local frequency="$1"
   local command="am_i_online && sleep $(expr $RANDOM \% 300) && $2"
   local job="$frequency $command"
-  cat <(grep -F -i -v "$2" <(crontab -l)) <(echo "$job") | __devnull2 crontab -
+  cat <(grep -F -i -v "$2" <(crontab -l)) <(echo "$job") | crontab - >/dev/null 2>&1
   return $?
 }
 
