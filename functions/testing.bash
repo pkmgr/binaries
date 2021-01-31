@@ -715,7 +715,7 @@ __git_init() {
   [ -d "$1" ] && local dir="$1" && shift 1 || local dir="$(dirname $PWD/.)"
   if __cmd_exists gitadmin; then
     if [ -d "$2" ]; then shift 1; fi
-    gitadmin "$dir" setup "$@"
+    gitadmin "$dir" setup
   else
     set --
     __mkd "$dir"
