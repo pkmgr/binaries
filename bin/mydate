@@ -56,6 +56,15 @@ setverfile)
   date +"%m%d%Y%H%M-git" >version.txt
   ;;
 
+custom)
+  shift 1
+  date +"$*"
+  ;;
+
+*)
+  date +"%m%d%Y%H%M-git"
+  ;;
+
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
