@@ -54,9 +54,11 @@ __run_bg() {
   __mkd "${notifyDir}"
   while :; do
     for f in $notifyDir/*; do
-      title="$(cat $f | awk '{print $1}')"
-      message="$(cat $f | sed 's#'$(cat $f | awk '{print $1}')' ##g')"
-      [ -f "$f" ] && notifications "$title" "$message"
+      if [ -f "$f" ]; then
+        title="$(cat $f | awk '{print $1}' 2>/dev/null)"
+        message="$(cat $f | sed 's#'$(cat $f | awk '{print $1}')' ##g' 2>/dev/null)"
+        notifications "$title" "$message"
+      fi
       rm -Rf "$f"
       sleep 30
       [ -f "$notifyDir/kill" ] && break
