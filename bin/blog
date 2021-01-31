@@ -34,10 +34,11 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/blog/settings" ] && . "$HOME/.config/blog/settings"
+blogdir="${BLOG_DIR:-$blogdir:-$HOME/.local/share/blog}"
 vimoptions="${vimoptions:--c ":setlocal ft=notes syntax=markdown"}"
-blogdir="${blogdir:-$HOME/.local/share/blog}"
 EDITOR="$EDITOR"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "-c" ]; then
   shift 1
   if [ "$1" = "default" ] || [ -z "$1" ]; then
@@ -59,9 +60,9 @@ __blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
 __config() {
   cat <<EOF >"$HOME/.config/blog/${name}"
 # Settings for $APPNAME
-blogdir="${BLOG_DIR:-$blogdir}"
-vimoptions="$vimoptions"
-EDITOR="$EDITOR"
+blogdir="${blogdir}"
+vimoptions="${vimoptions}"
+EDITOR="${EDITOR}"
 EOF
 }
 
