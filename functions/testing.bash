@@ -250,7 +250,7 @@ printf_read_question() {
 
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -e -r -n "${2:-120}" ${3:-} "${1:-REPLY}"
+  read -t 10 -e -r -n "${2:-120}" ${3} "${1:-REPLY}"
   printf_newline "\n"
   #history -s "${answer}"
 }
