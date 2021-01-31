@@ -150,7 +150,7 @@ _debug() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
-__nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE"; }
+__nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE" || return 1; }
 __notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${1:-$NOTES_PATH}" &>/dev/null; }
 __dedupe() { cat "$1" | grep -v "$2"; }
 
@@ -230,11 +230,14 @@ __client() {
 case "$1" in
 server | service)
   if [ "$2" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
-  if [ "$2" = "--status" ]; then shift 1 && netstatg "$_PORT" 2>/dev/null; fi
+  if [ "$2" = "--status" ]; then
+    shift 1 && netstatg "$NOTES_SERVER_PORT" 2>/dev/null
+    exit 0
+  fi
   if [ "$2" = "--kill" ]; then
     printf_exit "Starting shutdown"
     shift 1 && touch $NOTES_TMPDIR/kill_notes >/dev/null 2>&1
-    kill -s 9 "$(netstatg $_PORT | awk '{print $7}' | head -n 1 | sed 's#/.*##g')" || true
+    kill -s 9 "$(netstatg $NOTES_SERVER_PORT | awk '{print $7}' | head -n 1 | sed 's#/.*##g')" || true
   fi
   # begin systemd
   case "$2" in

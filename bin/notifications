@@ -47,6 +47,28 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+__run_bg() {
+  local notifyDir="${TMP:-/tmp}/notify/process"
+  [ -f "$notifyDir/kill" ] && __rm_rf $notifyDir/kill
+  notifications "$APPNAME" "Starting server: to stop make the file $notifyDir/kill"
+  __mkd "${notifyDir}"
+  while :; do
+    for f in $notifyDir/*; do
+      title="$(cat $f | awk '{print $1}')"
+      message="$(cat $f | sed 's#'$(cat $f | awk '{print $1}')' ##g')"
+      [ -f "$f" ] && notifications "$title" "$message"
+      rm -Rf "$f"
+      sleep 30
+      [ -f "$notifyDir/kill" ] && break
+    done
+    if [ -f "$notifyDir/kill" ]; then
+      __rm_rf "$notifyDir"/*
+      notifications "$APPNAME" "Stopping server"
+      break
+    fi
+  done
+}
+
 __notifications() {
   if [ ${#} -eq 0 ]; then
     local title="Message from stdin"
@@ -106,6 +128,11 @@ __notifications_all() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+if [ "$1" = "--bg" ]; then
+  shift 1
+  __run_bg
+fi
 
 if [ "$1" = "--all" ]; then
   shift 1
