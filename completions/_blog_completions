@@ -8,7 +8,7 @@
 _blog_completions() {
   local cur prev words cword split
   local BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blog}"
-  ARRAY="new page post edit config --help"
+  ARRAY="new page post edit config -c --help"
   _init_completion || return
 
   list_all() {
@@ -46,6 +46,12 @@ _blog_completions() {
   # relevant options completion
 
   case $prev in
+  -c)
+    shift 1
+    COMPREPLY=($(compgen -W '$(ls ~/.config/blog/)' -- "$cur"))
+    return
+    ;;
+
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     ;;
