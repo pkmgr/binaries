@@ -176,7 +176,7 @@ __server() {
   echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
   rm -Rf $NOTES_TMPDIR/kill_notes
   while :; do
-    $netcat -l -p $_PORT >"$_PATH" || break
+    $netcat -l -p $_PORT >"$_PATH"
     cat $_PATH >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE"
     [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}"
     if [ -f $NOTES_TMPDIR/kill_notes ]; then
@@ -195,13 +195,13 @@ __run_service() {
   local _PATH="${NOTES_TMP_FILE}"
   local NOTES_NOTIFY=${NOTES_NOTIFY:-yes}
   local DISPLAY="${DISPLAY:-:0.0}"
-  kill -s 9 "$(netstatg $_PORT | awk '{print $7}' | head -n 1 | sed 's#/.*##g')" || true
+  kill -s KILL "$(netstatg $_PORT | awk '{print $7}' | head -n 1 | sed 's#/.*##g')" || true
   echo "Launching server on port $_PORT"
   echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
   rm -Rf "$NOTES_TMPDIR/kill_notes"
   while :; do
     rm -Rf "$_PATH"
-    $netcat -l -p "$_PORT" >"$_PATH" || break
+    $netcat -l -p "$_PORT" >"$_PATH"
     cat "$_PATH" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE"
     echo "New note: $(cat $_PATH) in ${NOTES_PATH}"
     [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" && echo "notification sent"
