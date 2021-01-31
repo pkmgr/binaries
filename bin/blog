@@ -33,17 +33,39 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-vimoptions='-c ":setlocal ft=notes syntax=markdown"'
-blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
-__mkd "$blogdir/_posts" "$blogdir/_pages"
+[ -f "$HOME/.config/blog/settings" ] && . "$HOME/.config/blog/settings"
+vimoptions="${vimoptions:--c ":setlocal ft=notes syntax=markdown"}"
+blogdir="${blogdir:-$HOME/.local/share/blog}"
+EDITOR="$EDITOR"
 
+if [ "$1" = "-c" ]; then
+  shift 1
+  if [ "$1" = "default" ] || [ -z "$1" ]; then
+    conf="settings"
+  else
+    conf="$1"
+  fi
+  [ -f "$HOME/.config/blog/$conf" ] && . "$HOME/.config/blog/$conf"
+  shift 1
+  unset conf
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_init() { [ -d "$blogdir/.git" ] || __git_init "$blogdir"; }
 __blog_publish() { __cmd_exists gitcommit && gitcommit "$blogdir" "blog" "$*" || __git_commit "$blogdir" "${*:-Modified my blog}"; }
 __blog_site() { __git_remote_origin "$blogdir"; }
 __blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__config() {
+  cat <<EOF >"$HOME/.config/blog/${name}"
+# Settings for $APPNAME
+blogdir="${BLOG_DIR:-$blogdir}"
+vimoptions="$vimoptions"
+EDITOR="$EDITOR"
+EOF
+}
 
-__git_message() { [ -f "$1" ] && message="Modified $file" || message="Added $file"; }
+__git_message() { [ -f "$1" ] && message="Modified: $file" || message="Added: $file"; }
 
 __edit() {
   WDIR="$blogdir"
@@ -91,6 +113,8 @@ __newpage_template() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+__mkd "$blogdir/_posts" "$blogdir/_pages"
+
 if [ ! -d "$blogdir/.git" ]; then
   printf_green "Initializing the repo"
   __blog_init && $APPNAME page index welcome &&
@@ -98,12 +122,21 @@ if [ ! -d "$blogdir/.git" ]; then
 fi
 
 case "$1" in
+config)
+  shift 1
+  name="${1:-settings}"
+  printf_green "Generating the config and saving it to: $HOME/.config/blog/$name"
+  __mkd "$HOME/.config/blog"
+  __config "$name" && exit || printf_exit "Failed"
+  ;;
+
 new)
   shift 1
   title="${1:-welcome}" && shift 1
   date="$(date +"%Y-%m-%d")"
   edit="$(echo $date-$title | __sed 's# #_#g')"
   file="$blogdir/_posts/$edit.md"
+  [ -d "$blogdir/_posts" ] || __mkd "$blogdir/_posts"
   __blog_post_header >"$file"
   __edit "$file"
   __blog_init "$blogdir"
@@ -137,7 +170,7 @@ esac
 
 set --
 __blog_publish "$message"
-
+printf_newline "\n\n"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

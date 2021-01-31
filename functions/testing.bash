@@ -904,6 +904,7 @@ __run_prog_menus() {
 }
 
 __edit_menu() {
+  local EDITOR="$EDITOR"
   [ -f "$1" ] && local file="$1" && shift 1 || local file="$file"
   [ -d "$1" ] && local dir="$1" && shift 1 || local dir="${WDIR:-$HOME}"
   if __cmd_exists dialog; then
@@ -916,10 +917,11 @@ __edit_menu() {
 }
 ##################### editor functions ####################
 __editor() {
-  if __cmd_exists myeditor; then
+  local EDITOR="$EDITOR"
+  if [ -n "$EDITOR" ]; then
+    $EDITOR "$@"
+  elif __cmd_exists myeditor; then
     myeditor "$@"
-  elif [ -n "$EDITOR" ]; then
-    "$EDITOR" "$@"
   elif __cmd_exists vim; then
     local vimoptions="$vimoptions"
     __vim ${vimoptions:-} "$@"
@@ -1096,8 +1098,8 @@ __getexitcode() {
 }
 #return "code" "message 1" "message 2"
 __return() {
-  clear
-  printf_newline "\n\n\n\n\n\n\n"
+  #clear
+  printf_newline "\n"
   if [ -n "$2" ]; then printf_red "$2"; fi
   if [ -n "$3" ]; then printf_red "$3"; fi
   return "$1"
