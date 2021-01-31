@@ -37,8 +37,11 @@ __options "$@"
 # list processes
 
 [ "$1" = "" ] && printf_help "Usage: pslist processname"
-
-pid="$(ps -aux | grep "$1" | grep -v $APPNAME | awk '{print $2}' | head -n1)"
+if [ "$1" = "--all" ]; then
+  pid="$(pidof | grep $1 | grep -v $APPNAME)"
+else
+  pid="$(ps -aux | grep "$1" | grep -v $APPNAME | awk '{print $2}' | head -n1)"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
