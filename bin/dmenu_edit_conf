@@ -119,9 +119,5 @@ esac
 if [ -f "$editConfig" ]; then
   myeditor "$editConfig"
 else
-  if __cmd_exists notifications; then
-    notifications "$APPNAME" "Can not find the file: $editConfig"
-  else
-    printf_exit "Can not find the file: $editConfig"
-  fi
+  notifications "$APPNAME" "Can not find the file: $editConfig" || printf_exit "Can not find the file: $editConfig"
 fi
