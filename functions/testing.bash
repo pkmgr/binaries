@@ -252,7 +252,7 @@ printf_answer() {
   read -t 10 -e -r -n 1 -s "${1:-REPLY}" || return 1
   #history -s "${answer}"
 }
-
+__echo_return() { echo "" && return "$1"; }
 printf_answer_yes() { [[ "${1:-REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
 
 printf_head() {
@@ -663,7 +663,7 @@ __git_clone() {
   [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
   __git_username_repo "$1"
   local repo="$1"
-  [ -n "$2" ] && local dir="$2" || local dir="${APPDIR:-.}"
+  [ -z "$2" ] && local dir="${APPDIR:-.}" || local dir="$2" && shift 1
   if [ -d "$dir/.git" ]; then
     __git_update "$dir" || return 1
   else
@@ -676,7 +676,7 @@ __git_clone() {
 }
 #git_pull "dir"
 __git_update() {
-  [ -n "$1" ] && local dir="$1" || local dir="${APPDIR:-.}"
+  [ -z "$1" ] && local dir="${APPDIR:-.}" || local dir="$1" && shift 1
   local repo="$(git -C "$dir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
   local appname="${APPNAME:-$(basename $dir)}"
   git -C "$dir" reset --hard || return 1
@@ -690,13 +690,13 @@ __git_update() {
 }
 #git_commit "dir"
 __git_commit() {
-  [ -d "$1" ] && local dir="$1" && shift 1 || local dir="$(dirname $PWD/.)"
-  local mess="$*"
+  [ -z "$1" ] && local dir="${APPDIR:-.}" || local dir="$1" && shift 1
   if __cmd_exists gitcommit; then
     if [ -d "$2" ]; then shift 1; fi
+    local mess="${*}"
     gitcommit "$dir" "$mess"
   else
-    set --
+    local mess="${1}"
     if [ ! -d "$dir" ]; then
       __mkd "$dir"
       git -C "$dir" init -q
@@ -712,9 +712,10 @@ __git_commit() {
 }
 #git_init "dir"
 __git_init() {
-  [ -d "$1" ] && local dir="$1" && shift 1 || local dir="$(dirname $PWD/.)"
+  [ -z "$1" ] && local dir="${APPDIR:-.}" || local dir="$1" && shift 1
   if __cmd_exists gitadmin; then
     if [ -d "$2" ]; then shift 1; fi
+    set --
     gitadmin "$dir" setup
   else
     set --

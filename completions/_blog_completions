@@ -33,7 +33,7 @@ _blog_completions() {
     case $special in
     edit)
       k=0
-      i="$BLOG_DIR/*"
+      i="$BLOG_DIR/_{posts,pages}/*"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -47,11 +47,9 @@ _blog_completions() {
 
   case $prev in
   -c)
-    shift 1
     COMPREPLY=($(compgen -W '$(ls ~/.config/blog/)' -- "$cur"))
     return
     ;;
-
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     ;;

@@ -33,26 +33,29 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/blog/settings" ] && . "$HOME/.config/blog/settings"
-blogdir="${BLOG_DIR:-$blogdir:-$HOME/.local/share/blog}"
-vimoptions="${vimoptions:--c ":setlocal ft=notes syntax=markdown"}"
+BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blog}"
 EDITOR="$EDITOR"
+blogdir="${BLOG_DIR:-$blogdir}"
+vimoptions="${vimoptions:-"-c ':setlocal ft=notes syntax=markdown'"}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/blog/settings" ] && . "$HOME/.config/blog/settings"
+
 if [ "$1" = "-c" ]; then
   shift 1
   if [ "$1" = "default" ] || [ -z "$1" ]; then
     conf="settings"
   else
     conf="$1"
+    shift 1
   fi
   [ -f "$HOME/.config/blog/$conf" ] && . "$HOME/.config/blog/$conf"
-  shift 1
   unset conf
+  [ -n "$blogdir" ] || printf_exit 1 1 "Failed to load $conf"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__blog_init() { [ -d "$blogdir/.git" ] || __git_init "$blogdir"; }
+__blog_init() { [ -d "${blogdir}/.git" ] || __git_init "${blogdir}"; }
 __blog_publish() { __cmd_exists gitcommit && gitcommit "$blogdir" "blog" "$*" || __git_commit "$blogdir" "${*:-Modified my blog}"; }
 __blog_site() { __git_remote_origin "$blogdir"; }
 __blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
@@ -60,17 +63,35 @@ __blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
 __config() {
   cat <<EOF >"$HOME/.config/blog/${name}"
 # Settings for $APPNAME
-blogdir="${blogdir}"
-vimoptions="${vimoptions}"
-EDITOR="${EDITOR}"
+unset blogdir vimoptions EDITOR
+blogdir="${curblogdir}"
+vimoptions="${curvimoptions}"
+EDITOR="${curEDITOR}"
 EOF
 }
 
 __git_message() { [ -f "$1" ] && message="Modified: $file" || message="Added: $file"; }
 
 __edit() {
-  WDIR="$blogdir"
+  unset WDIR
+  export WDIR="$blogdir"
   __edit_menu "$@" || printf_exit 1 1 "Please enter the full path of the file"
+}
+
+__init() {
+  local blogdir="${1:-blogdir}"
+  if [ ! -d "$blogdir/.git" ]; then
+    printf_green "Initializing the repo"
+    printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo"
+    if printf_answer_yes "$YesNo"; then
+      printf_read_question "3" "Enter the url: " "120" "url"
+      __git_clone "$url" "$blogdir"
+    else
+      __mkd "$blogdir/_posts" "$blogdir/_pages"
+      __blog_init "$blogdir" && $APPNAME page index welcome
+    fi
+    printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
+  fi
 }
 
 __blog_post_header() {
@@ -113,29 +134,24 @@ __newpage_template() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__init "$blogdir"
 
-if [ ! -d "$blogdir/.git" ]; then
-  printf_green "Initializing the repo"
-  printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo"
-  if printf_answer_yes "$YesNo"; then
-    printf_read_question "3" "Enter the url: " "120" "url"
-    __git_clone "$url" "$blogdir"
-  else
-    __blog_init && $APPNAME page index welcome
-  fi
-  printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
-fi
-
-__mkd "$blogdir/_posts" "$blogdir/_pages"
+[ -d "$blogdir/_posts" ] || __mkd "$blogdir/_posts"
+[ -d "$blogdir/_pages" ] || __mkd "$blogdir/_pages"
 
 case "$1" in
 config)
   shift 1
-  name="${1:-settings}"
   printf_green "Generating the config and saving it to:"
   printf_green "$HOME/.config/blog/$name"
+  name="${1:-settings}"
+  blogdir="${2:-$blogdir}"
+  curvimoptions="$vimoptions"
+  curEDITOR="$EDITOR"
+  curblogdir="$blogdir"
   __mkd "$HOME/.config/blog"
-  __config "$name" && exit || printf_exit "Failed"
+  __config "$name" "$curblogdir" || printf_exit "Failed"
+  __init "$curblogdir"
   ;;
 
 new)

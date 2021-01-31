@@ -139,19 +139,16 @@ do_not_add_a_url() {
 run_git_init() {
   REPODIR="${1:-$REPODIR}"
   if [ ! -z "$repo" ]; then
-    git -C ${REPODIR} remote add origin "$repo"
+    git -C "${REPODIR}" remote add origin $repo
     printf_green "$repo has been added"
-    printf_question "Should I push to the new repo? [y/n]"
-    read -r -n 1 push && echo
-    if [[ "$push" == "y" || "$push" == "Y" ]]; then
-      printf_question "This will overwrite the repo if it exists. Continue? [y/n]"
-      read -r -n 1 confirm_repo && echo
-      if [[ "$confirm_repo" == "y" || "$confirm_repo" == "Y" ]]; then
-        if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
-        __devnull git -C ${REPODIR} push -q --set-upstream origin master -f &&
-          __devnull git -C ${REPODIR} push -q -f &&
-          printf_green "Successfully pushed to $repo" ||
-          printf_red "Push to $repo has failed"
+    printf_read_question "3" "Should I push to the new repo? [y/n]" "1" "push" "-s"
+    if printf_answer_yes "$push"; then
+      printf_read_question "3" "This will overwrite the repo if it exists. Continue? [y/n]" "1" "confirm_repo" "-s"
+      if printf_answer_yes "$confirm_repo"; then
+        if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}gitmasterconfig" "${REPODIR}/.git/config"; fi
+        __devnull git -C "${REPODIR}" push -q --set-upstream origin master -f &&
+          __devnull git -C "${REPODIR}" push -q -f &&
+          printf_green "Successfully pushed to $repo" || printf_red "Push to $repo has failed"
       else
         printf_info "Not pushing due to user canceling"
       fi
@@ -165,16 +162,15 @@ run_git_init() {
 # Setup a new git repo
 run_git_setup() {
   REPODIR="${1:-$REPODIR}"
-  if [ -d "${REPODIR}/.git" ]; then
-    PREVREPO="$(git -C "${REPODIR}" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
+  if [ -d ./.git ]; then
+    PREVREPO="$(git remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
     printf_error "This project already has git setup"
     if [ ! -z "$PREVREPO" ]; then
       printf_info "Repo is: $PREVREPO"
     fi
-    printf_question "Should I continue to reset this repo? [y/n]"
-    read -r -n 1 continue && echo ""
-    if [[ $continue == "y" || $continue == "Y" ]]; then
-      rm -Rf "${REPODIR}/.git"
+    printf_read_question "3" "Should I continue to reset this repo? [y/n]" "1" "continue" "-s"
+    if printf_answer_yes "$continue"; then
+      rm -Rf ${REPODIR}/.git
     else
       printf_red "Initialization has failed due to user"
       exit 1
@@ -190,22 +186,19 @@ run_git_setup() {
     printf_green "Success: $(__git_repobase "$REPODIR") has been initialized"
 
   if [ ! -z "$PREVREPO" ]; then
-    printf_question "Should I reuse the remote repo? [y/n]"
-    read -r -n 1 reuse && echo
+    printf_read_question "3" "Should I reuse the remote repo? [y/n] " "1" "reuse" "-s"
   else
     PREVREPO=""
     repo=""
   fi
-  if [[ $reuse == "y" || $reuse == "Y" ]]; then
+  if printf_answer_yes "$reuse"; then
     remote="y"
     repo="$PREVREPO"
     run_git_init "$REPODIR"
   else
-    printf_question "Should I add a remote repo? [y/n]"
-    read -r -n 1 remote && echo
-    if [[ $remote == "y" || $remote == "Y" ]]; then
-      printf_custom_question "3" "Enter remote repo: "
-      read -r repo
+    printf_read_question "3" "Should I add a remote repo? [y/n] " "1" "remote" "-s"
+    if printf_answer_yes "$remote"; then
+      printf_read_question "3" "Enter remote repo: " "120" "repo"
       run_git_init "$REPODIR"
     else
       printf_info "You have decided not to add a remote repository"
@@ -224,6 +217,7 @@ run_git_setup() {
 run_git_setup_automated() {
   REPODIR="${1:-$REPODIR}"
   PREVREPO="$(git -C "${REPODIR}" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
+  [ -d "$REPODIR" ] || __mkd "$REPODIR"
   if [ ! -d "${REPODIR}/.git" ]; then
     printf_red "This does not seem to be a git repo"
     exit 1
