@@ -483,7 +483,7 @@ __requires() {
     __cmd_exists "$cmd" || local CMD+="$cmd"
   done
   [ -n "$CMD" ] && __require_app "$CMD"
-  [ "$?" -eq 0 ] return 0 || exit 1
+  [ "$?" -eq 0 ] && return 0 || exit 1
 }
 ###################### get versions ######################
 __getpythonver() {
