@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# _dmenu_edit_conf_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for dmenu_edit_conf
+
+_dmenu_edit_conf_completions() {
+  local cur prev words cword
+  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dmenu_edit_conf/array)"
+  _init_completion || return
+
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    return
+    ;;
+
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _dmenu_edit_conf_completions -o default dmenu_edit_conf
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
