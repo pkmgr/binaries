@@ -685,11 +685,13 @@ __git_update() {
 }
 #git_commit "dir"
 __git_commit() {
-  local dir="${1:-.}"
+  [ -d "$1" ] && local dir="$1" && shift 1 || local dir="$(dirname $PWD/.)"
+  local mess="$*"
   if __cmd_exists gitcommit; then
-    [ -d "$2" ] && shift 1
-    gitcommit "$dir" "$@"
+    if [ -d "$2" ]; then shift 1; fi
+    gitcommit "$dir" "$mess"
   else
+    set --
     if [ ! -d "$dir" ]; then
       __mkd "$dir"
       git -C "$dir" init -q
@@ -697,7 +699,7 @@ __git_commit() {
     touch "$dir/README.md"
     git -C "$dir" add -A .
     if ! __git_porcelain "$dir"; then
-      git -C "$dir" commit -q -m "${2:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "2"
+      git -C "$dir" commit -q -m "${mess:-🏠🐜❗ Updated Files 🏠🐜❗}" | printf_readline "2"
     else
       return 0
     fi
@@ -705,11 +707,12 @@ __git_commit() {
 }
 #git_init "dir"
 __git_init() {
-  local dir="${1:-.}"
+  [ -d "$1" ] && local dir="$1" && shift 1 || local dir="$(dirname $PWD/.)"
   if __cmd_exists gitadmin; then
-    [ -d "$2" ] && shift 1
+    if [ -d "$2" ]; then shift 1; fi
     gitadmin "$dir" setup "$@"
   else
+    set --
     __mkd "$dir"
     git -C "$dir" init -q &>/dev/null
     git -C "$dir" add -A . &>/dev/null
@@ -900,6 +903,34 @@ __run_prog_menus() {
   fi
 }
 
+__edit_menu() {
+  [ -f "$1" ] && local file="$1" && shift 1 || local file="$file"
+  [ -d "$1" ] && local dir="$1" && shift 1 || local dir="${WDIR:-$HOME}"
+  if __cmd_exists dialog; then
+    [ -n "$file" ] || file=$(dialog --title "Play a file" --stdout --title "Please choose a file to edit" --fselect "$dir/" 20 80 || __return 1)
+    [ ! -f "$file" ] || __editor "$file" && __return 0 || __return 1 "Can not open file" "$file does not exists"
+  else
+    [ ! -f "$file" ] || __editor "$file" && __return 0 || __return 1 "Can not open file" "$file does not exists"
+  fi
+  __returnexitcode $?
+}
+##################### editor functions ####################
+__editor() {
+  if __cmd_exists myeditor; then
+    myeditor "$@"
+  elif [ -n "$EDITOR" ]; then
+    "$EDITOR" "$@"
+  elif __cmd_exists vim; then
+    local vimoptions="$vimoptions"
+    __vim ${vimoptions:-} "$@"
+  elif __cmd_exists nano; then
+    local nanooptions="$nanooptions"
+    nano ${nanooptions:-} "$@"
+  else
+    printf_exit 1 1 "Can not open file: Please set the variable EDITOR=myeditor"
+  fi
+  return $?
+}
 ##################### sudo functions ####################
 __sudo() { sudo "$@"; }
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null && return 0 || return 1; }
@@ -1062,6 +1093,14 @@ __getexitcode() {
   fi
   __returnexitcode "$EXITCODE"
   return "$EXITCODE"
+}
+#return "code" "message 1" "message 2"
+__return() {
+  clear
+  printf_newline "\n\n\n\n\n\n\n"
+  if [ -n "$2" ]; then printf_red "$2"; fi
+  if [ -n "$3" ]; then printf_red "$3"; fi
+  return "$1"
 }
 ###################### OS Functions ######################
 #alternative names

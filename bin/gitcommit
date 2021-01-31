@@ -212,17 +212,22 @@ python)
 
 scratchpad)
   shift 1
-  mess="🐜📓❇📓 Modified my scratchpad 📓❇📓🐜 "
+  mess="🐜📓❇📓 ${1:-Modified my scratchpad} 📓❇📓🐜 "
   ;;
 
 todo)
   shift 1
-  mess="🐜📓❇📓 Modified my todo list 📓❇📓🐜 "
+  mess="🐜📓❇📓 ${1:-Modified my todo list} 📓❇📓🐜 "
   ;;
 
 notes)
   shift 1
-  mess="🐜📓❇📓 Modified my notes 📓❇📓🐜 "
+  mess="🐜📓❇📓 ${1:-Modified my notes} 📓❇📓🐜 "
+  ;;
+
+blog)
+  shift 1
+  mess="🐜📓❇📓 ${1:-New blog post} 📓❇📓🐜 "
   ;;
 
 init)

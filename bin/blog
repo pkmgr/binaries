@@ -33,14 +33,22 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+vimoptions='-c ":setlocal ft=notes syntax=markdown"'
 blogdir="${BLOG_DIR:-$HOME/.local/share/blog}"
 __mkd "$blogdir/_posts" "$blogdir/_pages"
 
-__blog_init() { __git_init "$blogdir"; }
-__blog_publish() { __git_commit "$blogdir"; }
+__blog_init() { [ -d "$blogdir/.git" ] || __git_init "$blogdir"; }
+__blog_publish() { __cmd_exists gitcommit && gitcommit "$blogdir" "blog" "$*" || __git_commit "$blogdir" "${*:-Modified my blog}"; }
 __blog_site() { __git_remote_origin "$blogdir"; }
 __blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__git_message() { [ -f "$1" ] && message="Modified $file" || message="Added $file"; }
+
+__edit() {
+  WDIR="$blogdir"
+  __edit_menu "$@" || printf_exit 1 1 "Please enter the full path of the file"
+}
 
 __blog_post_header() {
   cat "$SCRIPTSFUNCTDIR/templates/blog/post.md" |
@@ -64,7 +72,8 @@ __newpost_template() {
     local edit="$(echo $date-$title | __sed 's# #_#g')"
     local file="$blogdir/_posts/$edit.md"
     __blog_post_header >"$file"
-    __vim -c ":setlocal ft=notes syntax=markdown" "$file"
+    __edit "$file"
+    __git_message "$file"
   else
     printf_red "There is no blog directory"
   fi
@@ -76,17 +85,16 @@ __newpage_template() {
   if [ ! -f "$file" ]; then
     __blog_page_header >"$file"
   fi
-  __vim -c ":setlocal ft=notes syntax=markdown" "$file"
+  __edit "$file"
+  __git_message "$file"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ ! -d "$blogdir/.git" ]; then
-  shift
   printf_green "Initializing the repo"
   __blog_init && $APPNAME page index welcome &&
-    printf_green "Your new blogging site has been setup" &&
-    exit 0 || printf_exit "Failed to initialize $blogdir"
+    printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
 fi
 
 case "$1" in
@@ -97,9 +105,17 @@ new)
   edit="$(echo $date-$title | __sed 's# #_#g')"
   file="$blogdir/_posts/$edit.md"
   __blog_post_header >"$file"
-  __vim "$file"
+  __edit "$file"
   __blog_init "$blogdir"
+  __git_message "$file"
   ;;
+
+edit)
+  shift 1
+  __edit "$@"
+  __git_message "$file"
+  ;;
+
 page)
   shift 1
   [ -z "${1}" ] && printf_red "Please enter the filename" && exit 1
@@ -113,21 +129,14 @@ post)
   __newpost_template "$@"
   ;;
 
-edit)
-  shift 1
-  [ -z "${1}" ] && printf_red "Please enter the full path of the file" && exit 1
-  edit="${1}"
-  file="$edit"
-  __vim "$file"
-  ;;
-
 *)
   shift 1
   __help
   ;;
 esac
 
-__blog_publish "$blogdir"
+set --
+__blog_publish "$message"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
