@@ -117,8 +117,8 @@ __mkd "$blogdir/_posts" "$blogdir/_pages"
 
 if [ ! -d "$blogdir/.git" ]; then
   printf_green "Initializing the repo"
-  printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N]" "1" "yesno" "-s"
-  if printf_answer_yes "yesno"; then
+  printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N]" "1"
+  if printf_answer_yes; then
     printf_read_question "3" "Enter the url: " "120" "url"
     __git_clone "$url" "$blogdir"
   else
