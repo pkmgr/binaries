@@ -145,7 +145,7 @@ printf_blue() { printf_color "\t\t$1\n" 4; }
 printf_cyan() { printf_color "\t\t$1\n" 6; }
 printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
-printf_error() { printf_color "\n\t\t$ICON_ERROR $1 $2\n" 1; }
+printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
 printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
 printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
@@ -247,11 +247,24 @@ printf_read_question() {
   [ -n "$reply" ] || return 1
 }
 
+#printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
+printf_read_question_nt() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local msg="$1" && shift 1
+  test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
+  reply="${1:-REPLY}" && shift 1
+  readopts=${1:-} && shift 1
+  printf_color "\t\t$msg " "$color"
+  read -e -r -n $lines $readopts $reply
+  [ -n "$reply" ] || return 1
+}
+
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
   read -t 10 -e -r -n 1 -s "${1:-REPLY}" || return 1
   #history -s "${answer}"
 }
+#printf_answer_yes "var" "response"
 __echo_return() { echo "" && return "$1"; }
 printf_answer_yes() { [[ "${1:-REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
 
@@ -763,22 +776,30 @@ __git_porcelain() { __git_porcelain_count "${1:-.}" && return 0 || return 1; }
 __git_repobase() { basename "$(__git_top_dir "${1:-.}")"; }
 
 ###################### crontab functions ######################
+__removecrontab() {
+  command="$(echo $1 | sed 's#>/dev/null 2>&1##g')"
+  crontab -l | grep -Fv "${command}" | crontab -
+  return $?
+}
 
 __setupcrontab() {
-  local croncmd="logr"
-  local additional='bash -c "am_i_online && '$2' &"'
+  [ "$1" = "--help" ] && printf_help "setupcrontab "0 0 1 * *" "echo hello""
+  local frequency="$1"
+  local command="sleep $(expr $RANDOM \% 300) && $2"
+  local job="$frequency $command"
+  if cat <(grep -Fivq "$2" <(crontab -l)); then
+    cat <(grep -Fiv "$2" <(crontab -l)) <(echo "$job") | crontab - >/dev/null 2>&1
+  fi
+  return $?
 }
 
 __addtocrontab() {
   [ "$1" = "--help" ] && printf_help "addtocrontab "0 0 1 * *" "echo hello""
   local frequency="$1"
-  local command="am_i_online && && sleep $(expr $RANDOM \% 300) && $2"
+  local command="am_i_online && sleep $(expr $RANDOM \% 300) && $2"
   local job="$frequency $command"
-  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | __devnull2 crontab -
-}
-
-__removecrontab() {
-  crontab -l | grep -v -F "$command" | __devnull2 crontab -
+  cat <(grep -F -i -v "$2" <(crontab -l)) <(echo "$job") | __devnull2 crontab -
+  return $?
 }
 
 __cron_updater() {
@@ -1963,14 +1984,13 @@ __options() {
     get_app_info "$APPNAME"
   fi
 
-  if [ "$1" = "--cron" ]; then
-    shift 1
-    [ "$1" = "--help" ] && printf_help "Usage: $APPNAME --cron remove | add" && exit 0
-    [ "$1" = "--cron" ] && shift 1
-    [ "$1" = "cron" ] && shift 1
-    crontab_add "$*"
-    exit "$?"
-  fi
+  # if [ "$1" = "--cron" ]; then
+  #   [ "$1" = "--help" ] && printf_help 'Usage: '$APPNAME' --cron remove | add "command"' && exit 0
+  #   [ "$1" = "--add" ] && shift 2 && __setupcrontab "0 0 * * *" "$*"
+  #   [ "$1" = "--del" ] && shift 2 && echo $* # && __removecrontab "$*"
+  #   shift
+  #   exit "$?"
+  # fi
 
   if [ "$1" = "--remove" ] || [ "$1" = "--uninstall" ]; then
     shift 1
