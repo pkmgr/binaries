@@ -80,7 +80,7 @@ l | log)
   ;;
 
 files)
-  shift
+  shift 1
   files="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
   mess="➕ $files ➕ "
   ;;
@@ -251,7 +251,7 @@ custom)
 
 setup)
   shift 1
-  gitadmin setup "$@"
+  gitadmin "$gitdir" setup "$@"
   exit
   ;;
 
@@ -260,12 +260,11 @@ setup)
     [ ! "$(echo "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
     mess="${newmess:-$@}"
   else
-    shift 1
     mess="🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
   fi
   ;;
-
 esac
+shift
 
 gitdir="${gitdir:-$(__git_top_dir)}"
 repo="$(__git_remote_fetch $gitdir)"

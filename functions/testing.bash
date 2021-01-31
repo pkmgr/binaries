@@ -687,6 +687,7 @@ __git_update() {
 __git_commit() {
   local dir="${1:-.}"
   if __cmd_exists gitcommit; then
+    [ -d "$2" ] && shift 1
     gitcommit "$dir" "$@"
   else
     if [ ! -d "$dir" ]; then
@@ -706,6 +707,7 @@ __git_commit() {
 __git_init() {
   local dir="${1:-.}"
   if __cmd_exists gitadmin; then
+    [ -d "$2" ] && shift 1
     gitadmin "$dir" setup "$@"
   else
     __mkd "$dir"
