@@ -31,7 +31,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ARRAY="$(cat $SCRIPTSFUNCTDIR/helpers/dmenu_edit_conf/array)"
@@ -64,7 +64,7 @@ dunst)
   editConfig="$HOME/.config/dunst/dunstrc"
   ;;
 dwm)
-  editConfig="$HOME/dwm-distrotube/config.h"
+  editConfig="$HOME/dwm/config.h"
   ;;
 emacs.d/init.el)
   editConfig="$HOME/.emacs.d/init.el"
@@ -94,7 +94,7 @@ vifm)
   editConfig="$HOME/.config/vifm/vifmrc"
   ;;
 vim)
-  editConfig="$HOME/.vimrc"
+  editConfig="$HOME/.config/vim/vimrc"
   ;;
 vimb)
   editConfig="$HOME/.config/vimb/config"
@@ -103,7 +103,7 @@ xmobar)
   editConfig="$HOME/.config/xmobar/xmobarrc"
   ;;
 xmonad)
-  editConfig="$HOME/.xmonad/xmonad.hs"
+  editConfig="$HOME/.config/xmonad/xmonad.hs"
   ;;
 xresources)
   editConfig="$HOME/.Xresources"
