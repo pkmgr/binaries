@@ -116,6 +116,7 @@ __newpage_template() {
 __mkd "$blogdir/_posts" "$blogdir/_pages"
 
 if [ ! -d "$blogdir/.git" ]; then
+  printf_read_question "3" "If you already have a repo enter the url here: " "120" "url" && git clone "$url" "$blogdir"
   printf_green "Initializing the repo"
   __blog_init && $APPNAME page index welcome &&
     printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
@@ -125,7 +126,8 @@ case "$1" in
 config)
   shift 1
   name="${1:-settings}"
-  printf_green "Generating the config and saving it to: $HOME/.config/blog/$name"
+  printf_green "Generating the config and saving it to:"
+  printf_green "$HOME/.config/blog/$name"
   __mkd "$HOME/.config/blog"
   __config "$name" && exit || printf_exit "Failed"
   ;;
