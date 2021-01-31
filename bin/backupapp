@@ -61,7 +61,7 @@ main() {
   __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1; }
   local appname="$_APPNAME"
   local appdir="$_APPDIRS"
-  local logdir="${logdir:-HOME/.local/log/backups}"
+  local logdir="${logdir:-$HOME/.local/log/backups}"
   local curdate="$(date +"${dateformat:-%Y-%m-%d-%H-%M-%S}")"
   local filename="$appname-$curdate.tar.gz"
   local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/apps"
@@ -159,7 +159,7 @@ if [ "$1" = "--term" ]; then
     fi
     printf_read_question "2" "Enter directories" "140" "_APPDIRS"
     printf_newline
-    main "$_APPNAME" "$_APPDIRS"
+    main $_APPNAME $_APPDIRS
     printf_newline
     printf_read_question_nt "6" "Would you like to keep this window open? [y/N]" "1" cont "-s"
     printf_answer_yes "$cont" && continue || break
