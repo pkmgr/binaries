@@ -1928,6 +1928,17 @@ run_postinst_global() {
       ln_sf "$INSTDIR/bin/$app" "$SYSBIN/$app"
     done
     cmd_exists updatedb && updatedb || return 0
+
+    if [ -d "$INSTDIR/applications" ]; then
+      local apps="$(ls $INSTDIR/applications/ 2>/dev/null | wc -l)"
+      if [ "$apps" != "0" ]; then
+        aFiles="$(ls $INSTDIR/applications)"
+        for a in $aFiles; do
+          ln_sf "$INSTDIR/applications/$a" "$SHARE/applications/$a"
+        done
+      fi
+      ln_rm "$SHARE/applications/"
+    fi
   else
     # Run on everything else
     if [ "$APPDIR" != "$INSTDIR" ]; then
