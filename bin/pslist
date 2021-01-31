@@ -30,7 +30,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -42,14 +42,14 @@ if [ "$1" = "--all" ]; then
   shift 1
   st="$*"
   for p in $st; do
-    pid="$(echo -n "$(pidof "$p")"
-    printf_green "The pid for ${p} is: ${pid}"
+    pid="$(pidof "$p" || exit)"
+    [ ! -z "$p" ] && printf_green "The pids for ${p} is: ${pid}" || printf_red "no pid found for ${p}"
   done
 else
   st="$*"
   for p in $st; do
-    pid="$(ps -aux | grep -i "$p" | grep -iv "grep" | awk '{print $2}' | head -n1)"
-    printf_green "The pid for ${p} is: ${pid}"
+    pid="$(ps -aux | grep -i "$p" | grep -iv "grep" | awk '{print $2}' | head -n1 || exit)"
+    [ ! -z "$p" ] && printf_green "The pid for ${p} is: ${pid}" || printf_red "no pid found for ${p}"
   done
 fi
 
