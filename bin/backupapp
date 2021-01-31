@@ -38,22 +38,37 @@ __options "$@"
 __require_app tar
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+config() {
+  __mkd "$HOME/.config/$APPNAME"
+  cat <<EOF >"$HOME/.config/$APPNAME/settings"
+notifyEnabled="${notifyEnabled}"
+logdir="${logdir}
+backupdir="${backupdir}"
+dateformat="%Y-%m-%d-%H-%M-%S"
+EOF
+  exit
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
 declare filename count backupdir rmpre4vbackup _APPNAME _APPDIRS
+if [ "$1" = config ]; then config; fi
 if [ -n "$1" ]; then _APPNAME="$1" && shift 1; else printf_green "Needs a name" && __help; fi
 if [ -n "$*" ]; then _APPDIRS="$*" && shift; else printf_green "Needs a directory" && __help; fi
-
+[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 main() {
   local appname="$_APPNAME"
   local appdir="$_APPDIRS"
-  local logdir="$HOME/.local/log/backups"
-  local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
+  local logdir="${logdir:-HOME/.local/log/backups}"
+  local curdate="$(date +"${dateformat:-%Y-%m-%d-%H-%M-%S}")"
   local filename="$appname-$curdate.tar.gz"
   local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/apps"
+  local notifyEnabled="${notifyEnabled:-yes}"
   mkdir -p "$backupdir" "$logdir"
+
+  [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Starting backup of $appname"
 
   printf_green "Starting backup"
   printf_header "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" \
@@ -68,10 +83,12 @@ main() {
   if [ "$exitCode" = 0 ]; then
     printf_green "The backup has completed successfully."
     printf_green "Saved to: $backupdir/$filename"
+    [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has completed"
   else
     printf_red "The backup has failed to complete."
     printf_red "More information can be found in the log file:"
     printf_exit "$logdir/$appname.log"
+    [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has failed"
   fi
 
   leaveCount=5
