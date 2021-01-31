@@ -80,7 +80,7 @@ main() {
   else
     printf_red "$ICON_ERROR The backup has failed to complete."
     printf_red "$ICON_ERROR More information can be found in the log file:"
-    printf_exit "$logdir/$appname.log"
+    printf_exit "$ICON_WARN $logdir/$appname.log"
     [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has failed"
   fi
   leaveCount=5
@@ -98,10 +98,25 @@ case "$1" in
 *cron)
   shift 1
   case "$1" in
+  *list)
+    shift 1
+    if [ -z "$(crontab -l | grep -F "$APPNAME ")" ]; then
+      printf_red "You don't have any jobs enabled"
+    else
+      printf_green "current cron jobs for $APPNAME"
+      crontab -l | grep -F "$APPNAME " | printf_readline "4"
+    fi
+    exit
+    ;;
   *add)
     shift 1
     if [ $# -eq 2 ]; then
-      __local_cron_add "$1" "$2" && printf_green "$1 $2 has been added to your cron jobs"
+      __local_cron_add "$1" "$2"
+      if [ "$(crontab -l | grep -F "$1" "$2" 2>/dev/null)" ]; then
+        printf_green "$1 $2 has been added to your cron jobs"
+      else
+        printf_red "failed to add $1 $2"
+      fi
     else
       printf_help 'Usage: '$APPNAME' cron --add "Backupname" "BackupDir"'
     fi
@@ -110,7 +125,10 @@ case "$1" in
   *del)
     shift 1
     if [ $# -eq 2 ]; then
-      __local_cron_del "$1" "$2" && printf_green "$1 $2 has been removed from your cron jobs"
+      __local_cron_del "$1" "$2"
+      if [ "$(crontab -l | grep -F "$1" "$2" 2>/dev/null)" ]; then
+        printf_green "$1 $2 has been removed from your cron jobs"
+      fi
     else
       printf_help 'Usage: '$APPNAME' cron --del "Backupname" "BackupDir"'
     fi
