@@ -93,9 +93,9 @@ __newpost_template() {
     local date="$(date +"%Y-%m-%d")"
     local edit="$(echo $date-$title | __sed 's# #_#g')"
     local file="$blogdir/_posts/$edit.md"
+    __git_message "$file"
     __blog_post_header >"$file"
     __edit "$file"
-    __git_message "$file"
   else
     printf_red "There is no blog directory"
   fi
@@ -104,21 +104,19 @@ __newpost_template() {
 __newpage_template() {
   local edit="$(echo $1 | __sed 's# #_#g')"
   local file="$blogdir/_pages/$edit.md"
+  __git_message "$file"
   if [ ! -f "$file" ]; then
     __blog_page_header >"$file"
   fi
   __edit "$file"
-  __git_message "$file"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__mkd "$blogdir/_posts" "$blogdir/_pages"
-
 if [ ! -d "$blogdir/.git" ]; then
   printf_green "Initializing the repo"
-  printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N]" "1"
-  if printf_answer_yes; then
+  printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo"
+  if printf_answer_yes "$YesNo"; then
     printf_read_question "3" "Enter the url: " "120" "url"
     __git_clone "$url" "$blogdir"
   else
@@ -126,6 +124,8 @@ if [ ! -d "$blogdir/.git" ]; then
   fi
   printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
 fi
+
+__mkd "$blogdir/_posts" "$blogdir/_pages"
 
 case "$1" in
 config)
@@ -144,16 +144,16 @@ new)
   edit="$(echo $date-$title | __sed 's# #_#g')"
   file="$blogdir/_posts/$edit.md"
   [ -d "$blogdir/_posts" ] || __mkd "$blogdir/_posts"
+  __git_message "$file"
   __blog_post_header >"$file"
   __edit "$file"
   __blog_init "$blogdir"
-  __git_message "$file"
   ;;
 
 edit)
   shift 1
-  __edit "$@"
   __git_message "$file"
+  __edit "$@"
   ;;
 
 page)
