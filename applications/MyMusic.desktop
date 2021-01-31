@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=true
+Icon=org.gnome.Rhythmbox
+Icon[en_US]=org.gnome.Rhythmbox
+Name[en_US]=My music
+Exec=music
+Name=My music

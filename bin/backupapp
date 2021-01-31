@@ -153,11 +153,11 @@ if [ "$1" = "--term" ]; then
     printf_newline "\n\n\n\n"
     printf_head "Backup Menu"
     printf_custom "6" "Welcome to the backup menu: type quit to exit"
-    printf_read_question "2" "Enter backupname" "120" "_APPNAME"
+    printf_read_question "2" "Enter backupname: " "120" "_APPNAME"
     if [ "$_APPNAME" = "quit" ]; then
       break
     fi
-    printf_read_question "2" "Enter directories" "140" "_APPDIRS"
+    printf_read_question "2" "Enter directories:" "140" "_APPDIRS"
     printf_newline
     main $_APPNAME $_APPDIRS
     printf_newline
