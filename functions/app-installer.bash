@@ -1934,7 +1934,7 @@ run_postinst_global() {
       if [ "$apps" != "0" ]; then
         aFiles="$(ls $INSTDIR/applications)"
         for a in $aFiles; do
-          ln_sf "$INSTDIR/applications/$a" "$SHARE/applications/$a"
+          ln_sf "$INSTDIR/applications/$a" "/usr/share/applications/$a"
         done
       fi
       ln_rm "$SHARE/applications/"

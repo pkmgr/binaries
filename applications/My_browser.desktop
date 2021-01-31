@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Browser
+Comment=My Browser
+Exec=mybrowser
+Icon=web-browser
+Path=
+Terminal=true
+StartupNotify=false

@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Files
+Comment=My Files
+Exec=myfilemanager
+Icon=system-file-manager
+Path=~
+Terminal=true
+StartupNotify=false
