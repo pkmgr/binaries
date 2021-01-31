@@ -34,6 +34,8 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$(uname)" = Linux ] || exit 1
+
 ARRAY="$(cat $SCRIPTSFUNCTDIR/helpers/dmenu_edit_conf/array)"
 
 editConfig=$(echo -e "${ARRAY[@]}" | dmenu -i -p 'Edit config file: ')

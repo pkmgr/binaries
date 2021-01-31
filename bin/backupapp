@@ -59,6 +59,7 @@ if [ -n "$*" ]; then _APPDIRS="$*" && shift; else printf_green "Needs a director
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 main() {
+  __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1; }
   local appname="$_APPNAME"
   local appdir="$_APPDIRS"
   local logdir="${logdir:-HOME/.local/log/backups}"
@@ -70,14 +71,13 @@ main() {
 
   [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Starting backup of $appname"
 
-  printf_green "Starting backup"
   printf_header "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" \
     "# Backing up $appdir" >>"$logdir/$appname.log" >>"$logdir/$appname.log"
 
-  tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1
+  execute "__backupcmd" "Backing up $appname to $backupdir/$filename"
   exitCode=$?
 
-  printf_header "#Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
+  printf_header " #Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
   printf_newline "\n\n" >>"$logdir/$appname.log"
 
   if [ "$exitCode" = 0 ]; then
