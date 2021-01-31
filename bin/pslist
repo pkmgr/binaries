@@ -38,7 +38,7 @@ __options "$@"
 
 [ "$1" = "" ] && printf_help "Usage: pslist processname"
 
-pid="$(ps -aux | grep "$1" | awk '{print $2}' | head -n1)"
+pid="$(ps -aux | grep "$1" | grep -v $APPNAME | awk '{print $2}' | head -n1)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
