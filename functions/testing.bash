@@ -575,6 +575,13 @@ __find() {
   [ -n "$1" ] && local dir="$*" && shift || local dir="./"
   find $dir -not -path "$dir/.git/*" $opts
 }
+#find_old "dir" "minutes" "action"
+__find_old() {
+  [ -d "$1" ] && local dir="$1" && shift 1
+  local time="$1" && shift 1
+  local action="$1" && shift 1
+  find "${dir:-$HOME/.local/tmp}" -type f -mmin +${time:-120} -${action:-delete}
+}
 #cd "dir"
 __cd() { cd "$1" || return 1; }
 # cd into directory with message
