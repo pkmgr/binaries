@@ -9,3 +9,5 @@ Icon[en_US]=video
 Name[en_US]=My videos
 Exec=videos
 Name=My videos
+Categories=;Video;Player;
+GenericName=Multimedia player

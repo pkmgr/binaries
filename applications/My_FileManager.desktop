@@ -10,3 +10,5 @@ Icon=system-file-manager
 Path=~
 Terminal=true
 StartupNotify=false
+Categories=Settings;DesktopSettings;System;
+GenericName=File Manager

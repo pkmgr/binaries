@@ -9,3 +9,6 @@ Icon[en_US]=org.gnome.Rhythmbox
 Name[en_US]=My music
 Exec=music
 Name=My music
+Categories=Audio;Player;
+GenericName=Music Player
+StartupNotify=false

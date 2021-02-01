@@ -9,3 +9,6 @@ Icon[en_US]=multimedia
 Name[en_US]=My multmedia
 Exec=multimedia
 Name=My multmedia
+Categories=AudioVideo;Player;Recorder;Graphics;
+GenericName=Media Player
+StartupNotify=false

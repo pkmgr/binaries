@@ -9,3 +9,6 @@ Icon[en_US]=image
 Name[en_US]=My images
 Exec=images
 Name=My images
+Categories=Graphics;Viewer;Photography;
+GenericName=Image Viewer
+StartupNotify=true

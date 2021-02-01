@@ -9,4 +9,6 @@ Exec=myterminal
 Icon=utilities-terminal
 Path=$HOME/
 Terminal=true
-StartupNotify=false
+StartupNotify=true
+Categories=System;GTK;Utility;TerminalEmulator;
+GenericName=Terminal Emulator

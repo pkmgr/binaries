@@ -9,3 +9,5 @@ Icon[en_US]=calc
 Name[en_US]=My calc
 Exec=calc --term
 Name=My calc
+Categories=Utility;Calculator;
+GenericName=Calculator

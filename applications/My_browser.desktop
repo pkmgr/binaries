@@ -10,3 +10,5 @@ Icon=web-browser
 Path=
 Terminal=true
 StartupNotify=false
+Categories=Network;WebBrowser;
+GenericName=Web Browser

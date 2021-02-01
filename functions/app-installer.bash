@@ -1930,7 +1930,7 @@ run_postinst_global() {
     cmd_exists updatedb && updatedb || return 0
 
     if [ -d "$INSTDIR/applications" ]; then
-      local SHARE="/usr/share/applications"
+      local SHARE="/usr/local/share/applications"
       local apps="$(ls $INSTDIR/applications/ 2>/dev/null | wc -l)"
       if [ "$apps" != "0" ]; then
         aFiles="$(ls $INSTDIR/applications)"

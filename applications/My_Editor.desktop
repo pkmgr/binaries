@@ -10,3 +10,5 @@ Icon=accessories-text-editor
 Path=~
 Terminal=true
 StartupNotify=false
+Categories=Utility;TextEditor;Development;IDE;
+GenericName=Text Editor

@@ -10,3 +10,5 @@ Icon=thunderbird
 Path=
 Terminal=true
 StartupNotify=false
+Categories=Application;Network;Email;
+GenericName=Mail Client
