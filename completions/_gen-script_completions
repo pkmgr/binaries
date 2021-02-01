@@ -10,8 +10,8 @@ _gen-script_completions() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--help config header shell installers os"
   local OS="arch centos debian fedora macos void"
-  local INSTALLERS="devenvmgr dfmgr dockermgr fontmgr iconmgr personal systemmgr thememgr wallpaper"
   local SHELL="bash sh"
+  local INSTALLERS="devenvmgr dfmgr dockermgr fontmgr iconmgr personal systemmgr thememgr wallpaper"
 
   _init_completion || return
 
@@ -22,12 +22,12 @@ _gen-script_completions() {
     return 0
     ;;
 
-  os)
-    COMPREPLY=($(compgen -W '$OS' -- "$cur"))
+  shell)
+    COMPREPLY=($(compgen -W '$SHELL' -- "$cur"))
     return 0
     ;;
 
-  shell)
+  os)
     COMPREPLY=($(compgen -W '$OS' -- "$cur"))
     return 0
     ;;
