@@ -3,14 +3,14 @@
 [Desktop Entry]
 Version=1.1
 Type=Application
-Name=My Editor
-GenericName=TextEditor
-Comment=Edit Files.
-Icon=accessories-text-editor
-Exec=myeditor
+Name=My Notes
+GenericName=Notes
+Comment=Manage Notes.
+Icon=geany
+Exec=notes
 Path=~
 Terminal=true
 Actions=
 Categories=GTK;Development;IDE;GTK;X-XFCE;GNOME;
-Keywords=editor;files;my;
+Keywords=notes;text;my;
 StartupNotify=true

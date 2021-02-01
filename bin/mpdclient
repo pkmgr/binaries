@@ -174,7 +174,7 @@ while :; do
   printf_green "u. update database"
   printf_green "x. launch ncmpcpp"
   printf_green "y. send command to mpd"
-  printf_green "z. back to menu"
+  printf_green "z. quit"
   printf_newline
   printf_read_question "6" "Enter your choice  : " "1" "main" "-s"
   printf_newline
