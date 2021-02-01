@@ -33,6 +33,13 @@ fi
 user_installdirs
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+while getopts ":*" opt; do
+  case $opt in
+  *) # Doesn't support options so remove them
+    ;;
+  esac
+done
+shift $(($OPTIND - 1))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #fileext="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)"

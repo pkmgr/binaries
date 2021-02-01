@@ -26,12 +26,7 @@ cmd_exists || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 printf_color() { printf "%b" "$(tput setaf "$1" 2>/dev/null)" "\t\t$2\n" "$(tput sgr0 2>/dev/null)"; }
-
-__help() {
-  printf_color "4" "usage: $APPNAME"
-
-  exit
-}
+__help() { printf_color "4" "usage: $APPNAME  |  " && exit; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application

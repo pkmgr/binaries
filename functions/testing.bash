@@ -11,6 +11,8 @@
 # @TODO        : Better error handling/refactor code
 # @
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+
 # OS Settings
 [ -f "$(command -v detectostype)" ] && . "$(command -v detectostype)"
 
@@ -111,7 +113,7 @@ SYSTEMMGRREPO="https://github.com/systemmgr"
 WALLPAPERMGRREPO="https://github.com/wallpapermgr"
 WHICH_LICENSE_URL="https://github.com/devenvmgr/licenses/raw/master"
 
-scripts_version() { printf_green "scripts version is $(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)\n"; }
+scripts_version() { printf_green "scripts version is $(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)\n"; }
 
 #setup colors
 NC="$(tput sgr0 2>/dev/null)"
@@ -1973,11 +1975,11 @@ __help() {
     printf_color "\t\t$msg\n" "$color"
   }
   #----------------
-  if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ] && [ -s "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
-    source "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+  if [ -f "$CASJAYSDEVDIR/helpers/man/$APPNAME" ] && [ -s "$CASJAYSDEVDIR/helpers/man/$APPNAME" ]; then
+    source "$CASJAYSDEVDIR/helpers/man/$APPNAME"
   else
-    printf_help "1" "There is no man page for this app in: "
-    printf_help "1" "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
+    printf_help "4" "There is no man page for this app in: "
+    printf_help "4" "$CASJAYSDEVDIR/helpers/man/$APPNAME"
   fi
   printf "\n"
   exit 0
@@ -1988,11 +1990,9 @@ __help() {
 __vdebug() {
   if [ -f ./applications.debug ]; then . ./applications.debug; fi
   DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-  printf_custom "4" "APP:$APPNAME - ARGS:$*"
-  for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-    HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
-    printf_custom "4" $path
-  done
+  printf_debug "4" "APP:$APPNAME - ARGS:$*"
+  printf_debug "USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE"
+  printf_debug "HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR"
   printf_custom "4" "FUNCTIONSDir:$DIR"
 }
 
