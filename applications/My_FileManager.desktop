@@ -11,6 +11,6 @@ Exec=myfilemanager
 Path=~
 Terminal=true
 Actions=
-Categories=FileManager;System;Utility;X-XFCE;GNOME;
+Categories=FileManager;System;Utility;GTK;X-XFCE;GNOME;
 Keywords=files;manager;my;
 StartupNotify=true

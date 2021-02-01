@@ -11,6 +11,6 @@ Exec=images
 Path=~
 Terminal=true
 Actions=
-Categories=Graphics;Viewer;Photography;X-XFCE;GNOME;
+Categories=Graphics;Viewer;Photography;GTK;X-XFCE;GNOME;
 Keywords=images;photo;player;my;
 StartupNotify=true

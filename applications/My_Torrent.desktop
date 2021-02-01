@@ -1,0 +1,16 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.1
+Type=Application
+Name=My Torrents
+GenericName=Bit torrent
+Comment=Manage Torrents.
+Icon=mytorrents
+Exec=transmission
+Path=~
+Terminal=true
+Actions=
+Categories=Network;FileTransfer;P2P;GTK;X-XFCE;GNOME;
+Keywords=torrents;my;
+StartupNotify=true

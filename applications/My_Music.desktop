@@ -11,6 +11,6 @@ Exec=music
 Path=~
 Terminal=true
 Actions=
-Categories=Audio;Player;X-XFCE;GNOME;
+Categories=Audio;Player;GTK;X-XFCE;GNOME;
 Keywords=music;player;my;
 StartupNotify=true

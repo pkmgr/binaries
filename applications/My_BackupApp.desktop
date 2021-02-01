@@ -11,6 +11,6 @@ Exec=backupapp --term
 Path=~
 Terminal=true
 Actions=
-Categories=System;Utility;X-XFCE;GNOME;
+Categories=System;Utility;GTK;X-XFCE;GNOME;
 Keywords=backup;my;
 StartupNotify=true

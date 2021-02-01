@@ -11,6 +11,6 @@ Exec=videos
 Path=~
 Terminal=true
 Actions=
-Categories=Video;Player;X-XFCE;GNOME;
+Categories=Video;Player;GTK;X-XFCE;GNOME;
 Keywords=Videos;my;
 StartupNotify=true

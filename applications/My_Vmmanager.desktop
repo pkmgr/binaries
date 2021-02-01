@@ -11,6 +11,6 @@ Exec=myvmmanager
 Path=~
 Terminal=true
 Actions=
-Categories=System;X-XFCE;GNOME;
+Categories=System;GTK;X-XFCE;GNOME;
 Keywords=virtual;machine;my;
 StartupNotify=true

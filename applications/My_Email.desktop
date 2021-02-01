@@ -11,6 +11,6 @@ Exec=myemail
 Path=~
 Terminal=true
 Actions=
-Categories=Application;Network;Email;X-XFCE;GNOME;
+Categories=Application;Network;Email;GTK;X-XFCE;GNOME;
 Keywords=mail;e-mail;my;
 StartupNotify=true

@@ -11,6 +11,6 @@ Exec=multimedia
 Path=~
 Terminal=true
 Actions=
-Categories=AudioVideo;Player;Recorder;Graphics;X-XFCE;GNOME;
+Categories=AudioVideo;Player;Recorder;Graphics;GTK;X-XFCE;GNOME;
 Keywords=music;videos;images;photo;player;my;
 StartupNotify=true

@@ -11,6 +11,6 @@ Exec=myeditor
 Path=~
 Terminal=true
 Actions=
-Categories=Audio;Player;X-XFCE;GNOME;
+Categories=Audio;Player;GTK;X-XFCE;GNOME;
 Keywords=editor;files;my;
 StartupNotify=true
