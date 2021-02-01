@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# _gen-script_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for gen-script
+
+_gen-script_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="--help config header shell installers os"
+  local OS="arch centos debian fedora macos void"
+  local INSTALLERS="devenvmgr dfmgr dockermgr fontmgr iconmgr personal systemmgr thememgr wallpaper"
+
+  _init_completion || return
+
+  case $prev in
+
+  installers)
+    COMPREPLY=($(compgen -W '$INSTALLERS' -- "$cur"))
+    return 0
+    ;;
+  os)
+    COMPREPLY=($(compgen -W '$OS' -- "$cur"))
+    return 0
+    ;;
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _gen-script_completions -o default gen-script
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

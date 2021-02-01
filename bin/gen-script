@@ -1,0 +1,242 @@
+#!/usr/bin/env bash
+
+APPNAME="gen-script"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020120210023-git
+# @Author        : Jason
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @Copyright     : Copyright (c) 2021, Casjays Developments
+# @Created       : Monday Feb 01, 2021 00:23:58 EST
+# @File          : gen-script
+# @Description   : create scripts
+# @TODO          :
+# @Other         :
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/casjay-dotfiles/scripts/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-$CASJAYSDEVDIR/functions}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+elif [ -f "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+else
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/$SCRIPTSFUNCTFILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# check for needed applications
+check_app bash sh
+
+# Application variables
+YEAR="$(date +%Y)"
+EMAIL="${EMAIL:-$USER}"
+AUTHOR="${AUTHOR:-$USER}"
+COMPANY="${COMPANY:-$USER}"
+VERSION="${VERSION:-%m%d%Y%H%M-git}"
+DEFREADME="${DEFREADME:-README.md}"
+DEFLICENSE="${DEFLICENSE:-WTFPL.md}"
+DATEFMT="${DATEFMT:-%A, %B %d, %Y %H:%M %Z}"
+if [ -d "$HOME/.config/$APPNAME/files" ]; then
+  TEMPLATE_DIR="$HOME/.config/$APPNAME/files"
+else
+  TEMPLATE_DIR="${TEMPLATE_DIR:-$CASJAYSDEVDIR/templates/scripts}"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Application functions
+__filename() { basename "${1:-$file}"; }
+__date() { date +"${DATEFMT}"; }
+
+__makefile() {
+  __cp_rf "$1" "${2:-.}"
+  __edit_header "$2"
+}
+
+__config() {
+  cat <<EOF
+EMAIL="${EMAIL:-$USER}"
+AUTHOR="${AUTHOR:-$USER}"
+COMPANY="${COMPANY:-$USER}"
+VERSION="${VERSION:-%m%d%Y%H%M-git}"
+DEFREADME="${DEFREADME:-README.md}"
+DEFLICENSE="${DEFLICENSE:-WTFPL.md}"
+DATEFMT="${DATEFMT:-%A, %B %d, %Y %H:%M %Z}"
+TEMPLATE_DIR="${TEMPLATE_DIR}"
+EOF
+}
+
+__copy_templates() {
+  __mkd "$HOME/.config/$APPNAME/files"
+  __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/$APPNAME/files/"
+}
+
+__gen_header() {
+  cat <<EOF
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : $VERSION
+# @Author        : $AUTHOR
+# @Contact       : $EMAIL
+# @License       : $LICENSE
+# @Copyright     : Copyright (c) $YEAR, $AUTHOR
+# @Created       : $(__date)
+# @File          : $(__filename $1)
+# @Description   :
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+EOF
+}
+
+__edit_header() {
+  local file="${1:-$file}"
+  sed -i 's#: FILENAME#: $(__filename $file)#g' "$file"
+  sed -i 's#: LICENSE#: ${LICENSE}#g' "$file"
+  sed -i 's#: VERSION#: ${VERSION}#g' "$file"
+  sed -i 's#: AUTHOR#: ${AUTHOR}#g' "$file"
+  sed -i 's#: EMAIL#: ${EMAIL}#g' "$file"
+  sed -i 's#: YEAR#: ${YEAR}#g' "$file"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main application
+case "$1" in
+config)
+  shift 1
+  __config
+  ;;
+
+header)
+  shift 1
+  __gen_header "$1"
+  ;;
+
+shell)
+  shift 1
+  case "$1" in
+  sh)
+    shift 1
+    file="$TEMPLATE_DIR/shell/template.sh"
+    ;;
+
+  bash)
+    shift 1
+    file="$TEMPLATE_DIR/shell/template.bash"
+    __makefile "$file" "$2"
+    ;;
+  esac
+  ;;
+
+installers)
+  shift 1
+  case "$1" in
+  devenvmgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  dfmgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  dockermgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  fontmgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  iconmgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  personal)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  systemmgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  thememgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  wallpapermgr)
+    shift 1
+    file="$TEMPLATE_DIR/installers/$1.sh"
+    __makefile "$file" "$2"
+    ;;
+  esac
+  ;;
+
+os)
+  shift 1
+  case "$1" in
+  arch)
+    shift 1
+    file="$TEMPLATE_DIR/installers/os-$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  centos)
+    shift 1
+    file="$TEMPLATE_DIR/installers/os-$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  debian)
+    shift 1
+    file="$TEMPLATE_DIR/installers/os-$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  fedora)
+    shift 1
+    file="$TEMPLATE_DIR/installers/os-$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  macos)
+    shift 1
+    file="$TEMPLATE_DIR/installers/os-$1.sh"
+    __makefile "$file" "$2"
+    ;;
+
+  void)
+    shift 1
+    file="$TEMPLATE_DIR/installers/os-$1.sh"
+    __makefile "$file" "$2"
+    ;;
+  esac
+  ;;
+
+esac
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# end

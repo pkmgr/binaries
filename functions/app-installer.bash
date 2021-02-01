@@ -1587,7 +1587,43 @@ install_version() {
 }
 
 ##################################################################################################
+###################### devenv settings ######################
+devenvmgr_install() {
+  user_installdirs
+  SCRIPTS_PREFIX="devenv"
+  APPDIR="${APPDIR:-$SHARE}"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  REPO="$DEVENVMGRREPO"
+  REPORAW="$REPO/$APPNAME/raw"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/devenv"
+  SYSUPDATEDIR="/usr/local/share/CasjaysDev/devenv"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX"
+  ARRAY="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
+  LIST="$(cat /usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  __mkd "$USRUPDATEDIR"
+  user_is_root && __mkd "$SYSUPDATEDIR"
+  export installtype="devenvmgr_install"
 
+  ######## Installer Functions ########
+  devenvmgr_run_post() {
+    devenvmgr_install
+    run_postinst_global
+    [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
+  }
+
+  devenvmgr_install_version() {
+    devenvmgr_install
+    install_version
+    mkdir -p "$CASJAYSDEVSAPPDIR/devenvmgr" "$CASJAYSDEVSAPPDIR/devenvmgr"
+    if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dockermgr/$APPNAME"
+    fi
+  }
+}
+
+###################### dfmgr settings ######################
 dfmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dfmgr"

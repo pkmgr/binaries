@@ -1517,7 +1517,20 @@ devenvmgr_install() {
   export installtype="devenvmgr_install"
 
   ######## Installer Functions ########
+  devenvmgr_run_post() {
+    devenvmgr_install
+    run_postinst_global
+    [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
+  }
 
+  devenvmgr_install_version() {
+    devenvmgr_install
+    install_version
+    mkdir -p "$CASJAYSDEVSAPPDIR/devenvmgr" "$CASJAYSDEVSAPPDIR/devenvmgr"
+    if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+      __ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dockermgr/$APPNAME"
+    fi
+  }
 }
 
 ###################### dockermgr settings ######################
