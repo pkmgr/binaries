@@ -2057,7 +2057,7 @@ run_postinst_global() {
 ##################################################################################################
 
 run_exit() {
-  if [ ! -f "$APPDIR/.installed" ]; then
+  if [ -d "$APPDIR" ] && [ ! -f "$APPDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed" 2>/dev/null
   fi
   if [ -d "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
