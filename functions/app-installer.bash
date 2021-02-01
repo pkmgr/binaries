@@ -2058,10 +2058,10 @@ run_postinst_global() {
 
 run_exit() {
   if [ ! -f "$APPDIR/.installed" ]; then
-    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed"
+    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed" 2>/dev/null
   fi
   if [ -d "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
-    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed"
+    date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed" 2>/dev/null
   fi
 
   if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
