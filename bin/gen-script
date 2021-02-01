@@ -148,108 +148,121 @@ header)
   ;;
 
 installers)
-  shift 1
-  case "$1" in
+  case "$2" in
   devenvmgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/devenvmgr.sh"
     dest="$1"
     ;;
 
   dfmgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/dfmgr.sh"
     dest="$1"
     ;;
 
   dockermgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/dockermgr.sh"
     dest="$1"
     ;;
 
   fontmgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/fontmgr.sh"
     dest="$1"
     ;;
 
   iconmgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/iconmgr.sh"
     dest="$1"
     ;;
 
   personal)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/personal.sh"
     dest="$1"
     ;;
 
   systemmgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/systemmgr.sh"
     dest="$1"
     ;;
 
   thememgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/thememgr.sh"
     dest="$1"
     ;;
 
   wallpapermgr)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/wallpapermgr.sh"
     dest="$1"
     ;;
+
+  *)
+    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1" ]; then
+      template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1"
+      dest="$2"
+    fi
+    ;;
   esac
+  shift
   ;;
 
 os)
-  shift 1
-  case "$1" in
+  case "$2" in
   arch)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-arch.sh"
     dest="$1"
     ;;
 
   centos)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-centos.sh"
     dest="$1"
     ;;
 
   debian)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-debian.sh"
     dest="$1"
     ;;
 
   fedora)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-fedora.sh"
     dest="$1"
     ;;
 
   macos)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-macos.sh"
     dest="$1"
     ;;
 
   void)
     shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-$1.sh"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/os-void.sh"
     dest="$1"
     ;;
+
+  *) ## Allows drop in without need to update this
+    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1" ]; then
+      template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$1"
+      dest="$2"
+    fi
+    ;;
   esac
+  shift
   ;;
 
 shell)
-  shift 1
-  case "$1" in
+  case "$2" in
   sh)
     shift 1
     template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.sh"
@@ -261,24 +274,21 @@ shell)
     template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.bash"
     dest="$1"
     ;;
+
+  *) ## Allows drop in without need to update this
+    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/shell/$1" ]; then
+      template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/$1"
+      dest="$2"
+    fi
+    ;;
   esac
+  shift
   ;;
 
 *) ## Allows drop in without need to update this
-  case $1 in
-  *)
-    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1/$2" ]; then
-      template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1/$2"
-      dest="$1"
-    fi
-    shift
-    ;;
-  esac
-
   if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1" ]; then
     template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1"
-    dest="$1"
-    shift
+    dest="$2"
   else
     printf_green "Using the default bash template"
     template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.bash"
@@ -286,11 +296,23 @@ shell)
   fi
   ;;
 esac
+shift
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-filename="$(__basename ${dest:-news-script})"
+# Sanity check
+[ -f "$template" ] || printf_exit "The template file doesn't exist"
+if [ -f "$dest" ]; then
+  printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
+  printf_answer_yes "$YN" || exit 1
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# file and folder setup
+filename="$(__basename ${dest:-newScript})"
 destfolder="$(__basedir ${MYCURRDIR}/$filename)"
+
 # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate the file
 __makefile "${template:?}" "$destfolder/$filename"
 printf_read_question "3" "Should we edit this file?" "1" "YN" "-s"
 printf_answer_yes "$YN" && $EDITOR "$destfolder/$filename"

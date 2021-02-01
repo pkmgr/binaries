@@ -264,9 +264,11 @@ printf_answer() {
   read -t 10 -e -r -n 1 -s "${1:-REPLY}" || return 1
   #history -s "${answer}"
 }
+
 #printf_answer_yes "var" "response"
-__echo_return() { echo "" && return "$1"; }
 printf_answer_yes() { [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
+
+printf_return() { echo "" && return "$1"; }
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -1971,7 +1973,6 @@ __help() {
     printf_color "\t\t$msg\n" "$color"
   }
   #----------------
-  printf "\n"
   if [ -f "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ] && [ -s "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME" ]; then
     source "$SCRIPTSFUNCTDIR/helpers/man/$APPNAME"
   else
