@@ -5,13 +5,13 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : VERSION
-# @Author        : AUTHOR
-# @Contact       : EMAIL
-# @License       : LICENSE
-# @Copyright     : Copyright (c) YEAR, AUTHOR
-# @Created       : DATE
-# @File          : FILENAME
+##@Version       : REPLACE_VERSION
+# @Author        : REPLACE_AUTHOR
+# @Contact       : REPLACE_EMAIL
+# @License       : REPLACE_LICENSE
+# @Copyright     : Copyright (c) REPLACE_YEAR, REPLACE_AUTHOR
+# @Created       : REPLACE_DATE
+# @File          : REPLACE_FILENAME
 # @Description   :
 # @TODO          :
 # @Other         :
