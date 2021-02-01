@@ -222,7 +222,8 @@ __client() {
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   printf "%s\n" "$*" >"${_PATH}" 2>>$NOTES_TMPDIR/notes_client
-  cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client || __failed
+  cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client &&
+    notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" || __failed
   __sync "$NOTES_PATH" "$NOTES_DIRECTORY" "$_PATH"
   rm -Rf "$_PATH"
   return "$?"
@@ -354,8 +355,8 @@ show)
   else
     printf "%s\n" "${*}" >>"${NOTES_PATH}"
   fi
-  __sync "$NOTES_DIRECTORY" "$NOTES_PATH" 2>/dev/null
-
+  __sync "$NOTES_DIRECTORY" "$NOTES_PATH" 2>/dev/null &&
+    [ $? = 0 ] && notifications "New note" "Posted to: ${NOTES_PATH}"
   ;;
 
 esac

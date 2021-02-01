@@ -85,6 +85,7 @@ fi
 [ "$1" = "--create" ] && create_link "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+notifications "MyEMail" "Attempting to launch $EMAIL"
 
 if [ -f "$HOME/.local/bin/myemail" ]; then
   __devnull2 ~/.local/bin/myemail "$@"

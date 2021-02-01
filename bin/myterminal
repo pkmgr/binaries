@@ -89,6 +89,7 @@ fi
 [ "$1" = "--create" ] && create_link "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+notifications "MyTerminal" "Attempting to launch $TERMINAL"
 
 if [ -f "$HOME/.local/bin/myterminal" ]; then
   __devnull2 ~/.local/bin/myterminal "$@"

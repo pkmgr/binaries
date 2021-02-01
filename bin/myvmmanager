@@ -83,6 +83,7 @@ fi
 [ "$1" = "--create" ] && create_link "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+notifications "MyVMManager" "Attempting to launch $VMMANAGER"
 
 if [ -f "$HOME/.local/bin/myvmmanager" ]; then
   __devnull2 ~/.local/bin/myvmmanager "$@" >/dev/null 2>&1 &
