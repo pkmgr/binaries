@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Name=Terminal
-Comment=My Terminal
-Exec=myterminal
-Icon=utilities-terminal
-Path=$HOME/
-Terminal=true
-StartupNotify=true
-Categories=System;GTK;Utility;TerminalEmulator;
+Name=My Terminal
 GenericName=Terminal Emulator
+Comment=Open Terminal.
+Icon=utilities-terminal
+Exec=myterminal
+Path=~
+Terminal=true
+Actions=
+Categories=System;GTK;Utility;TerminalEmulator;X-XFCE;GNOME;
+Keywords=terminal;my;
+StartupNotify=true

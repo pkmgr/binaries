@@ -1,13 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Terminal=true
+Name=My Backups
+GenericName=Backup
+Comment=Backup Files.
 Icon=back
-Icon[en_US]=back
-Name[en_US]=BackupApp
 Exec=backupapp --term
-Name=My Backupapp
-Categories=System;Utility;
-GenericName=Backup Utility
+Path=~
+Terminal=true
+Actions=
+Categories=System;Utility;X-XFCE;GNOME;
+Keywords=backup;my;
+StartupNotify=true

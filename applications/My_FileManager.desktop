@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Name=Files
-Comment=My Files
-Exec=myfilemanager
+Name=My Files
+GenericName=File Manager
+Comment=Manage Files.
 Icon=system-file-manager
+Exec=myfilemanager
 Path=~
 Terminal=true
-StartupNotify=false
-Categories=Settings;DesktopSettings;System;
-GenericName=File Manager
+Actions=
+Categories=FileManager;System;Utility;X-XFCE;GNOME;
+Keywords=files;manager;my;
+StartupNotify=true

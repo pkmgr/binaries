@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Terminal=true
+Name=My Images
+GenericName=Images
+Comment=Manage Photos.
 Icon=image
-Icon[en_US]=image
-Name[en_US]=My images
 Exec=images
-Name=My images
-Categories=Graphics;Viewer;Photography;
-GenericName=Image Viewer
+Path=~
+Terminal=true
+Actions=
+Categories=Graphics;Viewer;Photography;X-XFCE;GNOME;
+Keywords=images;photo;player;my;
 StartupNotify=true

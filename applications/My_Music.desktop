@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Terminal=true
+Name=My Music
+GenericName=Music
+Comment=Play Music.
 Icon=org.gnome.Rhythmbox
-Icon[en_US]=org.gnome.Rhythmbox
-Name[en_US]=My music
 Exec=music
-Name=My music
-Categories=Audio;Player;
-GenericName=Music Player
-StartupNotify=false
+Path=~
+Terminal=true
+Actions=
+Categories=Audio;Player;X-XFCE;GNOME;
+Keywords=music;player;my;
+StartupNotify=true

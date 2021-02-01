@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Name=E-Mail
-Comment=My Email
-Exec=myemail
+Name=My Email
+GenericName=E-Mail
+Comment=Manage E-mail.
 Icon=thunderbird
-Path=
+Exec=myemail
+Path=~
 Terminal=true
-StartupNotify=false
-Categories=Application;Network;Email;
-GenericName=Mail Client
+Actions=
+Categories=Application;Network;Email;X-XFCE;GNOME;
+Keywords=mail;e-mail;my;
+StartupNotify=true

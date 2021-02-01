@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Name=Editor
-Comment=My Editor
-Exec=myeditor
+Name=My Editor
+GenericName=TextEditor
+Comment=Edit Files.
 Icon=accessories-text-editor
+Exec=myeditor
 Path=~
 Terminal=true
-StartupNotify=false
-Categories=Utility;TextEditor;Development;IDE;
-GenericName=Text Editor
+Actions=
+Categories=Audio;Player;X-XFCE;GNOME;
+Keywords=editor;files;my;
+StartupNotify=true

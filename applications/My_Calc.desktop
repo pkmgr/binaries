@@ -1,13 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Terminal=true
-Icon=calc
-Icon[en_US]=calc
-Name[en_US]=My calc
-Exec=calc --term
-Name=My calc
-Categories=Utility;Calculator;
+Name=My Calc
 GenericName=Calculator
+Comment=Calculator.
+Icon=calc
+Exec=calc --term
+Path=~
+Terminal=true
+Actions=
+Categories=Utility;Calculator;X-XFCE;GNOME;
+Keywords=calc;my;
+StartupNotify=true

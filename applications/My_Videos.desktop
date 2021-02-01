@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Terminal=true
-Icon=video
-Icon[en_US]=video
-Name[en_US]=My videos
-Exec=videos
-Name=My videos
-Categories=Video;Player;
+Name=My Videos
 GenericName=Multimedia player
+Comment=Watch videos.
+Icon=video
+Exec=videos
+Path=~
+Terminal=true
+Actions=
+Categories=Video;Player;X-XFCE;GNOME;
+Keywords=Videos;my;
 StartupNotify=true

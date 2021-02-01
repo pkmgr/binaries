@@ -1,14 +1,16 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
-Terminal=true
+Name=My Media
+GenericName=Media
+Comment=Manage Media.
 Icon=multimedia
-Icon[en_US]=multimedia
-Name[en_US]=My multmedia
 Exec=multimedia
-Name=My multmedia
-Categories=AudioVideo;Player;Recorder;Graphics;
-GenericName=Media Player
-StartupNotify=false
+Path=~
+Terminal=true
+Actions=
+Categories=AudioVideo;Player;Recorder;Graphics;X-XFCE;GNOME;
+Keywords=music;videos;images;photo;player;my;
+StartupNotify=true
