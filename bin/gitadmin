@@ -177,7 +177,7 @@ run_git_setup() {
     fi
   fi
 
-  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
+  date +"%m%d%Y%H%M-git" >"$(__git_top_dir)/version.txt"
   ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
   ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
   __devnull git -C "${REPODIR}" init . &&

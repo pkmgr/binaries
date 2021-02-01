@@ -278,7 +278,7 @@ if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; 
   printf_error "You are not in a git repo"
   printf_read_question "4" "Would you like to turn $gitdir into a git repo? y/N" "1" "makerepo" "-s"
   if printf_answer_yes "$makerepo"; then
-    gitadmin $gitdir setup
+    gitadmin "$gitdir" setup
     exit $?
   else
     exit
@@ -297,9 +297,9 @@ else
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
 
-  date +"%m%d%Y%H%M-git" >"$gitdir/version.txt"
+  date +"%m%d%Y%H%M-git" >"$(__git_top_dir)/version.txt"
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/git" ]; then
-    cp -Rf "$gitdir/gitmasterconfig" "$gitdir/git/config"
+    cp -Rf "$(__git_top_dir)/gitmasterconfig" "$(__git_top_dir)/git/config"
   fi
 
   [ -n "$files" ] || git -C "$gitdir" add . >/dev/null 2>&1
