@@ -65,6 +65,10 @@ else
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+topdir="$(__git_top_dir $gitdir 2>/dev/null)"
+gitdir="${topdir:-$gitdir}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$MESSAGE" in
 s | status)
@@ -271,7 +275,6 @@ setup)
 esac
 shift
 
-gitdir="${gitdir:-$(__git_top_dir)}"
 repo="$(__git_remote_fetch $gitdir)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then

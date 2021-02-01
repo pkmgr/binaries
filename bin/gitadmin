@@ -49,6 +49,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults
+topdir="$(__git_top_dir $gitdir 2>/dev/null)"
 unset PREVREPO
 USERNAME="${GITHUB_USERNAME:-$2}"
 TOKEN="$GITHUB_ACCESS_TOKEN"
@@ -57,7 +58,7 @@ PROJECT_BASE="$HOME/Projects"
 PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
 WTFLICENSE="${MY_LICENSE_FILE:-$SCRIPTSFUNCTDIR/templates/wtfpl.md}"
-REPODIR="${gitdir:-$PROJECT_DIR}"
+REPODIR="${topdir:-$PROJECT_DIR}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
