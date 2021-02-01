@@ -70,6 +70,7 @@ APPVERSION="$(__appversion ${DOTFILESREPO:-https://github.com/dfmgr}/$APPNAME/ra
 
 APPDIR="/usr/local/share/CasjaysDev/$APPNAME"
 PLUGDIR="/usr/local/share/CasjaysDev/addons/${PLUGNAME}"
+INSTDIR="$APPDIR"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -180,6 +181,11 @@ run_postinst() {
     ln_sf "$SCRIPTSFUNCTDIR/functions/$function" "$CASJAYSDEVSHARE/functions/$function"
   done
 
+  for app in $(ls "$SCRIPTSFUNCTDIR/applications"); do
+    ln_sf "$SCRIPTSFUNCTDIR/applications/$app" "$SYSSHARE/applications/$app"
+  done
+
+  ln_rm "$SHARE/applications/"
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
   mkd /etc/casjaysdev/messages/motd
   mkd /etc/casjaysdev/messages/issue
