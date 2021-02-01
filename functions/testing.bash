@@ -134,7 +134,7 @@ ICON_WARN="[ ❗ ]"
 ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
 
-printf_newline() { printf "${*:-\n}"; }
+printf_newline() { printf "${*:-}\n"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
 printf_green() { printf_color "\t\t$1\n" 2; }
@@ -266,7 +266,7 @@ printf_answer() {
 }
 #printf_answer_yes "var" "response"
 __echo_return() { echo "" && return "$1"; }
-printf_answer_yes() { [[ "${1:-REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
+printf_answer_yes() { [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -341,6 +341,28 @@ printf_counter() {
     ((temp_cnt--))
   done
   printf_newline "\n\n"
+}
+printf_debug() {
+  for arg in "$@"; do
+    printf_blue "$arg"
+  done
+}
+###################### MyCurDir ######################
+#mycurrdir "$*" | returns $MyCurDir
+__mycurrdir() {
+  # I'm sure there is a better way to do this
+  if [ -d "$1" ]; then
+    MYCURRDIR="$1"
+    shift 1
+  elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+    MYCURRDIR="$2"
+    shift 2
+    [ -d "$MYCURRDIR" ] || printf_exit "$MYCURRDIR doesn't seem to be a directory"
+  else
+    MYCURRDIR="$PWD"
+  fi
+  MYCURRDIR="$MYCURRDIR"
+  MYARGS="$*"
 }
 ###################### checks ######################
 #cmd_exists command
@@ -509,6 +531,10 @@ __getphpver() {
 }
 
 ###################### tools ######################
+#basedir "file"
+__basedir() { dirname "${1:-.}"; }
+#__basename "file"
+__basename() { basename "${1:-.}"; }
 #to_lowercase "args"
 __to_lowercase() { echo "$@" | tr [A-Z] [a-z]; }
 #to_uppercase "args"

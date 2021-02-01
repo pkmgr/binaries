@@ -34,26 +34,22 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
-
 __check_app git
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
 if [ -d "$1" ]; then
-  gitdir="$1"
+  MYCURRDIR="$1"
   shift 1
 elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  gitdir="$2"
+  MYCURRDIR="$2"
   shift 2
-  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
+  [ -d "$MYCURRDIR" ] || printf_exit "$MYCURRDIR doesn't seem to be a directory"
 else
-  gitdir="$PWD"
+  MYCURRDIR="$PWD"
 fi
-
-####
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--message" ]; then
   shift 1
   MESSAGE="$1"
@@ -65,8 +61,8 @@ else
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-topdir="$(__git_top_dir $gitdir 2>/dev/null)"
-gitdir="${topdir:-$gitdir}"
+topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
+gitdir="${topdir:-$MYCURRDIR}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application

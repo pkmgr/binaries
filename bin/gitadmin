@@ -37,19 +37,18 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
 if [ -d "$1" ]; then
-  gitdir="$1"
+  MYCURRDIR="$1"
   shift 1
 elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  gitdir="$2"
+  MYCURRDIR="$2"
   shift 2
-  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
+  [ -d "$MYCURRDIR" ] || printf_exit "$MYCURRDIR doesn't seem to be a directory"
 else
-  gitdir="$PWD"
+  MYCURRDIR="$PWD"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults
-topdir="$(__git_top_dir $gitdir 2>/dev/null)"
+topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 unset PREVREPO
 USERNAME="${GITHUB_USERNAME:-$2}"
 TOKEN="$GITHUB_ACCESS_TOKEN"

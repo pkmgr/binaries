@@ -35,6 +35,19 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# I'm sure there is a better way to do this
+if [ -d "$1" ]; then
+  MYCURRDIR="$1"
+  shift 1
+elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  MYCURRDIR="$2"
+  shift 2
+  [ -d "$MYCURRDIR" ] || printf_exit "$MYCURRDIR doesn't seem to be a directory"
+else
+  MYCURRDIR="$PWD"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults
 GEN_SCRIPTS_YEAR="$(date +%Y)"
@@ -52,7 +65,7 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Application functions
-__date() { date +"${1:-$DATEFMT}"; }
+__date() { date +"$1"; }
 __filename() { basename "$1"; }
 
 __config() {
@@ -69,19 +82,25 @@ EOF
 }
 
 __copy_templates() {
+  printf_green "Copying the files from:"
+  printf_green "$CASJAYSDEVDIR/templates/scripts to $HOME/.config/$APPNAME/files/"
   __mkd "$HOME/.config/$APPNAME/files"
   __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/$APPNAME/files/"
+  [ $? -eq 0 ] && [ -d "$HOME/.config/$APPNAME/files" ] && printf_green "Copy succeeded" || printf_red "Copy failed"
 }
 
 __makefile() {
-  local temp=${1:?}
-  local new=${2:-new-script}
+  printf_green "Copying the file ${1//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $2"
+  local temp="$1"
+  local new="$2"
   __cp_rf "$temp" "$new"
   __edit_header "$new"
+  [ $? -eq 0 ] && printf_green "You file has been created" || printf_red "Failed to create $new"
 }
 
 __edit_header() {
-  local new="${1:-}"
+  printf_green "Editing the header info"
+  local new="$1"
   sed -i 's#REPLACE_FILENAME#'"$(__filename "$new")"'#g' "$new"
   sed -i 's#REPLACE_VERSION#'"$(__date "${GEN_SCRIPTS_VERSION}")"'#g' "$new"
   sed -i 's#REPLACE_DATE#'"$(__date "${GEN_SCRIPTS_DATEFMT}")"'#g' "$new"
@@ -92,7 +111,8 @@ __edit_header() {
 }
 
 __gen_header() {
-  local new="${1:-}"
+  printf_green "New the header info"
+  local new="$1"
   cat <<EOF
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -125,23 +145,6 @@ header)
   shift 1
   __gen_header "$1"
   exit
-  ;;
-
-shell)
-  shift 1
-  case "$1" in
-  sh)
-    shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.sh"
-    dest="$1"
-    ;;
-
-  bash)
-    shift 1
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.bash"
-    dest="$1"
-    ;;
-  esac
   ;;
 
 installers)
@@ -244,11 +247,54 @@ os)
   esac
   ;;
 
+shell)
+  shift 1
+  case "$1" in
+  sh)
+    shift 1
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.sh"
+    dest="$1"
+    ;;
+
+  bash)
+    shift 1
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.bash"
+    dest="$1"
+    ;;
+  esac
+  ;;
+
+*) ## Allows drop in without need to update this
+  case $1 in
+  *)
+    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1/$2" ]; then
+      template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1/$2"
+      dest="$1"
+    fi
+    shift
+    ;;
+  esac
+
+  if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1" ]; then
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1"
+    dest="$1"
+    shift
+  else
+    printf_green "Using the default bash template"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/template.bash"
+    dest="$1"
+  fi
+  ;;
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__makefile "$template" "$dest"
-
+filename="$(__basename ${dest:-news-script})"
+destfolder="$(__basedir ${MYCURRDIR}/$filename)"
+# # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__makefile "${template:?}" "$destfolder/$filename"
+printf_read_question "3" "Should we edit this file?" "1" "YN" "-s"
+printf_answer_yes "$YN" && $EDITOR "$destfolder/$filename"
+printf_newline "\n"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
