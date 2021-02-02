@@ -1,32 +1,31 @@
 ; Default zone
-$ORIGIN                                       $DOMAIN.
-$TTL                                          38400
-
+$ORIGIN                                      $DOMAIN.
+$TTL                                         38400
 ;  **********soa settings**********
-@                            IN  SOA          dns1 dns-admin ( 2020072202 10800 3600 1209600 38400)
+@                            IN  SOA         dns1 dns-admin ( 2020072202 10800 3600 1209600 38400)
 
 ;  **********nameserver settings**********
-@                            IN  NS           dns1
-@                            IN  NS           dns2
+@                            IN  NS          dns1
+@                            IN  NS          dns2
 
 ;  **********dns settings**********
-dns                          IN  A            ${DNSIP4:-149.28.32.84}
-dns1                         IN  A            ${DNSIP4:-149.28.32.84}
-dns2                         IN  A            ${DNSIP4:-149.28.32.84}
+dns                          IN  A           ${DNSIP4:-149.28.32.84}
+dns1                         IN  A           ${DNSIP4:-149.28.32.84}
+dns2                         IN  A           ${DNSIP4:-149.28.32.84}
 
-dns                          IN  AAAA         ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
-dns1                         IN  AAAA         ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
-dns2                         IN  AAAA         ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
+dns                          IN  AAAA        ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
+dns1                         IN  AAAA        ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
+dns2                         IN  AAAA        ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
 
 ;  **********host settings**********
-@                            IN  A            ${HOSTIP:-185.199.108.153}
-@                            IN  A            ${HOSTIP:-185.199.109.153}
-@                            IN  A            ${HOSTIP:-185.199.110.153}
-@                            IN  A            ${HOSTIP:-185.199.111.153}
-*                            IN  A            ${HOSTIP:-185.199.108.153}
-*                            IN  A            ${HOSTIP:-185.199.109.153}
-*                            IN  A            ${HOSTIP:-185.199.110.153}
-*                            IN  A            ${HOSTIP:-185.199.111.153}
+@                            IN  A           ${HOSTIP:-185.199.108.153}
+@                            IN  A           ${HOSTIP:-185.199.109.153}
+@                            IN  A           ${HOSTIP:-185.199.110.153}
+@                            IN  A           ${HOSTIP:-185.199.111.153}
+*                            IN  A           ${HOSTIP:-185.199.108.153}
+*                            IN  A           ${HOSTIP:-185.199.109.153}
+*                            IN  A           ${HOSTIP:-185.199.110.153}
+*                            IN  A           ${HOSTIP:-185.199.111.153}
 
 @                            IN  HINFO       "Web" "Shared Hosting"
 @                            IN  TXT         "Free Web Hosted"
@@ -109,20 +108,20 @@ calendar    3600             IN  CNAME       gsuite.calendar.casjay.net.redirect
 ;iax                         IN  A           ${HOSTIP:-149.28.32.84}
 
 ;  **********database settings**********
-;sql                          IN  CNAME       ${HOSTIP:-149.28.32.84}
-;*.sql                        IN  CNAME       ${HOSTIP:-149.28.32.84}
+;sql                          IN  CNAME      ${HOSTIP:-149.28.32.84}
+;*.sql                        IN  CNAME      ${HOSTIP:-149.28.32.84}
 
 ;  **********support settings**********
-;wiki                         IN  CNAME       help.casjay.net.redirect.center.
-;support                      IN  CNAME       help.casjay.net.redirect.center.
+;wiki                         IN  CNAME      help.casjay.net.redirect.center.
+;support                      IN  CNAME      help.casjay.net.redirect.center.
 
 ;  **********vpn settings**********
-;ppp                          IN  A           ${HOSTIP:-149.28.32.84}
-;vpn                          IN  A           ${HOSTIP:-149.28.32.84}
+;ppp                          IN  A          ${HOSTIP:-149.28.32.84}
+;vpn                          IN  A          ${HOSTIP:-149.28.32.84}
 
 ;  **********misc settings**********
-;invoice                      IN  A           ${HOSTIP:-149.28.32.84}
-;piwik                        IN  A           ${HOSTIP:-149.28.32.84}
+;invoice                      IN  A          ${HOSTIP:-149.28.32.84}
+;piwik                        IN  A          ${HOSTIP:-149.28.32.84}
 
 ;  **********other settings**********
 localhost                    IN  A           127.0.0.1

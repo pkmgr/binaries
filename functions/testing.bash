@@ -136,6 +136,7 @@ ICON_WARN="[ ❗ ]"
 ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
 
+print_wait() { printf_pause; }
 printf_newline() { printf "${*:-}\n"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
@@ -167,6 +168,12 @@ printf_console() {
   printf_color "\n\t\t$msg\n\n" "$color"
 }
 
+printf_pause() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
+  local msg="$*"
+  printf_color "\t\t$msg\n" "$color"
+  read -s -n 1
+}
 printf_single() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local COLUMNS=80
