@@ -297,15 +297,17 @@ else
   if git s 2>/dev/null | grep -q version.txt; then
     if [ -f "$versionfile" ]; then
       versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
-      printf_cyan "Bumping the version to $(cat "$versionfile")"
-      git -C $gitdir add $gitdir/version.txt 2>/dev/null
+      git -C $gitdir add $gitdir/version.txt >/dev/null 2>&1
     else
       versionbump="🚀 Version Deleted? 🚀 "
-      printf_cyan "Deleting the version info"
+      git -C $gitdir rm $gitdir/version.txt >/dev/null 2>&1
     fi
+    printf_cyan "$versionbump"
     git -C "$gitdir" commit -q -S -m "$versionbump" $gitdir/version.txt 2>/dev/null
     __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
+    printf_yellow "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)"
     printf_newline
+    exit
   fi
 
   printf_cyan "Commiting Changes with the following message:"
