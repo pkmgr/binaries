@@ -64,24 +64,6 @@ topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$(__git_top_dir $MYCURRDIR 2>/dev/null)/version.txt"
 
-if [ "$(git s 2>/dev/null | grep ^'' | grep -v '#' | wc -l)" != 0 ]; then
-  if [ "$(git s 2>/dev/null | grep -v '#' | grep version.txt | grep -qv ^'.D')" ]; then
-    if [ -f "$versionfile" ]; then
-      versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
-      printf_cyan "Bumping the version to $(cat "$versionfile")"
-    else
-      versionbump="🚀 Version Bump 🚀 "
-      printf_cyan "Bumping the version"
-    fi
-  else
-    versionbump="🚀 Version Deleted? 🚀 "
-    printf_cyan "Deleting the version info"
-  fi
-  git -C $gitdir add $gitdir/version.txt 2>/dev/null
-  git -C "$gitdir" commit -q -S -m "$versionbump" $gitdir/version.txt 2>/dev/null
-  __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
-fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$MESSAGE" in
@@ -311,6 +293,24 @@ fi
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
 else
+  if [ "$(git s 2>/dev/null | grep ^'' | grep -v '#' | wc -l)" != 0 ]; then
+    if [ "$(git s 2>/dev/null | grep -v '#' | grep version.txt | grep -qv ^'.D')" ]; then
+      if [ -f "$versionfile" ]; then
+        versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
+        printf_cyan "Bumping the version to $(cat "$versionfile")"
+      else
+        versionbump="🚀 Version Bump 🚀 "
+        printf_cyan "Bumping the version"
+      fi
+    else
+      versionbump="🚀 Version Deleted? 🚀 "
+      printf_cyan "Deleting the version info"
+    fi
+    git -C $gitdir add $gitdir/version.txt 2>/dev/null
+    git -C "$gitdir" commit -q -S -m "$versionbump" $gitdir/version.txt 2>/dev/null
+    __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
+  fi
+
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
 
