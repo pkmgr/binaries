@@ -293,7 +293,6 @@ fi
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
 else
-
   if git s 2>/dev/null | grep -q version.txt; then
     if [ -f "$versionfile" ]; then
       versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
@@ -307,9 +306,12 @@ else
     __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
     printf_yellow "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)"
     printf_newline
-    exit
   fi
+fi
 
+if __git_porcelain "$gitdir"; then
+  printf_red "There are no changes to commit"
+else
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
 
