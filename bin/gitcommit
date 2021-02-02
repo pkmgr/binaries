@@ -89,7 +89,7 @@ modified)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
-    mess=":file_folder: $files :file_folder: "
+    mess="🗃 $files 🗃 "
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been modified"
