@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# _notifications_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for notifications
+
+_notifications_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="--help --bg --all config client"
+  _init_completion || return
+
+  case $prev in
+  --all)
+    _allowed_users
+    ;;
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
+    ;;
+  esac
+
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  # enable completions
+  complete -F _notifications_completions -o default notifications
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

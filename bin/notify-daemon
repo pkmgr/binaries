@@ -52,6 +52,7 @@ __config() {
 
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
 __netcat_test() { __cmd_exists $netcat || notifications "Daemon" "The program netcat is not installed"; }
+__nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
 
 __running() {
   notifications "Daemon" "$1 is currently the notify daemon"

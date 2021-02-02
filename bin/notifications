@@ -42,6 +42,12 @@ elif __cmd_exists notify-send.sh; then
 else
   exit 1
 fi
+__nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
+__clean_return() {
+  __rm_rf "$_PATH" "$_LOG"
+  return "$1"
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NOTIFYD_HOST="${NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
@@ -163,11 +169,7 @@ __client() {
     fi
   fi
   shift
-  __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
-  __clean_return() {
-    __rm_rf "$_PATH" "$_LOG"
-    return "$1"
-  }
+
   __mkd "$TMP/notify-client"
   local _SERVER="$NOTIFYD_HOST"
   local _TMP="${TMPDIR:-/tmp}"
