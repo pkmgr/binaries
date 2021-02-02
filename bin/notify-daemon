@@ -210,6 +210,10 @@ case "$1" in
 config)
   shift 1
   __config
+  ;;
+
+enable)
+  shift 1
   __startup
   ;;
 

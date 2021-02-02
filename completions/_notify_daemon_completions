@@ -8,11 +8,16 @@
 _notify_daemon_completions() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="config start stop restart status disable"
-
+  local ARRAY="config start stop restart status server client enable disable"
+  local SERVER="--enable --disable"
   _init_completion || return
 
   case $prev in
+  server)
+    COMPREPLY=($(compgen -W '$SERVER' -- "$cur"))
+    return 0
+    ;;
+
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     return 0
