@@ -285,7 +285,6 @@ if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; 
 fi
 
 [ ! -z "$repo" ] || repo="localdir"
-
 if [ ! -d "$gitdir" ]; then
   printf_exit "$gitdir doesn't seem to be a git repo"
 fi
@@ -303,25 +302,19 @@ else
     fi
     printf_cyan "$versionbump"
     git -C "$gitdir" commit -q -S -m "$versionbump" $gitdir/version.txt 2>/dev/null
-    __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
-    printf_yellow "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)"
+    __getexitcode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change"
     printf_newline
   fi
 fi
 
-if __git_porcelain "$gitdir"; then
-  printf_red "There are no changes to commit"
-else
+if ! __git_porcelain "$gitdir"; then
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
-
   [ -f "$versionfile" ] && date +"%m%d%Y%H%M-git" >"$versionfile"
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/git" ]; then
     cp -Rf "$(__git_top_dir)/gitmasterconfig" "$(__git_top_dir)/git/config"
   fi
-
   [ -n "$files" ] || git -C "$gitdir" add . >/dev/null 2>&1
-
   if [ -z "$mess" ]; then
     git -C "$gitdir" commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
   else
@@ -336,9 +329,8 @@ else
         git -C "$gitdir" push -q
         __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
       else
-        printf_question "Should I push to $repo? [y/n]"
-        read -r -n 1 -s push && echo
-        if [[ $push == "y" || $push == "Y" ]]; then
+        printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push" "-s"
+        if printf_answer_yes "$push"; then
           printf_green "Pushing the changes to $repo"
           git -C "$gitdir" push -q
           __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
