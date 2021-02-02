@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# _backupapp_completions completion
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# autocomplete for backupapp
+
+_backupapp_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="--term --cron"
+
+  _init_completion || return
+
+  case $prev in
+  *cron)
+    COMPREPLY=($(compgen -W '--list --add --del' -- "$cur"))
+    return 0
+    ;;
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY $(_filedir)' -- "$cur"))
+    return 0
+    ;;
+  esac
+} &&
+
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # enable completions
+  complete -F _backupapp_completions -o default backupapp
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
