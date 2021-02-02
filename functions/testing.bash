@@ -795,15 +795,19 @@ __git_username_repo() {
   fi
 }
 #usage: git_CMD gitdir
+__git_return_error() { echo "." && return 1; }
 __git_status() { git -C "${1:-.}" status -b -s 2>/dev/null && return 0 || return 1; }
 __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)' 2>/dev/null && return 0 || return 1; }
 __git_pull() { git -C "${1:-.}" pull -q 2>/dev/null && return 0 || return 1; }
 __git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null && return 0 || return 1; }
+__git_top_rel() { __devnull __git_top_dir "${1:-.}" && echo -n "$(git -C "${1:-.}" rev-parse --show-cdup 2>/dev/null | sed 's#/$##g' | head -n1)" || return 1; }
 __git_remote_fetch() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null && return 0 || return 1; }
 __git_remote_origin() { git -C "${1:-.}" remote show origin 2>/dev/null | grep Push | awk '{print $3}' && return 0 || return 1; }
-__git_porcelain_count() { [ -d "${1:-.}/.git" ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
+__git_porcelain_count() { [ -d "$(__git_top_dir ${1:-.})/.git" ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
 __git_porcelain() { __git_porcelain_count "${1:-.}" && return 0 || return 1; }
 __git_repobase() { basename "$(__git_top_dir "${1:-.}")"; }
+# __reldir="$(__git_top_rel ${1:-MYCURRDIR} || echo $PWD)"
+# __topdir="$(__git_top_dir "${1:-MYCURRDIR}" || echo $PWD)"
 
 ###################### crontab functions ######################
 __removecrontab() {

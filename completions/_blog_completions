@@ -47,7 +47,7 @@ _blog_completions() {
 
   case $prev in
   -c)
-    COMPREPLY=($(compgen -W '$(ls ~/.config/blog/)' -- "$cur"))
+    COMPREPLY=($(compgen -W '$(cd ~/.config/blog && find -iname '*' || return 1)' -- "$cur"))
     return
     ;;
   *)

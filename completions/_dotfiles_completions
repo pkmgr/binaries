@@ -13,7 +13,7 @@ _dotfiles_completions() {
   local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/list)"
   local ADMIN="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/admin)"
   local STOW="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
-  local LSBIN="$(ls ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/bin/)"
+  local LSBIN="$(cd ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/bin/ && find -iname '*' -type f)"
 
   _init_completion || return
 
@@ -55,7 +55,7 @@ _dotfiles_completions() {
     COMPREPLY=($(compgen -W ' ${LIST[*]} ${ADMIN[*]}' -- "$cur"))
     return
     ;;
-  
+
   *)
     COMPREPLY=($(compgen -W ' ${LIST[*]}' -- "$cur"))
     ;;

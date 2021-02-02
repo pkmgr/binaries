@@ -37,19 +37,20 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
 if [ -d "$1" ]; then
-  MYCURRDIR="$1"
+  gitdir="$1"
   shift 1
 elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  MYCURRDIR="$2"
+  gitdir="$2"
   shift 2
-  [ -d "$MYCURRDIR" ] || printf_exit "$MYCURRDIR doesn't seem to be a directory"
+  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
 else
-  MYCURRDIR="$PWD"
+  gitdir="$PWD"
 fi
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults
-topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 unset PREVREPO
+topdir="$(__git_top_dir "$gitdir" 2>/dev/null || echo $gitdir)"
 USERNAME="${GITHUB_USERNAME:-$2}"
 TOKEN="$GITHUB_ACCESS_TOKEN"
 REPO_URL="https://github.com/$USERNAME"
@@ -67,7 +68,7 @@ REPODIR="${topdir:-$PROJECT_DIR}"
 # Creates a README.md file if one doesn't exist
 create_new_readme_template() {
   local author="$(__git_globaluser)"
-  local GitBaseDir="$(git -C "$REPODIR" rev-parse --show-toplevel 2>/dev/null || echo $PWD)"
+  local GitBaseDir="$(git -C "$REPODIR" rev-parse --show-toplevel 2>/dev/null || echo $gitdir)"
   local BaseDir="${GitBaseDir##*/}"
   cat "$SCRIPTSFUNCTDIR/templates/readmes/project.md" >"${REPODIR}/README.md"
   [ -f ${REPODIR}/README.md ] && sed -i "s#ProjectName#${BaseDir}#g" "${REPODIR}/README.md"
@@ -177,7 +178,7 @@ run_git_setup() {
     fi
   fi
 
-  date +"%m%d%Y%H%M-git" >"$(__git_top_dir)/version.txt"
+  date +"%m%d%Y%H%M-git" >"${REPODIR}/version.txt"
   ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
   ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
   __devnull git -C "${REPODIR}" init . &&

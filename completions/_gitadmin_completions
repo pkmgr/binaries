@@ -29,7 +29,7 @@ _gitadmin_completions() {
   push)
     k=0
     i="$HOME/Projects"
-    for d in $(ls -d $i/*); do
+    for d in $(find $i -type d); do
       for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j}

@@ -6,12 +6,18 @@
 # autocomplete for gen-script
 
 _gen-script_completions() {
+  if [ -d "$HOME/.config/gen-script/files" ]; then
+    local GEN_SCRIPTS_TEMPLATE_DIR="$HOME/.config/gen-script/files"
+  else
+    local GEN_SCRIPTS_TEMPLATE_DIR="/usr/local/share/CasjaysDev/scripts/templates/scripts"
+  fi
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="--help config header shell installers os"
-  local OS="arch centos debian fedora macos void"
-  local SHELL="bash sh"
-  local INSTALLERS="devenvmgr dfmgr dockermgr fontmgr iconmgr personal systemmgr thememgr wallpaper"
+  local OS=$(cd $GEN_SCRIPTS_TEMPLATE_DIR/os/ && find */* -type f 2>/dev/null)
+  local SHELL=$(cd $GEN_SCRIPTS_TEMPLATE_DIR/shell/ && find */* -type f 2>/dev/null)
+  local INSTALLERS=$(cd $GEN_SCRIPTS_TEMPLATE_DIR/installers/ && find */* -type f 2>/dev/null)
+  local ALL=$(cd $GEN_SCRIPTS_TEMPLATE_DIR && find */* -type d 2>/dev/null)
+  local ARRAY="--help config header $(cd $GEN_SCRIPTS_TEMPLATE_DIR && find */* -type f 2>/dev/null)"
 
   _init_completion || return
 
@@ -33,7 +39,7 @@ _gen-script_completions() {
     ;;
 
   *)
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    COMPREPLY=($(compgen -W '$ARRAY $ALL' -- "$cur"))
     return 0
     ;;
   esac
