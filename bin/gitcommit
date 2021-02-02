@@ -77,8 +77,8 @@ if [ "$(git s 2>/dev/null | grep ^'' | grep -v '#' | wc -l)" != 0 ]; then
     versionbump="🚀 Version Deleted? 🚀 "
     printf_cyan "Deleting the version info"
   fi
-  git -C $gitdir add $gitdir/version.txt
-  git -C "$gitdir" commit -q -S -m "$versionbump" 2>/dev/null
+  git -C $gitdir add $gitdir/version.txt 2>/dev/null
+  git -C "$gitdir" commit -q -S -m "$versionbump" $gitdir/version.txt 2>/dev/null
   __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
 fi
 
