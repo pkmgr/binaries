@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020120212327-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : run_server --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Monday, Feb 01, 2021 23:27 EST
+# @File          : run_server
+# @Description   : Start an HTTP server from a directory
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/functions/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+open_url() {
+  if __cmd_exists "xdg-open"; then
+    xdg-open "$1"
+  elif __cmd_exists "open"; then
+    open "$1"
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main() {
+  declare -r MAX_NUMBER_OF_TRIES=10
+  local i=0
+  local port="${1:-8000}"
+  local myip=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')
+
+  printf_yellow "Access from the network: http://$myip:$port"
+  printf_red "control-c to exit"
+  while [ $i -lt $MAX_NUMBER_OF_TRIES ]; do
+    if [ "$(lsof -i -nP | grep "$port" | grep -i "python")" != "" ]; then
+      open_url "http://$myip:${port}/"
+      break
+    fi
+    i=$((i + 1))
+    sleep 1
+  done &
+
+  __devnull python3 -m http.server --cgi --bind "$myip" "${port}" ||
+    __devnull python2 -m http.server --cgi --bind "$myip" "${port}" ||
+    __devnull python -m SimpleHTTPServer "${port}" ||
+    printf_exit 1 1 "Failed to start the server"
+
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main "$@"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+
+# end
