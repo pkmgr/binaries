@@ -55,7 +55,7 @@ main() {
     __kill deadd-notification-center
     __start deadd-notification-center && local STATUS=true || local STATUS=false
   fi
-  notifications "Notify" "Notification daemon has started"
+  sleep 10 && notifications "Notify" "Notification daemon has started" &
   if [ $STATUS = "false" ]; then return 1; fi
 }
 
