@@ -4,36 +4,55 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 011320210202-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : notifications
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : send a notification to user
-# @
-#
+##@Version       : 020220211240-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : notify-daemon --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Feb 02, 2021 12:40 EST
+# @File          : notify-daemon
+# @Description   : Start the notification daemon
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+__running() {
+  notifications "Daemon" "$1 is currently the notify daemon"
+  pidof "$1" >/dev/null 2>&1
+}
+
+__kill() {
+  notifications "Daemon" "Stopping the daemon"
+  pid="$(pidof "$1")"
+  kill -9 "$pid" &>/dev/null
+}
+__start() {
+  sleep 1 && "$@" &>/dev/null 2>&1 || return 1 &
+  [ $? = 0 ] && notifications "Daemon" "$1 has been started as the notify daemon" || return 1
+}
+
+__restart() {
+  __kill "$1"
+  __start "$1"
+}
 
 __config() {
   printf_green "Adding the Notification Daemon to startup"
@@ -60,40 +79,74 @@ EOF
   exit $?
 }
 
-main() {
-  __kill() { kill -9 "$(pidof "$1")" >/dev/null 2>&1; }
-  __running() { pidof "$1" >/dev/null 2>&1; }
-  __start() {
-    sleep 1 && "$@" >/dev/null 2>&1 || return 1 &
-  }
-
+__xfce4_notifyd() {
   if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
-    __kill xfce4-notifyd
-    __start /usr/lib/xfce4/notifyd/xfce4-notifyd && local STATUS=true || local STATUS=false
+    notifyd="/usr/lib/xfce4/notifyd/xfce4-notifyd"
+    return 0
   elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
-    __kill xfce4-notifyd
-    __start /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd && local STATUS=true || local STATUS=false
-  elif __cmd_exists dunst; then
-    __kill dunst
-    __start dunst && local STATUS=true || local STATUS=false
-  elif __cmd_exists deadd-notification-center; then
-    __kill deadd-notification-center
-    __start deadd-notification-center && local STATUS=true || local STATUS=false
+    notifyd="/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd"
+    return 0
+  else
+    return 1
   fi
-  sleep 10 && notifications "Notify" "Notification daemon has started" &
-  if [ $STATUS = "false" ]; then return 1; fi
+}
+
+__dunst_notifyd() {
+  if __cmd_exists dunst; then
+    notifyd="dunst"
+    return 0
+  else
+    return 1
+  fi
+}
+
+__deadd_notifyd() {
+  if __cmd_exists deadd-notification-center; then
+    notifyd="deadd-notification-center"
+    return 0
+  else
+    return 1
+  fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $1 in
+
+__xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
+
+case "$1" in
 config)
   shift 1
   __config
   ;;
 
+disable)
+  printf_green "Disabling the notify daemon"
+  __rm_rf "$HOME/.config/autostart/notifyd.desktop" &&
+    __kill "$notifyd" &&
+    printf_green "Successfully Disabled the notify daemon" ||
+    printf_error "Failed to disable notify daemon"
+  return $?
+  ;;
+restart)
+  __restart "$notifyd"
+  ;;
+
+stop)
+  __kill "$notifyd"
+  ;;
+
+status)
+  __running "$notifyd"
+  ;;
+
+start)
+  __running "$notifyd" || __start "$notifyd"
+  ;;
+
 *)
-  main "$@"
+  __running "$notifyd" || __start "$notifyd"
   ;;
 esac
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End
