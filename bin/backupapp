@@ -58,6 +58,7 @@ if [ "$1" = config ]; then config; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 main() {
+  execute "sleep 3" "Initializing"
   __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1; }
   local appname="$_APPNAME"
   local appdir="$_APPDIRS"
