@@ -48,9 +48,11 @@ TrashDir="${TRASH_DIR:-$HOME/.local/share/Trash}"
 RestoreDir="${RESTORE_DIR}"
 __mkd "$TrashDir/files/" "$TrashDir/info"
 
+__refuse_home() { EXIT=1 && printf_error "Refusing to delete the home folder" && return 1; }
+__refuse() { EXIT=1 && printf_error "Refusing to delete non-existant file or folder" && return 1; }
 filename_trash() { get_name "$1" | sed 's#/#_-_#g' | sed 's#"##g'; }
 filename_restore() { grep Path "$TrashDir/info/$(basename $1).trashinfo" 2>/dev/null | sed 's#Path=##g' | sed 's#"##g' || return 1; }
-test_filedir() { for fd in "$@"; do [ -e "$fd" ] && EXIT=0 || (EXIT=1 printf_exit "Refusing to delete non-existant file or folder"); done; }
+test_filedir() { for fd in "$@"; do [ -e "$fd" ] && EXIT=0 || __refuse; done; }
 
 get_name() {
   dirname="$(dirname "$(echo $PWD/$1)" 2>/dev/null || return 1)"
@@ -77,18 +79,25 @@ EOF
 }
 
 trash-put() {
-  for t in "$@"; do
-    file="$t"
-    test_filedir "$(get_name $file)" && printf_green "Removing $(get_name $file)" && create_trash_file "$file"
-    if [ -d "$file" ]; then
-      __mkd "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
-      rsync -a "$file/." "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
-    else
-      rsync -a "$file" "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
-    fi
-    rm -Rf "$file"
-    return "$EXIT"
+  local EXIT=0
+  local args="$*"
+  while :; do
+    for t in $args; do
+      [ $# -ne 0 ] || break 2
+      file="$t"
+      test_filedir "$(get_name $file)" && printf_green "Removing $(get_name $file)" && create_trash_file "$file"
+      #[[ $file =~ $HOME ]] && __refuse_home || break 2
+      if [ -d "$file" ]; then
+        __mkd "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+        rsync -a "$file/." "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+      else
+        rsync -a "$file" "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+      fi
+      rm -Rf "$file"
+      shift 1
+    done
   done
+  return "$EXIT"
 }
 
 trash-restore() {
