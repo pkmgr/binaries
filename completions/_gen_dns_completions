@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# _gen-license_completions completion
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# autocomplete for gen-license
+
+_gen-license_completions() {
+  local CASJAYSDEVDIR="/usr/local/share/CasjaysDev/scripts"
+  local cur prev words cword EDIT
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="$(cat ${CASJAYSDEVDIR}/helpers/gen-dns/list)"
+  [ -f /etc/hosts ] && local HOSTS="/etc/hosts"
+  [ -d /var/named/ ] && local CONF="$(find /var/named -type f 2>/dev/null)"
+  [ -d /etc/named/ ] && local ZONES="$(find /etc/named/ -type f 2>/dev/null)"
+  [ -f /etc/named.conf ] && local NAMED="/etc/named.conf"
+
+  _init_completion || return
+
+  case $prev in
+
+  --edit)
+    COMPREPLY=($(compgen -W '$NAMED $HOSTS $CONF $ZONES' -- "$cur"))
+    return 0
+    ;;
+
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
+    ;;
+
+  esac
+  return 0
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# enable completions
+complete -F _gen-license_completions -o default gen-license
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
