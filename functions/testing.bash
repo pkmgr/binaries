@@ -682,7 +682,7 @@ __urlinvalid() {
 }
 #very simple function to ensure connection and jq exists
 __api_test() {
-  if __am_i_online try && __cmd_exists jq; then
+  if __am_i_online && __cmd_exists jq; then
     return 0
   else
     [ -n "$1" ] && printf_red "$1"
@@ -1196,8 +1196,7 @@ __notifications() {
 }
 #connection test
 __am_i_online() {
-  [ "$1" != "" ] || return 0
-  [ -z "$force" ] || return 0
+  [ -z "$FORCE_CONNECTION" ] || return 0
   return_code() {
     if [ "$1" = 0 ]; then
       return 0
