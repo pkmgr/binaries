@@ -253,7 +253,7 @@ printf_read_question() {
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
   read -t 20 -e -r -n $lines $readopts $reply
-  [ -z "$reply" ] && printf_return
+  [ -z "$reply" ] && printf_return $?
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -264,8 +264,8 @@ printf_read_question_nt() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -e -r -n $lines $readopts $reply
-  [ -z "$reply" ] && printf_return
+  read -e -r -n $lines ${readopts} ${reply}
+  [ -z "$reply" ] && printf_return $?
 }
 
 #printf_answer "Var" "maxNum" "Opts"

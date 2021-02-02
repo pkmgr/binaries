@@ -59,7 +59,7 @@ GEN_SCRIPTS_VERSION="%m%d%Y%H%M-git"
 GEN_SCRIPTS_DEFREADME="README"
 GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
-GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR',' $GEN_SCRIPTS_COMPANY"
+GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
 
 if [ -d "$HOME/.config/gen-script/files" ]; then
   GEN_SCRIPTS_TEMPLATE_DIR="$HOME/.config/gen-script/files"
@@ -79,7 +79,7 @@ __config() {
   printf_green "Generating the config and saving it to:"
   printf_cyan "$HOME/.config/gen-script/settings"
   __rm_rf "$HOME/.config/gen-script/settings"
-  cat <<EOF >"$HOME/.config/gen-script/settings"
+  cat <<EOF >>"$HOME/.config/gen-script/settings"
 GEN_SCRIPTS_EMAIL="${GEN_SCRIPTS_EMAIL}"
 GEN_SCRIPTS_AUTHOR="${GEN_SCRIPTS_AUTHOR}"
 GEN_SCRIPTS_COMPANY="${GEN_SCRIPTS_COMPANY}"
@@ -107,7 +107,7 @@ __makefile() {
   local new="$2"
   __cp_rf "$temp" "$new" &&
     __edit_header "$new" &&
-    chmod 755 "$new"
+    chmod -f 755 "$new"
   [ $? -ne 0 ] && printf_red "Failed to create $new" && return 1 || printf_green "You file has been created"
   return $?
 }
@@ -138,7 +138,7 @@ __gen_header_help() {
 }
 __gen_header() {
   local new="$1"
-  local [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="$GEN_SCRIPTS_DEFREADME.md" || GEN_SCRIPTS_DEFREADME="$1 --help"
+  if [ -f "$topdir/README.md" ]; then local GEN_SCRIPTS_DEFREADME="README.md"; else local GEN_SCRIPTS_DEFREADME="$1 --help"; fi
   [ -n "$new" ] || printf_exit "Needs a file name | This is required but it can be any name"
   printf_green "New header info for $new"
   [ "$1" = "--help" ] || [ "$2" = "--help" ] && __gen_header_help
@@ -147,6 +147,14 @@ __gen_header() {
   [ -n "$4" ] && local copy="$4"
   [ -n "$5" ] && local other="$5"
   [ -n "$6" ] && local res="$6"
+
+  echo '
+#!/usr/bin/env bash
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME='$(__filename ${new:-sample})'
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"'
   cat <<EOF | tee
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -164,7 +172,9 @@ __gen_header() {
 # @Resource      : ${res:-}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+
 EOF
+  printf_blue "Your header is ready for use\n\n"
 }
 
 [ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script" || __mkd "$HOME/.config/gen-script"
@@ -239,22 +249,28 @@ shift
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sanity check
 [ -f "$template" ] || printf_exit "The template file doesn't exist"
-if [ -f "$dest" ]; then
-  printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
-  printf_answer_yes "$YN" || exit 1
-fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # file and folder setup
 filename="$(__basename ${dest:-newScript})"
 destfolder="$(__basedir ${MYCURRDIR}/$filename)"
-
 # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate the file
+if [ "$filename" = "newScript" ]; then
+  printf_read_question "3" "What should we name this ?" "120" "tmpfilename" || tmpfilename="$filename"
+  tmpfilename="$tmpfilename"
+else
+  tmpfilename="$filename"
+fi
+filename=${tmpfilename// /_}
+if [ -f "$destfolder/$filename" ]; then
+  printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
+  printf_answer_yes "$YN" || exit 1
+fi
 __makefile "${template:?}" "$destfolder/$filename" || printf_exit 1 1
 printf_read_question "3" "Should we edit this file?" "1" "YN" "-s"
 printf_answer_yes "$YN" && $EDITOR "$destfolder/$filename"
-printf_newline "\n"
+printf_newline ""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
