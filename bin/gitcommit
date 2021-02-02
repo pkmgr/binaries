@@ -320,7 +320,7 @@ echo $newmess
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
 else
-  if git s 2>/dev/null | grep -q version.txt; then
+  if git s 2>/dev/null | grep -v '#' | grep -q version.txt; then
     if [ -f "$versionfile" ]; then
       versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
       git -C $gitdir add $gitdir/version.txt >/dev/null 2>&1
