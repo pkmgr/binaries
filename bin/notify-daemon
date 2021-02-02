@@ -33,18 +33,18 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-NOTIFY_PORT="${NOTIFY_PORT:-65001}"
-NOTIFY_DAEMON="${NOTIFY_DAEMON}"
+NOTIFYD_HOST="${NOTIFYD_HOST}"
+NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 
-[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
+[ -f "$HOME/.config/notify-daemon/settings" ] && . "$HOME/.config/notify-daemon/settings"
 
 __config() {
-  if [ ! -f "$HOME/.config/$APPNAME/settings" ]; then
+  if [ ! -f "$HOME/.config/notify-daemon/settings" ]; then
     printf_green "Generating the config file"
-    __rm_rf "$HOME/.config/$APPNAME"
-    __mkd "$HOME/.config/$APPNAME"
-    echo NOTIFY_PORT="${NOTIFY_PORT:-65001}" >"$HOME/.config/$APPNAME/settings"
-    echo NOTIFY_DAEMON="${NOTIFY_DAEMON}" >>"$HOME/.config/$APPNAME/settings"
+    __rm_rf "$HOME/.config/notify-daemon"
+    __mkd "$HOME/.config/notify-daemon"
+    echo NOTIFYD_PORT="${NOTIFYD_PORT:-65001}" >"$HOME/.config/notify-daemon/settings"
+    echo NOTIFYD_HOST="${NOTIFYD_HOST}" >>"$HOME/.config/notify-daemon/settings"
   fi
 }
 
@@ -72,7 +72,7 @@ __restart() {
 }
 
 __client() {
-  local _SERVER="$NOTIFY_DAEMON"
+  local _SERVER="$NOTIFYD_HOST"
   local _TMP="${TMPDIR:-/tmp}"
   local _PORT="65001"
   local _PATH="$(mktemp $TMP/notify-clientXXX.tmp)"
@@ -149,7 +149,7 @@ __server_disable() {
 }
 
 __server_enable() {
-  printf_green "Enabling the Notification Daemon Server on port $NOTIFY_PORT"
+  printf_green "Enabling the Notification Daemon Server on port $NOTIFYD_PORT"
   cat <<EOF >"$HOME/.config/autostart/notifyd-server.desktop"
 #!/usr/bin/env xdg-open
 
@@ -253,7 +253,10 @@ start)
   ;;
 
 *client)
-  [ -n "$NOTIFY_DAEMON" ] || notifications "Daemon" "Please set NOTIFY_DAEMON variable to your server"
+  if [ -z "$NOTIFYD_HOST" ]; then
+    notifications "Daemon" "Please set NOTIFYD_HOST variable to your server"
+    exit 1
+  fi
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
       message="$(cat </dev/stdin)"
@@ -261,7 +264,7 @@ start)
   else
     message="$*"
   fi
-  __client "$message" 2>/dev/null || notifications "Daemon" "failed to send to $NOTIFY_DAEMON"
+  __client "$message" 2>/dev/null || notifications "Daemon" "failed to send to $NOTIFYD_HOST"
   ;;
 
 *)

@@ -43,24 +43,24 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-NOTIFY_PORT="${NOTIFY_PORT:-65001}"
-NOTIFY_DAEMON="${NOTIFY_DAEMON}"
-[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
+NOTIFYD_HOST="${NOTIFYD_HOST}"
+NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
+[ -f "$HOME/.config/notifications/settings" ] && . "$HOME/.config/notifications/settings"
 
 __config() {
-  if [ ! -f "$HOME/.config/$APPNAME/settings" ]; then
+  if [ ! -f "$HOME/.config/notifications/settings" ]; then
     printf_green "Generating the config file"
-    __rm_rf "$HOME/.config/$APPNAME"
-    __mkd "$HOME/.config/$APPNAME"
-    echo NOTIFY_PORT="${NOTIFY_PORT:-65001}" >"$HOME/.config/$APPNAME/settings"
-    echo NOTIFY_DAEMON="${NOTIFY_DAEMON}" >>"$HOME/.config/$APPNAME/settings"
+    __rm_rf "$HOME/.config/notifications"
+    __mkd "$HOME/.config/notifications"
+    echo NOTIFYD_PORT="${NOTIFYD_PORT:-65001}" >"$HOME/.config/notifications/settings"
+    echo NOTIFYD_HOST="${NOTIFYD_HOST}" >>"$HOME/.config/notifications/settings"
   fi
 }
 
 __run_bg() {
   local notifyDir="${TMP:-/tmp}/notify/process"
   [ -f "$notifyDir/kill" ] && __rm_rf $notifyDir/kill
-  notifications "$APPNAME" "Starting server: to stop make the file $notifyDir/kill"
+  notifications "notifications" "Starting server: to stop make the file $notifyDir/kill"
   __mkd "${notifyDir}"
   while :; do
     for f in $notifyDir/*; do
@@ -75,7 +75,7 @@ __run_bg() {
     done
     if [ -f "$notifyDir/kill" ]; then
       __rm_rf "$notifyDir"/*
-      notifications "$APPNAME" "Stopping server"
+      notifications "notifications" "Stopping server"
       break
     fi
   done
@@ -167,7 +167,7 @@ __client() {
     return "$1"
   }
   __mkd "$TMP/notify-client"
-  local _SERVER="$NOTIFY_DAEMON"
+  local _SERVER="$NOTIFYD_HOST"
   local _TMP="${TMPDIR:-/tmp}"
   local _PORT="65001"
   local _PATH="$(mktemp $TMP/notify-client/XXX.tmp)"
@@ -196,12 +196,17 @@ config | --config)
 
 client | --client)
   shift 1
-  if [ ! -f "$HOME/.config/$APPNAME/settings" ]; then
-    __mkd "$HOME/.config/$APPNAME"
-    echo NOTIFY_PORT="${NOTIFY_PORT:-65001}" >"$HOME/.config/$APPNAME/settings"
-    echo NOTIFY_DAEMON="${NOTIFY_DAEMON}" >>"$HOME/.config/$APPNAME/settings"
+  if [ ! -f "$HOME/.config/notifications/settings" ]; then
+    __mkd "$HOME/.config/notifications"
+    echo NOTIFYD_PORT="${NOTIFYD_PORT:-65001}" >"$HOME/.config/notifications/settings"
+    echo NOTIFYD_HOST="${NOTIFYD_HOST}" >>"$HOME/.config/notifications/settings"
   fi
-  __client "$@"
+  if [ -z "$NOTIFYD_HOST" ]; then
+    notifications "Daemon" "Please set NOTIFYD_HOST variable to your server"
+    exit 1
+  else
+    __client "$@"
+  fi
   ;;
 
 --all)
@@ -210,7 +215,7 @@ client | --client)
   ;;
 
 *)
-  [ -n "$NOTIFY_DAEMON" ] && __client "$@"
+  [ -n "$NOTIFYD_HOST" ] && __client "$@"
   __notifications "$@"
   #__cmd_exists wall && echo "$@" | wall
   #printf_console "3" "$@" >/dev/fd/0
