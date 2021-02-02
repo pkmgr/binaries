@@ -63,6 +63,45 @@ fi
 topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$(__git_top_dir $MYCURRDIR 2>/dev/null)/version.txt"
+repo="$(__git_remote_fetch $MYCURRDIR)"
+
+[ -n "$repo" ] || repo="localdir"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Functions
+__git_push() {
+  if [ "$repo" != "localdir" ]; then
+    if [[ "$*" =~ --automated ]]; then
+      printf_green "Pushing the changes to $repo"
+      git -C "$gitdir" push -q >/dev/null 2>&1
+      __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+    else
+      printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
+      if printf_answer_yes "$push"; then
+        printf_green "Pushing the changes to $repo"
+        git -C "$gitdir" push -q >/dev/null 2>&1
+        __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+      fi
+    fi
+  fi
+  return $?
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
+  printf_error "You are not in a git repo"
+  printf_read_question "4" "Would you like to turn $gitdir into a git repo? y/N" "1" "makerepo"
+  if printf_answer_yes "$makerepo"; then
+    gitadmin "$gitdir" setup
+    exit $?
+  else
+    exit
+  fi
+fi
+
+if [ ! -d "$gitdir" ]; then
+  printf_exit "$gitdir doesn't seem to be a git repo"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
@@ -76,6 +115,12 @@ s | status)
 l | log)
   shift 1
   __git_log "$gitdir"
+  exit $?
+  ;;
+
+push)
+  shift 1
+  __git_push "$@"
   exit $?
   ;;
 
@@ -271,23 +316,6 @@ setup)
 esac
 shift
 echo $newmess
-repo="$(__git_remote_fetch $gitdir)"
-
-if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
-  printf_error "You are not in a git repo"
-  printf_read_question "4" "Would you like to turn $gitdir into a git repo? y/N" "1" "makerepo" "-s"
-  if printf_answer_yes "$makerepo"; then
-    gitadmin "$gitdir" setup
-    exit $?
-  else
-    exit
-  fi
-fi
-
-[ ! -z "$repo" ] || repo="localdir"
-if [ ! -d "$gitdir" ]; then
-  printf_exit "$gitdir doesn't seem to be a git repo"
-fi
 
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
@@ -322,21 +350,8 @@ if ! __git_porcelain "$gitdir"; then
   fi
   __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
 
-  if __am_i_online && [ -z "$push" ]; then
-    if [ "$repo" != "localdir" ]; then
-      if [[ "$*" =~ --automated ]]; then
-        printf_green "Pushing the changes to $repo"
-        git -C "$gitdir" push -q
-        __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
-      else
-        printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push" "-s"
-        if printf_answer_yes "$push"; then
-          printf_green "Pushing the changes to $repo"
-          git -C "$gitdir" push -q
-          __getexitcode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
-        fi
-      fi
-    fi
+  if __am_i_online; then
+    __git_push "$@"
   else
     printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)"
     printf_red "No internet connection. Skipping push"

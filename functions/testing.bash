@@ -252,8 +252,8 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -e -r -n $lines $readopts $reply || printf_newline
-  [ -n "$reply" ] || return 1
+  read -t 20 -e -r -n $lines $readopts $reply
+  [ -z "$reply" ] && printf_return
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -265,19 +265,19 @@ printf_read_question_nt() {
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
   read -e -r -n $lines $readopts $reply
-  [ -n "$reply" ] || return 1
+  [ -z "$reply" ] && printf_return
 }
 
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -e -r -n 1 -s "${1:-REPLY}" || return 1
+  read -t 10 -e -r -n 1 -s "${1:-REPLY}" || printf_return
   #history -s "${answer}"
 }
 
 #printf_answer_yes "var" "response"
-printf_answer_yes() { [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
+printf_answer_yes() { [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || printf_return; }
 
-printf_return() { echo "" && return "$1"; }
+printf_return() { echo "" && return "${1:-1}"; }
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -682,7 +682,7 @@ __urlinvalid() {
 }
 #very simple function to ensure connection and jq exists
 __api_test() {
-  if __am_i_online && __cmd_exists jq; then
+  if __am_i_online try && __cmd_exists jq; then
     return 0
   else
     [ -n "$1" ] && printf_red "$1"
@@ -1196,6 +1196,8 @@ __notifications() {
 }
 #connection test
 __am_i_online() {
+  [ "$1" != "" ] || return 0
+  [ -z "$force" ] || return 0
   return_code() {
     if [ "$1" = 0 ]; then
       return 0
