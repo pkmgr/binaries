@@ -15,65 +15,102 @@ USER="${SUDO_USER:-${USER}}"
 # @Source      : https://bash.cyberciti.biz/domain/create-bind9-domain-zone-configuration-file/
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+system_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [[ $(id -u) -ne 0 ]]; then
-  printf_exit "Please re-run this as root"
-  exit
-fi
+# if [[ $(id -u) -ne 0 ]]; then
+#   printf_exit "Please re-run this as root"
+#   exit
+# fi
 
 EDITOR="${EDITOR:-vim}"
-DNSROOT="$HOME/Documents/dns"
-dnsTemplate="$(cat $SCRIPTSFUNCTDIR/templates/dns-zone.txt)"
+DNSROOT="$HOME/.config/gen-dns/zones"
+dnsTemplate="$HOME/.config/gen-dns/dns-zone.txt"
 
 DOMAIN="$1"
-WWWIP="$2"
+HOSTIP="$2"
+DNSIP4="$3"
+DNSIP6="$4"
 
-[ -z "$1" ] && __help
-[ "$1" = "--help" ] && __help && exit
-if [ "$1" = "--edit" ]; then
-  shift 1
+if [ ! -d "$DNSROOT" ]; then
+  __mkd "$DNSROOT"
+fi
+if [ ! -f "$dnsTemplate" ]; then
+  __cp_rf "$CASJAYSDEVDIR/templates/dns-zone.txt" "$dnsTemplate"
+fi
+[ -f "$HOME/.config/gen-dns" ] && . "$HOME/.config/gen-dns"
+
+__gen_config() {
+  printf_green "Generating config"
+  cat <<EOF >"$DNSROOT/settings"
+EDITOR="${EDITOR:-vim}"
+DNSROOT="$HOME/.config/gen-dns/zones"
+dnsTemplate="$HOME/.config/gen-dns/dns-zone.txt"
+
+EOF
+  printf_exit "2" "0" "Config saved to: $DNSROOT/settings"
+}
+
+__edit_conf() {
   if [ ! -z "$1" ]; then
     [ -f "$1" ] && $EDITOR "$1" 2>/dev/null
   else
-    [ -f $HOME/templates/dns-zone.txt ] &&
-      $EDITOR "$HOME/Templates/dns-zone.txt" ||
-      $EDITOR "/usr/local/share/CasjaysDev/scripts/templates/dns-zone.txt" 2>/dev/null
+    [ -f "$HOME/.config/gen-dns/dns-zone.txt" ] &&
+      $EDITOR "$HOME/.config/gen-dns/dns-zone.txt" 2>/dev/null
   fi
   printf_green "File has been edited"
-  exit $?
-fi
+}
 
-[ ! -f "$DNSROOT/$DOMAIN.zone" ] || printf_exit "$DNSROOT/$DOMAIN.zone already exist"
+__gen_dns() {
+  printf_green "Configuring DNS zone"
+  [ -n "$DOMAIN" ] || printf_read_question "3" "What is your Domain name" 120 DOMAIN
+  [ -n "$DNSIP4" ] || printf_read_question "3" "What is your DNS Servers IP" 120 DNSIP4
+  [ -n "$DNSIP6" ] || printf_read_question "3" "What is your DNS Servers IP6" 120 DNSIP6
+  [ -n "$HOSTIP" ] || printf_read_question "3" "What is your hosts ip address" 120 HOSTIP
 
-mkdir -p "$DNSROOT"
+  [ ! -f "$DNSROOT/$DOMAIN.zone" ] || printf_exit "$DNSROOT/$DOMAIN.zone already exist"
+  if [ -n "$DNSIP4" ]; then
+    cat $dnsTemplate >"$DNSROOT/$DOMAIN.zone"
+  else
+    cat $dnsTemplate | grep -iv 'AAAA ' >"$DNSROOT/$DOMAIN.zone"
+  fi
 
-echo "$dnsTemplate" >"$DNSROOT/$DOMAIN.zone"
+  if [ -f /etc/named/other/google-verifications.conf ]; then
+    cat /etc/named/other/google-verifications.conf >>"$DNSROOT/$DOMAIN.zone"
+    echo "" >>"$DNSROOT"
+  fi
 
-if [ -f /etc/named/other/google-verifications.conf ]; then
-  cat /etc/named/other/google-verifications.conf >>"$DNSROOT/$DOMAIN.zone"
-  echo "" >>"$DNSROOT"
-fi
+  if [ -f /etc/named/other/misc.conf ]; then
+    cat /etc/named/other/misc.conf >>"$DNSROOT/$DOMAIN.zone"
+    echo "" >>"$DNSROOT/$DOMAIN.zone"
+  fi
 
-if [ -f /etc/named/other/misc.conf ]; then
-  cat /etc/named/other/misc.conf >>"$DNSROOT/$DOMAIN.zone"
-  echo "" >>"$DNSROOT/$DOMAIN.zone"
-fi
+  [ $? = 0 ] && printf_green "zone for $DOMAIN has been setup" || printf_exit 1 1 "Failed to configure $DOMAIN"
+}
+
+case $1 in
+config)
+  shift 1
+  __gen_config
+  ;;
+--edit)
+  shift 1
+  __edit_conf "$@"
+  ;;
+*)
+  __gen_dns "$@"
+  ;;
+esac

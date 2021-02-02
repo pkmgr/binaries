@@ -1,1 +1,1 @@
---help --edit $HOSTNAME
+--help config --edit $HOSTNAME

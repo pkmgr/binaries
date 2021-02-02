@@ -72,7 +72,8 @@ __apache_www() {
 __apache_html() {
   __mkd "$TMP_DIR/www"
   __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$TMP_DIR/www/"
-  sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' "$TMP_FILE"
+  find "$TMP_DIR" -type f -exec sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
+  find "$TMP_DIR" -type f -exec sed -i 's#REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
