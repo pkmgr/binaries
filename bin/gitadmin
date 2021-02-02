@@ -59,6 +59,7 @@ PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
 WTFLICENSE="${MY_LICENSE_FILE:-$SCRIPTSFUNCTDIR/templates/wtfpl.md}"
 REPODIR="${topdir:-$PROJECT_DIR}"
+VERSIONFILE="$(__git_top_dir $MYCURRDIR 2>/dev/null)/version.txt"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
@@ -178,7 +179,7 @@ run_git_setup() {
     fi
   fi
 
-  date +"%m%d%Y%H%M-git" >"${REPODIR}/version.txt"
+  [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
   ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
   __devnull git -C "${REPODIR}" init . &&
@@ -229,7 +230,7 @@ run_git_setup_automated() {
   fi
   printf_red "Setting up the repo as requested" && sleep 5
   rm -Rf .git
-  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
+  [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
   ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
   __devnull git -C "${REPODIR}" init &&
@@ -266,7 +267,7 @@ git_all_orgs() {
 # Initializes a repo with default options
 repos_init() {
   REPODIR="${1:-$REPODIR}"
-  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
+  [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   git -C "${REPODIR}" add .
   if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
   git -C "${REPODIR}" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
@@ -279,7 +280,7 @@ git_init() {
   [ "$1" = "" ] && printf_red "Usage: userName repoName\n" && return 1
   [ "$2" = "" ] && printf_red "Usage: userName repoName\n" && return 1
   git_setup "$REPODIR"
-  date +"%m%d%Y%H%M-git" >${REPODIR}/version.txt
+  [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   git -C "$REPODIR" add .
   if [ -f "$REPODIR/gitmasterconfig" ]; then cp -Rf "$REPODIR/gitmasterconfig" "$REPODIR/.git/config"; fi
   git -C "$REPODIR" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
@@ -646,7 +647,7 @@ clone)
       if (__devnull2 git -C "$PROJECT_DIR/$USERNAME/$i" status | grep -q "working tree clean"); then
         getexitcode
       else
-        date +"%m%d%Y%H%M-git" >"$PROJECT_DIR/$USERNAME/$i/version.txt"
+        [ -f "$PROJECT_DIR/$USERNAME/$i/version.txt" ] && date +"%m%d%Y%H%M-git" >"$PROJECT_DIR/$USERNAME/$i/version.txt"
         __devnull git -C "$PROJECT_DIR/$USERNAME/$i" add . &&
           __devnull git -C "$PROJECT_DIR/$USERNAME/$i" commit -a -m " ❇🦈🏠❗ General Fixes ❗🏠🦈❇ " &&
           __devnull git -C "$PROJECT_DIR/$USERNAME/$i" push -q

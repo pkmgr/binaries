@@ -59,10 +59,28 @@ if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--mes
 else
   MESSAGE="$1"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
+versionfile="$(__git_top_dir $MYCURRDIR 2>/dev/null)/version.txt"
+
+if [ "$(git s 2>/dev/null | grep ^'' | grep -v '#' | wc -l)" != 0 ]; then
+  if [ "$(git s 2>/dev/null | grep -v '#' | grep version.txt | grep -v ^'.D')" ]; then
+    if [ -f "$versionfile" ]; then
+      versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
+      printf_cyan "Bumping the version to $(cat "$versionfile")"
+    else
+      versionbump="🚀 Version Bump 🚀 "
+      printf_cyan "Bumping the version"
+    fi
+  else
+    versionbump="🚀 Version Deleted? 🚀 "
+    printf_cyan "Deleting the version info"
+  fi
+  git -C $gitdir add $gitdir/version.txt
+  git -C "$gitdir" commit -q -S -m "$versionbump" 2>/dev/null
+  __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
@@ -270,7 +288,7 @@ setup)
   ;;
 esac
 shift
-
+echo $newmess
 repo="$(__git_remote_fetch $gitdir)"
 
 if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
@@ -296,7 +314,7 @@ else
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
 
-  date +"%m%d%Y%H%M-git" >"$(__git_top_dir)/version.txt"
+  [ -f "$versionfile" ] && date +"%m%d%Y%H%M-git" >"$versionfile"
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/git" ]; then
     cp -Rf "$(__git_top_dir)/gitmasterconfig" "$(__git_top_dir)/git/config"
   fi
