@@ -65,7 +65,7 @@ gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$(__git_top_dir $MYCURRDIR 2>/dev/null)/version.txt"
 
 if [ "$(git s 2>/dev/null | grep ^'' | grep -v '#' | wc -l)" != 0 ]; then
-  if [ "$(git s 2>/dev/null | grep -v '#' | grep version.txt | grep -v ^'.D')" ]; then
+  if [ "$(git s 2>/dev/null | grep -v '#' | grep version.txt | grep -qv ^'.D')" ]; then
     if [ -f "$versionfile" ]; then
       versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
       printf_cyan "Bumping the version to $(cat "$versionfile")"
