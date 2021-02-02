@@ -15,15 +15,12 @@ USER="${SUDO_USER:-${USER}}"
 # @
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -46,6 +43,19 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+NOTIFY_PORT="${NOTIFY_PORT:-65001}"
+NOTIFY_DAEMON="${NOTIFY_DAEMON}"
+[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
+
+__config() {
+  if [ ! -f "$HOME/.config/$APPNAME/settings" ]; then
+    printf_green "Generating the config file"
+    __rm_rf "$HOME/.config/$APPNAME"
+    __mkd "$HOME/.config/$APPNAME"
+    echo NOTIFY_PORT="${NOTIFY_PORT:-65001}" >"$HOME/.config/$APPNAME/settings"
+    echo NOTIFY_DAEMON="${NOTIFY_DAEMON}" >>"$HOME/.config/$APPNAME/settings"
+  fi
+}
 
 __run_bg() {
   local notifyDir="${TMP:-/tmp}/notify/process"
@@ -73,13 +83,14 @@ __run_bg() {
 
 __notifications() {
   if [ ${#} -eq 0 ]; then
-    local title="Message from stdin"
+    local title=""
     local msg="$(</dev/stdin)"
     shift
   else
     if [ ${#} -eq 1 ]; then
-      local title="New notification"
-      local msg="${*}"
+      local title="${1}"
+      shift 1
+      local msg="$(</dev/stdin)"
       shift
     else
       local title="${1}"
@@ -94,13 +105,14 @@ __notifications() {
 
 __notifications_all() {
   if [ ${#} -eq 0 ]; then
-    local title="Message from stdin"
+    local title=""
     local msg="$(</dev/stdin)"
     shift
   else
     if [ ${#} -eq 1 ]; then
-      local title="New notification"
-      local msg="${*}"
+      local title="${1}"
+      shift 1
+      local msg="$(</dev/stdin)"
       shift
     else
       local title="${1}"
@@ -109,6 +121,7 @@ __notifications_all() {
       shift
     fi
   fi
+  shift
   if [ "$(uname -s)" = "Linux" ]; then
     shift
     XUSERS=($(who | grep -E "\(:[0-9](\.[0-9])*\)" | awk '{print $1$5}' | sort -u))
@@ -129,21 +142,81 @@ __notifications_all() {
   fi
 }
 
+__client() {
+  if [ ${#} -eq 0 ]; then
+    local title=""
+    local msg="$(</dev/stdin)"
+    shift
+  else
+    if [ ${#} -eq 1 ]; then
+      local title="${1}"
+      shift 1
+      local msg="$(</dev/stdin)"
+      shift
+    else
+      local title="${1}"
+      shift 1
+      local msg="${*}"
+      shift
+    fi
+  fi
+  shift
+  __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
+  __clean_return() {
+    __rm_rf "$_PATH" "$_LOG"
+    return "$1"
+  }
+  __mkd "$TMP/notify-client"
+  local _SERVER="$NOTIFY_DAEMON"
+  local _TMP="${TMPDIR:-/tmp}"
+  local _PORT="65001"
+  local _PATH="$(mktemp $TMP/notify-client/XXX.tmp)"
+  local _LOG="$_PATH.log"
+  __netcat_test
+  printf_green "Attempting to send message to $_SERVER on $_PORT"
+  printf "%s\n" "$title" "$msg" >"${_PATH}" 2>>$_LOG
+  cat "$_PATH" 2>>$_LOG | __nc_send "$_SERVER" "$_PORT" && __clean_return 0 || __clean_return 1
+  return "$?"
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if [ "$1" = "--bg" ]; then
+case $1 in
+--bg)
   shift 1
-  __run_bg
-fi
+  __run_bg &
+  exit
+  ;;
 
-if [ "$1" = "--all" ]; then
+config | --config)
+  shift 1
+  __config
+  exit
+  ;;
+
+client | --client)
+  shift 1
+  if [ ! -f "$HOME/.config/$APPNAME/settings" ]; then
+    __mkd "$HOME/.config/$APPNAME"
+    echo NOTIFY_PORT="${NOTIFY_PORT:-65001}" >"$HOME/.config/$APPNAME/settings"
+    echo NOTIFY_DAEMON="${NOTIFY_DAEMON}" >>"$HOME/.config/$APPNAME/settings"
+  fi
+  __client "$@"
+  ;;
+
+--all)
   shift 1
   __notifications_all "$@"
-else
+  ;;
+
+*)
+  [ -n "$NOTIFY_DAEMON" ] && __client "$@"
   __notifications "$@"
   #__cmd_exists wall && echo "$@" | wall
   #printf_console "3" "$@" >/dev/fd/0
-fi
+  ;;
+
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?

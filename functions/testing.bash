@@ -576,6 +576,9 @@ __mkd() {
   for d in "$@"; do [ -e "$d" ] || mkdir -p "$d" >/dev/null 2>&1; done
   return 0
 }
+#netcat
+netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
+__netcat_test() { __cmd_exists "$netcat" || printf_error "The program netcat is not installed"; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }

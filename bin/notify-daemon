@@ -33,6 +33,23 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+NOTIFY_PORT="${NOTIFY_PORT:-65001}"
+NOTIFY_DAEMON="${NOTIFY_DAEMON}"
+
+[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
+
+__config() {
+  if [ ! -f "$HOME/.config/$APPNAME/settings" ]; then
+    printf_green "Generating the config file"
+    __rm_rf "$HOME/.config/$APPNAME"
+    __mkd "$HOME/.config/$APPNAME"
+    echo NOTIFY_PORT="${NOTIFY_PORT:-65001}" >"$HOME/.config/$APPNAME/settings"
+    echo NOTIFY_DAEMON="${NOTIFY_DAEMON}" >>"$HOME/.config/$APPNAME/settings"
+  fi
+}
+
+netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
+__netcat_test() { __cmd_exists $netcat || notifications "Daemon" "The program netcat is not installed"; }
 
 __running() {
   notifications "Daemon" "$1 is currently the notify daemon"
@@ -54,7 +71,53 @@ __restart() {
   __start "$1"
 }
 
-__config() {
+__client() {
+  local _SERVER="$NOTIFY_DAEMON"
+  local _TMP="${TMPDIR:-/tmp}"
+  local _PORT="65001"
+  local _PATH="$(mktemp $TMP/notify-clientXXX.tmp)"
+  local _LOG="$_PATH.log"
+  __netcat_test
+  printf_green "Attempting to send message to $_SERVER on $_PORT"
+  printf "%s\n" "$*" >"${_PATH}" 2>>$_LOG
+  cat "$_PATH" 2>>$_LOG | __nc_send "$_SERVER" "$_PORT" 2>>$_LOG || return 1
+  rm -Rf "$_PATH"
+  return "$?"
+}
+
+__server() {
+  __clean_return() {
+    __rm_rf "$_PATH" "$_LOG"
+    return "$1"
+  }
+  __mkd "$TMP/notify-daemon"
+  local _TMP="${TMPDIR:-/tmp}"
+  local _PORT="65001"
+  local _PATH="$TMP/notify-daemon/server"
+  local _LOG="$_PATH.log"
+  local _KILL="$TMP/notify-daemon.kill"
+  __netcat_test
+  netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
+  notifications "Daemon" "Starting notify-daemon server on port $_PORT"
+  rm -Rf "$_KILL"
+  while :; do
+    cmdsPID=$!
+    echo "$cmdsPID" >>"$_LOG"
+    $netcat -l -p "$_PORT" >"$_PATH"
+    message="$(<$_PATH)"
+    notifications "$(echo $message | awk '{print $1}')" "$message"
+    __rm_rf "$_PATH"
+    if [ -f "$_KILL" ]; then
+      kill -s HUP "$(pidof nc 2>/dev/null)" &>/dev/null
+      __rm_rf "$_KILL" "$_LOG"
+      notifications "Daemon" "notify-daemon server is shutting down"
+      break
+    fi
+  done
+  rm -Rf "$_PATH"
+}
+
+__startup() {
   printf_green "Adding the Notification Daemon to startup"
   cat <<EOF >"$HOME/.config/autostart/notifyd.desktop"
 #!/usr/bin/env xdg-open
@@ -77,6 +140,36 @@ EOF
     printf_green "Successfully installed Notification Daemon" ||
     printf_error "Failed to install Notification Daemon"
   exit $?
+}
+
+__server_disable() {
+  __rm_rf "$HOME/.config/autostart/notifyd-server.desktop"
+  touch "$TMP/notify-daemon.kill"
+  __client "Daemon" "Disabling server"
+}
+
+__server_enable() {
+  printf_green "Enabling the Notification Daemon Server on port $NOTIFY_PORT"
+  cat <<EOF >"$HOME/.config/autostart/notifyd-server.desktop"
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.1
+Type=Application
+Name=Notification Server
+GenericName=NotificationServer
+Comment=Start Notification Daemon Server.
+Icon=preferences-desktop-notification
+Exec=notify-daemon --server &
+Path=~
+Terminal=false
+Actions=
+Categories=System;GTK;X-XFCE;GNOME;
+Keywords=xfce4-notify;notify;music;player;my;
+StartupNotify=true
+EOF
+  notify-daemon --server &
+  exit
 }
 
 __xfce4_notifyd() {
@@ -117,6 +210,7 @@ case "$1" in
 config)
   shift 1
   __config
+  __startup
   ;;
 
 disable)
@@ -128,19 +222,42 @@ disable)
   return $?
   ;;
 restart)
+  shift 1
   __restart "$notifyd"
   ;;
 
 stop)
+  shift 1
   __kill "$notifyd"
   ;;
 
 status)
+  shift 1
   __running "$notifyd"
   ;;
 
 start)
+  shift 1
   __running "$notifyd" || __start "$notifyd"
+  ;;
+
+*server)
+  shift 1
+  [ "$1" = --enable ] && __server_enable
+  [ "$1" = --disable ] && __server_disable
+  __server
+  ;;
+
+*client)
+  [ -n "$NOTIFY_DAEMON" ] || notifications "Daemon" "Please set NOTIFY_DAEMON variable to your server"
+  if [ ${#} -eq 0 ]; then
+    if [ -p "/dev/stdin" ]; then
+      message="$(cat </dev/stdin)"
+    fi
+  else
+    message="$*"
+  fi
+  __client "$message" 2>/dev/null || notifications "Daemon" "failed to send to $NOTIFY_DAEMON"
   ;;
 
 *)
