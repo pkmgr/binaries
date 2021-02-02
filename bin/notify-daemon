@@ -35,6 +35,31 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+__config() {
+  printf_green "Adding the Notification Daemon to startup"
+  cat <<EOF >"$HOME/.config/autostart/notifyd.desktop"
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.9.4
+Type=Application
+Name=Notification Daemon
+Icon=preferences-desktop-notification
+Comment=Start notifyd
+Exec=notify-daemon
+RunHook=0
+StartupNotify=false
+Terminal=false
+Hidden=false
+
+EOF
+  [ -f "$HOME/.config/autostart/notifyd.desktop" ] &&
+    printf_green "Successfully installed Notification Daemon" ||
+    printf_error "Failed to install Notification Daemon"
+  exit $?
+}
+
 main() {
   __kill() { kill -9 "$(pidof "$1")" >/dev/null 2>&1; }
   __running() { pidof "$1" >/dev/null 2>&1; }
@@ -60,7 +85,15 @@ main() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $1 in
+config)
+  shift 1
+  __config
+  ;;
 
-main "$@"
+*)
+  main "$@"
+  ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End
