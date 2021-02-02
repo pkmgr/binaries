@@ -197,8 +197,8 @@ installers)
 os)
   case "$2" in
   *) ## Allows drop in without need to update this
-    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$2" ]; then
-      template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$2"
+    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/os/$2" ]; then
+      template="${GEN_SCRIPTS_TEMPLATE_DIR}/os/$2"
       dest="$3"
     fi
     ;;
@@ -219,7 +219,10 @@ shell)
   ;;
 
 *) ## Allows drop in without need to update this
-  if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1" ]; then
+  if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1/$2" ]; then
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/$2"
+    dest="$3"
+  elif [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1" ]; then
     template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1"
     dest="$2"
   else

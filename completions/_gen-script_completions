@@ -13,11 +13,10 @@ _gen-script_completions() {
   fi
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local OS=$(cd $GEN_SCRIPTS_TEMPLATE_DIR/os/ && find */* -type f 2>/dev/null)
-  local SHELL=$(cd $GEN_SCRIPTS_TEMPLATE_DIR/shell/ && find */* -type f 2>/dev/null)
-  local INSTALLERS=$(cd $GEN_SCRIPTS_TEMPLATE_DIR/installers/ && find */* -type f 2>/dev/null)
-  local ALL=$(cd $GEN_SCRIPTS_TEMPLATE_DIR && find */* -type d 2>/dev/null)
-  local ARRAY="--help config header $(cd $GEN_SCRIPTS_TEMPLATE_DIR && find */* -type f 2>/dev/null)"
+  local OS=$(ls $GEN_SCRIPTS_TEMPLATE_DIR/os/ 2>/dev/null)
+  local SHELL=$(ls $GEN_SCRIPTS_TEMPLATE_DIR/shell/ 2>/dev/null)
+  local INSTALLERS=$(ls $GEN_SCRIPTS_TEMPLATE_DIR/installers/ 2>/dev/null)
+  local ARRAY="--help config header $(cd $GEN_SCRIPTS_TEMPLATE_DIR/ && ls -d * 2>/dev/null)"
 
   _init_completion || return
 
@@ -39,7 +38,7 @@ _gen-script_completions() {
     ;;
 
   *)
-    COMPREPLY=($(compgen -W '$ARRAY $ALL' -- "$cur"))
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     return 0
     ;;
   esac
