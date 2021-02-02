@@ -48,13 +48,15 @@ NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 [ -f "$HOME/.config/notifications/settings" ] && . "$HOME/.config/notifications/settings"
 
 __config() {
+  printf_green "Generating the config file"
   if [ ! -f "$HOME/.config/notifications/settings" ]; then
-    printf_green "Generating the config file"
     __rm_rf "$HOME/.config/notifications"
     __mkd "$HOME/.config/notifications"
     echo NOTIFYD_PORT="${NOTIFYD_PORT:-65001}" >"$HOME/.config/notifications/settings"
     echo NOTIFYD_HOST="${NOTIFYD_HOST}" >>"$HOME/.config/notifications/settings"
   fi
+  [ -f "$HOME/.config/notify-daemon/settings" ] && printf_green "config saved to $HOME/.config/notify-daemon/settings" ||
+    printf_error "Failed to save the configuration"
 }
 
 __run_bg() {
