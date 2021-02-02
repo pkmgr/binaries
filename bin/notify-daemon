@@ -39,22 +39,24 @@ main() {
   __kill() { kill -9 "$(pidof "$1")" >/dev/null 2>&1; }
   __running() { pidof "$1" >/dev/null 2>&1; }
   __start() {
-    sleep 1 && "$@" >/dev/null 2>&1 &
+    sleep 1 && "$@" >/dev/null 2>&1 || return 1 &
   }
 
   if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
     __kill xfce4-notifyd
-    __start /usr/lib/xfce4/notifyd/xfce4-notifyd
+    __start /usr/lib/xfce4/notifyd/xfce4-notifyd && local STATUS=true || local STATUS=false
   elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
     __kill xfce4-notifyd
-    __start /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd
+    __start /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd && local STATUS=true || local STATUS=false
   elif __cmd_exists dunst; then
     __kill dunst
-    __start dunst
+    __start dunst && local STATUS=true || local STATUS=false
   elif __cmd_exists deadd-notification-center; then
     __kill deadd-notification-center
-    __start deadd-notification-center
+    __start deadd-notification-center && local STATUS=true || local STATUS=false
   fi
+  notifications "Notify" "Notification daemon has started"
+  if [ $STATUS = "false" ]; then return 1; fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
