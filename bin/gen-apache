@@ -15,67 +15,73 @@ USER="${SUDO_USER:-${USER}}"
 # @Source      :
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+system_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [[ $(id -u) -ne 0 ]]; then
-  printf_exit "Please re-run this as root"
-  exit
-fi
+TMP_DIR="$(mktemp -d /tmp/apacheXXX)"
+TMP_FILE="$(mktemp $TMP_DIR/apacheXXX.conf)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__return__error() {
+  printf_error "Somethings seems to have gone very wrong"
+  printf_yellow "File has been saved to $TMP_FILE"
+  printf_exit 1 1
+}
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_confdir() {
   if [ -d /etc/apache2/sites-enabled ]; then
     apacheconfdir="/etc/apache2/sites-enabled"
   elif [ -d "/etc/httpd/conf/vhosts.d" ]; then
     apacheconfdir="/etc/httpd/conf/vhosts.d"
   else
-    printf_custom_question "Where are your apache server files located? "
-    read -r apacheconfdir && echo
+    printf_read_question "4" "Where are your apache server files located?" "120" apacheconfdir
     if [[ ! -d "$apacheconfdir" ]]; then
-      printf_exit "$apacheconfdir is an invalid directory"
-      exit 1
+      if user_is_root; then
+        printf_read_question "4" "The directory doesn't exist should I try to create it?"
+        if printf_answer_yes; then __mkd "$apacheconfdir"; fi
+      fi
+      printf_error "Can not create $apacheconfdir"
     fi
   fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __apache_dom() {
-  printf_custom_question "What is your domain name? "
-  read -r APACHEDOMAIN && echo
+  printf_read_question "4" "What is your domain name?" "120" APACHEDOMAIN
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __apache_www() {
-  printf_custom_question "What is your DocumentRoot? "
-  read -r APACHEDOCROOT && echo
+  printf_read_question "4" "What is your DocumentRoot?" "120" APACHEDOCROOT
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__apache_html() {
+  __mkd "$TMP_DIR/www"
+  __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$TMP_DIR/www/"
+  sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' "$TMP_FILE"
+}
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_conf() {
-  if [ -d /etc/letsencrypt/live/domain ] || [ -d /etc/letsencrypt/live/$(hostname -f) ]; then
-    cat <<EOF >$apacheconfdir/$APACHEDOMAIN.conf
+  if [ -d /etc/letsencrypt/live/domain ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
+    if [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
+      [ -d /etc/letsencrypt/live/domain ] || __ln_sf "/etc/letsencrypt/live/$(hostname -f)" /etc/letsencrypt/live/domain
+    fi
+    cat <<EOF >"$TMP_FILE"
 # VirtualHost for $APACHEDOMAIN
 
 <IfModule mod_ssl.c>
@@ -105,7 +111,7 @@ SSLCertificateChainFile /etc/letsencrypt/live/domain/fullchain.pem
 </IfModule>
 EOF
   else
-    cat <<EOF >$apacheconfdir/$APACHEDOMAIN.conf
+    cat <<EOF >"$TMP_FILE"
 # VirtualHost for $APACHEDOMAIN
 
 <IfModule mod_ssl.c>
@@ -137,7 +143,6 @@ EOF
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 APACHEDOMAIN="${APACHEDOMAIN:-$1}"
 APACHEDOCROOT="${APACHEDOCROOT:-$2}"
 
@@ -154,17 +159,27 @@ if [ -z "$APACHEDOCROOT" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+printf_green "Setting up $APACHEDOMAIN in $TMP_FILE"
+__apache_conf "$@"
+printf_green "Copying the template html files to $TMP_FILE"
+__apache_html
 
-mkdir -p "$APACHEDOCROOT"
-
-if [ -n "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
-  echo "127.0.0.1      $APACHEDOMAIN" >>/etc/hosts
+# move files if root
+if user_is_root; then
+  if [ -n "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
+    echo "127.0.0.1      $APACHEDOMAIN" >>/etc/hosts
+  fi
+  if [ -f "$TMP_FILE" ]; then
+    printf_green "Installing $TMP_FILE to $apacheconfdir/$APACHEDOMAIN.conf"
+    __mv_f "$TMP_FILE" "$apacheconfdir/$APACHEDOMAIN.conf" && __mv_f "$TMP_DIR/www/" "$APACHEDOCROOT"
+    [ "$?" = 0 ] && printf_green "Everything has been setup" || __return__error
+  else
+    __return__error
+  fi
+else
+  printf_green "The config file has been generated and saved to $TMP_FILE"
 fi
 
-__apache_conf
-
-printf_green "Setting up $APACHEDOMAIN in $APACHEDOCROOT"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 #End

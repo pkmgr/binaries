@@ -19,7 +19,7 @@ USER="${SUDO_USER:-${USER}}"
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -33,16 +33,33 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-ROOTDIR="${TORSITEDIR:- /usr/local/share/tor-site}"
+test -n "$1" && test -z "${1//[0-9]/}" && TORSITEPORT="$1" && shift 1
+TORSITEDIR="${1:-TORSITEDIR}"
+TORSITEPORT="${TORSITEPORT:-8082}"
+ROOTDIR="${TORSITEDIR:-/usr/local/share/tor-site}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__test_server() { netstatg $TORSITEPORT | grep -q python && return 0 || return 1; }
+__start_py_server() {
+  local TORSITEPORT="${1:-$TORSITEPORT}"
+  python3 -m http.server --cgi --bind 127.0.0.1 "$TORSITEPORT" &>/dev/null ||
+    python2 -m http.server --cgi --bind 127.0.0.1 "$TORSITEPORT" &>/dev/null ||
+    python -m SimpleHTTPServer "$TORSITEPORT" &>/dev/null || return 1 &
+  sleep 10
+  __test_server &>/dev/null && return 0 || return 0
+}
 
 if [ -d "$ROOTDIR" ]; then
-  cd "$ROOTDIR" || exit 1
-  if ! netstat -taupln 2>/dev/null | grep -q 8082 >/dev/null; then
-    /usr/bin/python -m SimpleHTTPServer 8082
+  cd "$ROOTDIR" || printf_exit 1 1 "Failed to enter $ROOTDIR"
+  if __test_server &>/dev/null; then
+    printf_exit "Something is already running on port $TORSITEPORT"
+  else
+    printf_green "Attempting to start the server on port $TORSITEPORT"
+    __start_py_server $TORSITEPORT && printf_green "Server has started" ||
+      printf_exit 1 1 "Failed to start the tor site server"
   fi
+else
+  printf_exit 1 "2" "failed to start on port $TORSITEPORT"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

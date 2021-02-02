@@ -239,13 +239,13 @@ printf_custom_question() {
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -e -r -n $lines $readopts $reply
+  read -t 20 -e -r -n $lines $readopts $reply || printf_newline
   [ -n "$reply" ] || return 1
 }
 
@@ -566,7 +566,7 @@ vim="$(command -v /usr/local/bin/vim || command -v vim)"
 __vim() { $vim "$@"; }
 #mkd dir
 __mkd() {
-  for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done
+  for d in "$@"; do [ -e "$d" ] || mkdir -p "$d" >/dev/null 2>&1; done
   return 0
 }
 #sed "commands"

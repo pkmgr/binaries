@@ -105,8 +105,9 @@ __makefile() {
   printf_green "Copying the file ${1//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $2"
   local temp="$1"
   local new="$2"
-  __cp_rf "$temp" "$new"
-  __edit_header "$new"
+  __cp_rf "$temp" "$new" &&
+    __edit_header "$new" &&
+    chmod 755 "$new"
   [ $? -ne 0 ] && printf_red "Failed to create $new" && return 1 || printf_green "You file has been created"
   return $?
 }
@@ -137,6 +138,7 @@ __gen_header_help() {
 }
 __gen_header() {
   local new="$1"
+  local [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="$GEN_SCRIPTS_DEFREADME.md" || GEN_SCRIPTS_DEFREADME="$1 --help"
   [ -n "$new" ] || printf_exit "Needs a file name | This is required but it can be any name"
   printf_green "New header info for $new"
   [ "$1" = "--help" ] || [ "$2" = "--help" ] && __gen_header_help
@@ -178,7 +180,7 @@ config)
 
 header)
   shift 1
-  __gen_header "$*"
+  __gen_header "$@"
   exit
   ;;
 
