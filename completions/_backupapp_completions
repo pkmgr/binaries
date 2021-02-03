@@ -6,7 +6,7 @@
 _backupapp_completions() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="--term --cron"
+  local ARRAY="--term --cron ."
 
   _init_completion || return
 
@@ -16,7 +16,7 @@ _backupapp_completions() {
     return 0
     ;;
   *)
-    COMPREPLY=($(compgen -W '$ARRAY $(_filedir)' -- "$cur"))
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     return 0
     ;;
   esac

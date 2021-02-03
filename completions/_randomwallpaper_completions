@@ -7,7 +7,7 @@
 
 _randomwallpaper_completions() {
   local cur prev words cword
-  ARRAY="--help ."
+  ARRAY="--bg --help --term config startup ."
   _init_completion || return
 
   case $prev in

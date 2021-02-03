@@ -15,15 +15,11 @@ USER="${SUDO_USER:-${USER}}"
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
-
-# Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -34,24 +30,59 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ -n "$WALLPAPERS" ] || printf_exit "No wallpaper directories specified"
+[ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
+ROTATE_TIME="${ROTATE_TIME:-300}"
 
+__config() {
+  printf_green "Generating the config"
+  __mkd "$HOME/.config/randomwallpaper"
+  echo 'ROTATE_TIME='"${ROTATE_TIME:-300}"'' >"$HOME/.config/randomwallpaper/settings"
+  printf_exit "2" "$?" "config should be in $HOME/.config/randomwallpaper/settings"
+}
+
+__startup() {
+  printf_green "Adding the Notification Daemon to startup"
+  cat <<EOF >"$HOME/.config/autostart/randomwallpaper.desktop"
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.9.4
+Type=Application
+Name=Wallpaper Changer
+Icon=preferences-desktop-notification
+Comment=Random Wallpaper
+Exec=randomwallpaper --bg
+RunHook=0
+StartupNotify=false
+Terminal=false
+Hidden=false
+
+EOF
+  [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ] &&
+    printf_green "Successfully installed Notification Daemon" ||
+    printf_error "Failed to install Notification Daemon"
+  exit $?
+}
 
 background_job() {
   pid="$$"
   bpid="$!"
   pidfile="/tmp/randomwallpaper.$USER"
-  sleeptime="${1:-300}"
-  __kill_proc() { kill -15 $(cat /tmp/randomwallpaper.$USER); rm -Rf "/tmp/randomwallpaper.$USER" && break; }
-  
-  if [ -f "$HOME/.config/variety/variety.conf" ] && \
+  sleeptime="${1:-$ROTATE_TIME}"
+  __kill_proc() {
+    kill -15 "$(cat /tmp/randomwallpaper.$USER)"
+    rm -Rf "/tmp/randomwallpaper.$USER" && return 1
+  }
+
+  if [ -f "$HOME/.config/variety/variety.conf" ] &&
     grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq True; then
     printf_exit "Refusing to run because it seems variety is already changing the wallpaper"
   fi
   if [ -f "/tmp/randomwallpaper.$USER" ]; then
-      kill -15 "$(cat "$pidfile" 2>/dev/null && sleep 3)" >/dev/null 2>&1
-      rm -Rf "/tmp/randomwallpaper.$USER" 2>/dev/null
+    kill -15 "$(cat "$pidfile" 2>/dev/null && sleep 3)" >/dev/null 2>&1
+    rm -Rf "/tmp/randomwallpaper.$USER" 2>/dev/null
   fi
   shift 1
   #echo "$pid $bpid"
@@ -60,8 +91,29 @@ background_job() {
   while :; do
     randomwallpaper "${1:-$RANDOMWALLPAPER}"
     echo "$pid" >"/tmp/randomwallpaper.$USER"
-    sleep $sleeptime || __kill_proc
+    sleep "$sleeptime" || __kill_proc
   done &
+}
+
+__term() {
+  while :; do
+    clear
+    printf_newline "\n\n\n\n"
+    printf_head "Random Wall Paper Menu"
+    printf_custom "6" "Welcome to the randomwallpaper menu: type q to exit"
+    printf_read_question "2" "rotate the background? [y/N] " "120" "YN"
+    if [ "$_APPNAME" = "q" ]; then
+      break
+    fi
+    printf_answer_yes YN && randomwallpaper || continue
+    printf_newline
+    printf_newline
+    printf_read_question_nt "6" "Would you like to keep this window open? [y/N]" "1" cont "-s"
+    printf_answer_yes "$cont" && continue || break
+    printf_counter "5" "3" "Re-loading menu in"
+  done
+  printf_newline "\n\n"
+  exit
 }
 
 randomwallpaper() {
@@ -122,12 +174,27 @@ SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute application
-if [ "$1" = "--bg" ]; then
+case $1 in
+config)
   shift 1
-  background_job "$@"
-else
+  __config
+  ;;
+startup)
+  shift 1
+  __startup
+  ;;
+--term)
+  shift 1
+  __term
+  ;;
+--bg)
+  shift 1
+  background_job "${ROTATE_TIME}" "$@"
+  ;;
+*)
   randomwallpaper "$@"
-fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
