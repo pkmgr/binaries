@@ -55,23 +55,23 @@ __netcat_test() { __cmd_exists $netcat || notifications "Daemon" "The program ne
 __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
 
 __running() {
-  notifications "Daemon" "$1 is currently the notify daemon"
-  pidof "$1" >/dev/null 2>&1
+  notifications "Daemon" "${proc} is currently the notify daemon"
+  pidof "${proc}" >/dev/null 2>&1
 }
-__getstatus() { pidof "$1" >/dev/null 2>&1 && return 0 || return 1; }
+__getstatus() { pidof "${proc}" >/dev/null 2>&1 && return 0 || return 1; }
 
 __kill() {
   notifications "Daemon" "Stopping the daemon"
-  pid="$(pidof "$1")"
-  kill -9 "$pid" &>/dev/null
+  pid="$(pidof "${proc}")"
+  kill -9 "${proc}" &>/dev/null
 }
 __start() {
   sleep 1 && "$@" &>/dev/null 2>&1 || return 1 &
-  [ $? = 0 ] && notifications "Daemon" "$1 has been started as the notify daemon" || return 1
+  [ $? = 0 ] && notifications "Daemon" "${proc} has been started as the notify daemon" || return 1
 }
 
 __restart() {
-  __kill "$1"
+  __kill "${proc}"
   __start "$1"
 }
 
@@ -179,11 +179,11 @@ EOF
 __xfce4_notifyd() {
   if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
     notifyd="/usr/lib/xfce4/notifyd/xfce4-notifyd"
-    proc=xfce4-notifyd
+    proc="xfce4-notifyd"
     return 0
   elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
     notifyd="/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd"
-    proc=xfce4-notifyd
+    proc="xfce4-notifyd"
     return 0
   else
     return 1
@@ -193,7 +193,7 @@ __xfce4_notifyd() {
 __dunst_notifyd() {
   if __cmd_exists dunst; then
     notifyd="dunst"
-    proc=dunst
+    proc="dunst"
     return 0
   else
     return 1
@@ -203,7 +203,7 @@ __dunst_notifyd() {
 __deadd_notifyd() {
   if __cmd_exists deadd-notification-center; then
     notifyd="deadd-notification-center"
-    proc=deadd-notification-center
+    proc="deadd-notification-center"
     return 0
   else
     return 1
@@ -213,8 +213,8 @@ __deadd_notifyd() {
 _start_notifyd() {
   printf_green "Attempting to start"
   __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
-  _run() { __start "$notifyd"; }
-  while true; do _run && __getstatus "$proc" && sleep 5 && break || continue; done
+  _run() { __start "$notifyd" && sleep 1; }
+  while true; do _run && __getstatus "$proc" && break || continue; done
   #notifications "Daemon" "Started"
 }
 

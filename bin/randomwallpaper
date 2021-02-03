@@ -102,13 +102,18 @@ __term() {
     shift 1
     printf_newline "\n\n\n\n"
     printf_head "Random Wall Paper Menu"
+    printf_green "b. Change the wallpaper every 5 minutes"
     printf_green "y. change the wallpaper"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
     printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-s"
     case "$main" in
-    $'\E' | $'\e' | z | x)
+    $'\E' | $'\e' | z | x | n)
       clear
+      break
+      ;;
+    b)
+      background_job "${ROTATE_TIME}" &
       break
       ;;
     *)

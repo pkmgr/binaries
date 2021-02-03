@@ -51,6 +51,7 @@ NOTIFY="on"
 __devnull() { "$@" >/dev/null 2>&1 && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
 __devnull2() { "$@" 2>/dev/null && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
 
+__server_failed() { printf_error "Failed to connect to ${MPDSERVER}" && printf_counter 5 "Exiting in " && return 1; }
 __mpc() { mpc -h "${MPDSERVER}" "$@" || return 1; }
 get_prev() { cat "$TEMPDIR/mpdclient_prev" 2>/dev/null; }
 get_next() { cat "$TEMPDIR/mpdclient_next" 2>/dev/null; }
@@ -62,6 +63,7 @@ stats() { echo -e "$(volume)  |  $(playtime)"; }
 db_play() { echo -e "Total: $(__mpc stats | tail -n1 | sed 's#DB Play Time: ##g')"; }
 db_songs() { echo -e "Songs: $(__mpc stats | grep Songs | awk '{print $2}')"; }
 db_uptime() { echo -e "Uptime: $(__mpc stats | grep Uptime | sed 's#Uptime:       ###g')"; }
+is_up() { __mpc >/dev/null 2>&1 && return 0 || __server_failed; }
 mpc_status() {
   status() {
     echo "MPD @ ${MPDSERVER}: $(db_uptime)"
@@ -157,6 +159,7 @@ while :; do
   clear
   shift 1
   printf_newline "\n\n\n\n"
+  is_up || break
   mpc_status | printf_readline "6" || break
   printf_newline "\n"
   printf_green "1. turn notifications on/off"

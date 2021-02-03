@@ -252,8 +252,7 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -e -r -n $lines $readopts $reply
-  [ -z "$reply" ] && printf_return $?
+  read -t 20 -e -r -n $lines $readopts $reply || printf "\n"
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -264,20 +263,20 @@ printf_read_question_nt() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -e -r -n $lines ${readopts} ${reply}
-  [ -z "$reply" ] && printf_return $?
+  read -e -r -n $lines ${readopts} ${reply} || printf "\n"
 }
 
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -e -r -n 1 -s "${1:-REPLY}" || printf_return
+  read -t 10 -e -r -n 1 -s "${1:-REPLY}" || printf "\n"
   #history -s "${answer}"
 }
 
 #printf_answer_yes "var" "response"
-printf_answer_yes() { [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || printf_return; }
+printf_answer_yes() { [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
+printf_answer_no() { [[ "${1:-$REPLY}" =~ ${2:-^[Nn]$} ]] && return 0 || return 1; }
 
-printf_return() { echo "" && return "${1:-1}"; }
+printf_return() { return "${1:-1}"; }
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -354,10 +353,16 @@ printf_counter() {
   printf_newline "\n\n"
 }
 printf_debug() {
-  for arg in "$@"; do
-    printf_blue "$arg"
+  printf_yellow "Running in debug mode "
+  local IFS=' '
+  arg="$*"
+  for d in $arg; do
+    printf_blue "$d"
   done
+  exit
 }
+
+__echo_cat() { echo -n "$(cat $1 | tr '\n' ' ')"; }
 ###################### MyCurDir ######################
 #mycurrdir "$*" | returns $MyCurDir
 __mycurrdir() {
@@ -605,6 +610,7 @@ __timeout() { timeout ${1} bash -c "${2}"; }
 __count_files() { __devnull2 find "${1:-./}" -not -path "${1:-./}/.git/*" -mindepth 1 -maxdepth 1 -type f | wc -l; }
 #count_dir "dir"
 __count_dir() { __devnull2 find "${1:-./}" -mindepth 1 -maxdepth 1 -type d | wc -l; }
+__touch() { touch "$@" 2>/dev/null; }
 #symlink "file" "dest"
 __symlink() { if [ -e "$1" ]; then __devnull __ln_sf "${1}" "${2}"; fi; }
 #mv_f "file" "dest"
@@ -716,7 +722,7 @@ __git_clone() {
   [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
   __git_username_repo "$1"
   local repo="$1"
-  [ -z "$2" ] && local dir="${APPDIR:-.}" || local dir="$2" && shift 1
+  [ -n "$2" ] && local dir="$2" && shift 1 || local dir="${APPDIR:-.}"
   if [ -d "$dir/.git" ]; then
     __git_update "$dir" || return 1
   else
@@ -729,7 +735,7 @@ __git_clone() {
 }
 #git_pull "dir"
 __git_update() {
-  [ -z "$1" ] && local dir="${APPDIR:-.}" || local dir="$1" && shift 1
+  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="${APPDIR:-.}"
   local repo="$(git -C "$dir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
   local appname="${APPNAME:-$(basename $dir)}"
   git -C "$dir" reset --hard || return 1
@@ -743,7 +749,7 @@ __git_update() {
 }
 #git_commit "dir"
 __git_commit() {
-  [ -z "$1" ] && local dir="${APPDIR:-.}" || local dir="$1" && shift 1
+  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="${APPDIR:-.}"
   if __cmd_exists gitcommit; then
     if [ -d "$2" ]; then shift 1; fi
     local mess="${*}"
@@ -765,10 +771,9 @@ __git_commit() {
 }
 #git_init "dir"
 __git_init() {
-  [ -z "$1" ] && local dir="${APPDIR:-.}" || local dir="$1" && shift 1
+  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="${APPDIR:-.}"
   if __cmd_exists gitadmin; then
     if [ -d "$2" ]; then shift 1; fi
-    set --
     gitadmin "$dir" setup
   else
     set --
@@ -804,12 +809,12 @@ __git_username_repo() {
     return 1
   fi
 }
+
 #usage: git_CMD gitdir
-__git_return_error() { echo "$PWD" && return 1; }
 __git_status() { git -C "${1:-.}" status -b -s 2>/dev/null && return 0 || return 1; }
 __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)' 2>/dev/null && return 0 || return 1; }
 __git_pull() { git -C "${1:-.}" pull -q 2>/dev/null && return 0 || return 1; }
-__git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null && return 0 || __git_return_error; }
+__git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null && return 0 || echo "$1"; }
 __git_top_rel() { __devnull __git_top_dir "${1:-.}" && git -C "${1:-.}" rev-parse --show-cdup 2>/dev/null | sed 's#/$##g' | head -n1 || return 1; }
 __git_remote_fetch() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null && return 0 || return 1; }
 __git_remote_origin() { git -C "${1:-.}" remote show origin 2>/dev/null | grep Push | awk '{print $3}' && return 0 || return 1; }

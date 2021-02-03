@@ -31,14 +31,17 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+notifyAppName="NotifyDaemon"
+notifyIconName="notification-message-IM"
+notifyUrgency="normal"
 
 if [ "$(uname -s)" = "Darwin" ]; then
   __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\"" || return; }
 elif [ "$(uname -s)" = "Linux" ]; then
   __cmd_exists notify-send
-  __notify_send() { notify-send -u normal -i "notification-message-IM" "$@"; }
+  __notify_send() { notify-send --app-name="$notifyAppName" -u normal -i "$notifyIconName" "$@"; }
 elif __cmd_exists notify-send.sh; then
-  __notify_send() { notify-send.sh -u normal -i "notification-message-IM" "$@"; }
+  __notify_send() { notify-send.sh --app-name="$notifyAppName" -u normal -i "$notifyIconName" "$@"; }
 else
   exit 1
 fi

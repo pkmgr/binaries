@@ -14,21 +14,16 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : dmenu prompt to unmount drives
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 systemmgr_install
 __options "$@"
@@ -38,13 +33,13 @@ unmountusb() {
   [ -z "$drives" ] && exit
   chosen=$(echo "$drives" | dmenu -i -p "Unmount which drive?" | awk '{print $1}')
   [ -z "$chosen" ] && exit
-  sudo -A umount "$chosen" && notify-send "💻 USB unmounting" "$chosen unmounted."
+  sudo -A umount "$chosen" && notifications "💻 USB unmounting" "$chosen unmounted."
 }
 
 unmountandroid() {
   chosen=$(awk '/simple-mtpfs/ {print $2}' /etc/mtab | dmenu -i -p "Unmount which device?")
   [ -z "$chosen" ] && exit
-  sudo -A umount -l "$chosen" && notify-send "🤖 Android unmounting" "$chosen unmounted."
+  sudo -A umount -l "$chosen" && notifications "🤖 Android unmounting" "$chosen unmounted."
 }
 
 asktype() {

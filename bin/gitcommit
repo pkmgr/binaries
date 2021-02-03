@@ -62,11 +62,12 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
-versionfile="$(__git_top_dir $MYCURRDIR 2>/dev/null)/version.txt"
+versionfile="$topdir/version.txt"
 repo="$(__git_remote_fetch $MYCURRDIR)"
 
 [ -n "$repo" ] || repo="localdir"
 
+#printf_debug topdir:$topdir gitdir:$gitdir repo:$repo
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Functions
 __git_push() {
@@ -85,6 +86,9 @@ __git_push() {
     fi
   fi
   return $?
+}
+__version() {
+  date +"%m%d%Y%H%M-git" >"$versionfile"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -121,6 +125,21 @@ l | log)
 push)
   shift 1
   __git_push "$@"
+  exit $?
+  ;;
+
+version)
+  shift 1
+  if __git_porcelain "$gitdir"; then
+    printf_red "There are no changes to commit"
+    exit
+  fi
+  __version
+  versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
+  printf_cyan "$versionbump"
+  git -C "$gitdir" add "$gitdir/version.txt" >/dev/null 2>&1
+  git -C "$gitdir" commit -q -S -m "$versionbump" "$gitdir/version.txt" 2>/dev/null
+  __getexitcode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change"
   exit $?
   ;;
 
@@ -315,34 +334,18 @@ setup)
   ;;
 esac
 shift
-echo $newmess
 
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
+  exit
 else
-  if git s 2>/dev/null | grep -v '#' | grep -q version.txt; then
-    if [ -f "$versionfile" ]; then
-      versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
-      git -C $gitdir add $gitdir/version.txt >/dev/null 2>&1
-    else
-      versionbump="🚀 Version Deleted? 🚀 "
-      git -C $gitdir rm $gitdir/version.txt >/dev/null 2>&1
-    fi
-    printf_cyan "$versionbump"
-    git -C "$gitdir" commit -q -S -m "$versionbump" $gitdir/version.txt 2>/dev/null
-    __getexitcode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change"
-    printf_newline
-  fi
-fi
-
-if ! __git_porcelain "$gitdir"; then
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
-  [ -f "$versionfile" ] && date +"%m%d%Y%H%M-git" >"$versionfile"
-  if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/git" ]; then
+  [ -f "$versionfile" ] && __version
+  if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
     cp -Rf "$(__git_top_dir)/gitmasterconfig" "$(__git_top_dir)/git/config"
   fi
-  [ -n "$files" ] || git -C "$gitdir" add . >/dev/null 2>&1
+  if [ -z "$files" ]; then git -C "$gitdir" add . >/dev/null 2>&1; fi
   if [ -z "$mess" ]; then
     git -C "$gitdir" commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null
   else

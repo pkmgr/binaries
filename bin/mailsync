@@ -45,13 +45,13 @@ pgrep -x mbsync >/dev/null && {
 
 # Checks for internet connection and set notification script.
 #ping -q -c 1 1.1.1.1 > /dev/null || { echo "No internet connection detected."; exit ;}
-command -v notify-send >/dev/null || echo "Note that \`libnotify\` or \`libnotify-send\` should be installed for pop-up mail notifications with this script."
+command -v notifications >/dev/null || echo "Note that \`libnotify\` or \`libnotify-send\` should be installed for pop-up mail notifications with this script."
 
 # Settings are different for MacOS (Darwin) systems.
 if [ "$(uname)" = "Darwin" ]; then
   notify() { osascript -e "display notification \"$2 in $1\" with title \"You've got Mail\" subtitle \"Account: $account\"" && sleep 2; }
 else
-  notify() { notify-send --app-name="mutt-wizard" "mutt-wizard" "📬 $2 new mail(s) in \`$1\` account."; }
+  notify() { notifications --app-name="mutt-wizard" "mutt-wizard" "📬 $2 new mail(s) in \`$1\` account."; }
 fi
 
 # Check account for new mail. Notify if there is new content.
@@ -66,7 +66,7 @@ syncandnotify() {
       # Extract subject and sender from mail.
       from=$(awk '/^From: / && ++n ==1,/^\<.*\>:/' "$file" | perl -CS -MEncode -ne 'print decode("MIME-Header", $_)' | awk '{ $1=""; if (NF>=3)$NF=""; print $0 }' | sed 's/^[[:blank:]]*[\"'\''\<]*//;s/[\"'\''\>]*[[:blank:]]*$//')
       subject=$(awk '/^Subject: / && ++n == 1,/^\<.*\>: / && ++i == 2' "$file" | head -n-1 | perl -CS -MEncode -ne 'print decode("MIME-Header", $_)' | sed 's/^Subject: //' | sed 's/^{[[:blank:]]*[\"'\''\<]*//;s/[\"'\''\>]*[[:blank:]]*$//' | tr -d '\n')
-      notify-send --app-name="mutt-wizard" "📧$from:" "$subject" &
+      notifications --app-name="mutt-wizard" "📧$from:" "$subject" &
     done
   fi
 }
@@ -79,7 +79,7 @@ else
 fi
 
 echo " 🔃" >/tmp/imapsyncicon_"$USER"
-devnull pkill -RTMIN+12 "${STATUSBAR:?}"
+[ -n "${STATUSBAR:?}" ] && devnull pkill -RTMIN+12 "${STATUSBAR:?}"
 
 # Parallelize multiple accounts
 for account in $accounts; do
@@ -88,7 +88,7 @@ done
 
 wait
 rm -f /tmp/imapsyncicon_"$USER"
-devnull pkill -RTMIN+12 "${STATUSBAR:?}"
+[ -n "${STATUSBAR:?}" ] && devnull pkill -RTMIN+12 "${STATUSBAR:?}"
 
 notmuch new 2>/dev/null
 

@@ -35,8 +35,9 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blog}"
 EDITOR="$EDITOR"
-blogdir="${BLOG_DIR:-$blogdir}"
+blogdir="${blogdir:-$BLOG_DIR}"
 vimoptions="${vimoptions:-"-c ':setlocal ft=notes syntax=markdown'"}"
+export GITHUB_ACCESS_TOKEN="${GITHUB_ACCESS_TOKEN:-none}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/blog/settings" ] && . "$HOME/.config/blog/settings"
@@ -55,8 +56,8 @@ if [ "$1" = "-c" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__blog_init() { [ -d "${blogdir}/.git" ] || __git_init "${blogdir}"; }
-__blog_publish() { __cmd_exists gitcommit && gitcommit "$blogdir" "blog" "$*" || __git_commit "$blogdir" "${*:-Modified my blog}"; }
+__blog_init() { [ -d "${blogdir}/.git" ] && [ ! -f "${blogdir}/.nogit" ] || __git_init "${blogdir}"; }
+__blog_publish() { if [ ! -f "${blogdir}/.nogit" ]; then __cmd_exists gitcommit && gitcommit "$blogdir" "blog" "$*" || __git_commit "$blogdir" "${*:-Modified my blog}"; fi; }
 __blog_site() { __git_remote_origin "$blogdir"; }
 __blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -77,19 +78,19 @@ __edit() {
   export WDIR="$blogdir"
   __edit_menu "$@" || printf_exit 1 1 "Please enter the full path of the file"
 }
-
 __init() {
+  local nogit YesNo url
   local blogdir="${1:-blogdir}"
   if [ ! -d "$blogdir/.git" ]; then
     printf_green "Initializing the repo"
-    printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo"
+    printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo" "-s"
     if printf_answer_yes "$YesNo"; then
       printf_read_question "3" "Enter the url: " "120" "url"
       __git_clone "$url" "$blogdir"
-    else
-      __mkd "$blogdir/_posts" "$blogdir/_pages"
-      __blog_init "$blogdir" && $APPNAME page index welcome
     fi
+    __mkd "$blogdir/_posts" "$blogdir/_pages"
+    __blog_init "$blogdir"
+    "$APPNAME" page index welcome
     printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
   fi
 }
@@ -112,6 +113,7 @@ __blog_page_header() {
 
 __newpost_template() {
   if __blog_dir; then
+    local title=${1:-$title}
     local date="$(date +"%Y-%m-%d")"
     local edit="$(echo $date-$title | __sed 's# #_#g')"
     local file="$blogdir/_posts/$edit.md"
@@ -124,6 +126,7 @@ __newpost_template() {
 }
 
 __newpage_template() {
+  local title=${2:-$title}
   local edit="$(echo $1 | __sed 's# #_#g')"
   local file="$blogdir/_pages/$edit.md"
   __git_message "$file"
@@ -177,7 +180,7 @@ page)
   shift 1
   [ -z "${1}" ] && printf_red "Please enter the filename" && exit 1
   [ -z "${2}" ] && printf_red "Please enter a title" && exit 1 || title="$2"
-  __newpage_template "$@"
+  __newpage_template "$1" "$2"
   ;;
 
 post)

@@ -14,32 +14,24 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : add config files to git repo - https://www.atlassian.com/git/tutorials/dotfiles
 # @TODO        :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
 LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
 HELP="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/help)"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [[ $EUID -eq 0 ]]; then
   printf_head "You are running as root as such this will allow full system access"
   HOME="/"
@@ -50,14 +42,12 @@ gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
 backupdir="${CONFIG_HOME:-$HOME/.local/backups}/config"
 logdir="${LOGDIR:-$HOME/.local/log}/config"
 logfile="$logdir/config.log"
-mkdir -p $logdir $backupdir
+mkdir -p "$logdir" "$backupdir"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 _stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "${@}"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 _backup() {
   mkdir -p "$backupdir"
   _stow checkout 2>&1 | grep -E '^\s+' | awk '{print $1}' |
@@ -65,15 +55,12 @@ _backup() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 _checkout() { _stow checkout "${@}" || _backup "${@}"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 git_remote() {
   if [ -z "$1" ]; then
-    printf_read "Enter the url to your git repo:"
-    read -r url
+    printf_read_question "3" "Enter the url to your git repo:" 120 "url"
     _stow remote add origin "$url"
   else
     _stow remote "$@"
@@ -84,21 +71,51 @@ git_remote() {
 
 gitconfig_local() {
   cat <<EOF >"$gitdir/config.local"
+[color "branch"]
+  current = green bold
+  local = green
+  remote = yellow
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[status]
+  submoduleSummary = 1
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[color "diff"]
+  frag = magenta
+  meta = yellow
+  new = green
+  old = red
+  newMoved = cyan
+  oldMoved = blue
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [color "status"]
   added = green reverse
   changed = yellow reverse
   untracked = red reverse
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[diff]
+  colorMoved = zebra
+  submodule = log
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[diff "bin"]
+  textconv = hexdump -v -C
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #pretty log
 [pretty]
   custom = "%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Aliases
-g   = log --graph --pretty=custom
-l   = log --pretty=custom
-p   = push
-s   = status
+g   = "!(){ git --git-dir="$gitdir/" --work-tree="$HOME" log --graph --pretty=custom; };f"
+l   = "!f(){ git --git-dir="$gitdir/" --work-tree="$HOME" log --pretty=custom; };f"
+s   = "!f(){ git --git-dir="$gitdir/" --work-tree="$HOME" status -s -b; };f"
+p   = "!f(){ git --git-dir="$gitdir/" --work-tree="$HOME" push; };f"
+
 EOF
 }
 
@@ -110,12 +127,9 @@ git_init() {
     grep -q "$gitdir" ~/.gitignore 2>/dev/null || echo "$gitdir" >>.gitignore
     grep -q '/.git/' ~/.gitignore 2>/dev/null || echo "*/.git/*" >>.gitignore
   fi
-  printf_question "4" "Do you already have a dotfiles repo: [y/N]"
-  read -r -n 1 -s choice
-  echo ""
-  if [[ $choice == "y" || $choice == "Y" ]]; then
-    printf_read "What is the repo url:"
-    read -r -n 60 url
+  printf_read_question "4" "Do you already have a dotfiles repo: [y/N]" "1" "choice" "-s"
+  if printf_answer_yes "$choice"; then
+    printf_read_question "color" "What is the repo url:" "120" "url"
     git clone --bare "$url" "$gitdir" -q
     _checkout
     _stow config --local status.showUntrackedFiles no
@@ -125,23 +139,18 @@ git_init() {
     gitconfig_local
     _stow config --local status.showUntrackedFiles no
     _stow config --local commit.gpgSign false
-    printf_question "Would you like to add a remote git repo: [y/N]"
-    read -r -n 1 -s choice
-    echo ""
-    if [[ $choice == "y" || $choice == "Y" ]]; then
-      printf_question "4" "Enter the url to your git repo:"
-      read -r -n 60 url
+    printf_read_question "4" "Would you like to add a remote git repo: [y/N]" "1" "choice" "-s"
+    if printf_answer_yes "$choice"; then
+      printf_read_question "4" "Enter the url to your git repo:" "120" "url"
       _stow remote add origin "$url"
     else
       printf_green "You did not add a remote git repo"
     fi
-    printf_question "Enter your name:"
-    read -r -n 80 name
-    printf_question "Enter email address:"
-    read -r -n 100 email
+    printf_read_question "4" "Enter your name:" "120" "name"
+    printf_read_question "4" "Enter email address:" "120" "email"
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
-    _stow config --local include.path $gitdir/gitconfig.local
+    _stow config --local include.path "$gitdir/gitconfig.local"
     _stow add -f ~/.gitignore
     _stow commit -q -m "'🏠🐜❗ Added .gitignore 🏠🐜❗'"
   fi
@@ -149,6 +158,25 @@ git_init() {
 }
 
 case "$1" in
+s)
+  shift 1
+  _stow status -s -b
+  exit
+  ;;
+
+l)
+  shift 1
+  _stow log --graph --pretty=custom
+  exit
+  ;;
+
+--config)
+  printf_green "Regenerating the config file"
+  shift 1
+  gitconfig_local
+  exit
+  ;;
+
 --system)
   shift 1
   if [ "$1" = "--help" ]; then
@@ -193,34 +221,31 @@ case "$1" in
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ ! -d "$gitdir" ] && [ ! -f "$gitdir/config" ]; then
   git_init
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 case "$1" in
+init)
+  shift 1
+  git_init
+  ;;
 
-  init)
-    shift 1
-    git_init
-    ;;
+local)
+  shift 1
+  _stow config --local "$@"
+  ;;
 
-  local)
-    shift 1
-    _stow config --local "$@"
-    ;;
+log | l)
+  shift 1
+  _stow log --pretty=custom "$@"
+  ;;
 
-  log | l)
-    shift 1
-    _stow log --pretty=custom "$@"
-    ;;
-
-  status | s)
-    shift 1
-    _stow status "$@"
-    ;;
+status | s)
+  shift 1
+  _stow status "$@"
+  ;;
 
 restore)
   shift 1
@@ -286,7 +311,6 @@ help | -h* | --h*)
   [ -z "$1" ] && __help
   exit 0
   ;;
-
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

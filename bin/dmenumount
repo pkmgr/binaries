@@ -14,26 +14,21 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : Show and mount devices in dmenu
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Gives a dmenu prompt to mount unmounted drives and Android phones. If
 # they're in /etc/fstab, they'll be mounted automatically. Otherwise, you'll
 # be prompted to give a mountpoint from already existsing directories. If you
@@ -51,7 +46,7 @@ getmount() {
 
 mountusb() {
   chosen="$(echo "$usbdrives" | dmenu -i -p "Mount which drive?" | awk '{print $1}')"
-  sudo -A mount "$chosen" 2>/dev/null && notify-send "💻 USB mounting" "$chosen mounted." && exit 0
+  sudo -A mount "$chosen" 2>/dev/null && notifications "💻 USB mounting" "$chosen mounted." && exit 0
   alreadymounted=$(lsblk -nrpo "name,type,mountpoint" | awk '$2=="part"&&$3!~/\/boot|\/home$|SWAP/&&length($3)>1{printf "-not \\( -path *%s -prune \\) \\ \n",$3}')
   getmount "/mnt /media /mount /home -maxdepth 5 -type d $alreadymounted"
   partitiontype="$(lsblk -no "fstype" "$chosen")"
@@ -64,7 +59,7 @@ mountusb() {
     sudo -A chown "$user":"$ug" "$mp"
     ;;
   esac
-  notify-send "💻 USB mounting" "$chosen mounted to $mp."
+  notifications "💻 USB mounting" "$chosen mounted to $mp."
 }
 
 mountandroid() {
@@ -73,7 +68,7 @@ mountandroid() {
   simple-mtpfs --device "$chosen" "$mp"
   echo "OK" | dmenu -i -p "Tap Allow on your phone if it asks for permission and then press enter"
   simple-mtpfs --device "$chosen" "$mp"
-  notify-send "🤖 Android Mounting" "Android device mounted to $mp."
+  notifications "🤖 Android Mounting" "Android device mounted to $mp."
 }
 
 asktype() {

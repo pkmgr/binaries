@@ -14,15 +14,12 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : search devhints.to
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -30,33 +27,29 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-find_tools() { wget -qO- --server-response=no -nv $RAW_MD_URL | sed -e '/^{: /d' >$LOCAL_CACHE_FILE; }
-
+find_tools() { wget -qO- --server-response=no -nv "$RAW_MD_URL" | sed -e '/^{: /d' >"$LOCAL_CACHE_FILE"; }
 TOOL=${1:-bash}
 REFRESH=${2:-no}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 RAW_MD_URL="https://raw.github.com/hazeorid/devhints.io/gh-pages/${TOOL}.md"
-
 CACHE_DIR=$HOME/.cache/devhints/
 LOCAL_CACHE_FILE=$CACHE_DIR/${TOOL}.md
 
-if [ ! -d $CACHE_DIR ]; then
-  mkdir -p $CACHE_DIR
+if [ ! -d "$CACHE_DIR" ]; then
+  __mkd "$CACHE_DIR"
 fi
 
 printf_green "Finding the results for $TOOL\n\t\tThis may take a few moments............."
-if [ "$REFRESH" == "--refresh" ] || [ ! -e $LOCAL_CACHE_FILE ]; then
+if [ "$REFRESH" == "--refresh" ] || [ ! -e "$LOCAL_CACHE_FILE" ]; then
   find_tools
 fi
 
-if [ -s $LOCAL_CACHE_FILE ]; then
-  mdless $LOCAL_CACHE_FILE 2>/dev/null
+if [ -s "$LOCAL_CACHE_FILE" ]; then
+  mdless "$LOCAL_CACHE_FILE" 2>/dev/null
 else
   printf_error "No cheat sheet found"
 fi

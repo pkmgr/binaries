@@ -61,7 +61,7 @@ OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if cmd_exists qalc; then
-  calc_app() { qalc -c "$OUTPUT"; }
+  calc_app() { qalc "$OUTPUT"; }
 elif cmd_exists bc; then
   calc_app() { echo "$INPUT = $(echo "$OUTPUT" | bc -q)"; }
 else

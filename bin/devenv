@@ -14,15 +14,11 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : setup a development environment
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,7 +29,6 @@ fi
 devenvmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if_sample() {
   if [ -f .env.sample ] || [ -f .env ]; then cp -Rf .env.sample .env; fi
   if [ -f .config.sample ] || [ -f .config ]; then cp -Rf .config.sample .config; fi
@@ -41,14 +36,15 @@ if_sample() {
   if [ -f .config.json.sample ] || [ -f .config.json ]; then cp -Rf .config.json.sample .config.json; fi
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_new_site() {
   printf_green "Enter the full path for your new project!"
-  printf_custom_question "3" "Enter location for your new site - enter . for current: "
-  read -r sitedir
+  printf_read_question "3" "Enter location for your new site - enter . for current: " "120" "sitedir"
   [ ! -z "$sitedir" ] || cd "$sitedir" || exit 1
 
 }
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_jekyll() {
   local appname=jekyll
   local project=jekyll
@@ -63,7 +59,6 @@ __run_jekyll() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_hugo() {
   local appname=hugo
   local project=hugo
@@ -78,7 +73,6 @@ __run_hugo() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_ruby() {
   local appname=ruby
   local project=ruby
@@ -93,7 +87,6 @@ __run_ruby() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_python() {
   local appname=python
   local project=python
@@ -108,7 +101,6 @@ __run_python() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_perl() {
   local appname=perl
   local project=perl
@@ -123,7 +115,6 @@ __run_perl() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_php() {
   local appname=php
   local project=php
@@ -138,7 +129,6 @@ __run_php() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_node() {
   local appname=node || appname=node || appname=npm
   local project=node
@@ -155,7 +145,6 @@ __run_node() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_vuecli() {
   local appname=vue
   local project=node
@@ -172,7 +161,6 @@ __run_vuecli() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_reactcli() {
   local appname=create-react-app
   local project=javascript
@@ -189,7 +177,6 @@ __run_reactcli() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_expresscli() {
   local appname=express-generator
   local project=javascript
@@ -206,7 +193,6 @@ __run_expresscli() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_create-project() {
   local appname=create-project
   local project=javascript
@@ -223,7 +209,6 @@ __run_create-project() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __run_mevn() {
   local appname=mevn
   local project=javascript
@@ -240,21 +225,23 @@ __run_mevn() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __gen_shellcheck() {
   __cp_rf "SCRIPTSFUNCTDIR/templates/shellcheckrc" ./shellcheckrc
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ "$1" = "--start" ]; then
-  START="$2"
   shift 1
+  START="$1"
 
   case "$START" in
   jekyll)
     if [ -f ./_config.yml ]; then
-      __cmd_exists watchy && watchy -w _config.yml -- jekyll serve --host=0.0.0.0 || cmd_exists jekyll && jekyll serve --host=0.0.0.0 || printf_exit "There was a problem staring - no config found"
+      if __cmd_exists watchy; then
+        watchy -w _config.yml -- jekyll serve --host=0.0.0.0
+      elif cmd_exists jekyll; then
+        jekyll serve --host=0.0.0.0
+      else printf_exit "There was a problem staring - no config found"; fi
     else
       printf_exit "There was a problem starting - no config found"
     fi
