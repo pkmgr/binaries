@@ -37,8 +37,8 @@ NOTIFYD_HOST="${NOTIFYD_HOST:-$NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 
 [ -n "$notifyAppName" ] && notifyAppName="--app-name=${notifyAppName:-}"
-[ -n "$notifyIconName" ] && notifyIconName="${notifyIconName:-notification-message-IM}"
 [ -n "$notifyUrgency" ] && notifyUrgency="-u ${notifyUrgency:-normal}"
+notifyIconName="${notifyIconName:-notification-message-IM}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(uname -s)" = "Darwin" ]; then
