@@ -82,53 +82,75 @@ EOF
 }
 
 __run_bg() {
-  local notifyDir="${TMP:-/tmp}/notify/process"
+  local notifyDir="${TMP:-/tmp}/notifications/process"
   [ -f "$notifyDir/kill" ] && __rm_rf $notifyDir/kill
   notifications "notifications" "Starting server: to stop make the file $notifyDir/kill"
-  __mkd "${notifyDir}"
+  __mkd "$notifyDir"
   while :; do
     for f in $notifyDir/*; do
       if [ -f "$f" ]; then
-        title="$(cat $f | awk '{print $1}' 2>/dev/null)"
-        message="$(cat $f | sed 's#'$(cat $f | awk '{print $1}')' ##g' 2>/dev/null)"
+        title="$(cat "$f" | awk '{print $1}' 2>/dev/null)"
+        message="$(cat "$f" | sed 's#'$(cat $f | awk '{print $1}')' ##g' 2>/dev/null)"
         notifications "$title" "$message"
       fi
       rm -Rf "$f"
       sleep 30
-      [ -f "$notifyDir/kill" ] && break
+      [ -f "$notifyDir/kill" ] && break || continue
     done
     if [ -f "$notifyDir/kill" ]; then
       __rm_rf "$notifyDir"/*
-      notifications "notifications" "Stopping server"
+      notifications "notifications" "Stopping background proccess"
       break
     fi
   done
 }
 
 __client() {
-  shift
-  local _SERVER="$NOTIFYD_HOST"
-  local _PORT="$NOTIFYD_PORT"
-  local _TMP="${TMPDIR:-/tmp}"
-  local _PATH="$(mktemp $TMP/notify-client/XXX.tmp)"
+  local _PATH="$(mktemp ${TMPDIR:-/tmp}/notify-client/XXX.tmp)"
   local _LOG="$_PATH.log"
-  __mkd "$TMP/notify-client"
+  if [ ${#} -eq 0 ]; then
+    local title=""
+    local msg="$(</dev/stdin)"
+    shift
+  else
+    if [ ${#} -eq 1 ]; then
+      local title="$notifyAppName"
+      shift 1
+      local msg="$(</dev/stdin)"
+      shift
+    else
+      local title="${1}"
+      shift 1
+      local msg="${*}"
+      shift
+    fi
+  fi
+  shift
   __netcat_test
-  printf_green "Attempting to send message to $_SERVER on $_PORT"
-  printf "%s\n" "$1" "$2" >"${_PATH}" 2>>$_LOG
-  cat "$_PATH" 2>>$_LOG | __nc_send "$_SERVER" "$_PORT" && __clean_return 0 || __clean_return 1
-  return "$?"
+  __mkd "$TMP/notify-client"
+  printf_green "Attempting to send message to $NOTIFYD_HOST on $NOTIFYD_PORT"
+  printf "%s\n" "$title" "$msg" >"$_PATH" 2>>$_LOG
+  cat "$_PATH" 2>>$_LOG | __nc_send "$NOTIFYD_HOST" "$NOTIFYD_PORT"
+  # __clean_return $?
 }
 
 __notifications() {
   if [ ${#} -eq 0 ]; then
-    local title="$notifyAppName"
+    local title=""
     local msg="$(</dev/stdin)"
-  else
-    local title="${1}"
-    shift 1
-    local msg="${*:-}"
     shift
+  else
+    if [ ${#} -eq 1 ]; then
+      local title="$notifyAppName"
+      shift 1
+      local msg="$(</dev/stdin)"
+      shift
+    else
+      local title="${1}"
+      shift 1
+      local msg="${*}"
+      shift
+    fi
   fi
   shift
   __notify_send "$title" "$msg" || return 0
@@ -194,16 +216,7 @@ client | --client)
     __config
   fi
   if [ -n "$NOTIFYD_HOST" ]; then
-    if [ ${#} -eq 0 ]; then
-      title="$notifyAppName"
-      msg="$(</dev/stdin)"
-    else
-      title="${1}"
-      shift 1
-      msg="${*:-}"
-      shift
-    fi
-    __client "$title" "${title//$msg/}"
+    __client "$@"
   else
     notifications "Daemon" "Please set NOTIFYD_HOST variable to your server"
     printf_exit 1 1 "Please set NOTIFYD_HOST: variable to your server $NOTIFYD_HOST"

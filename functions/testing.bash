@@ -589,12 +589,11 @@ __mkd() {
 }
 #netcat
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
-__netcat_pids() { netstat -tupln 2>/dev/null | grep "$1" | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/$(basename ${netcat:-nc})'##g'; }
 __netcat_test() { __cmd_exists "$netcat" || printf_error "The program netcat is not installed"; }
+__netcat_pids() { netstat -tupln 2>/dev/null | grep ":$1 " | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/$(basename ${netcat:-nc})'##g'; }
 __netcat_kill() {
-  getpid="$(__netcat_pids "$1" 2>/dev/null)"
-  pidof "$netcat" >/dev/null 2>&1 && kill -s STOP "$getpid" >/dev/null 2>&1
-  netstat -taupln | grep -Fqv "$1" || return 1
+  pidof "$netcat" >/dev/null 2>&1 && kill -s HUP "$(__netcat_pids $1)" >/dev/null 2>&1
+  netstat -taupln | grep -Fqv ":$1 " || return 1
 }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"

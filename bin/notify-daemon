@@ -36,7 +36,8 @@ __options "$@"
 NOTIFYD_HOST="${NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 KILL_PATH="${TMPDIR:-/tmp}/notify-daemon.kill"
-SERVER_PATH="$TMP/notify-daemon/server"
+SERVER_PATH="${TMPDIR:-/tmp}/notify-daemon/server"
+LOG_FILE="$SERVER_PATH.log"
 
 [ -f "$HOME/.config/notify-daemon/settings" ] && . "$HOME/.config/notify-daemon/settings"
 
@@ -111,33 +112,30 @@ __client() {
 __server() {
   echo ""
   __clean_return() { __rm_rf "$_PATH" "$_LOG" && return "$1"; }
-  __run_server() {
-    while :; do
-      cmdsPID=$!
-      echo "$cmdsPID" >>"$_LOG"
-      $netcat -l -p "$_PORT" >"$_PATH" 2>>"$_LOG" &&
-        [ ! -s "$_PATH" ] && notifications "$(cat "$_PATH")"
-      __clean_return $?
-      if [ -f "$_KILL" ]; then
-        __kill_server &>/dev/null
-        __rm_rf "$_LOG"
-        notifications "Daemon" "notify-daemon server is shutting down"
-        break
-      fi
-    done
-  }
-
   local _TMP="${TMPDIR:-/tmp}"
   local _PORT="$NOTIFYD_PORT"
   local _PATH="$SERVER_PATH"
-  local _LOG="$_PATH.log"
+  local _LOG="$LOG_FILE"
   local _KILL="$KILL_PATH"
   __mkd "$TMP/notify-daemon"
   __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
   notifications "Daemon" "Starting notify-daemon server on port $_PORT"
   __rm_rf "$_KILL" "$_LOG"
-  __run_server &
+  while :; do
+    cmdsPID="$$"
+    echo "$cmdsPID" >>"$_LOG"
+    $netcat -l -p "$_PORT" >"$_PATH" 2>>"$_LOG"
+    echo "New notification" >>"$_LOG"
+    notifications "$(cat "$_PATH")"
+    __clean_return $?
+    if [ -f "$_KILL" ]; then
+      __kill_server &>/dev/null
+      __rm_rf "$_LOG"
+      notifications "Daemon" "notify-daemon server is shutting down"
+      break
+    fi
+  done
   __clean_return $?
 }
 
