@@ -32,9 +32,8 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 systemmgr_install
 __options "$@"
+__am_i_online_err
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__am_i_online || printf_exit "No internet connection detected"
 
 if [ -e "/usr/local/bin/dmenupass" ]; then
   SUDO_ASKPASS="/usr/local/bin/dmenupass}"

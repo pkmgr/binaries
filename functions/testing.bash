@@ -148,7 +148,6 @@ printf_blue() { printf_color "\t\t$1\n" 4; }
 printf_cyan() { printf_color "\t\t$1\n" 6; }
 printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
-printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
 printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
 printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
@@ -174,6 +173,13 @@ printf_pause() {
   printf_color "\t\t$msg\n" "$color"
   read -s -n 1
 }
+
+printf_error() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local msg="$*"
+  printf_color "\t\t$ICON_ERROR $msg\n" "$color"
+}
+
 printf_single() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local COLUMNS=80
@@ -252,7 +258,7 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -e -r -n $lines $readopts $reply || printf "\n"
+  read -t 20 -e -r -n $lines $readopts $reply #|| printf "\n"
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -263,7 +269,7 @@ printf_read_question_nt() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -e -r -n $lines ${readopts} ${reply} || printf "\n"
+  read -e -r -n $lines $readopts $reply #|| printf "\n"
 }
 
 #printf_answer "Var" "maxNum" "Opts"
@@ -1204,6 +1210,7 @@ __notifications() {
 }
 #connection test
 __am_i_online() {
+  local site="1.1.1.1"
   [ -z "$FORCE_CONNECTION" ] || return 0
   return_code() {
     if [ "$1" = 0 ]; then
@@ -1213,17 +1220,22 @@ __am_i_online() {
     fi
   }
   __test_ping() {
-    timeout 0.3 ping -c1 8.8.8.8 >/dev/null 2>&1
+    local site="$1"
+    timeout 0.3 ping -c1 $site >/dev/null 2>&1
     local pingExit=$?
     return_code $pingExit
   }
   __test_http() {
-    curl -LSIs --max-time 1 http://1.1.1.1" | grep -e "HTTP/[0123456789]" | grep "200 -n1 >/dev/null 2>&1
+    local site="$1"
+    curl -LSIs --max-time 1 http://$site" | grep -e "HTTP/[0123456789]" | grep "200 -n1 >/dev/null 2>&1
     local httpExit=$?
     return_code $httpExit
   }
-  __test_ping || __test_http
+  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" >&2 && exit 1; }
+  __test_ping "$site" || __test_http "$site" || err "$@"
 }
+#am_i_online_err "Message" "color"
+__am_i_online_err() { __am_i_online show "$@"; }
 #setup clipboard
 if [[ "$OSTYPE" =~ ^darwin ]]; then
   printclip() { __cmd_exists pbpaste && LC_CTYPE=UTF-8 tr -d "\n" | pbpaste || return 1; }

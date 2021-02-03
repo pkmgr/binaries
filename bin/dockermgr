@@ -32,11 +32,10 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 dockermgr_install
 __options "$@"
+__am_i_online_err "Can not setup docker: No internet"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
 __init() {
-  __am_i_online || printf_exit "Can not setup docker: No internet"
   if ! __cmd_exists docker; then
     printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"

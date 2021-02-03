@@ -28,9 +28,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__check_app wget
-__am_i_online || printf_exit 1 1 "No internet connection"
+__am_i_online_err
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variables
 search="$*"

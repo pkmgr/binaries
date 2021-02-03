@@ -32,6 +32,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 systemmgr_install
 __options "$@"
+__am_i_online_err
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 API="https://lorum.casjay.now.sh"
@@ -69,11 +70,7 @@ case $2 in
 esac
 
 printf "\n"
-if __am_i_online; then
-  __curl $API/${type}/${amount}
-else
-  printf_red "Unable to connect to the API server\n"
-fi
+__curl $API/${type}/${amount}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

@@ -30,7 +30,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__am_i_online || printf_exit 1 1 "No internet connection"
+__am_i_online_err
 
 # [X] open section
 # [X] one shot mode
