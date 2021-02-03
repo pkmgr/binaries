@@ -176,8 +176,10 @@ printf_pause() {
 
 printf_error() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local exitCode="$1" && shift 1 || local exitCode="1"
   local msg="$*"
   printf_color "\t\t$ICON_ERROR $msg\n" "$color"
+  return $exitCode
 }
 
 printf_single() {
@@ -1238,10 +1240,10 @@ __am_i_online() {
     local httpExit=$?
     return_code $httpExit
   }
-  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" >&2 && exit 1; }
+  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" >&2; }
   __test_ping "$site" || __test_http "$site" || err "$@"
 }
-#am_i_online_err "Message" "color"
+#am_i_online_err "Message" "color" "exitCode"
 __am_i_online_err() { __am_i_online show "$@"; }
 #setup clipboard
 if [[ "$OSTYPE" =~ ^darwin ]]; then
