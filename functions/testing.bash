@@ -258,7 +258,7 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -e -r -n $lines $readopts $reply #|| printf "\n"
+  read -t 20 -er -n $lines $readopts $reply #|| printf "\n"
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -269,13 +269,13 @@ printf_read_question_nt() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -e -r -n $lines $readopts $reply #|| printf "\n"
+  read -er -n $lines $readopts $reply #|| printf "\n"
 }
 
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -e -r -n 1 -s "${1:-REPLY}" || printf "\n"
-  #history -s "${answer}"
+  read -t 10 -ers -n 1 "${1:-REPLY}" || printf "\n"
+  #history -s "$1"
 }
 
 #printf_answer_yes "var" "response"
@@ -1958,8 +1958,8 @@ get_app_info() {
   if [ -f "$(command -v $FILE)" ]; then
     printf_green ""
     printf_green "Getting info for $APPNAME"
-    cat "$FILE" | grep '^# @' | grep ' : ' >/dev/null 2>&1 &&
-      cat "$FILE" | grep "^# @" | grep ' : ' | sed 's/# @//g' | printf_readline "3" &&
+    cat "$FILE" | grep '^# @' | grep '  :' >/dev/null 2>&1 &&
+      cat "$FILE" | grep "^# @" | grep '  :' | sed 's/# @//g' | printf_readline "3" &&
       printf_green "$(cat $FILE | grep "##@Version" | sed 's/##@//g')" ||
       printf_red "File was found, however, No information was provided"
   else

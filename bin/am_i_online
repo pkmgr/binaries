@@ -1,38 +1,39 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="am_i_online"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 011320210115-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : am_i_online
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : check to see if you can connect to internet
-#
+##@Version       : 020320211253-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL.md
+# @ReadME        : am_i_online --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Wednesday, Feb 03, 2021 13:07 EST
+# @File          : am_i_online
+# @Description   : check to see if you can connect to internet
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main function
 main() {
   case $1 in
   --console)
@@ -51,9 +52,8 @@ main() {
   esac
   shift
 
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   test_ping() {
-    timeout 1 ping -c1 $site &>/dev/null
+    timeout 1 ping -c1 "$site" &>/dev/null
     pingExit=$?
   }
 
@@ -61,8 +61,6 @@ main() {
     timeout 1 curl --disable -LSIs --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
     httpExit=$?
   }
-
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   test_ping || test_http
 
@@ -80,5 +78,5 @@ main() {
 main "$@"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $exitCode
+exit "$exitCode"
 # end

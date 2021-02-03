@@ -204,7 +204,7 @@ printf_question_timeout() {
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
-  read -t 10 -n 1 answer && echo ""
+  read -t 10 -n 1 answer
   #if [[ $answer == "y" || $answer == "Y" ]]; then
   #fi
 }

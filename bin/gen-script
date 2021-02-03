@@ -137,11 +137,11 @@ __gen_header_help() {
   exit 0
 }
 __gen_header() {
-  local new="$1"
-  if [ -f "$topdir/README.md" ]; then local GEN_SCRIPTS_DEFREADME="README.md"; else local GEN_SCRIPTS_DEFREADME="$1 --help"; fi
-  [ -n "$new" ] || printf_exit "Needs a file name | This is required but it can be any name"
-  printf_green "New header info for $new"
   [ "$1" = "--help" ] || [ "$2" = "--help" ] && __gen_header_help
+  [ -n "$1" ] || printf_exit "Needs a file name | This is required but it can be any name"
+  printf_green "New header info for $new"
+  local GEN_SCRIPTS_DEFREADME="$1 --help"
+  local new="$1"
   [ -n "$2" ] && local desc="$2" || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$3" ] && local todo="$3" || printf_yellow "TODO: ${todo:-None provided}"
   [ -n "$4" ] && local copy="$4"
@@ -152,7 +152,7 @@ __gen_header() {
 #!/usr/bin/env bash
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME='$(__filename ${new:-sample})'
+APPNAME="'"$(__filename ${new:-sample})"'"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"'
   cat <<EOF | tee

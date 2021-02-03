@@ -400,8 +400,8 @@ get_app_info() {
   local FILE="$(command -v $APPNAME)"
   if [ -f "$FILE" ]; then
     echo ""
-    cat "$FILE" | grep "# @" | grep " : " >/dev/null 2>&1 &&
-      cat "$FILE" | grep "# @" | grep " : " | sed 's/# @//g' | printf_newline "3" &&
+    cat "$FILE" | grep "# @" | grep "  :" >/dev/null 2>&1 &&
+      cat "$FILE" | grep "# @" | grep "  :" | sed 's/# @//g' | printf_newline "3" &&
       printf_green "$(cat $FILE | grep "##@Version" | sed 's/##@//g')" ||
       printf_red "File was found, however, No information was provided"
     echo ""
