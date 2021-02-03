@@ -31,41 +31,54 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-notifyAppName="NotifyDaemon"
-notifyIconName="notification-message-IM"
-notifyUrgency="normal"
+[ -f "$HOME/.config/notifications/settings" ] && . "$HOME/.config/notifications/settings"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+NOTIFYD_HOST="${NOTIFYD_HOST:-$NOTIFYD_HOST}"
+NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 
+[ -n "$notifyAppName" ] && notifyAppName="--app-name=${notifyAppName:-}"
+[ -n "$notifyIconName" ] && notifyIconName="${notifyIconName:-notification-message-IM}"
+[ -n "$notifyUrgency" ] && notifyUrgency="-u ${notifyUrgency:-normal}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(uname -s)" = "Darwin" ]; then
   __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\"" || return; }
 elif [ "$(uname -s)" = "Linux" ]; then
-  __cmd_exists notify-send
-  __notify_send() { notify-send --app-name="$notifyAppName" -u normal -i "$notifyIconName" "$@"; }
-elif __cmd_exists notify-send.sh; then
-  __notify_send() { notify-send.sh --app-name="$notifyAppName" -u normal -i "$notifyIconName" "$@"; }
+  if __cmd_exists notify-send; then
+    __notify_send() { notify-send $notifyAppName $notifyUrgency -i "$notifyIconName" "$@"; }
+  elif __cmd_exists notify-send.sh; then
+    __notify_send() { notify-send.sh $notifyAppName $notifyUrgency -i "$notifyIconName" "$@"; }
+  else
+    printf_exit 1 1 "There is no notify app installed: Install notify-send, dunst, deadd"
+  fi
 else
   exit 1
 fi
+
 __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
 __clean_return() {
   __rm_rf "$_PATH" "$_LOG"
   return "$1"
 }
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-NOTIFYD_HOST="${NOTIFYD_HOST}"
-NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
-[ -f "$HOME/.config/notifications/settings" ] && . "$HOME/.config/notifications/settings"
-
 __config() {
   printf_green "Generating the config file"
-  if [ ! -f "$HOME/.config/notifications/settings" ]; then
-    __rm_rf "$HOME/.config/notifications"
-    __mkd "$HOME/.config/notifications"
-    echo NOTIFYD_PORT="${NOTIFYD_PORT:-65001}" >"$HOME/.config/notifications/settings"
-    echo NOTIFYD_HOST="${NOTIFYD_HOST}" >>"$HOME/.config/notifications/settings"
-  fi
-  [ -f "$HOME/.config/notify-daemon/settings" ] && printf_green "config saved to $HOME/.config/notify-daemon/settings" ||
+  __rm_rf "$HOME/.config/notifications"
+  __mkd "$HOME/.config/notifications"
+  cat <<EOF >"$HOME/.config/notifications/settings"
+NOTIFYD_PORT="$NOTIFYD_PORT"
+NOTIFYD_HOST="$NOTIFYD_HOST"
+notifyAppName="${notifyAppName:-NotifyDaemon}"
+notifyIconName="${notifyIconName:-notification-message-IM}"
+notifyUrgency="${notifyUrgency:-normal}"
+
+EOF
+
+  if [ -f "$HOME/.config/notifications/settings" ]; then
+    printf_green "config saved to ~/.config/notifications/settings"
+  else
     printf_error "Failed to save the configuration"
+  fi
 }
 
 __run_bg() {
@@ -92,23 +105,30 @@ __run_bg() {
   done
 }
 
+__client() {
+  shift
+  local _SERVER="$NOTIFYD_HOST"
+  local _PORT="$NOTIFYD_PORT"
+  local _TMP="${TMPDIR:-/tmp}"
+  local _PATH="$(mktemp $TMP/notify-client/XXX.tmp)"
+  local _LOG="$_PATH.log"
+  __mkd "$TMP/notify-client"
+  __netcat_test
+  printf_green "Attempting to send message to $_SERVER on $_PORT"
+  printf "%s\n" "$1" "$2" >"${_PATH}" 2>>$_LOG
+  cat "$_PATH" 2>>$_LOG | __nc_send "$_SERVER" "$_PORT" && __clean_return 0 || __clean_return 1
+  return "$?"
+}
+
 __notifications() {
   if [ ${#} -eq 0 ]; then
-    local title=""
+    local title="$notifyAppName"
     local msg="$(</dev/stdin)"
-    shift
   else
-    if [ ${#} -eq 1 ]; then
-      local title="${1}"
-      shift 1
-      local msg="$(</dev/stdin)"
-      shift
-    else
-      local title="${1}"
-      shift 1
-      local msg="${*}"
-      shift
-    fi
+    local title="${1}"
+    shift 1
+    local msg="${*:-}"
+    shift
   fi
   shift
   __notify_send "$title" "$msg" || return 0
@@ -121,7 +141,7 @@ __notifications_all() {
     shift
   else
     if [ ${#} -eq 1 ]; then
-      local title="${1}"
+      local title="$notifyAppName"
       shift 1
       local msg="$(</dev/stdin)"
       shift
@@ -153,39 +173,6 @@ __notifications_all() {
   fi
 }
 
-__client() {
-  if [ ${#} -eq 0 ]; then
-    local title=""
-    local msg="$(</dev/stdin)"
-    shift
-  else
-    if [ ${#} -eq 1 ]; then
-      local title="${1}"
-      shift 1
-      local msg="$(</dev/stdin)"
-      shift
-    else
-      local title="${1}"
-      shift 1
-      local msg="${*}"
-      shift
-    fi
-  fi
-  shift
-
-  __mkd "$TMP/notify-client"
-  local _SERVER="$NOTIFYD_HOST"
-  local _TMP="${TMPDIR:-/tmp}"
-  local _PORT="65001"
-  local _PATH="$(mktemp $TMP/notify-client/XXX.tmp)"
-  local _LOG="$_PATH.log"
-  __netcat_test
-  printf_green "Attempting to send message to $_SERVER on $_PORT"
-  printf "%s\n" "$title" "$msg" >"${_PATH}" 2>>$_LOG
-  cat "$_PATH" 2>>$_LOG | __nc_send "$_SERVER" "$_PORT" && __clean_return 0 || __clean_return 1
-  return "$?"
-}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case $1 in
@@ -204,15 +191,22 @@ config | --config)
 client | --client)
   shift 1
   if [ ! -f "$HOME/.config/notifications/settings" ]; then
-    __mkd "$HOME/.config/notifications"
-    echo NOTIFYD_PORT="${NOTIFYD_PORT:-65001}" >"$HOME/.config/notifications/settings"
-    echo NOTIFYD_HOST="${NOTIFYD_HOST}" >>"$HOME/.config/notifications/settings"
+    __config
   fi
-  if [ -z "$NOTIFYD_HOST" ]; then
-    notifications "Daemon" "Please set NOTIFYD_HOST variable to your server"
-    exit 1
+  if [ -n "$NOTIFYD_HOST" ]; then
+    if [ ${#} -eq 0 ]; then
+      title="$notifyAppName"
+      msg="$(</dev/stdin)"
+    else
+      title="${1}"
+      shift 1
+      msg="${*:-}"
+      shift
+    fi
+    __client "$title" "${title//$msg/}"
   else
-    __client "$@"
+    notifications "Daemon" "Please set NOTIFYD_HOST variable to your server"
+    printf_exit 1 1 "Please set NOTIFYD_HOST: variable to your server $NOTIFYD_HOST"
   fi
   ;;
 

@@ -35,25 +35,44 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NOTIFYD_HOST="${NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
+KILL_PATH="${TMPDIR:-/tmp}/notify-daemon.kill"
+SERVER_PATH="$TMP/notify-daemon/server"
 
 [ -f "$HOME/.config/notify-daemon/settings" ] && . "$HOME/.config/notify-daemon/settings"
 
 __config() {
   printf_green "Generating the config file"
   if [ ! -f "$HOME/.config/notify-daemon/settings" ]; then
-    __rm_rf "$HOME/.config/notify-daemon"
+    __rm_rf "$HOME/.config/notify-daemon/settings"
     __mkd "$HOME/.config/notify-daemon"
-    echo NOTIFYD_PORT="${NOTIFYD_PORT:-65001}" >"$HOME/.config/notify-daemon/settings"
-    echo NOTIFYD_HOST="${NOTIFYD_HOST}" >>"$HOME/.config/notify-daemon/settings"
+    cat <<EOF >"$HOME/.config/notify-daemon/settings"
+NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
+ NOTIFYD_HOST="${NOTIFYD_HOST}"
+
+#Uncomment and insert this into $HOME/.config/notify-daemon/notifyd
+#if __cmd_exists pathToDaemon; then
+#  notifyd="pathToDaemon"
+#  proc="processName"
+#  return 0
+#else
+#  return 1
+#fi
+
+EOF
   fi
   [ -f "$HOME/.config/notify-daemon/settings" ] && printf_green "config saved to $HOME/.config/notify-daemon/settings" ||
     printf_error "Failed to save the configuration"
 }
 
-netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
+netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || exit 1)"
 __netcat_test() { __cmd_exists $netcat || notifications "Daemon" "The program netcat is not installed"; }
 __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
 
+__kill_server() {
+  __netcat_kill "$NOTIFYD_PORT" >/dev/null 2>&1 &&
+    printf_blue "Server has been stopped" || printf_red "Failed to stop"
+  sleep 2
+}
 __running() {
   notifications "Daemon" "${proc} is currently the notify daemon"
   pidof "${proc}" >/dev/null 2>&1
@@ -83,42 +102,43 @@ __client() {
   local _LOG="$_PATH.log"
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
-  printf "%s\n" "$*" >"${_PATH}" 2>>$_LOG
-  cat "$_PATH" 2>>$_LOG | __nc_send "$_SERVER" "$_PORT" 2>>$_LOG || return 1
-  rm -Rf "$_PATH"
+  printf "%s\n" "$*" >"${_PATH}" 2>>"$_LOG"
+  cat "$_PATH" 2>>"$_LOG" | __nc_send "$_SERVER" "$_PORT" 2>>"$_LOG"
+  [ $? = 0 ] && rm -Rf "$_PATH" || return 1
   return "$?"
 }
 
 __server() {
-  __clean_return() {
-    __rm_rf "$_PATH" "$_LOG"
-    return "$1"
+  echo ""
+  __clean_return() { __rm_rf "$_PATH" "$_LOG" && return "$1"; }
+  __run_server() {
+    while :; do
+      cmdsPID=$!
+      echo "$cmdsPID" >>"$_LOG"
+      $netcat -l -p "$_PORT" >"$_PATH" 2>>"$_LOG" &&
+        [ ! -s "$_PATH" ] && notifications "$(cat "$_PATH")"
+      __clean_return $?
+      if [ -f "$_KILL" ]; then
+        __kill_server &>/dev/null
+        __rm_rf "$_LOG"
+        notifications "Daemon" "notify-daemon server is shutting down"
+        break
+      fi
+    done
   }
-  __mkd "$TMP/notify-daemon"
+
   local _TMP="${TMPDIR:-/tmp}"
-  local _PORT="65001"
-  local _PATH="$TMP/notify-daemon/server"
+  local _PORT="$NOTIFYD_PORT"
+  local _PATH="$SERVER_PATH"
   local _LOG="$_PATH.log"
-  local _KILL="$TMP/notify-daemon.kill"
+  local _KILL="$KILL_PATH"
+  __mkd "$TMP/notify-daemon"
   __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
   notifications "Daemon" "Starting notify-daemon server on port $_PORT"
-  rm -Rf "$_KILL"
-  while :; do
-    cmdsPID=$!
-    echo "$cmdsPID" >>"$_LOG"
-    $netcat -l -p "$_PORT" >"$_PATH"
-    message="$(<$_PATH)"
-    notifications "$(echo $message | awk '{print $1}')" "$message"
-    __rm_rf "$_PATH"
-    if [ -f "$_KILL" ]; then
-      kill -s HUP "$(pidof nc 2>/dev/null)" &>/dev/null
-      __rm_rf "$_KILL" "$_LOG"
-      notifications "Daemon" "notify-daemon server is shutting down"
-      break
-    fi
-  done
-  rm -Rf "$_PATH"
+  __rm_rf "$_KILL" "$_LOG"
+  __run_server &
+  __clean_return $?
 }
 
 __startup() {
@@ -210,19 +230,75 @@ __deadd_notifyd() {
   fi
 }
 
+__custom_notifyd() {
+  if [ -f "$HOME/.config/notify-daemon/notifyd" ]; then
+    source "$HOME/.config/notify-daemon/notifyd"
+    [ -n "$proc" ] && [ -n "$notifyd" ] || return 1
+  else
+    return 1
+  fi
+}
+
 _start_notifyd() {
-  printf_green "Attempting to start"
-  __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
-  _run() { __start "$notifyd" && sleep 1; }
-  while true; do _run && __getstatus "$proc" && break || continue; done
-  #notifications "Daemon" "Started"
+  __custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
+  if [ -z "$proc" ] && [ -z "$notifyd" ]; then
+    printf_red "Failed to find a notify daemon"
+    printf_exit 1 1 "Please install: xfce4-notifyd, dunst, deadd or custom: see settings file for custom"
+  else
+    printf_green "Attempting to start"
+    _run() { __start "$notifyd" && sleep 1; }
+    while true; do _run && __getstatus "$proc" && break || continue; done
+    #notifications "Daemon" "Started"
+  fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_start_notifyd
-
 case "$1" in
+####
+*server)
+  case $2 in
+  *stop | *kill)
+    printf_green "Attempting to stop the server"
+    shift 2
+    touch "$KILL_PATH"
+    __kill_server
+    #__netcat_pids "$NOTIFYD_PORT"
+    exit $?
+    ;;
+  *restart)
+    printf_green "Attempting to restart the server"
+    shift 2
+    touch "$KILL_PATH"
+    __kill_server
+    sleep 5
+    __server "$@"
+    exit $?
+    ;;
+  *enable)
+    shift 2
+    __server_enable
+    exit $?
+    ;;
+  *disable)
+    shift 2
+    __server_disable
+    exit $?
+    ;;
+  *status)
+    PID="$(__netcat_pids "$NOTIFYD_PORT")"
+    printf_green "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
+    notifications "Daemon" "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
+    exit
+    ;;
+  *)
+    shift 1
+    __server "$@"
+    ;;
+  esac
+  ;;
+####
+
 config)
   shift 1
   __config
@@ -256,18 +332,6 @@ status)
   __running "$notifyd"
   ;;
 
-start)
-  shift 1
-  __running "$notifyd" || __start "$notifyd"
-  ;;
-
-*server)
-  shift 1
-  [ "$1" = --enable ] && __server_enable
-  [ "$1" = --disable ] && __server_disable
-  __server
-  ;;
-
 *client)
   if [ -z "$NOTIFYD_HOST" ]; then
     notifications "Daemon" "Please set NOTIFYD_HOST variable to your server"
@@ -284,7 +348,8 @@ start)
   ;;
 
 *)
-  __running "$proc" || _start_notifyd "$notifyd"
+  _start_notifyd
+  __getstatus "$proc" || _start_notifyd "$notifyd"
   ;;
 esac
 

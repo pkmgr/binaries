@@ -589,7 +589,13 @@ __mkd() {
 }
 #netcat
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
+__netcat_pids() { netstat -tupln 2>/dev/null | grep "$1" | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/$(basename ${netcat:-nc})'##g'; }
 __netcat_test() { __cmd_exists "$netcat" || printf_error "The program netcat is not installed"; }
+__netcat_kill() {
+  getpid="$(__netcat_pids "$1" 2>/dev/null)"
+  pidof "$netcat" >/dev/null 2>&1 && kill -s STOP "$getpid" >/dev/null 2>&1
+  netstat -taupln | grep -Fqv "$1" || return 1
+}
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }
@@ -597,6 +603,8 @@ __sed() { "$sed" "$@"; }
 __tar_create() { tar cfvz "$@"; }
 #tar filename
 __tar_extract() { tar xfvz "$@"; }
+# kill_netpid "port" "procname"
+__kill_netpid() { netstatg "$1" | grep "$(basename $2)" | awk '{print $7}' | sed 's#/'$2'##g' && netstat -taupln | grep -qv "$1" || return 1; }
 #while_true "command"
 __while_loop() { while :; do "${@}" && sleep .3; done; }
 #for_each "option" "command"
