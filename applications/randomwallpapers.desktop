@@ -3,14 +3,14 @@
 [Desktop Entry]
 Version=1.1
 Type=Application
-Name=My Terminal
-GenericName=Terminal Emulator
-Comment=Open Terminal.
-Icon=utilities-terminal
+Name=Random Wallpaper
+GenericName=Random Wallpaper
+Comment=Change the wallpaper.
+Icon=wallpaper
 Exec=randomwallpaper
 Path=~
 Terminal=true
 Actions=
 Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;
-Keywords=terminal;my;
+Keywords=wallpaper;my;
 StartupNotify=true

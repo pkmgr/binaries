@@ -97,23 +97,28 @@ background_job() {
 
 __term() {
   while :; do
+    # show menu
     clear
+    shift 1
     printf_newline "\n\n\n\n"
     printf_head "Random Wall Paper Menu"
-    printf_custom "6" "Welcome to the randomwallpaper menu: type q to exit"
-    printf_read_question "2" "rotate the background? [y/N] " "120" "YN"
-    if [ "$_APPNAME" = "q" ]; then
+    printf_green "y. change the wallpaper"
+    printf_green "z. or escape to Exit"
+    printf_green "---------------------------------"
+    printf_read_question "6" "Enter your choice [y-z] : " "1" "main" "-s"
+    case "$main" in
+    $'\E' | $'\e' | z | x)
+      clear
       break
-    fi
-    printf_answer_yes YN && randomwallpaper || continue
-    printf_newline
-    printf_newline
-    printf_read_question_nt "6" "Would you like to keep this window open? [y/N]" "1" cont "-s"
-    printf_answer_yes "$cont" && continue || break
+      ;;
+    *)
+      randomwallpaper
+      ;;
+    esac
+    printf_newline "\n\n"
     printf_counter "5" "3" "Re-loading menu in"
   done
-  printf_newline "\n\n"
-  exit
+  clear
 }
 
 randomwallpaper() {
