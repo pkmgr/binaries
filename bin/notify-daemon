@@ -58,6 +58,7 @@ __running() {
   notifications "Daemon" "$1 is currently the notify daemon"
   pidof "$1" >/dev/null 2>&1
 }
+__getstatus() { pidof "$1" >/dev/null 2>&1 && return 0 || return 1; }
 
 __kill() {
   notifications "Daemon" "Stopping the daemon"
@@ -178,9 +179,11 @@ EOF
 __xfce4_notifyd() {
   if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
     notifyd="/usr/lib/xfce4/notifyd/xfce4-notifyd"
+    proc=xfce4-notifyd
     return 0
   elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
     notifyd="/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd"
+    proc=xfce4-notifyd
     return 0
   else
     return 1
@@ -190,6 +193,7 @@ __xfce4_notifyd() {
 __dunst_notifyd() {
   if __cmd_exists dunst; then
     notifyd="dunst"
+    proc=dunst
     return 0
   else
     return 1
@@ -199,15 +203,24 @@ __dunst_notifyd() {
 __deadd_notifyd() {
   if __cmd_exists deadd-notification-center; then
     notifyd="deadd-notification-center"
+    proc=deadd-notification-center
     return 0
   else
     return 1
   fi
 }
 
+_start_notifyd() {
+  printf_green "Attempting to start"
+  __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
+  _run() { __start "$notifyd"; }
+  while true; do _run && __getstatus "$proc" && sleep 5 && break || continue; done
+  #notifications "Daemon" "Started"
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
+_start_notifyd
 
 case "$1" in
 config)
@@ -223,7 +236,7 @@ enable)
 disable)
   printf_green "Disabling the notify daemon"
   __rm_rf "$HOME/.config/autostart/notifyd.desktop" &&
-    __kill "$notifyd" &&
+    __kill "$proc" &&
     printf_green "Successfully Disabled the notify daemon" ||
     printf_error "Failed to disable notify daemon"
   return $?
@@ -235,7 +248,7 @@ restart)
 
 stop)
   shift 1
-  __kill "$notifyd"
+  __kill "$proc"
   ;;
 
 status)
@@ -271,7 +284,7 @@ start)
   ;;
 
 *)
-  __running "$notifyd" || __start "$notifyd"
+  __running "$proc" || _start_notifyd "$notifyd"
   ;;
 esac
 
