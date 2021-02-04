@@ -182,14 +182,6 @@ printf_error() {
   return $exitCode
 }
 
-printf_single() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
-  local COLUMNS=80
-  local TEXT="$@"
-  local LEN=${#TEXT}
-  local WIDTH=$(($LEN + ($COLUMNS - $LEN) / 2))
-  printf "%b" "$(tput setaf "$color" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
-}
 #printf_exit "color" "exitcode" "message"
 printf_exit() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
@@ -199,6 +191,15 @@ printf_exit() {
   printf_color "\t\t$msg" "$color"
   echo ""
   exit "$exitCode"
+}
+
+printf_single() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  local COLUMNS=80
+  local TEXT="$@"
+  local LEN=${#TEXT}
+  local WIDTH=$(($LEN + ($COLUMNS - $LEN) / 2))
+  printf "%b" "$(tput setaf "$color" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
 }
 
 printf_help() {

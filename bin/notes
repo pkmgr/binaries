@@ -144,6 +144,7 @@ WantedBy=multi-user.target
 }
 
 __server_enable() {
+  __system_service_exists notes_server.service || printf_error 1 1 "systemd service already exists"
   printf_green "Enabling the Notes Server on port $NOTES_SERVER_PORT"
   cat <<EOF >"$HOME/.config/autostart/notes-server.desktop"
 #!/usr/bin/env xdg-open
@@ -164,7 +165,8 @@ Keywords=notes;server;
 StartupNotify=true
 EOF
   notes server start &
-  exit
+  [ $? = 0 ] && printf_green "notes server has been insatlled for $USER" ||
+    printf_error 1 1 "$ICON_WARN Failed to install the notes server for $USER"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -376,7 +378,9 @@ server | service)
     esac
     ;;
     # End Systemd
-
+  enable)
+    __server_enable
+    ;;
   open)
     shift 1
     [ "$2" = "all" ] && ssh -qt "$NOTES_SERVER_NAME" notes all || ssh -qt "$NOTES_SERVER_NAME" notes
