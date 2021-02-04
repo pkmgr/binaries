@@ -144,7 +144,7 @@ WantedBy=multi-user.target
 }
 
 __server_enable() {
-  __system_service_exists notes_server.service || printf_error 1 1 "systemd service already exists"
+  __system_service_exists notes_server.service && printf_exit 1 1 "$ICON_WARN systemd service already exists"
   printf_green "Enabling the Notes Server on port $NOTES_SERVER_PORT"
   cat <<EOF >"$HOME/.config/autostart/notes-server.desktop"
 #!/usr/bin/env xdg-open
@@ -164,8 +164,8 @@ Categories=System;Development;GTK;X-XFCE;GNOME;
 Keywords=notes;server;
 StartupNotify=true
 EOF
-  notes server start &
-  [ $? = 0 ] && printf_green "notes server has been insatlled for $USER" ||
+  notes server start
+  [ $? = 0 ] && printf_green "notes server has been installed for $USER" ||
     printf_error 1 1 "$ICON_WARN Failed to install the notes server for $USER"
 }
 
@@ -289,7 +289,7 @@ esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
-server | service)
+*server | *service)
   if [ "$2" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
   if [ "$2" = "--status" ]; then
     shift 1
@@ -305,12 +305,12 @@ server | service)
     exit $?
   fi
 
-  # begin systemd
+  # begin systemd 2 ddep
   case "$2" in
-  systemd)
+  *systemd)
     shift 1
     case $2 in
-    install)
+    *install)
       shift 2
       NOTES_DIRECTORY="$NOTES_SERVER_DIRECTORY"
       systemd_service "/etc/systemd/system/notes_server.service" &&
@@ -318,46 +318,50 @@ server | service)
         __devnull sudo systemctl start notes_server &&
         __devnull sudo systemctl enable -f notes_server && printf_green "Service has been created" || printf_red "Failed to create service"
       ;;
-    remove)
+    *remove)
       shift 2
+      __system_service_exists notes_server.service || printf_exit 1 0 "Notes server is not installed"
       __devnull sudo systemctl disable -f notes_server &&
         __devnull sudo systemctl daemon-reload &&
         __rm_rf /etc/systemd/system/notes_server.service && printf_green "Service has been deleted" || printf_red "Failed to delete service"
       ;;
-    start)
+    *-start)
       shift 2
+      __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       __devnull sudo systemctl start notes_server && printf_green "Service has been started" || printf_red "Failed to start service"
       ;;
-    stop)
+    *stop)
       shift 2
+      __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       __devnull sudo systemctl stop notes_server && printf_green "Service has been stopped" || printf_red "Failed to stop service"
       ;;
-    restart)
+    *restart)
       shift 2
+      __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       __devnull sudo systemctl restart notes_server && printf_green "Service has been restarted" || printf_red "Failed to restart service"
       ;;
-    vars)
-      shift 2
-      export NOTES_FOLDER NOTES_FILE NOTES_TMPDIR NOTES_DIRECTORY NOTES_EDITOR NOTES_SERVER_NAME NOTES_SERVER_PORT NOTES_SERVER_DIRECTORY NOTES_LOG_FILE NOTES_TMP_FILE NOTES_PATH NOTES_SERVER_PATH
-      ;;
-    run)
+    *run)
       case $3 in
-      vars)
+      *vars)
         shift 3
+        __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         export NOTES_NOTIFY NOTES_FOLDER NOTES_FILE NOTES_TMPDIR NOTES_DIRECTORY NOTES_EDITOR NOTES_PATH
         export NOTES_SERVER_NAME NOTES_SERVER_PORT NOTES_SERVER_DIRECTORY NOTES_LOG_FILE NOTES_TMP_FILE NOTES_SERVER_PATH
         ;;
-      stop)
+      *stop)
+        __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         shift 3
         touch "$NOTES_TMPDIR/kill_notes"
         __netcat_kill_server "$NOTES_SERVER_PORT"
         ;;
-      start)
+      *-start)
+        __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         shift 3
         opts="$*"
         __run_service "$opts" 2>>"$NOTES_LOG_FILE"
         ;;
-      restart)
+      *restart)
+        __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         shift 3
         opts="$*"
         touch "$NOTES_TMPDIR/kill_notes"
@@ -365,6 +369,7 @@ server | service)
         __run_service "$opts" 2>>"$NOTES_LOG_FILE"
         ;;
       *)
+        __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         shift 2
         opts="$*"
         __run_service "$opts" 2>>"$NOTES_LOG_FILE"
@@ -373,15 +378,23 @@ server | service)
       ;;
     status | *)
       shift 2
+      __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       sudo systemctl status notes_server | printf_readline "255"
       ;;
     esac
     ;;
-    # End Systemd
-  enable)
+  # End Systemd
+
+  *start)
+    shift 1
+    printf_green "Starting notes server for $USER"
+    __server &>/dev/null
+    sleep 3
+    ;;
+  *enable)
     __server_enable
     ;;
-  open)
+  *open)
     shift 1
     [ "$2" = "all" ] && ssh -qt "$NOTES_SERVER_NAME" notes all || ssh -qt "$NOTES_SERVER_NAME" notes
     ;;
@@ -394,7 +407,7 @@ server | service)
   esac
   ;;
 
-client)
+*client)
   shift 1
   [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
   [ -n "$NOTES_SERVER_NAME" ] || printf_help "Please set NOTES_SERVER_NAME variable to your server"
@@ -410,7 +423,7 @@ client)
     notifications "$APPNAME" "failed to send to $NOTES_SERVER_NAME"
   ;;
 
-open)
+*open)
   shift 1
   if [ $# = 0 ]; then
     ls -A ${NOTES_DIRECTORY}/*/* | sed 's#"##g' | sort -u | printf_readline "6"
@@ -424,17 +437,17 @@ open)
   printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
   ;;
 
-all)
+*all)
   shift 1
   __notes "${NOTES_DIRECTORY}/all.txt"
   ;;
 
-config)
+*config)
   shift 1
   gen_config && printf_green "config file was created in ~/.config/notes/config"
   ;;
 
-show)
+*show)
   [ -f "$NOTES_PATH" ] && cat "$NOTES_PATH" 2>/dev/null | printf_readline "5" || printf_exit ""
   ;;
 

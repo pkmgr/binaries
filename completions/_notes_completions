@@ -8,8 +8,10 @@
 _notes_completions() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="- --help all config client open server"
-  local SERVEROPTS="--kill systemd open"
+  local ARRAY="- --help --status --all config client open server"
+  local SERVEROPTS="--kill systemd open enable start"
+  local SYSTEMD="install remove start stop restart status run"
+  local SYSTEMDRUN="vars stop start restart"
 
   _init_completion || return
 
@@ -18,22 +20,27 @@ _notes_completions() {
     return 1
     ;;
 
-  server)
+  *server | *service)
     COMPREPLY=($(compgen -W '${SERVEROPTS}' -- "$cur"))
     return
     ;;
 
-  systemd)
-    COMPREPLY=($(compgen -W 'install remove start stop restart status run vars' -- "$cur"))
+  *systemd)
+    COMPREPLY=($(compgen -W '$SYSTEMD' -- "$cur"))
     return
     ;;
 
-  client)
+  *run)
+    COMPREPLY=($(compgen -W '$SYSTEMDRUN' -- "$cur"))
+    return
+    ;;
+
+  *client)
     _filedir
     return
     ;;
 
-  open)
+  *open)
     COMPREPLY=($(compgen -W 'all' -- "$cur"))
     return
     ;;
