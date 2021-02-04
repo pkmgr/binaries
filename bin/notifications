@@ -35,19 +35,16 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NOTIFYD_HOST="${NOTIFYD_HOST:-$NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
-
-[ -n "$notifyAppName" ] && notifyAppName="--app-name=${notifyAppName:-}"
-[ -n "$notifyUrgency" ] && notifyUrgency="-u ${notifyUrgency:-normal}"
-notifyIconName="${notifyIconName:-notification-message-IM}"
+NOTIFY_CLIENT="${NOTIFY_CLIENT:-no}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(uname -s)" = "Darwin" ]; then
   __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\"" || return; }
 elif [ "$(uname -s)" = "Linux" ]; then
   if __cmd_exists notify-send; then
-    __notify_send() { notify-send $notifyAppName $notifyUrgency -i "$notifyIconName" "$@"; }
+    __notify_send() { notify-send --app-name="${notifyAppName:-}" -u "$notifyUrgency" -i "$notifyIconName" "$@"; }
   elif __cmd_exists notify-send.sh; then
-    __notify_send() { notify-send.sh $notifyAppName $notifyUrgency -i "$notifyIconName" "$@"; }
+    __notify_send() { notify-send.sh --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-notification-message-IM}" "$@"; }
   else
     printf_exit 1 1 "There is no notify app installed: Install notify-send, dunst, deadd"
   fi
@@ -56,23 +53,23 @@ else
 fi
 
 __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
-__clean_return() {
-  __rm_rf "$_PATH" "$_LOG"
-  return "$1"
-}
 
 __config() {
   printf_green "Generating the config file"
-  __rm_rf "$HOME/.config/notifications"
   __mkd "$HOME/.config/notifications"
+  __rm_rf "$HOME/.config/notifications/settings"
   cat <<EOF >"$HOME/.config/notifications/settings"
+# Settings for notifications
 NOTIFYD_PORT="$NOTIFYD_PORT"
 NOTIFYD_HOST="$NOTIFYD_HOST"
+NOTIFY_CLIENT="$NOTIFY_CLIENT"
+EOF
+  echo '
+# Option Settings
 notifyAppName="${notifyAppName:-NotifyDaemon}"
 notifyIconName="${notifyIconName:-notification-message-IM}"
 notifyUrgency="${notifyUrgency:-normal}"
-
-EOF
+' >>"$HOME/.config/notifications/settings"
 
   if [ -f "$HOME/.config/notifications/settings" ]; then
     printf_green "config saved to ~/.config/notifications/settings"
@@ -105,76 +102,36 @@ __run_bg() {
   done
 }
 
-__client() {
-  local _PATH="$(mktemp ${TMPDIR:-/tmp}/notify-client/XXX.tmp)"
-  local _LOG="$_PATH.log"
-  if [ ${#} -eq 0 ]; then
-    local title=""
-    local msg="$(</dev/stdin)"
-    shift
-  else
-    if [ ${#} -eq 1 ]; then
-      local title="$notifyAppName"
-      shift 1
-      local msg="$(</dev/stdin)"
-      shift
-    else
-      local title="${1}"
-      shift 1
-      local msg="${*}"
-      shift
-    fi
-  fi
-  shift
+__notifications_cli() {
   __netcat_test
   __mkd "$TMP/notify-client"
-  printf_green "Attempting to send message to $NOTIFYD_HOST on $NOTIFYD_PORT"
-  printf "%s\n" "$title" "$msg" >"$_PATH" 2>>$_LOG
-  cat "$_PATH" 2>>$_LOG | __nc_send "$NOTIFYD_HOST" "$NOTIFYD_PORT"
-  # __clean_return $?
+  local title="$1"
+  local msg="$2"
+  local _PATH="$(mktemp ${TMPDIR:-/tmp}/notify-client/XXX.tmp)"
+  local _LOG="${TMPDIR:-/tmp}/notify-client.log"
+  printf_green "Attempting to send message to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
+  notifications "Daemon" "Attempting to send message to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
+  printf "%s\n" "$title" "$msg" >"$_PATH" 2>>"$_LOG"
+  cat "$_PATH" 2>>"$_LOG" | __nc_send "$NOTIFYD_HOST" "$NOTIFYD_PORT" 2>>"$_LOG"
+  __rm_rf "$_PATH"
+  return 0
 }
 
 __notifications() {
-  if [ ${#} -eq 0 ]; then
-    local title=""
-    local msg="$(</dev/stdin)"
-    shift
-  else
-    if [ ${#} -eq 1 ]; then
-      local title="$notifyAppName"
-      shift 1
-      local msg="$(</dev/stdin)"
-      shift
-    else
-      local title="${1}"
-      shift 1
-      local msg="${*}"
-      shift
-    fi
-  fi
-  shift
+  local title="$1"
+  local msg="$2"
   __notify_send "$title" "$msg" || return 0
+  if [ "$NOTIFY_CLIENT" = "yes" ] && [ -n "$NOTIFYD_HOST" ]; then
+    __notifications_cli "$title" "$msg"
+  else
+    return 0
+  fi
+
 }
 
 __notifications_all() {
-  if [ ${#} -eq 0 ]; then
-    local title=""
-    local msg="$(</dev/stdin)"
-    shift
-  else
-    if [ ${#} -eq 1 ]; then
-      local title="$notifyAppName"
-      shift 1
-      local msg="$(</dev/stdin)"
-      shift
-    else
-      local title="${1}"
-      shift 1
-      local msg="${*}"
-      shift
-    fi
-  fi
-  shift
+  local title="$1"
+  local msg="$2"
   if [ "$(uname -s)" = "Linux" ]; then
     shift
     XUSERS=($(who | grep -E "\(:[0-9](\.[0-9])*\)" | awk '{print $1$5}' | sort -u))
@@ -196,6 +153,9 @@ __notifications_all() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -f "$HOME/.config/notifications/settings" ]; then
+  __config
+fi
 
 case $1 in
 --bg)
@@ -212,11 +172,26 @@ config | --config)
 
 client | --client)
   shift 1
-  if [ ! -f "$HOME/.config/notifications/settings" ]; then
-    __config
+  if [ ${#} -eq 0 ]; then
+    title="$notifyAppName"
+    msg="$(</dev/stdin)"
+    shift
+  else
+    if [ ${#} -eq 1 ]; then
+      title="$notifyAppName"
+      shift 1
+      msg="$(</dev/stdin)"
+      shift
+    else
+      title="${1}"
+      shift 1
+      msg="${*}"
+      shift
+    fi
   fi
+
   if [ -n "$NOTIFYD_HOST" ]; then
-    __client "$@"
+    __notifications_cli "$title" "$msg"
   else
     notifications "Daemon" "Please set NOTIFYD_HOST variable to your server"
     printf_exit 1 1 "Please set NOTIFYD_HOST: variable to your server $NOTIFYD_HOST"
@@ -225,14 +200,52 @@ client | --client)
 
 --all)
   shift 1
-  __notifications_all "$@"
+  if [ ${#} -eq 0 ]; then
+    title="$notifyAppName"
+    msg="$(</dev/stdin)"
+    shift
+  else
+    if [ ${#} -eq 1 ]; then
+      title="$notifyAppName"
+      shift 1
+      msg="$(</dev/stdin)"
+      shift
+    else
+      title="${1}"
+      shift 1
+      msg="${*}"
+      shift
+    fi
+  fi
+  __notifications_all "$title" "$msg"
+  ;;
+
+-)
+  shift 1
+  title="$notifyAppName"
+  msg="$(</dev/stdin)"
+  __notifications "$title" "$msg"
   ;;
 
 *)
-  [ -n "$NOTIFYD_HOST" ] && __client "$@"
-  __notifications "$@"
-  #__cmd_exists wall && echo "$@" | wall
-  #printf_console "3" "$@" >/dev/fd/0
+  if [ ${#} -eq 0 ]; then
+    title="$notifyAppName"
+    msg="$(</dev/stdin)"
+    shift
+  else
+    if [ ${#} -eq 1 ]; then
+      title="$notifyAppName"
+      shift 1
+      msg="$(</dev/stdin)"
+      shift
+    else
+      title="${1}"
+      shift 1
+      msg="${*}"
+      shift
+    fi
+  fi
+  __notifications "$title" "$msg"
   ;;
 
 esac

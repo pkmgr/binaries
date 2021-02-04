@@ -127,7 +127,8 @@ __server() {
     echo "$cmdsPID" >>"$_LOG"
     $netcat -l -p "$_PORT" >"$_PATH" 2>>"$_LOG"
     echo "New notification" >>"$_LOG"
-    notifications "$(cat "$_PATH")"
+    local msg=$(<$_PATH)
+    notifications "$msg"
     __clean_return $?
     if [ -f "$_KILL" ]; then
       __kill_server &>/dev/null

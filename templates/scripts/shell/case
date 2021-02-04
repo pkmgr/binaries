@@ -37,7 +37,8 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-check_app
+__check_app bash            #graphical prompt
+__cmd_exists bash || exit 1 # return 1 if not found
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
@@ -46,26 +47,41 @@ check_app
 # Set functions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set up the case statements
+# Set additional variables
 
-while getopts ":hv" opt; do
-  case $opt in
-  v | version)
-    echo "$0 -- Version"
-    get_app_info
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# bring in user config
+[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set up the case statements
+t=$(getopt -o h,t:,n: --long help,title:,name: -n "$APPNAME" -- "$@") #get options
+eval set -- "$t"                                                      #set
+
+while :; do
+  case "$1" in
+  -h | --help)
+    usage
     exit 0
     ;;
-  h | help)
-    __help
-    exit 0
+  -t | --title)
+    shift
+    title="$1"
+    ;;
+  -n | --name)
+    shift
+    name="$1"
+    ;;
+  --)
+    shift
+    break
     ;;
   *)
-    printf_error "Option does not exist : $OPTARG"
-    __help
+    echo >&2 "$APPNAME: Internal error: [$1] not recognized!"
+    exit 1
     ;;
   esac
+  shift
 done
-shift $(($OPTIND - 1))
 
 case "$1" in
 config)
