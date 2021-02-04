@@ -66,8 +66,8 @@ NOTIFY_CLIENT="$NOTIFY_CLIENT"
 EOF
   echo '
 # Option Settings
-notifyAppName="${notifyAppName:-NotifyDaemon}"
-notifyIconName="${notifyIconName:-notification-message-IM}"
+notifyAppName="${APPNAME:-$notifyAppName}"
+notifyIconName="${notifyIconName:-com.github.timecraft.notifier}"
 notifyUrgency="${notifyUrgency:-normal}"
 ' >>"$HOME/.config/notifications/settings"
 
