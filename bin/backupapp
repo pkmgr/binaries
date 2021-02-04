@@ -38,72 +38,136 @@ __options "$@"
 __require_app tar
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-config() {
-  __mkd "$HOME/.config/$APPNAME"
-  cat <<EOF >"$HOME/.config/$APPNAME/settings"
-notifyEnabled="${notifyEnabled}"
-logdir="${logdir}
-backupdir="${backupdir}"
-dateformat="%Y-%m-%d-%H-%M-%S"
-EOF
-  exit
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 declare filename count backupdir rmpre4vbackup _APPNAME _APPDIRS
-if [ "$1" = config ]; then config; fi
-[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
-
+__mkd "$HOME/.config/backupapp"
+[ -f "$HOME/.config/backupapp/settings" ] && . "$HOME/.config/backupapp/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__config() {
+  local appname="${1:-settings}"
+  printf_green "Generating the config file for ${1:-main}"
+  echo -e '# Settings for backupapp - '${1:-main}'\nCONFIGNAME="'${1:-main}'"' >"$HOME/.config/backupapp/$appname"
+  if [ -n "$1" ]; then
+    _APPNAME="$1"
+    echo _APPNAME="'$appname'" | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
+    shift 1
+  fi
+  if [ -n "$1" ]; then
+    _APPDIRS="$*"
+    echo _APPDIRS="'$_APPDIRS'" | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
+  fi
+  shift
+  echo 'LOGDIR="'$HOME/.local/log/backups'"
+BACKUPDIR="'$HOME/.local/backups/apps'"
+NOTIFYENABLED="yes"
+DATEFORMAT="%Y-%m-%d-%H_%M-%S"
+FILENAMEFORMAT="$(date +"$DATEFORMAT")"
+KEEPAMOUNT="5"
+BICON_GOOD="[ 🆗 ]"
+BICON_WARN="[ ⚠️ ]"
+BICON_ERROR="[ ✖ }"
+
+# You can create per app setting by running backupapp config Name Directories
+' | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
+
+  printf_green "File saved to: $HOME/.config/backupapp/$appname"
+  printf_blue "You can create per app setting by running backupapp config Name Directories"
+}
+
 main() {
-  execute "sleep 3" "Initializing"
   __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1; }
-  local appname="$_APPNAME"
-  local appdir="$_APPDIRS"
-  local logdir="${logdir:-$HOME/.local/log/backups}"
-  local curdate="$(date +"${dateformat:-%Y-%m-%d-%H-%M-%S}")"
-  local filename="$appname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/apps"
-  local notifyEnabled="${notifyEnabled:-yes}"
+  local e err appname appdir
+  local appname="${1:-$_APPNAME}" && shift 1
+  local appdir="${*:-$_APPDIRS}" && shift
+  local logdir="${LOGDIR:-$HOME/.local/log/backups}"
+  local datefmt="%Y-%m-%d-%H-%M-%S"
+  local curdate="$(date +"${DATEFORMAT:-$datefmt}")"
+  local filenameformate="${FILENAMEFORMAT:-$curdate}"
+  local backupdir="${BACKUPDIR:-$HOME/.local/backups/apps}"
+  local notifyEnabled="${NOTIFYENABLED:-yes}"
+  local leaveCount="${KEEPAMOUNT:-5}"
+  local icon_good="${BICON_GOOD:-🆗}"
+  local icon_warn="${BICON_WARN:-⚠️}"
+  local icon_error="${BICON_ERROR:-✖}"
+  local filename="$appname-$filenameformate.tar.gz"
+  [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Initializing backup of $appname"
+  execute "sleep 3" "Initializing"
+  for e in $appdir; do [ -e "$e" ] || err="$e"; done
+  if [ -n "$err" ]; then
+    [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Can't back up: $err doesn't exists"
+    printf_error "Can't back up: $err doesn't exists"
+    exit 1
+  fi
+  shift
+
   mkdir -p "$backupdir" "$logdir"
-  [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Starting backup of $appname"
-  printf_header "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$appname.log" >>"$logdir/$appname.log"
-  execute "__backupcmd" "Backing up $appname to $backupdir/$filename"
+  printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$appname.log" >>"$logdir/$appname.log"
+  execute "__backupcmd" "Backing up $appname to $backupdir"
   exitCode=$?
   printf_header " #Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
   printf_newline "\n\n" >>"$logdir/$appname.log"
   if [ "$exitCode" = 0 ]; then
-    printf_green "$ICON_GOOD The backup has completed successfully."
-    printf_green "$ICON_GOOD Saved to: $backupdir/$filename"
+    printf_green "$icon_good The backup has completed successfully and Saved to:"
+    printf_green "$icon_good $backupdir/$filename"
     [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has completed"
   else
-    printf_red "$ICON_ERROR The backup has failed to complete."
-    printf_red "$ICON_ERROR More information can be found in the log file:"
-    printf_exit "$ICON_WARN $logdir/$appname.log"
+    printf_red "$icon_error The backup has failed to complete."
+    printf_red "$icon_error More information can be found in the log file:"
+    printf_exit "$icon_warn $logdir/$appname.log"
     [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has failed"
   fi
-  leaveCount=5
   fileCount=$(ls $backupdir/$appname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)
   removeoldbackups=$(ls $backupdir/$appname*.tar.gz 2>/dev/null)
   tailCount=$((fileCount - leaveCount))
-  ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+  if [ "$fileCount" -gt "$leaveCount" ] && [ $leaveCount -ne 0 ]; then
+    ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+  fi
+  exit $exitCode
 }
 
-__local_cron_add() { __setupcrontab "${3:-0 0 1 * *}" "$APPNAME $1 $2 >/dev/null 2>&1"; }
-__local_cron_del() { __removecrontab "$APPNAME $1 $2"; }
+__term() {
+  while :; do
+    local _APPDIRS _APPNAME cont
+    clear
+    printf_newline "\n\n\n\n"
+    printf_head "Backup Menu"
+    printf_custom "6" "Welcome to the backup menu: type quit to exit"
+    printf_read_question_nt "2" "Enter backupname: " "120" "_APPNAME"
+    if [ "$_APPNAME" = "quit" ]; then
+      break
+    fi
+    printf_read_question_nt "2" "Enter directories:" "140" "_APPDIRS"
+    printf_newline
+    if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
+      main "$_APPNAME" "$_APPDIRS"
+    else
+      [ -n "$_APPNAME" ] || printf_pause "Needs an name"
+      [ -n "$_APPDIRS" ] || printf_pause "Needs a directory"
+    fi
+    printf_newline
+    printf_read_question_nt "6" "Would you like to keep this window open? [y/N]" "1" cont "-s"
+    printf_answer_yes "$cont" && continue || break
+    printf_counter "5" "3" "Re-loading menu in"
+  done
+  printf_newline "\n\n"
+  exit $?
+}
+__local_cron_add() { __setupcrontab "${3:-0 0 1 * *}" "backupapp $1 $2 >/dev/null 2>&1"; }
+__local_cron_del() { __removecrontab "backupapp $1 $2"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 *cron)
   shift 1
+  #cron case 2
   case "$1" in
   *list)
     shift 1
-    if [ -z "$(crontab -l | grep -F "$APPNAME ")" ]; then
+    if [ -z "$(crontab -l | grep -F "backupapp ")" ]; then
       printf_red "You don't have any jobs enabled"
     else
-      printf_green "current cron jobs for $APPNAME"
-      crontab -l | grep -F "$APPNAME " | printf_readline "4"
+      printf_green "current cron jobs for backupapp"
+      crontab -l | grep -F "backupapp " | printf_readline "4"
     fi
     exit
     ;;
@@ -117,8 +181,8 @@ case "$1" in
       #  printf_red "failed to add $1 $2"
       #fi
     else
-      printf_custom "4" 'Usage: '$APPNAME' cron --add "Backupname" "BackupDir" "Frequency"'
-      printf_custom "4" 'Example: '$APPNAME' cron --add "Documents" "~/Documents" "0 0 * * *"'
+      printf_custom "4" 'Usage: backupapp cron --add "Backupname" "BackupDir" "Frequency"'
+      printf_custom "4" 'Example: backupapp cron --add "Documents" "~/Documents" "0 0 * * *"'
     fi
     exit $?
     ;;
@@ -132,49 +196,52 @@ case "$1" in
       #  printf_red "failed to delete $1 $2"
       #fi
     else
-      printf_help 'Usage: '$APPNAME' cron --del "Backupname" "BackupDir"'
+      printf_help 'Usage: backupapp cron --del "Backupname" "BackupDir"'
     fi
     exit $?
     ;;
   *)
-    printf_custom "4" 'Usage: '$APPNAME' cron --add "Backupname" "BackupDir"'
-    printf_custom "4" 'Usage: '$APPNAME' cron --del "Backupname" "BackupDir"'
+    printf_custom "4" 'Usage: backupapp cron --add "Backupname" "BackupDir"'
+    printf_custom "4" 'Usage: backupapp cron --del "Backupname" "BackupDir"'
     exit
     ;;
   esac
   ;;
-esac
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$1" = "--term" ]; then
-  while :; do
-    clear
-    printf_newline "\n\n\n\n"
-    printf_head "Backup Menu"
-    printf_custom "6" "Welcome to the backup menu: type quit to exit"
-    printf_read_question "2" "Enter backupname: " "120" "_APPNAME"
-    if [ "$_APPNAME" = "quit" ]; then
-      break
+  # end cron
+*term)
+  shift 1
+  __term
+  ;;
+config)
+  shift 1
+  __config "$@"
+  ;;
+*)
+  if [ -f "$HOME/.config/backupapp/${1}" ]; then
+    printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
+    if printf_answer_yes "$YN"; then
+      . "$HOME/.config/backupapp/${1}"
+      if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
+        main "$_APPNAME" "$_APPDIRS"
+      else
+        printf_exit 1 1 "Could get the settings for _APPNAME and _APPDIRS"
+      fi
+    elif [ "$#" -gt 1 ]; then
+      _APPNAME="$1" && shift 1
+      _APPDIRS="$*" && shift
+      main "$_APPNAME" "$_APPDIRS"
+    else
+      __help
     fi
-    printf_read_question "2" "Enter directories:" "140" "_APPDIRS"
-    printf_newline
-    main $_APPNAME $_APPDIRS
-    printf_newline
-    printf_read_question_nt "6" "Would you like to keep this window open? [y/N]" "1" cont "-s"
-    printf_answer_yes "$cont" && continue || break
-    printf_counter "5" "3" "Re-loading menu in"
-  done
-  printf_newline "\n\n"
-  exit
-else
-  if [ -n "$1" ]; then _APPNAME="$1" && shift 1; else printf_green "Needs a name" && __help; fi
-  if [ -n "$*" ]; then _APPDIRS="$*" && shift; else printf_green "Needs a directory" && __help; fi
-  if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
-    main "$*"
+  elif [ "$#" -gt 1 ]; then
+    _APPNAME="$1" && shift 1
+    _APPDIRS="$*" && shift
+    main "$_APPNAME" "$_APPDIRS"
   else
-    printf_red "$ICON_ERROR Nothing to back up" && __help
+    __help
   fi
-fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
