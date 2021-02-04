@@ -84,6 +84,7 @@ __kill() {
   notifications "Daemon" "Stopping the daemon"
   pid="$(pidof "${proc}")"
   kill -9 "${proc}" &>/dev/null
+  pid="$(pidof "${proc}" &>/dev/null)" || return 0
 }
 __start() {
   sleep 1 && "$@" &>/dev/null 2>&1 || return 1 &
@@ -240,14 +241,15 @@ __custom_notifyd() {
 
 _start_notifyd() {
   __custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
+  _run() { __start "$notifyd" && sleep 5; }
   if [ -z "$proc" ] && [ -z "$notifyd" ]; then
     printf_red "Failed to find a notify daemon"
     printf_exit 1 1 "Please install: xfce4-notifyd, dunst, deadd or custom: see settings file for custom"
   else
     printf_green "Attempting to start"
-    _run() { __start "$notifyd" && sleep 1; }
-    while true; do _run && __getstatus "$proc" && break || continue; done
+    while :; do _run && __getstatus "$proc" && break || continue; done
     #notifications "Daemon" "Started"
+    printf_green "start $proc has been started" || printf_exit "Failed to start"
   fi
 }
 

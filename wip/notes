@@ -51,9 +51,9 @@ netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 [ -f "$HOME/.config/notes/settings" ] && . "$HOME/.config/notes/settings"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-tmux() {
-  if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
-    cat <<EOF >"$NOTES_DIRECTORY/tmux.conf"
+if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
+  __mkd "$NOTES_TMPDIR" "${NOTES_DIRECTORY}/$NOTES_FOLDER"
+  cat <<EOF >"$NOTES_DIRECTORY/tmux.conf"
 # Very basic tmux config
 unbind C-b
 set-option -g prefix C-a
@@ -82,8 +82,7 @@ setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 
 EOF
-  fi
-}
+fi
 
 gen_config() {
   __mkd "$HOME/.config/notes"
@@ -296,7 +295,6 @@ __import() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mkd "$NOTES_TMPDIR" "${NOTES_DIRECTORY}/$NOTES_FOLDER"
 touch "$NOTES_ALL_PATH"
-tmux
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Previous month

@@ -653,6 +653,8 @@ __ln_sf() {
   [ -L "$2" ] && __rm_rf "$2"
   __devnull ln -sf "$1" "$2"
 }
+#find_mtime "file/dir" "time minutes"
+__find_mtime() { [ "$(find "${1:-.}" -type f -cmin "${2:-1}" | wc -l)" -ne 0 ] && return 0 || return 1; }
 #find "dir" "options"
 __find() {
   [ -n "${10}" ] && local opts=${10} && shift 1
