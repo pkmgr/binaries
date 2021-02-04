@@ -113,8 +113,7 @@ __term() {
       break
       ;;
     b)
-      background_job "${ROTATE_TIME}" &
-      break
+      background_job "${ROTATE_TIME}"
       ;;
     *)
       randomwallpaper
