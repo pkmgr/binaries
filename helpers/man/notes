@@ -36,5 +36,5 @@ printf_help "4" "notes service systemd restart        |   Restart the notes syst
 printf_help "4" "notes service systemd status         |   Get the notes systemd service status"
 printf_help "4" "notes service systemd run/vars       |   Used by systemd to run the notes server"
 
-printf_help "3" "All variables can be overwritten by editing the file ~/.config/notes/config"
+printf_help "3" "All variables can be overwritten by editing the file ~/.config/notes/settings"
 printf_help "4" "notes config                         |   Generates the configuration file"

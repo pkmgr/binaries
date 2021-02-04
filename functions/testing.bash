@@ -591,12 +591,22 @@ __mkd() {
 }
 #netcat
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
-__netcat() { command -p "$netcat" "$@" || return 1; }
 __netcat_test() { __cmd_exists "$netcat" || printf_error "The program netcat is not installed"; }
 __netcat_pids() { netstat -tupln 2>/dev/null | grep ":$1 " | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/$(basename ${netcat:-nc})'##g'; }
 __netcat_kill() {
   pidof "$netcat" >/dev/null 2>&1 && kill -s KILL "$(__netcat_pids $1)" >/dev/null 2>&1
   netstat -taupln | grep -Fqv ":$1 " || return 1
+}
+#__kill_server "port required" "print success" "print fail" "success message" "failed message"
+__netcat_kill_server() {
+  port="${1:?}"
+  prints="${2:-printf_green}"
+  printf="${3:-printf_red}"
+  succ="${4:-Server has been stopped}"
+  fail="${5:-Failed to stop}"
+  __netcat_kill "${port}" >/dev/null 2>&1 &&
+    ${prints} "${succ}" || ${printf} "${fail}"
+  sleep 2
 }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
