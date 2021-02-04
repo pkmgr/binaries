@@ -95,13 +95,14 @@ __kill() {
 }
 __start() {
   sleep 1
-  "$*" &>/dev/null 2>&1 &
+  eval "$@" >/dev/null 2>&1 && sleep 3 &
   [ $? = 0 ] && notifications "Daemon" "$PROCID has been started as the notify daemon" || return 1
 }
 
 __restart() {
-  __kill "$PROCID" && return 0 || return 1
-  __start "$1" && return 0 || return 1
+  __kill "$PROCID"
+  __start "$1" || __start "$1"
+  return $?
 }
 
 __client() {
@@ -219,8 +220,9 @@ __term() {
     printf_green "a. Start"
     printf_green "b. Stop"
     printf_green "c. Restart"
-    printf_green "d. Status"
-    printf_green "e. Test"
+    printf_green "d. create a config file"
+    printf_green "e. Status"
+    printf_green "f. Test"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
     printf_read_question "6" "Enter your choice [a-z] : " "1" "main" "-s"
@@ -241,9 +243,13 @@ __term() {
       ;;
     d)
       shift 1
-      __running "$NOTIFYD"
+      __config
       ;;
     e)
+      shift 1
+      __running "$NOTIFYD"
+      ;;
+    f)
       shift 1
       notifications "Daemon" "Server is running: $PROCID"
       ;;
