@@ -55,9 +55,9 @@ netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 [ -f "$HOME/.config/notes/config" ] && . "$HOME/.config/notes/config"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-tmux() {
-  if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
-    cat <<EOF >"$NOTES_DIRECTORY/tmux.conf"
+if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
+  __mkd "$NOTES_DIRECTORY"
+  cat <<EOF >"$NOTES_DIRECTORY/tmux.conf"
 # Very basic tmux config
 unbind C-b
 set-option -g prefix C-a
@@ -85,8 +85,7 @@ setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244
 setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
-  fi
-}
+fi
 
 gen_config() {
   __mkd "$HOME/.config/notes"
@@ -289,7 +288,6 @@ __import() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$NOTES_DIRECTORY/tmux.conf" ] || tmux
 mkdir -p "${NOTES_DIRECTORY}/$NOTES_FOLDER"
 if [ ! -f "$NOTES_PREV_FILE" ]; then
   echo -e "## Notes for $(date --date="1 Month Ago" +%B) created on $(date --date="1 Month Ago" +"%D at %H:%M") ##\n" >"$NOTES_PREV_FILE"
@@ -301,11 +299,12 @@ if [ ! -f "$NOTES_PATH" ]; then
     printf_red "Refusing to import old notes into an none empty file"
     printf_green "You can do it manually by running $APPNAME --import"
   else
-    printf_green "Assuming its a new month: importing unfinished notes"
+    printf_green "Assuming its a new month or new install"
     echo -e "## Notes for $(date +%B) created on $(date +"%D at %H:%M") ##\n" >"${NOTES_PATH}"
     __import && sleep 3
   fi
 fi
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 --import)
