@@ -161,7 +161,7 @@ Type=Application
 Name=Notification Daemon
 Icon=preferences-desktop-notification
 Comment=Start notifyd
-Exec=notify-daemon
+Exec=notify-daemon start
 RunHook=0
 StartupNotify=false
 Terminal=false
@@ -175,12 +175,6 @@ EOF
     printf_error "Failed to install Notification Daemon"
   __running && notifications "Daemon" "$PROCID has been enabled to start at login"
   exit $?
-}
-
-__server_disable() {
-  __rm_rf "$HOME/.config/autostart/notifyd-server.desktop"
-  touch "$TMP/notify-daemon.kill"
-  __client "Daemon" "Disabling server"
 }
 
 __server_enable() {
@@ -204,8 +198,66 @@ Keywords=xfce4-notify;notify;music;player;my;
 StartupNotify=true
 EOF
   notify-daemon --server &
+  exit $?
+}
 
-  exit
+__server_disable() {
+  __rm_rf "$HOME/.config/autostart/notifyd-server.desktop"
+  touch "$TMP/notify-daemon.kill"
+  __client "Daemon" "Disabling server"
+}
+
+__term() {
+  while :; do
+    # show menu
+    local status="$(__getstatus && echo -n "Running $PROCID" || echo -e "Not Running")"
+    clear
+    shift
+    printf_newline "\n\n\n\n"
+    printf_head "Notify Daemon Menu"
+    printf_green "Current Status: $status"
+    printf_green "a. Start"
+    printf_green "b. Stop"
+    printf_green "c. Restart"
+    printf_green "d. Status"
+    printf_green "e. Test"
+    printf_green "z. or escape to Exit"
+    printf_green "---------------------------------"
+    printf_read_question "6" "Enter your choice [a-z] : " "1" "main" "-s"
+    printf_newline
+    # take action
+    case "$main" in
+    a)
+      shift 1
+      _start_notifyd
+      ;;
+    b)
+      shift 1
+      __kill "$PROCID"
+      ;;
+    c)
+      shift 1
+      __restart "$NOTIFYD"
+      ;;
+    d)
+      shift 1
+      __running "$NOTIFYD"
+      ;;
+    e)
+      shift 1
+      notifications "Daemon" "Server is running: $PROCID"
+      ;;
+    $'\E' | $'\e' | z)
+      shift 1
+      clear
+      break
+      ;;
+    *) shift ;;
+    esac
+    printf_newline "\n\n"
+    printf_counter "5" "3" "Re-loading menu in"
+  done
+  clear
 }
 
 __xfce4_notifyd() {
@@ -303,13 +355,17 @@ case "$1" in
     exit $?
     ;;
   *status)
+    shift 2
     PID="$(__netcat_pids "$NOTIFYD_PORT")"
     printf_green "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
     notifications "Daemon" "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
     exit
     ;;
+  start | *-start)
+    shift 2
+    __server "$@"
+    ;;
   *)
-    shift 1
     __server "$@"
     ;;
   esac
@@ -347,6 +403,11 @@ stop)
 status)
   shift 1
   __running "$NOTIFYD"
+  ;;
+
+*term)
+  shift 1
+  __term
   ;;
 
 *client)
