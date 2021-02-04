@@ -637,15 +637,15 @@ __timeout() { timeout ${1} bash -c "${2}"; }
 __count_files() { __devnull2 find "${1:-./}" -not -path "${1:-./}/.git/*" -mindepth 1 -maxdepth 1 -type f | wc -l; }
 #count_dir "dir"
 __count_dir() { __devnull2 find "${1:-./}" -mindepth 1 -maxdepth 1 -type d | wc -l; }
-__touch() { touch "$@" 2>/dev/null; }
+__touch() { touch "$@" 2>/dev/null || return 0; }
 #symlink "file" "dest"
-__symlink() { if [ -e "$1" ]; then __devnull __ln_sf "${1}" "${2}"; fi; }
+__symlink() { if [ -e "$1" ]; then __devnull __ln_sf "${1}" "${2}" || return 0; fi; }
 #mv_f "file" "dest"
-__mv_f() { if [ -e "$1" ]; then __devnull mv -f "$1" "$2"; fi; }
+__mv_f() { if [ -e "$1" ]; then __devnull mv -f "$1" "$2" || return 0; fi; }
 #cp_rf "file" "dest"
-__cp_rf() { if [ -e "$1" ]; then __devnull cp -Rfa "$1" "$2"; fi; }
+__cp_rf() { if [ -e "$1" ]; then __devnull cp -Rfa "$1" "$2" || return 0; fi; }
 #rm_rf "file"
-__rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@"; fi; }
+__rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@" || return 0; fi; }
 #ln_rm "file"
 __ln_rm() { if [ -e "$1" ]; then __devnull find "$1" -mindepth 1 -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
