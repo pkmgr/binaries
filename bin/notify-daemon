@@ -168,6 +168,8 @@ Terminal=false
 Hidden=false
 
 EOF
+
+  __start "$NOTIFYD" && sleep 5
   [ -f "$HOME/.config/autostart/notifyd.desktop" ] &&
     printf_green "Successfully installed Notification Daemon" ||
     printf_error "Failed to install Notification Daemon"
