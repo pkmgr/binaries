@@ -42,9 +42,9 @@ if [ "$(uname -s)" = "Darwin" ]; then
   __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\"" || return; }
 elif [ "$(uname -s)" = "Linux" ]; then
   if __cmd_exists notify-send; then
-    __notify_send() { notify-send --app-name="${notifyAppName:-}" -u "$notifyUrgency" -i "$notifyIconName" "$@"; }
+    __notify_send() { notify-send --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$@"; }
   elif __cmd_exists notify-send.sh; then
-    __notify_send() { notify-send.sh --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-notification-message-IM}" "$@"; }
+    __notify_send() { notify-send.sh --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$@"; }
   else
     printf_exit 1 1 "There is no notify app installed: Install notify-send, dunst, deadd"
   fi
