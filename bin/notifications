@@ -120,7 +120,7 @@ __notifications_cli() {
 __notifications() {
   local title="$1"
   local msg="$2"
-  __notify_send "$title" "$msg" || return 0
+  __notify_send "$title" "$msg" || return 1
   if [ "$NOTIFY_CLIENT" = "yes" ] && [ -n "$NOTIFYD_HOST" ]; then
     __notifications_cli "$title" "$msg"
   else
