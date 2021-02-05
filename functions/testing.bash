@@ -492,7 +492,8 @@ __check_app() {
   local MISSING=""
   for cmd in $ARGS; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
   if [ -n "$MISSING" ]; then
-    printf_read_question "2" "$cmd is not installed Would you like install it? [y/N]" "1" "choice" "-s"
+    printf_red "The following apps are missing: $MISSING"
+    printf_read_question "2" "Would you like install them? [y/N]" "1" "choice" "-s"
     if printf_answer_yes "$choice"; then
       for miss in $MISSING; do
         __execute "pkmgr silent-install $miss" "Installing $miss" || return 1
