@@ -111,9 +111,6 @@ if [ -z "$BROWSER" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "Attempting to launch $BROWSER"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
   shift 1
@@ -126,6 +123,7 @@ case $1 in
   ;;
 
 *)
+  [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "Attempting to launch $BROWSER"
   if [ -f "$HOME/.local/bin/mybrowser" ]; then
     __devnull2 ~/.local/bin/mybrowser "$@"
   else

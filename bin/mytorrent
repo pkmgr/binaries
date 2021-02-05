@@ -101,9 +101,6 @@ if [ -z "$TORRENT" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
   shift 1
@@ -116,6 +113,7 @@ case $1 in
   ;;
 
 *)
+  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
   if [ "$TORRENT" = "transmission-remote-cli" ]; then
     __devnull2 myterminal -e bash -c "$TORRENT $*"
   else

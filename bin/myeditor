@@ -97,9 +97,6 @@ if [ -z "$EDITOR" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "Attempting to launch $EDITOR"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
   shift 1
@@ -112,6 +109,7 @@ case $1 in
   ;;
 
 *)
+  [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "Attempting to launch $EDITOR"
   if [ -f "$HOME/.local/bin/myeditor" ]; then
     __devnull2 ~/.local/bin/myeditor "$@"
   else

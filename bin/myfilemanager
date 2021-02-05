@@ -120,9 +120,6 @@ if [ -z "$FILEMANAGER" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
   shift 1
@@ -135,6 +132,7 @@ case $1 in
   ;;
 
 *)
+  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER"
   if [ -f "$HOME/.local/bin/myfilemanager" ]; then
     __devnull2 ~/.local/bin/myfilemanager "$@"
   else

@@ -94,9 +94,6 @@ if [ -z "$EMAIL" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
   shift 1
@@ -109,6 +106,7 @@ case $1 in
   ;;
 
 *)
+  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL"
   if [ -f "$HOME/.local/bin/myemail" ]; then
     __devnull2 ~/.local/bin/myemail "$@"
   else
