@@ -81,8 +81,10 @@ if [ "$VMMANAGER" != "config" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "No Virtual Machines are installed"
-[ -n "$EDITOR" ] || printf_exit 1 1 "No Virtual Machines are installed"
+if [ -z "$VMMANAGER" ]; then
+  [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "No Virtual Machine Managers are installed"
+  printf_exit 1 1 "No Virtual Machine Managers are installed"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "Attempting to launch $VMMANAGER"

@@ -95,8 +95,10 @@ if [ "$MYTORRENT" != "config" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
-[ -n "$EDITOR" ] || printf_exit 1 1 "No bittorrent clients are installed"
+if [ -z "$TORRENT" ]; then
+  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
+  printf_exit 1 1 "No bittorrent clients are installed"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"

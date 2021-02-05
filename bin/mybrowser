@@ -105,8 +105,10 @@ if [ "$MYBROWSER" != "config" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "No filemanagers are installed"
-[ -n "$BROWSER" ] || printf_exit 1 1 "No Browsers are installed"
+if [ -z "$BROWSER" ]; then
+  [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "No Browsers are installed"
+  printf_exit 1 1 "No Browsers are installed"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "Attempting to launch $BROWSER"

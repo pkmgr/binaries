@@ -91,8 +91,10 @@ if [ "$MYEDITOR" != "config" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "No filemanagers are installed"
-[ -n "$EDITOR" ] || printf_exit 1 1 "No editors are installed"
+if [ -z "$EDITOR" ]; then
+  [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "No editors are installed"
+  printf_exit 1 1 "No editors are installed"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "Attempting to launch $EDITOR"

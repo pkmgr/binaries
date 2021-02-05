@@ -63,7 +63,7 @@ __create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$MYEDITOR" != "config" ]; then
+if [ "$MYEMAIL" != "config" ]; then
   if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
     export EMAIL="thunderbird"
   elif [ -f "$(command -v evolution 2>/dev/null)" ]; then
@@ -88,8 +88,10 @@ if [ "$MYEDITOR" != "config" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "No email clients are installed"
-[ -n "$EDITOR" ] || printf_exit 1 1 "No email clients are installed"
+if [ -z "$EMAIL" ]; then
+  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "No email clients are installed"
+  printf_exit 1 1 "No email clients are installed"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL"

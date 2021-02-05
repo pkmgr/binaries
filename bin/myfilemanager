@@ -112,9 +112,12 @@ if [ "$MYFILEMANAGER" != "config" ]; then
     export FILEMANAGER="open"
   fi
 fi
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "No filemanagers are installed"
-[ -n "$FILEMANAGER" ] || printf_exit 1 1 "No filemanagers are installed"
+if [ -z "$FILEMANAGER" ]; then
+  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "No filemanagers are installed"
+  printf_exit 1 1 "No filemanagers are installed"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER"
