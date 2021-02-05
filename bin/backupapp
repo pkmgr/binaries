@@ -152,7 +152,7 @@ __term() {
   printf_newline "\n\n"
   exit $?
 }
-__local_cron_add() { __setupcrontab "${3:-0 0 1 * *}" "backupapp $1 $2 >/dev/null 2>&1"; }
+__local_cron_add() { __setupcrontab "${3:-0 0 * * *}" "backupapp $1 $2 >/dev/null 2>&1"; }
 __local_cron_del() { __removecrontab "backupapp $1 $2"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -173,7 +173,7 @@ case "$1" in
     ;;
   *add)
     shift 1
-    if [ $# -eq 2 ]; then
+    if [ $# -gt 1 ]; then
       __local_cron_add "$1" "$2" "$3"
       #if [ "$(crontab -l | grep -q "$1 $2" 2>/dev/null)" ]; then
       printf_green "$1 $2 has been added to your cron jobs"
@@ -181,7 +181,7 @@ case "$1" in
       #  printf_red "failed to add $1 $2"
       #fi
     else
-      printf_custom "4" 'Usage: backupapp cron --add "Backupname" "BackupDir" "Frequency"'
+      printf_custom "4" 'Usage: backupapp cron --add "Backupname" "BackupDir" "Frequency" | default nightly at midnight'
       printf_custom "4" 'Example: backupapp cron --add "Documents" "~/Documents" "0 0 * * *"'
     fi
     exit $?
