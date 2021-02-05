@@ -353,11 +353,11 @@ else
   else
     git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null
   fi
-  __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes"
+  __getexitcode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes" &&
+    printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)"
 
   if __am_i_online_err "No internet connection. Skipping push"; then
     __git_push "$@"
-    printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)"
   fi
 fi
 
