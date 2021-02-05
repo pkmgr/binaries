@@ -20,29 +20,20 @@ PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ -n "$1" ] || __help
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
-
 __requires chsh
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # functions
-
 __vars() {
   newshell="$(grep $shell /etc/shells | head -n 1)"
   newshellname="$(basename $newshell)"
@@ -59,8 +50,6 @@ __success() {
 __failure() {
   printf_exit "Failed to change the shell to $newshell"
 }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
@@ -82,6 +71,11 @@ case "$1" in
   shell="$1"
   case "$(uname -s)" in
   Linux)
+    if [ -z "$1" ]; then
+      printf_green "Your default shell is $(__getuser_cur_shell)"
+      printf_blue "to change your default shell"
+      printf_exit 4 0 "run myshell shellname | myshell fish"
+    fi
     __vars "$shell"
     if __getuser_shell "$newshell"; then
       printf_custom "The old and new shell are both $newshellname"
@@ -96,6 +90,11 @@ case "$1" in
 
     ;;
   Darwin)
+    if [ -z "$1" ]; then
+      printf_green "Your default shell is $SHELL"
+      printf_blue "to change your default shell"
+      printf_exit 4 0 "run myshell shellname | myshell fish"
+    fi
     __vars "$shell"
     if [ -f "$newshell" ]; then
       echo -n "$(chsh -u "$USER" -s "$newshell" | printf_readline "3" | grep -vq "chsh")" && __success || printf_exit
@@ -109,6 +108,7 @@ case "$1" in
     ;;
   esac
   ;;
+
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

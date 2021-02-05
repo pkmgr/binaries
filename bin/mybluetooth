@@ -36,41 +36,72 @@ __options "$@"
 # check for needed applications
 cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$HOME/.config/mybluetooth/${1:-main}" ]; then
+  printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
+  if printf_answer_yes "$YN"; then
+    . "$HOME/.config/mybluetooth/${1}"
+  fi
+fi
+
 # Set variables
-MY_BT_DEVICE=${MY_BT_DEVICE:-0C:FC:83:99:BC:9A}
 OPTIONS="$1" && shift 1
 DEVICE="${1:-$MY_BT_DEVICE}"
+MY_BT_DEVICE=${DEVICE:-0C:FC:83:99:BC:9A}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __ok_msg() { printf_green "$1" && return 0; }
 __fail_msg() { printf_exit "1" "1" "$ICON_ERROR $1"; }
 
+__config() {
+  local appname="${1:-settings}"
+  printf_green "Generating the config file for ${1:-main}"
+  __mkd "$HOME/.config/mybluetooth"
+  echo '# Settings for mybluetooth - '${1:-main}'
+CONFIGNAME="'${1:-main}'"
+MY_BT_DEVICE="'${MY_BT_DEVICE}'"
+' >"$HOME/.config/mybluetooth/$appname"
+  if [ -f "$HOME/.config/mybluetooth/$appname" ]; then
+    printf_green "File has been saved to"
+    printf_green "$HOME/.config/mybluetooth/$appname"
+  else
+    printf_error "Fail to generate the file"
+    return 1
+  fi
+  exit $?
+}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-case $OPTIONS in
 
-on)
+case "$OPTIONS" in
+config)
+  [ "$1" = "--help" ] && printf_exit 3 0 "Usage: mybluetooth config name | IE: mybluetooth config speaker"
+  MY_BT_DEVICE="$DEVICE"
+  __config "$@"
   shift 1
-  bluetoothctl connect "$DEVICE" | grep -iq "Connection successful" >/dev/null 2>&1 &&
+  ;;
+*on | -*connect)
+  shift 1
+  bluetoothctl connect "$MY_BT_DEVICE" | grep -iq "Connection successful" >/dev/null 2>&1 &&
     __ok_msg "Connected" || __fail_msg "Connection failed"
   ;;
 
-off)
+*off | *-disconnect)
   shift 1
-  bluetoothctl disconnect "$DEVICE" | grep -iq "Successful disconnected" >/dev/null 2>&1 &&
+  bluetoothctl disconnect "$MY_BT_DEVICE" | grep -iq "Successful disconnected" >/dev/null 2>&1 &&
     __ok_msg "Disconnected" || __fail_msg "Disconnection failed"
   ;;
 
-discover)
+*discover)
   shift 1
   case $1 in
-  on)
+  *on)
     shift 1
     bluetoothctl discoverable on | grep -iq "on succeeded" >/dev/null 2>&1 &&
       __ok_msg "Device is now in discoverable mode" || __fail_msg "Failed to initiate discovery mode"
     ;;
 
-  off)
+  *off)
     shift 1
     bluetoothctl discoverable off | grep -iq "off succeeded" >/dev/null 2>&1 &&
       __ok_msg "Device has ended discoverable mode" || __fail_msg "Failed to exit discovery mode"
@@ -78,18 +109,22 @@ discover)
   esac
   ;;
 
-status)
+*status)
   shift 1
   printf_green "Bluetooth status"
-  bluetoothctl info "$DEVICE" | printf_readline "4"
+  bluetoothctl info "$MY_BT_DEVICE" | printf_readline "4"
   ;;
 
 *)
   shift
+  printf_green "Available controller[s]"
+  bluetoothctl list | printf_readline "4"
+  printf_green "Bluetooth status"
+  bluetoothctl info "$MY_BT_DEVICE" | printf_readline "4"
   printf_green "Paired devices"
   bluetoothctl paired-devices | printf_readline "4"
+  exit
   ;;
-
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

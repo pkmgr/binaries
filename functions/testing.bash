@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -E
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
@@ -539,9 +539,9 @@ __require_app() { __check_app "$@" || exit 1; }
 __requires() {
   local CMD
   for cmd in "$@"; do
-    __cmd_exists "$cmd" || local CMD+="$cmd"
+    __cmd_exists "$cmd " || local CMD+="$cmd "
   done
-  [ -n "$CMD" ] && __require_app "$CMD"
+  if [ -n "$CMD" ]; then __require_app "$CMD"; fi
   [ "$?" -eq 0 ] && return 0 || exit 1
 }
 ###################### get versions ######################
@@ -592,7 +592,7 @@ __getuser_shell() {
   local USER=${1:-$USER} && shift 1
   grep "$USER" /etc/passwd | cut -d: -f7 | grep -q "$SHELL" && return 0 || return 1
 }
-
+__getuser_cur_shell() { grep "$USER" /etc/passwd | tr ':' '\n' | grep bin; }
 ###################### Apps ######################
 #vim "file"
 vim="$(command -v /usr/local/bin/vim || command -v vim)"
@@ -2064,7 +2064,6 @@ __vdebug() {
 }
 
 ###################### call options ######################
-
 __options() {
   if [ "$1" = "--update" ]; then
     versioncheck
@@ -2104,7 +2103,6 @@ __options() {
     app_uninstall
     exit $?
   fi
-
 }
 
 ###################### *mgr scripts install/update/version ######################
