@@ -341,6 +341,7 @@ if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit"
   exit
 else
+  printf_newline
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
   [ -f "$versionfile" ] && __version
@@ -359,6 +360,7 @@ else
   if __am_i_online_err "No internet connection. Skipping push"; then
     __git_push "$@"
   fi
+  printf_newline
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
