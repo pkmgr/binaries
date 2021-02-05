@@ -14,15 +14,12 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : setup filemanager
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,8 +30,21 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/myfilemanager/settings" ] && . "$HOME/.config/myfilemanager/settings"
+MYFILEMANAGER_NOTIFICATIONS="${MYFILEMANAGER_NOTIFICATIONS:-yes}"
 
-create_link() {
+__config() {
+  printf_green "Generating config file"
+  __mkd "$HOME/.config/myfilemanager"
+  echo -e '# Settings for myfilemanager
+MYFILEMANAGER="config"
+FILEMANAGER="$FILEMANAGER"
+MYFILEMANAGER_MYFILEMANAGER="$MYFILEMANAGER_NOTIFICATIONS"
+  ' >"$HOME/.config/myfilemanager/settings"
+  exit
+}
+
+__create_link() {
   case "$1" in
   *)
     if [ ! -z "$2" ]; then
@@ -55,62 +65,80 @@ create_link() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-#if [ -z "$FILEMANAGER" ] && [ ! -f "$HOME/.local/bin/myfilemanager" ]; then
-if [ -z $DESKTOP_SESSION ]; then
-  if [ -f "$(command -v lf 2>/dev/null)" ]; then
-    export FILEMANAGER="lf"
-  elif [ -f "$(command -v vifm 2>/dev/null)" ]; then
-    export FILEMANAGER="vifm"
-  elif [ -f "$(command -v ranger 2>/dev/null)" ]; then
-    export FILEMANAGER="ranger"
-  elif [ -f "$(command -v cfiles 2>/dev/null)" ]; then
-    export FILEMANAGER="cfiles"
+if [ "$MYFILEMANAGER" != "config" ]; then
+  #if [ -z "$FILEMANAGER" ] && [ ! -f "$HOME/.local/bin/myfilemanager" ]; then
+  if [ -z "$DESKTOP_SESSION" ]; then
+    if [ -f "$(command -v lf 2>/dev/null)" ]; then
+      export FILEMANAGER="lf"
+    elif [ -f "$(command -v vifm 2>/dev/null)" ]; then
+      export FILEMANAGER="vifm"
+    elif [ -f "$(command -v ranger 2>/dev/null)" ]; then
+      export FILEMANAGER="ranger"
+    elif [ -f "$(command -v se 2>/dev/null)" ]; then
+      export FILEMANAGER="se"
+    elif [ -f "$(command -v cfiles 2>/dev/null)" ]; then
+      export FILEMANAGER="cfiles"
+    fi
+  else
+    if [ -f "$(command -v open 2>/dev/null)" ]; then
+      export FILEMANAGER="open"
+    elif [ -f "$(command -v dolphin 2>/dev/null)" ]; then
+      export FILEMANAGER="dolphin"
+    elif [ -f "$(command -v thunar 2>/dev/null)" ]; then
+      export FILEMANAGER="thunar"
+    elif [ -f "$(command -v Thunar 2>/dev/null)" ]; then
+      export FILEMANAGER="Thunar"
+    elif [ -f "$(command -v konqueror 2>/dev/null)" ]; then
+      export FILEMANAGER="konqueror"
+    elif [ -f "$(command -v spacefm 2>/dev/null)" ]; then
+      export FILEMANAGER="spacefm"
+    elif [ -f "$(command -v nemo 2>/dev/null)" ]; then
+      export FILEMANAGER="nemo"
+    elif [ -f "$(command -v pcmanfm 2>/dev/null)" ]; then
+      export FILEMANAGER="pcmanfm"
+    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
+      export FILEMANAGER="caja"
+    elif [ -f "$(command -v caja 2>/dev/null)" ]; then
+      export FILEMANAGER="nautilus"
+    elif [ -f "$(command -v nautilus 2>/dev/null)" ]; then
+      export FILEMANAGER="polo"
+    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
+      export FILEMANAGER="polo"
+    fi
   fi
-else
-  if [ -f "$(command -v open 2>/dev/null)" ]; then
+  #fi
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
     export FILEMANAGER="open"
-  elif [ -f "$(command -v dolphin 2>/dev/null)" ]; then
-    export FILEMANAGER="dolphin"
-  elif [ -f "$(command -v thunar 2>/dev/null)" ]; then
-    export FILEMANAGER="thunar"
-  elif [ -f "$(command -v Thunar 2>/dev/null)" ]; then
-    export FILEMANAGER="thunar"
-  elif [ -f "$(command -v konqueror 2>/dev/null)" ]; then
-    export FILEMANAGER="konqueror"
-  elif [ -f "$(command -v spacefm 2>/dev/null)" ]; then
-    export FILEMANAGER="spacefm"
-  elif [ -f "$(command -v nemo 2>/dev/null)" ]; then
-    export FILEMANAGER="nemo"
-  elif [ -f "$(command -v pcmanfm 2>/dev/null)" ]; then
-    export FILEMANAGER="pcmanfm"
-  elif [ -f "$(command -v polo 2>/dev/null)" ]; then
-    export FILEMANAGER="caja"
-  elif [ -f "$(command -v caja 2>/dev/null)" ]; then
-    export FILEMANAGER="nautilus"
-  elif [ -f "$(command -v nautilus 2>/dev/null)" ]; then
-    export FILEMANAGER="polo"
-  elif [ -f "$(command -v polo 2>/dev/null)" ]; then
-    export FILEMANAGER="polo"
   fi
 fi
-#fi
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  export FILEMANAGER="open"
-fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$FILEMANAGER" ] || printf_help "No filemanagers are installed"
-[ "$1" = "--create" ] && create_link "$@"
+[ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "No filemanagers are installed"
+[ -n "$FILEMANAGER" ] || printf_exit 1 1 "No filemanagers are installed"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-notifications "MyFileManager" "Attempting to launch $FILEMANAGER"
+[ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER"
 
-if [ -f "$HOME/.local/bin/myfilemanager" ]; then
-  __devnull2 ~/.local/bin/myfilemanager "$@"
-else
-  __devnull2 $FILEMANAGER "$@"
-fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $1 in
+*config)
+  shift 1
+  __config
+  ;;
+
+*create | link)
+  shift 1
+  __create_link "$@"
+  ;;
+
+*)
+  if [ -f "$HOME/.local/bin/myfilemanager" ]; then
+    __devnull2 ~/.local/bin/myfilemanager "$@"
+  else
+    __devnull2 $FILEMANAGER "$@"
+  fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

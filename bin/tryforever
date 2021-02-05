@@ -2,6 +2,7 @@
 
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+trap exit SIGINT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
@@ -14,15 +15,12 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : Keep an app running until it successfully completes
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,16 +31,12 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __check_app curl
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-trap exit SIGINT
-
 [ -z "$1" ] && __help
 
-while sleep 1; do
+while sleep 3; do
   "$@" && exit 0
   printf_info "$1 command failed, trying again..."
 done

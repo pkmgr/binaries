@@ -14,15 +14,12 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : setup terminal
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,8 +30,21 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/myterminal/settings" ] && . "$HOME/.config/myterminal/settings"
+MYTERMINAL_NOTIFICATIONS="${MYTERMINAL_NOTIFICATIONS:-yes}"
 
-create_link() {
+__config() {
+  printf_green "Generating config file"
+  __mkd "$HOME/.config/myterminal"
+  echo -e '# Settings for myterminal
+MYTERMINAL="config"
+TERMINAL="$TERMINAL"
+MYTERMINAL_NOTIFICATIONS="$MYTERMINAL_NOTIFICATIONS"
+  ' >"$HOME/.config/myterminal/settings"
+  exit
+}
+
+__create_link() {
   case "$1" in
   *)
     if [ ! -z "$2" ]; then
@@ -54,48 +64,61 @@ create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#if [ -z "$TERMINAL" ]; then
-if [ -f "$(command -v termite 2>/dev/null)" ]; then
-  export TERMINAL="termite"
-elif [ -f "$(command -v xfce4-terminal 2>/dev/null)" ]; then
-  export TERMINAL="xfce4-terminal"
-elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
-  export TERMINAL="qterminal-terminal"
-elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
-  export TERMINAL="qterminal-terminal"
-elif [ -f "$(command -v mate-terminal 2>/dev/null)" ]; then
-  export TERMINAL="mate-terminal"
-elif [ -f "$(command -v i3-sensible-terminal 2>/dev/null)" ]; then
-  export TERMINAL="i3-sensible-terminal"
-elif [ -f "$(command -v rofi-sensible-terminal 2>/dev/null)" ]; then
-  export TERMINAL="rofi-sensible-terminal"
-elif [ -f "$(command -v terminology 2>/dev/null)" ]; then
-  export TERMINAL="terminology"
-elif [ -f "$(command -v xterm 2>/dev/null)" ]; then
-  export TERMINAL="xterm"
-elif [ -f "$(command -v uxterm 2>/dev/null)" ]; then
-  export TERMINAL="uxterm"
-elif [ -f "/Applications/iTerm.app/Contents/MacOS/iTerm" ]; then
-  export TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"
-elif [ -f "/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" ]; then
-  export TERMINAL="/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
+if [ "$MYTERMINAL" != "config" ]; then
+  if [ -f "$(command -v termite 2>/dev/null)" ]; then
+    export TERMINAL="termite"
+  elif [ -f "$(command -v xfce4-terminal 2>/dev/null)" ]; then
+    export TERMINAL="xfce4-terminal"
+  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+    export TERMINAL="qterminal-terminal"
+  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+    export TERMINAL="qterminal-terminal"
+  elif [ -f "$(command -v mate-terminal 2>/dev/null)" ]; then
+    export TERMINAL="mate-terminal"
+  elif [ -f "$(command -v i3-sensible-terminal 2>/dev/null)" ]; then
+    export TERMINAL="i3-sensible-terminal"
+  elif [ -f "$(command -v rofi-sensible-terminal 2>/dev/null)" ]; then
+    export TERMINAL="rofi-sensible-terminal"
+  elif [ -f "$(command -v terminology 2>/dev/null)" ]; then
+    export TERMINAL="terminology"
+  elif [ -f "$(command -v xterm 2>/dev/null)" ]; then
+    export TERMINAL="xterm"
+  elif [ -f "$(command -v uxterm 2>/dev/null)" ]; then
+    export TERMINAL="uxterm"
+  elif [ -f "/Applications/iTerm.app/Contents/MacOS/iTerm" ]; then
+    export TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"
+  elif [ -f "/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" ]; then
+    export TERMINAL="/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
+  fi
 fi
-#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$TERMINAL" ] || printf_help "No terminal emulators are installed"
-[ "$1" = "--create" ] && create_link "$@"
+[ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "No filemanagers are installed"
+[ -n "$TERMINAL" ] || printf_exit 1 1 "No terminal emulators are installed"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-notifications "MyTerminal" "Attempting to launch $TERMINAL"
+[ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL"
 
-if [ -f "$HOME/.local/bin/myterminal" ]; then
-  __devnull2 ~/.local/bin/myterminal "$@"
-else
-  __devnull2 $TERMINAL "$@"
-fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $1 in
+*config)
+  shift 1
+  __config
+  ;;
+
+*create | link)
+  shift 1
+  __create_link "$@"
+  ;;
+
+*)
+  if [ -f "$HOME/.local/bin/myterminal" ]; then
+    __devnull2 ~/.local/bin/myterminal "$@"
+  else
+    __devnull2 $TERMINAL "$@"
+  fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

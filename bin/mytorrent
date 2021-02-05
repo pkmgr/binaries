@@ -14,15 +14,12 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : setup torrent client
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,8 +30,21 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/mytorrent/settings" ] && . "$HOME/.config/mytorrent/settings"
+MYTORRENT_NOTIFICATIONS="${MYTORRENT_NOTIFICATIONS:-yes}"
 
-create_link() {
+__config() {
+  printf_green "Generating config file"
+  __mkd "$HOME/.config/mytorrent"
+  echo -e '# Settings for mytorrent
+MYBROWSER="config"
+BROWSER="$BROWSER"
+MYTORRENT_NOTIFICATIONS="$MYTORRENT_NOTIFICATIONS"
+  ' >"$HOME/.config/mytorrent/settings"
+  exit
+}
+
+__create_link() {
   case "$1" in
   *)
     if [ ! -z "$2" ]; then
@@ -54,54 +64,67 @@ create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#if [ -z "$TORRENT" ]; then
-if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
-  export TORRENT="transmission-remote-gtk"
-elif [ -f "$(command -v transmission-remote-cli 2>/dev/null)" ]; then
-  export TORRENT="transmission-remote-cli"
-elif [ -f "$(command -v transmission-gtk 2>/dev/null)" ]; then
-  export TORRENT="transmission-gtk"
-elif [ -f "$(command -v transmission-qt 2>/dev/null)" ]; then
-  export TORRENT="transmission-qt"
-elif [ -f "$(command -v deluge 2>/dev/null)" ]; then
-  export TORRENT="deluge"
-elif [ -f "$(command -v vuze 2>/dev/null)" ]; then
-  export TORRENT="vuze"
-elif [ -f "$(command -v qbittorrent)" ]; then
-  export TORRENT="qbittorrent"
-elif [ -f "$(command -v ktorrent 2>/dev/null)" ]; then
-  export TORRENT="ktorrent"
-elif [ -f "$(command -v ctorrent 2>/dev/null)" ]; then
-  export TORRENT="ctorrent"
-elif [ -f "$(command -v unworkable 2>/dev/null)" ]; then
-  export TORRENT="unworkable"
-elif [ -f "$(command -v rtorrent 2>/dev/null)" ]; then
-  export TORRENT="rtorrent"
-elif [ -f "$(command -v bitstormlite 2>/dev/null)" ]; then
-  export TORRENT="bitstormlite"
-elif [ -f "/Applications/Transmission.app/Contents/MacOS/Transmission" ]; then
-  export TORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
-fi
-#fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$TORRENT" ] || printf_help "No bittorrent clients are installed"
-[ "$1" = "--create" ] && create_link "$@"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-notifications "MyTorrent" "Attempting to launch $TORRENT"
-
-if [ "$TORRENT" = "transmission-remote-cli" ]; then
-  __devnull2 myterminal -e bash -c "$TORRENT $*"
-else
-  if [ -f "$HOME/.local/bin/mytorrent" ]; then
-    __devnull2 ~/.local/bin/mytorrent "$@" &
-  else
-    __devnull2 $TORRENT "$@" &
+if [ "$MYTORRENT" != "config" ]; then
+  if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
+    export TORRENT="transmission-remote-gtk"
+  elif [ -f "$(command -v transmission-remote-cli 2>/dev/null)" ]; then
+    export TORRENT="transmission-remote-cli"
+  elif [ -f "$(command -v transmission-gtk 2>/dev/null)" ]; then
+    export TORRENT="transmission-gtk"
+  elif [ -f "$(command -v transmission-qt 2>/dev/null)" ]; then
+    export TORRENT="transmission-qt"
+  elif [ -f "$(command -v deluge 2>/dev/null)" ]; then
+    export TORRENT="deluge"
+  elif [ -f "$(command -v vuze 2>/dev/null)" ]; then
+    export TORRENT="vuze"
+  elif [ -f "$(command -v qbittorrent)" ]; then
+    export TORRENT="qbittorrent"
+  elif [ -f "$(command -v ktorrent 2>/dev/null)" ]; then
+    export TORRENT="ktorrent"
+  elif [ -f "$(command -v ctorrent 2>/dev/null)" ]; then
+    export TORRENT="ctorrent"
+  elif [ -f "$(command -v unworkable 2>/dev/null)" ]; then
+    export TORRENT="unworkable"
+  elif [ -f "$(command -v rtorrent 2>/dev/null)" ]; then
+    export TORRENT="rtorrent"
+  elif [ -f "$(command -v bitstormlite 2>/dev/null)" ]; then
+    export TORRENT="bitstormlite"
+  elif [ -f "/Applications/Transmission.app/Contents/MacOS/Transmission" ]; then
+    export TORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
   fi
 fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
+[ -n "$EDITOR" ] || printf_exit 1 1 "No bittorrent clients are installed"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $1 in
+*config)
+  shift 1
+  __config
+  ;;
+
+*create | link)
+  shift 1
+  __create_link "$@"
+  ;;
+
+*)
+  if [ "$TORRENT" = "transmission-remote-cli" ]; then
+    __devnull2 myterminal -e bash -c "$TORRENT $*"
+  else
+    if [ -f "$HOME/.local/bin/mytorrent" ]; then
+      __devnull2 ~/.local/bin/mytorrent "$@" &
+    else
+      __devnull2 $TORRENT "$@" &
+    fi
+  fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

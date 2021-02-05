@@ -14,15 +14,12 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : setup browser
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,8 +30,21 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/mybrowser/settings" ] && . "$HOME/.config/mybrowser/settings"
+MYBROWSER_NOTIFICATIONS="${MYBROWSER_NOTIFICATIONS:-yes}"
 
-create_link() {
+__config() {
+  printf_green "Generating config file"
+  __mkd "$HOME/.config/mybrowser"
+  echo -e '# Settings for mybrowser
+MYBROWSER="config"
+BROWSER="$BROWSER"
+MYBROWSER_NOTIFICATIONS="$MYBROWSER_NOTIFICATIONS"
+  ' >"$HOME/.config/mybrowser/settings"
+  exit
+}
+
+__create_link() {
   case "$1" in
   *)
     if [ ! -z "$2" ]; then
@@ -54,60 +64,73 @@ create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#if [ -z "$BROWSER" ]; then
-if [ -f "$(command -v garcon-url-handler 2>/dev/null)" ]; then
-  export BROWSER="garcon-url-handler --url"
-elif [ -f "$(command -v firefox 2>/dev/null)" ]; then
-  export BROWSER="firefox"
-elif [ -f "$(command -v chromium 2>/dev/null)" ]; then
-  export BROWSER="chromium"
-elif [ -f "$(command -v google-chrome 2>/dev/null)" ]; then
-  export BROWSER="google-chrome"
-elif [ -f "$(command -v opera 2>/dev/null)" ]; then
-  export BROWSER="opera"
-elif [ -f "$(command -v epiphany-browser 2>/dev/null)" ]; then
-  export BROWSER="epiphany-browser"
-elif [ -f "$(command -v falkon 2>/dev/null)" ]; then
-  export BROWSER="falkon"
-elif [ -f "$(command -v midori 2>/dev/null)" ]; then
-  export BROWSER="midori"
-elif [ -f "$(command -v netsurf 2>/dev/null)" ]; then
-  export BROWSER="netsurf"
-elif [ -f "$(command -v surf 2>/dev/null)" ]; then
-  export BROWSER="surf"
-elif [ -f "$(command -v arora 2>/dev/null)" ]; then
-  export BROWSER="arora"
-elif [ -f '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ]; then
-  export BROWSER='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-elif [ -f '/Applications/Firefox.app/Contents/MacOS/firefox-bin' ]; then
-  export BROWSER='/Applications/Firefox.app/Contents/MacOS/firefox-bin'
-elif [ -f '/Applications/Opera.app/Contents/MacOS/Opera' ]; then
-  export BROWSER='/Applications/Opera.app/Contents/MacOS/Opera'
-elif [ -f '/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser' ]; then
-  export BROWSER='/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser'
-elif [ -f '/Applications/Tor\ Browser.app/Contents/MacOS/firefox' ]; then
-  export BROWSER='/Applications/Tor Browser.app/Contents/MacOS/firefox'
-elif [ -f "$(command -v lynx 2>/dev/null)" ]; then
-  export BROWSER="lynx"
-elif [ -f "$(command -v links 2>/dev/null)" ]; then
-  export BROWSER="links"
+if [ "$MYBROWSER" != "config" ]; then
+  if [ -f "$(command -v garcon-url-handler 2>/dev/null)" ]; then
+    export BROWSER="garcon-url-handler --url"
+  elif [ -f "$(command -v firefox 2>/dev/null)" ]; then
+    export BROWSER="firefox"
+  elif [ -f "$(command -v chromium 2>/dev/null)" ]; then
+    export BROWSER="chromium"
+  elif [ -f "$(command -v google-chrome 2>/dev/null)" ]; then
+    export BROWSER="google-chrome"
+  elif [ -f "$(command -v opera 2>/dev/null)" ]; then
+    export BROWSER="opera"
+  elif [ -f "$(command -v epiphany-browser 2>/dev/null)" ]; then
+    export BROWSER="epiphany-browser"
+  elif [ -f "$(command -v falkon 2>/dev/null)" ]; then
+    export BROWSER="falkon"
+  elif [ -f "$(command -v midori 2>/dev/null)" ]; then
+    export BROWSER="midori"
+  elif [ -f "$(command -v netsurf 2>/dev/null)" ]; then
+    export BROWSER="netsurf"
+  elif [ -f "$(command -v surf 2>/dev/null)" ]; then
+    export BROWSER="surf"
+  elif [ -f "$(command -v arora 2>/dev/null)" ]; then
+    export BROWSER="arora"
+  elif [ -f '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ]; then
+    export BROWSER='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  elif [ -f '/Applications/Firefox.app/Contents/MacOS/firefox-bin' ]; then
+    export BROWSER='/Applications/Firefox.app/Contents/MacOS/firefox-bin'
+  elif [ -f '/Applications/Opera.app/Contents/MacOS/Opera' ]; then
+    export BROWSER='/Applications/Opera.app/Contents/MacOS/Opera'
+  elif [ -f '/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser' ]; then
+    export BROWSER='/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser'
+  elif [ -f '/Applications/Tor\ Browser.app/Contents/MacOS/firefox' ]; then
+    export BROWSER='/Applications/Tor Browser.app/Contents/MacOS/firefox'
+  elif [ -f "$(command -v lynx 2>/dev/null)" ]; then
+    export BROWSER="lynx"
+  elif [ -f "$(command -v links 2>/dev/null)" ]; then
+    export BROWSER="links"
+  fi
 fi
-#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ -n "$BROWSER" ] || printf_help "No browsers are installed"
-[ "$1" = "--create" ] && create_link "$@"
+[ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "No filemanagers are installed"
+[ -n "$BROWSER" ] || printf_exit 1 1 "No Browsers are installed"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-notifications "MyBrowser" "Attempting to launch $BROWSER"
+[ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "Attempting to launch $BROWSER"
 
-if [ -f "$HOME/.local/bin/mybrowser" ]; then
-  __devnull2 ~/.local/bin/mybrowser "$@"
-else
-  __devnull2 $BROWSER "$@"
-fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $1 in
+*config)
+  shift 1
+  __config
+  ;;
+
+*create | link)
+  shift 1
+  __create_link "$@"
+  ;;
+
+*)
+  if [ -f "$HOME/.local/bin/mybrowser" ]; then
+    __devnull2 ~/.local/bin/mybrowser "$@"
+  else
+    __devnull2 $BROWSER "$@"
+  fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

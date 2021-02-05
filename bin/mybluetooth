@@ -33,14 +33,14 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# check for needed applications
+cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
 MY_BT_DEVICE=${MY_BT_DEVICE:-0C:FC:83:99:BC:9A}
 OPTIONS="$1" && shift 1
 DEVICE="${1:-$MY_BT_DEVICE}"
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# check for needed applications
-cmd_exists bluetoothctl || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __ok_msg() { printf_green "$1" && return 0; }
 __fail_msg() { printf_exit "1" "1" "$ICON_ERROR $1"; }
@@ -51,14 +51,14 @@ case $OPTIONS in
 
 on)
   shift 1
-  bluetoothctl connect "$DEVICE" | grep -iq "Connection successful" >/dev/null 2>&1 && \
-    __ok_msg "Connected" ||  __fail_msg "Connection failed"
+  bluetoothctl connect "$DEVICE" | grep -iq "Connection successful" >/dev/null 2>&1 &&
+    __ok_msg "Connected" || __fail_msg "Connection failed"
   ;;
 
 off)
   shift 1
-  bluetoothctl disconnect "$DEVICE" | grep -iq "Successful disconnected" >/dev/null 2>&1 && \
-    __ok_msg "Disconnected" ||  __fail_msg "Disconnection failed"
+  bluetoothctl disconnect "$DEVICE" | grep -iq "Successful disconnected" >/dev/null 2>&1 &&
+    __ok_msg "Disconnected" || __fail_msg "Disconnection failed"
   ;;
 
 discover)
@@ -66,14 +66,14 @@ discover)
   case $1 in
   on)
     shift 1
-    bluetoothctl discoverable on | grep -iq "on succeeded" >/dev/null 2>&1 && \
-    __ok_msg "Device is now in discoverable mode" ||  __fail_msg "Failed to initiate discovery mode"
+    bluetoothctl discoverable on | grep -iq "on succeeded" >/dev/null 2>&1 &&
+      __ok_msg "Device is now in discoverable mode" || __fail_msg "Failed to initiate discovery mode"
     ;;
 
   off)
     shift 1
-    bluetoothctl discoverable off | grep -iq "off succeeded" >/dev/null 2>&1 && \
-    __ok_msg "Device has ended discoverable mode" ||  __fail_msg "Failed to exit discovery mode"
+    bluetoothctl discoverable off | grep -iq "off succeeded" >/dev/null 2>&1 &&
+      __ok_msg "Device has ended discoverable mode" || __fail_msg "Failed to exit discovery mode"
     ;;
   esac
   ;;
@@ -92,8 +92,6 @@ status)
 
 esac
 
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
-

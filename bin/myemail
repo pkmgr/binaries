@@ -14,27 +14,36 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : setup email client
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/myemail/settings" ] && . "$HOME/.config/myemail/settings"
+MYEMAIL_NOTIFICATIONS="${MYEMAIL_NOTIFICATIONS:-yes}"
 
-create_link() {
+__config() {
+  printf_green "Generating config file"
+  __mkd "$HOME/.config/myemail"
+  echo -e '# Settings for myeditor
+MYBROWSER="config"
+BROWSER="$BROWSER"
+MYEMAIL_NOTIFICATIONS="$MYEMAIL_NOTIFICATIONS"
+  ' >"$HOME/.config/myemail/settings"
+  exit
+}
+
+__create_link() {
   case "$1" in
   *)
     if [ ! -z "$2" ]; then
@@ -54,44 +63,57 @@ create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#if [ -z "$EMAIL" ]; then
-if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
-  export EMAIL="thunderbird"
-elif [ -f "$(command -v evolution 2>/dev/null)" ]; then
-  export EMAIL="evolution"
-elif [ -f "$(command -v clawsmail 2>/dev/null)" ]; then
-  export EMAIL="clawsmail"
-elif [ -f "$(command -v geary 2>/dev/null)" ]; then
-  export EMAIL="geary"
-elif [ -f "$(command -v neomutt 2>/dev/null)" ]; then
-  export EMAIL="myterminal -e neomutt"
-elif [ -f "$(command -v mutt 2>/dev/null)" ]; then
-  export EMAIL="myterminal -e mutt"
-elif [ -f "$(command -v kmail 2>/dev/null)" ]; then
-  export EMAIL="kmail"
-elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
-  export EMAIL="emacs"
-elif [ -f "$(command -v gmail 2>/dev/null)" ]; then
-  EMAIL="mybrowser https://gmail.com"
-elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
-  export EMAIL="sylpheed"
+if [ "$MYEDITOR" != "config" ]; then
+  if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
+    export EMAIL="thunderbird"
+  elif [ -f "$(command -v evolution 2>/dev/null)" ]; then
+    export EMAIL="evolution"
+  elif [ -f "$(command -v clawsmail 2>/dev/null)" ]; then
+    export EMAIL="clawsmail"
+  elif [ -f "$(command -v geary 2>/dev/null)" ]; then
+    export EMAIL="geary"
+  elif [ -f "$(command -v neomutt 2>/dev/null)" ]; then
+    export EMAIL="myterminal -e neomutt"
+  elif [ -f "$(command -v mutt 2>/dev/null)" ]; then
+    export EMAIL="myterminal -e mutt"
+  elif [ -f "$(command -v kmail 2>/dev/null)" ]; then
+    export EMAIL="kmail"
+  elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
+    export EMAIL="emacs"
+  elif [ -f "$(command -v gmail 2>/dev/null)" ]; then
+    EMAIL="mybrowser https://gmail.com"
+  elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
+    export EMAIL="sylpheed"
+  fi
 fi
-#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$EMAIL" ] || printf_help "No email clients are installed"
-[ "$1" = "--create" ] && create_link "$@"
+[ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "No email clients are installed"
+[ -n "$EDITOR" ] || printf_exit 1 1 "No email clients are installed"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-notifications "MyEMail" "Attempting to launch $EMAIL"
+[ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL"
 
-if [ -f "$HOME/.local/bin/myemail" ]; then
-  __devnull2 ~/.local/bin/myemail "$@"
-else
-  __devnull2 $EMAIL "$@"
-fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $1 in
+*config)
+  shift 1
+  __config
+  ;;
+
+*create | link)
+  shift 1
+  __create_link "$@"
+  ;;
+
+*)
+  if [ -f "$HOME/.local/bin/myemail" ]; then
+    __devnull2 ~/.local/bin/myemail "$@"
+  else
+    __devnull2 $EMAIL "$@"
+  fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

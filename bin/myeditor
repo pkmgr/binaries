@@ -14,15 +14,12 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : setup editor
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,8 +30,21 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/myeditor/settings" ] && . "$HOME/.config/myeditor/settings"
+MYEDITOR_NOTIFICATIONS="${MYEDITOR_NOTIFICATIONS:-yes}"
 
-create_link() {
+__config() {
+  printf_green "Generating config file"
+  __mkd "$HOME/.config/myeditor"
+  echo -e '# Settings for myeditor
+MYBROWSER="config"
+BROWSER="$BROWSER"
+MYEDITOR_NOTIFICATIONS="$MYEDITOR_NOTIFICATIONS"
+  ' >"$HOME/.config/myeditor/settings"
+  exit
+}
+
+__create_link() {
   case "$1" in
   *)
     if [ ! -z "$2" ]; then
@@ -54,46 +64,59 @@ create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#if [ -z "$EDITOR" ]; then
-if [ -f "$(command -v code 2>/dev/null)" ]; then
-  export EDITOR="code -w"
-elif [ -f "$(command -v vscode 2>/dev/null)" ]; then
-  export EDITOR="vscode"
-elif [ -f "$(command -v vim 2>/dev/null)" ]; then
-  export EDITOR="vim"
-elif [ -f "$(command -v nvim 2>/dev/null)" ]; then
-  export EDITOR="nvim"
-elif [ -f "$(command -v geany 2>/dev/null)" ]; then
-  export EDITOR="geany"
-elif [ -f "$(command -v gedit 2>/dev/null)" ]; then
-  export EDITOR="gedit"
-elif [ -f "$(command -v atom 2>/dev/null)" ]; then
-  export EDITOR="atom"
-elif [ -f "$(command -v brackets 2>/dev/null)" ]; then
-  export EDITOR="brackets"
-elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
-  export EDITOR="emacs"
-elif [ -f "$(command -v mousepad 2>/dev/null)" ]; then
-  export EDITOR="mousepad"
-elif [ -f "$(command -v nano 2>/dev/null)" ]; then
-  export EDITOR="nano"
+if [ "$MYEDITOR" != "config" ]; then
+  if [ -f "$(command -v code 2>/dev/null)" ]; then
+    export EDITOR="code -w"
+  elif [ -f "$(command -v vscode 2>/dev/null)" ]; then
+    export EDITOR="vscode"
+  elif [ -f "$(command -v vim 2>/dev/null)" ]; then
+    export EDITOR="vim"
+  elif [ -f "$(command -v nvim 2>/dev/null)" ]; then
+    export EDITOR="nvim"
+  elif [ -f "$(command -v geany 2>/dev/null)" ]; then
+    export EDITOR="geany"
+  elif [ -f "$(command -v gedit 2>/dev/null)" ]; then
+    export EDITOR="gedit"
+  elif [ -f "$(command -v atom 2>/dev/null)" ]; then
+    export EDITOR="atom"
+  elif [ -f "$(command -v brackets 2>/dev/null)" ]; then
+    export EDITOR="brackets"
+  elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
+    export EDITOR="emacs"
+  elif [ -f "$(command -v mousepad 2>/dev/null)" ]; then
+    export EDITOR="mousepad"
+  elif [ -f "$(command -v nano 2>/dev/null)" ]; then
+    export EDITOR="nano"
+  fi
 fi
-#fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$EDITOR" ] || printf_help "No editors are installed"
-[ "$1" = "--create" ] && create_link "$@"
+[ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "No filemanagers are installed"
+[ -n "$EDITOR" ] || printf_exit 1 1 "No editors are installed"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-notifications "MyEditor" "Attempting to launch $EDITOR"
+[ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "Attempting to launch $EDITOR"
 
-if [ -f "$HOME/.local/bin/myeditor" ]; then
-  __devnull2 ~/.local/bin/myeditor "$@"
-else
-  __devnull2 $EDITOR "$@"
-fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $1 in
+*config)
+  shift 1
+  __config
+  ;;
+
+*create | link)
+  shift 1
+  __create_link "$@"
+  ;;
+
+*)
+  if [ -f "$HOME/.local/bin/myeditor" ]; then
+    __devnull2 ~/.local/bin/myeditor "$@"
+  else
+    __devnull2 $EDITOR "$@"
+  fi
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
