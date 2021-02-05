@@ -87,8 +87,8 @@ background_job() {
   fi
   shift 1
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $sleeptime"
-  trap 'rm -Rf /tmp/randomwallpaper.$USER' EXIT
   while :; do
+    trap 'rm -Rf /tmp/randomwallpaper.$USER' EXIT
     randomwallpaper "${1:-$RANDOMWALLPAPER}"
     echo "$pid" >"/tmp/randomwallpaper.$USER"
     sleep "$sleeptime" || __kill_proc
@@ -98,13 +98,14 @@ background_job() {
 }
 
 __term() {
+  local main sleeptime
   while :; do
     # show menu
     clear
     shift 1
     printf_newline "\n\n\n\n"
     printf_head "Random Wall Paper Menu"
-    printf_green "b. Change the wallpaper every 5 minutes"
+    printf_green "b. Change the wallpaper every x minutes"
     printf_green "y. change the wallpaper"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
@@ -115,7 +116,10 @@ __term() {
       break
       ;;
     b)
-      background_job "${ROTATE_TIME}"
+      printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-s"
+      counter=$(echo $((60 * $sleeptime)))
+      #background_job "$counter"
+      __counter $counter "5" "Re-loading menu in:" "seconds(s) "
       ;;
     *)
       randomwallpaper
