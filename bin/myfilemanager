@@ -38,8 +38,8 @@ __config() {
   __mkd "$HOME/.config/myfilemanager"
   echo -e '# Settings for myfilemanager
 MYFILEMANAGER="config"
-FILEMANAGER="$FILEMANAGER"
-MYFILEMANAGER_MYFILEMANAGER="$MYFILEMANAGER_NOTIFICATIONS"
+FILEMANAGER="'$FILEMANAGER'"
+MYFILEMANAGER_MYFILEMANAGER="'$MYFILEMANAGER_NOTIFICATIONS'"
   ' >"$HOME/.config/myfilemanager/settings"
   if [ -f "$HOME/.config/myfilemanager/settings" ]; then
     printf_green "File saved to: $HOME/.config/myfilemanager/settings"

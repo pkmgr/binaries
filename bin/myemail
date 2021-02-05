@@ -38,7 +38,7 @@ __config() {
   echo -e '# Settings for myemail
 MYEMAIL="config"
 EMAIL="$EMAIL"
-MYEMAIL_NOTIFICATIONS="$MYEMAIL_NOTIFICATIONS"
+MYEMAIL_NOTIFICATIONS="'$MYEMAIL_NOTIFICATIONS'"
   ' >"$HOME/.config/myemail/settings"
   if [ -f "$HOME/.config/myemail/settings" ]; then
     printf_green "File saved to: $HOME/.config/myemail/settings"
