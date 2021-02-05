@@ -43,7 +43,7 @@ MYEDITOR_NOTIFICATIONS="$MYEDITOR_NOTIFICATIONS"
   ' >"$HOME/.config/myeditor/settings"
   if [ -f "$HOME/.config/myeditor/settings" ]; then
     printf_green "File saved to: $HOME/.config/myeditor/settings"
-    [ -n "$MYEDITOR_NOTIFICATIONS" ] && notifications "MyEditor" "File saved to:\n$HOME/.config/myeditor/settings"
+    [ -n "$MYEDITOR_NOTIFICATIONS" ] && notifications "MyEditor" "Config file saved to:\n$HOME/.config/myeditor/settings"
   fi
   exit
 }

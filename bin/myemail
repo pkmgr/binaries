@@ -42,7 +42,7 @@ MYEMAIL_NOTIFICATIONS="$MYEMAIL_NOTIFICATIONS"
   ' >"$HOME/.config/myemail/settings"
   if [ -f "$HOME/.config/myemail/settings" ]; then
     printf_green "File saved to: $HOME/.config/myemail/settings"
-    [ -n "$MYEMAIL_NOTIFICATIONS" ] && notifications "MyEMail" "File saved to:\n$HOME/.config/myemail/settings"
+    [ -n "$MYEMAIL_NOTIFICATIONS" ] && notifications "MyEMail" "Config file saved to:\n$HOME/.config/myemail/settings"
   fi
   exit
 }

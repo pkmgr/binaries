@@ -43,7 +43,7 @@ MYBROWSER_NOTIFICATIONS="$MYBROWSER_NOTIFICATIONS"
   ' >"$HOME/.config/mybrowser/settings"
   if [ -f "$HOME/.config/mybrowser/settings" ]; then
     printf_green "File saved to: $HOME/.config/mybrowser/settings"
-    [ -n "$MYBROWSER_NOTIFICATIONS" ] && notifications "MyBrowser" "File saved to:\n$HOME/.config/mybrowser/settings"
+    [ -n "$MYBROWSER_NOTIFICATIONS" ] && notifications "MyBrowser" "Config file saved to:\n$HOME/.config/mybrowser/settings"
   fi
   exit
 }
