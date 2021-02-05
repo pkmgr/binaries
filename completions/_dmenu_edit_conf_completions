@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
-# _dmenu_edit_conf_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for dmenu_edit_conf
-
-_dmenu_edit_conf_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dmenu_edit_conf --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : dmenu_edit_conf
+# @Description   : autocomplete for dmenu_edit_conf
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_dmenu_edit_conf() {
   local cur prev words cword
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dmenu_edit_conf/array)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dmenu_edit_conf/array)"
   _init_completion || return
 
   case $prev in
@@ -15,14 +23,8 @@ _dmenu_edit_conf_completions() {
     COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
     return
     ;;
-
   esac
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _dmenu_edit_conf_completions -o default dmenu_edit_conf
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _dmenu_edit_conf -o default dmenu_edit_conf

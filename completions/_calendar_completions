@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
-# _calendar_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for calendar
-
-_calendar_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : calendar --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : calendar
+# @Description   : autocomplete for calendar
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_calendar() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/calendar/array)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/calendar/array)"
 
   _init_completion || return
 
@@ -18,12 +26,7 @@ _calendar_completions() {
     return 0
     ;;
   esac
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _calendar_completions -o default calendar
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _calendar -o default calendar

@@ -42,12 +42,12 @@ title="$(date +"%B") $(date +"%d"), $year created at $hour"
 filename="$folder/$day.md"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-mkdir -p "$scratchdir"
-mkdir -p "$scratchdir/$folder"
+__mkd "$scratchdir/$folder"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
   if [ ! -f "$scratchdir/tmux.conf" ]; then
+    __mkd "$scratchdir"
     cat <<EOF >"$scratchdir/tmux.conf"
 # Very basic tmux config
 unbind C-b
@@ -80,6 +80,12 @@ EOF
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__tmux() { tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $1" &>/dev/null; }
+__open() {
+  filepath="$(__get_full_file "$1")"
+  filename="$scratchdir/${1//$scratchdir/$filename}"
+  run_tmux "$filename"
+}
 scratchpad() {
   run_git() {
     cd "$scratchdir" &&
@@ -87,60 +93,64 @@ scratchpad() {
       exit $?
   }
   run_tmux() {
-    local title="${1:-Scratchpad for $title}"
-    local filename="${2:-$filename}"
-    if [ ! -f "$scratchdir/$filename" ]; then
-      echo -e "$title\n\n" >"$scratchdir/$filename"
+    if [ -f "$1" ]; then
+      local filename="$1"
+    else
+      local title="${1:-Scratchpad for $title}"
+      local filename="${2:-$filename}"
     fi
-    tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $scratchdir/$filename" &>/dev/null
+    if [ ! -f "$filename" ]; then
+      echo -e "$title\n\n" >"$filename"
+    fi
+    __tmux "$filename"
   }
 
   case "$1" in
-  new)
+  *new | *-n)
     shift 1
     [ $# -eq 0 ] && printf_help 'Usage: '$APPNAME' new "ProjectName" "FileName" "ext"  |  '$APPNAME' new "server" "parts" "txt"'
     local new_title="ScratchPad for $1: Created on $(date +"%B") $(date +"%d"), $year at $hour"
-    mkdir -p "$scratchdir/$1"
-    run_tmux "${new_title}" "$1/$2.${3:-md}"
+    __mkd "$scratchdir/$1"
+    run_tmux "$new_title" "$scratchdir/$1/$2.${3:-md}"
     ;;
 
-  list | l)
+  *list | *-l)
     shift 1
-    if [ -d "$scratchdir/$folder" ] && [ "$(__countdir $scratchdir/$folder)" -ne 0 ]; then
+    if [ -d "$scratchdir/$folder" ] && [ "$(__count_files $scratchdir/*/*)" -ne 0 ]; then
       printf_green "Listing the files in $scratchdir/$folder"
-      ls "$scratchdir/$folder" | printf_read "3"
+      find $scratchdir/*/* -type f | sed 's#'$scratchdir/'##g' | printf_read "3"
     else
-      printf_exit "No scratchpads exist for this month in: $scratchdir/$folder"
+      printf_exit "No scratchpads exist"
     fi
     ;;
 
-  open | o)
+  *open | *-o)
     shift 1
-    run_tmux
+    __open "$1"
     ;;
 
-  git)
+  *git)
     shift 1
     run_git
     ;;
 
   *)
-    run_tmux
+    if [ -n "$1" ]; then
+      __open "$1"
+    else
+      run_tmux "$scratchdir/$filename"
+    fi
     ;;
 
   esac
-
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 main() {
   tmux_conf
   scratchpad "$@"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # end

@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
-# _config_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for config
-
-_config_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : config --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : config
+# @Description   : autocomplete for config
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_config() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/config/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/config/list)"
   _init_completion || return
 
   case $prev in
@@ -59,13 +67,8 @@ _config_completions() {
   esac
 
   COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _git -o default config &&
-  complete -F _config_completions -o default config
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _config -o default config &&
+  complete -F _git -o default config

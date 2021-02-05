@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -E
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
@@ -196,7 +196,7 @@ printf_exit() {
 printf_single() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local COLUMNS=80
-  local TEXT="$@"
+  local TEXT="$*"
   local LEN=${#TEXT}
   local WIDTH=$(($LEN + ($COLUMNS - $LEN) / 2))
   printf "%b" "$(tput setaf "$color" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
@@ -266,6 +266,7 @@ printf_read_question() {
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question_nt() {
+  local readopts reply
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
@@ -671,7 +672,6 @@ __find_mtime() { [ "$(find ${1:-.} -type f -cmin ${2:-1} | wc -l)" -ne 0 ] && re
 __find() {
   local DEF_OPTS="-type f,d"
   local opts="${FIND_OPTS:-$DEF_OPTS}"
-  echo $opts $*
   __devnull2 find "${*:-.}" -not -path "$dir/.git/*" $opts
 }
 #find_old "dir" "minutes" "action"
@@ -976,6 +976,7 @@ __attemp_install_menus() {
 }
 
 __custom_menus() {
+  local custom
   # printf_custom_question "6" "Enter your custom program : "
   # read custom
   # printf_custom_question "6" "Enter any additional options [type file to choose] : "

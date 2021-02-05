@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
-# _todo_sh_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for todo.sh
-
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : todo.sh --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : todo.sh
+# @Description   : autocomplete for todo.sh
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$BASH_VERSION" ] || return
 
-_todo_sh_completions() {
+_todo.sh() {
   local cur prev opts
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
@@ -101,4 +109,4 @@ _todo_sh_completions() {
   COMPREPLY=($(compgen -W "$completions" -- $cur))
   return 0
 }
-complete -F _todo_sh_completions todo.sh
+complete -F _todo.sh todo.sh

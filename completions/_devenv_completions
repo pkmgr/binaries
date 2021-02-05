@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
-# _devenv_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for devenv
-
-_devenv_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : devenv --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : devenv
+# @Description   : autocomplete for devenv
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_devenv() {
   local cur prev words cword
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/devenv/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/devenv/list)"
-  local START="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/devenv/start)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/devenv/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/devenv/list)"
+  local START="$(</usr/local/share/CasjaysDev/scripts/helpers/devenv/start)"
+
   _init_completion || return
 
   case $prev in
@@ -21,13 +30,8 @@ _devenv_completions() {
   esac
 
   COMPREPLY=($(compgen -W '${ARRAY} ${LIST}' -- "$cur"))
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _devenv_completions -o default emj
-complete -F _devenv_completions -o default devenv
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _devenv -o default emj &&
+  complete -F _devenv -o default devenv

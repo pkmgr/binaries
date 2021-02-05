@@ -4,33 +4,29 @@
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @ReadME        : hue --help
+# @ReadME        : update-motd --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Friday, Feb 05, 2021 11:22 EST
-# @File          : hue
-# @Description   : autocomplete for hue
+# @File          : update-motd
+# @Description   : autocomplete for update-motd
 # @TODO          :
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_hue() {
+_update-motd() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="--help play stop pause toggle state info brightness hue sat"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/update-motd/array)"
 
   _init_completion || return
 
   case $prev in
-  state)
-    COMPREPLY=($(compgen -W 'json text' -- "$cur"))
-    return 0
-    ;;
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
-    return 0
     ;;
   esac
+
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _hue -o default hue
+  complete -F _update-motd -o default update-motd

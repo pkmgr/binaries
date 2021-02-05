@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-# _myshell_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for myshell
-
-_myshell_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myshell --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : myshell
+# @Description   : autocomplete for myshell
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_myshell() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY=$(for line in $(cat /etc/shells | grep -v "#"); do basename "$line" | tr '\n' ' '; done && echo)
@@ -17,11 +25,7 @@ _myshell_completions() {
     return
     ;;
   esac
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# enable completions
-complete -F _myshell_completions -o default myshell
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+} &&
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # enable completions
+  complete -F _myshell -o default myshell

@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
-# _myemail_completions completion
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# myemail for myemail
-
-_myemail_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myemail --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : myemail
+# @Description   : autocomplete for myemail
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_myemail() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--version --help --config --link"
@@ -17,9 +27,6 @@ _myemail_completions() {
     ;;
   esac
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _myemail_completions -o default myemail
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _myemail -o default myemail

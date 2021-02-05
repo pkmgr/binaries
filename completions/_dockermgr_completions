@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
-# _dockermgr_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for dockermgr
-
-_dockermgr_completions() {
-  local cur prev words cword
-  local prefix=dockermgr
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/list)"
-
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dockermgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : dockermgr
+# @Description   : autocomplete for dockermgr
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_dockermgr() {
   local cur prev words cword split
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dockermgr/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/dockermgr/list)"
+
   _init_completion -s || return
 
   list_all() {
@@ -40,7 +46,7 @@ _dockermgr_completions() {
       ;;
     update)
       k=0
-      i="$HOME/.local/share/CasjaysDev/apps/$prefix"
+      i="$HOME/.local/share/CasjaysDev/apps/dockermgr"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -61,12 +67,7 @@ _dockermgr_completions() {
   esac
 
   $split && return
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _dockermgr_completions -o default dockermgr
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _dockermgr -o default dockermgr

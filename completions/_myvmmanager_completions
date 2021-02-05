@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
-# _myvmmanager_completions completion
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# myvmmanager for myvmmanager
-
-_myvmmanager_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myvmmanager --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : myvmmanager
+# @Description   : autocomplete for myvmmanager
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_myvmmanager() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--version --help --config --link"
@@ -17,9 +27,6 @@ _myvmmanager_completions() {
     ;;
   esac
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _myvmmanager_completions -o default myvmmanager
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _myvmmanager -o default myvmmanager

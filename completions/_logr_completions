@@ -1,21 +1,30 @@
 #!/usr/bin/env bash
-# bash completion for logr
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for logr
-
-_logr_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : logr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : logr
+# @Description   : autocomplete for logr
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_logr() {
   local cur prev words cword
   local cur_word="${COMP_WORDS[COMP_CWORD]}"
+  local logdir=${LOG_DIR:-$HOME/.local/log}
   local ARRAY="--help --list --open --clean --show --noerr --err --silent "
-  local logdir=${LOGDIR:-$HOME/.local/log}/logr
+  local OPEN="$(find "$logdir" -type f)"
   _init_completion || return
 
   case $prev in
   --open)
     shift 1
-    _filedir '$logdir'
+    COMPREPLY=($(compgen -W '${OPEN}' -- "$cur"))
     return 0
     ;;
 
@@ -29,12 +38,7 @@ _logr_completions() {
     fi
     ;;
   esac
-
-  # relevant options completion
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _logr_completions -o default logr
+  complete -F _logr -o default logr

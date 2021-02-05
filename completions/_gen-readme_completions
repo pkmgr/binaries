@@ -1,24 +1,27 @@
 #!/usr/bin/env bash
-# _gen-readme_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for gen-readme
-
-_gen-readme_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : gen-readme --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : gen-readme
+# @Description   : autocomplete for gen-readme
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_gen-readme() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gen-readme/array)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/gen-readme/array)"
 
   _init_completion || return
 
   COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
-
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# enable completions
-complete -F _gen-readme_completions -o default gen-readme
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+} &&
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # enable completions
+  complete -F _gen-readme -o default gen-readme

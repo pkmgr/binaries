@@ -69,45 +69,44 @@ __create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$MYFILEMANAGER" != "config" ]; then
   if [ -z "$DESKTOP_SESSION" ]; then
-    if [ -f "$(command -v lf 2>/dev/null)" ]; then
+    if [ -n "$(command -v lf 2>/dev/null)" ]; then
       export FILEMANAGER="lf"
-    elif [ -f "$(command -v vifm 2>/dev/null)" ]; then
+    elif [ -n "$(command -v vifm 2>/dev/null)" ]; then
       export FILEMANAGER="vifm"
-    elif [ -f "$(command -v ranger 2>/dev/null)" ]; then
+    elif [ -n "$(command -v ranger 2>/dev/null)" ]; then
       export FILEMANAGER="ranger"
-    elif [ -f "$(command -v se 2>/dev/null)" ]; then
+    elif [ -n "$(command -v se 2>/dev/null)" ]; then
       export FILEMANAGER="se"
-    elif [ -f "$(command -v cfiles 2>/dev/null)" ]; then
+    elif [ -n "$(command -v cfiles 2>/dev/null)" ]; then
       export FILEMANAGER="cfiles"
     fi
   else
-    if [ -f "$(command -v open 2>/dev/null)" ]; then
+    if [ -n "$(command -v open 2>/dev/null)" ]; then
       export FILEMANAGER="open"
-    elif [ -f "$(command -v dolphin 2>/dev/null)" ]; then
+    elif [ -n "$(command -v dolphin 2>/dev/null)" ]; then
       export FILEMANAGER="dolphin"
-    elif [ -f "$(command -v thunar 2>/dev/null)" ]; then
+    elif [ -n "$(command -v thunar 2>/dev/null)" ]; then
       export FILEMANAGER="thunar"
-    elif [ -f "$(command -v Thunar 2>/dev/null)" ]; then
+    elif [ -n "$(command -v Thunar 2>/dev/null)" ]; then
       export FILEMANAGER="Thunar"
-    elif [ -f "$(command -v konqueror 2>/dev/null)" ]; then
+    elif [ -n "$(command -v konqueror 2>/dev/null)" ]; then
       export FILEMANAGER="konqueror"
-    elif [ -f "$(command -v spacefm 2>/dev/null)" ]; then
+    elif [ -n "$(command -v spacefm 2>/dev/null)" ]; then
       export FILEMANAGER="spacefm"
-    elif [ -f "$(command -v nemo 2>/dev/null)" ]; then
+    elif [ -n "$(command -v nemo 2>/dev/null)" ]; then
       export FILEMANAGER="nemo"
-    elif [ -f "$(command -v pcmanfm 2>/dev/null)" ]; then
+    elif [ -n "$(command -v pcmanfm 2>/dev/null)" ]; then
       export FILEMANAGER="pcmanfm"
-    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
+    elif [ -n "$(command -v polo 2>/dev/null)" ]; then
       export FILEMANAGER="caja"
-    elif [ -f "$(command -v caja 2>/dev/null)" ]; then
+    elif [ -n "$(command -v caja 2>/dev/null)" ]; then
       export FILEMANAGER="nautilus"
-    elif [ -f "$(command -v nautilus 2>/dev/null)" ]; then
+    elif [ -n "$(command -v nautilus 2>/dev/null)" ]; then
       export FILEMANAGER="polo"
-    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
+    elif [ -n "$(command -v polo 2>/dev/null)" ]; then
       export FILEMANAGER="polo"
     fi
   fi
-  #fi
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
     export FILEMANAGER="open"

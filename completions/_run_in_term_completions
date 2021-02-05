@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-# _run_in_term_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for run_in_term
-
-_run_in_term_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : run_in_term --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : run_in_term
+# @Description   : autocomplete for run_in_term
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_run_in_term() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
@@ -13,16 +21,11 @@ _run_in_term_completions() {
 
   case $prev in
   *)
-    COMPREPLY=( $(compgen -c -- "${cur}") )
+    COMPREPLY=($(compgen -c -- "${cur}"))
     return 0
     ;;
   esac
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _run_in_term_completions -o default run_in_term
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _run_in_term -o default run_in_term

@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
-# _dfmgr_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for dfmgr
-
-_dfmgr_completions() {
-  local cur prev words cword
-  local prefix=dfmgr
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/list)"
-
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dfmgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : dfmgr
+# @Description   : autocomplete for dfmgr
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_dfmgr() {
   local cur prev words cword split
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dfmgr/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/dfmgr/list)"
+
   _init_completion -s || return
 
   list_all() {
@@ -40,7 +46,7 @@ _dfmgr_completions() {
       ;;
     update)
       k=0
-      i="$HOME/.local/share/CasjaysDev/apps/$prefix"
+      i="$HOME/.local/share/CasjaysDev/apps/dfmgr"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -53,7 +59,7 @@ _dfmgr_completions() {
       ;;
     cron)
       k=0
-      i="$HOME/.local/share/CasjaysDev/apps/$prefix"
+      i="$HOME/.local/share/CasjaysDev/apps/dfmgr"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -70,12 +76,7 @@ _dfmgr_completions() {
   esac
 
   $split && return
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _dfmgr_completions -o default dfmgr
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _dfmgr -o default dfmgr

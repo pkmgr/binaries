@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
-# _pkmgr_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for dotfiles
-
-_pkmgr_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : pkmgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : pkmgr
+# @Description   : autocomplete for pkmgr
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_pkmgr() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/pkmgr/array)"
-  local dotfiles="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/list)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/pkmgr/array)"
+  local dotfiles="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/list)"
   _init_completion || return
 
   case $prev in
@@ -34,12 +42,7 @@ _pkmgr_completions() {
   esac
 
   COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _pkmgr_completions -o default pkmgr
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _pkmgr -o default pkmgr

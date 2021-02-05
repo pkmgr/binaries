@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
-# _systemmgr_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for systemmgr
-
-_systemmgr_completions() {
-  local cur prev words cword
-  local prefix=systemmgr
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/list)"
-
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : systemmgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : systemmgr
+# @Description   : autocomplete for systemmgr
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_systemmgr() {
   local cur prev words cword split
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/systemmgr/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/systemmgr/list)"
+
   _init_completion -s || return
 
   list_all() {
@@ -40,7 +46,7 @@ _systemmgr_completions() {
       ;;
     update)
       k=0
-      i="/usr/local/share/CasjaysDev/apps/$prefix"
+      i="/usr/local/share/CasjaysDev/apps/systemmgr"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -53,7 +59,7 @@ _systemmgr_completions() {
       ;;
     cron)
       k=0
-      i="$HOME/.local/share/CasjaysDev/apps/$prefix"
+      i="$HOME/.local/share/CasjaysDev/apps/systemmgr"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -70,12 +76,7 @@ _systemmgr_completions() {
   esac
 
   $split && return
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _systemmgr_completions -o default systemmgr
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _systemmgr -o default systemmgr

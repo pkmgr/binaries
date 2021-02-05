@@ -31,14 +31,14 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # Emoji list
-ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/array)"
-LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/list)"
+ARRAY="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/array)"
+LIST="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/list)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 dmenu_emojis() {
   xclip -h 2>/dev/null || exit 1
-  chosen=$(cut -d ';' -f1 $SCRIPTSFUNCTDIR/helpers/emojis/emojis | dmenu -i -l 20 | sed "s/ .*//")
+  chosen=$(cut -d ';' -f1 $CASJAYSDEVDIR/helpers/emojis/emojis | dmenu -i -l 20 | sed "s/ .*//")
 
   [ "$chosen" != "" ] || exit
 
@@ -66,7 +66,7 @@ update | -update | --update)
   ;;
 
 dmenu)
-  __cmd_exists dmenu && dmenu_emojis || printf_exit "dmenu doesn't seem to be installed"
+  __cmd_exists dmenu && dmenu_emojis "$@" || printf_exit "dmenu doesn't seem to be installed"
   ;;
 
 search | -s* | --s*)

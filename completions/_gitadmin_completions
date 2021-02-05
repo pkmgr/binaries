@@ -1,16 +1,24 @@
 #!/usr/bin/env bash
-# _gitadmin_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for gitadmin
-
-_gitadmin_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : gitadmin --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : gitadmin
+# @Description   : autocomplete for gitadmin
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_gitadmin() {
   mkdir -p "$HOME/Projects" >/dev/null 2>&1
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitadmin/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitadmin/list)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/gitadmin/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/gitadmin/list)"
   local gitOPTS="init clone remote"
   local automatedOpts="--automated"
   local updateOpts="--while"
@@ -29,7 +37,7 @@ _gitadmin_completions() {
   push)
     k=0
     i="$HOME/Projects"
-    for d in $(find $i -type d); do
+    for d in $(ls -d $i/*); do
       for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j}
@@ -90,10 +98,7 @@ _gitadmin_completions() {
   esac
 
   COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _gitadmin_completions -o default gitadmin
+  complete -F _gitadmin -o default gitadmin

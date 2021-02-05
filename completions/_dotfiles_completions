@@ -1,19 +1,27 @@
 #!/usr/bin/env bash
-# _dotfiles_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for dotfiles
-
-_dotfiles_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dotfiles --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : dotfiles
+# @Description   : autocomplete for dotfiles
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_dotfiles() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/list)"
-  local ADMIN="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/admin)"
-  local STOW="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
-  local LSBIN="$(cd ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/bin/ && find -iname '*' -type f)"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/list)"
+  local ADMIN="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/admin)"
+  local STOW="$(</usr/local/share/CasjaysDev/scripts/helpers/config/array)"
+  local LSBIN="$(ls /usr/local/share/CasjaysDev/scripts/bin/)"
 
   _init_completion || return
 
@@ -61,14 +69,8 @@ _dotfiles_completions() {
     ;;
 
   esac
-
   COMPREPLY=($(compgen -W '${ARRAY[*]}' -- "$cur"))
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _dotfiles_completions -o default dotfiles
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _dotfiles -o default dotfiles

@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-# _automate_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for automate
-
-_automate_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : automate --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : automate
+# @Description   : autocomplete for automate
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_automate() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--help play stop pause toggle state"
@@ -22,12 +30,7 @@ _automate_completions() {
     return 0
     ;;
   esac
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _automate_completions -o default automate
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _automate -o default automate

@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
-# bash completion for killzombies
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for killzombies
-
-_killzombies_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : killzombies --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : killzombies
+# @Description   : autocomplete for killzombies
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_killzombies() {
   local cur prev words cword
   _init_completion || return
-
   COMPREPLY=($(compgen -W '--cron --admin --help' -- "$cur"))
-
   _pnames
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _killzombies_completions -o default killzombies
+  complete -F _killzombies -o default killzombies

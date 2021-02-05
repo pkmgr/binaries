@@ -1,23 +1,26 @@
 #!/usr/bin/env bash
-# _emojify_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for emojify
-
-_emojify_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : emojify --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : emojify
+# @Description   : autocomplete for emojify
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_emojify() {
   local cur prev words cword
   local ARRAY="-h --help -l --list"
   _init_completion || return
 
   COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
   return 0
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _emojify_completions -o default emojify
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _emojify -o default emojify

@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-# _am_i_online_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for am_i_online
-
-_am_i_online_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : am_i_online --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : am_i_online
+# @Description   : autocomplete for am_i_online
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_am_i_online() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--console --help"
@@ -18,12 +26,7 @@ _am_i_online_completions() {
     return 0
     ;;
   esac
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _am_i_online_completions -o default am_i_online
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _am_i_online -o default am_i_online

@@ -29,13 +29,11 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ -z "$1" ] && printf_exit "Nothing to expand"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 wget -S "$url" 2>&1 | grep ^Location | awk '{print $2}' | (putclip)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

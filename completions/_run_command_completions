@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
-# _run_command_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for run_command
-
-_run_command_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : run_command --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : run_command
+# @Description   : autocomplete for run_command
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_run_command() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
@@ -13,16 +21,11 @@ _run_command_completions() {
 
   case $prev in
   *)
-    COMPREPLY=( $(compgen -c -- "${cur}") )
+    COMPREPLY=($(compgen -c -- "${cur}"))
     return 0
     ;;
   esac
-
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _run_command_completions -o default run_command
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _run_command -o default run_command

@@ -402,13 +402,13 @@ git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d "$REPODIR/.git" ]; then
     printf_custom "4" "Pushing the repo in $PWD"
-    __devnull git -C "$REPODIR" push -q
+    devnull2 git -C "$REPODIR" push -q
     getexitcode "Push has completed"
   else
     if [ -n "$1" ]; then
       projdir="$1"
       REPODIRname="$(get_githost "$1")"
-      git_username_repo "$1"
+      __git_username_repo "$1"
     else
       projdir="$PROJECT_BASE/$REPODIRname/$username/$userrepo"
     fi
@@ -429,13 +429,13 @@ git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d "$REPODIR/.git" ]; then
     printf_custom "4" "Pulling the repo in $PWD"
-    __devnull git -C "$REPODIR" pull -q
+    devnull2 git -C "$REPODIR" pull -q
     getexitcode "Pulling has completed"
   else
     if [ -n "$1" ]; then
       projdir="$1"
       REPODIRname="$(__git_hostname "$1")"
-      git_username_repo "$1"
+      __git_username_repo "$1"
     else
       projdir="$PROJECT_BASE/$REPODIRname/$username/$userrepo"
     fi

@@ -43,8 +43,7 @@ title="Created on: $(date +"%B") $(date +"%d"), $year at $hour"
 filename="$name/index.md"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-mkdir -p "$tododir"
-mkdir -p "$tododir/$name"
+__mkd "$tododir/$name"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
@@ -81,6 +80,12 @@ EOF
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s scratchpad "vim $1" &>/dev/null; }
+__open() {
+  filepath="$(__get_full_file "$1")"
+  filename="$tododir/${1//$tododir/$filename}"
+  run_tmux "$filename"
+}
 todo() {
   run_git() {
     cd "$tododir" &&
@@ -88,11 +93,16 @@ todo() {
       exit $?
   }
   run_tmux() {
-    local title="TODO for $name: $title"
-    if [ ! -f "$tododir/$filename" ]; then
-      echo -e "$title\n\n" >"$tododir/$filename"
+    if [ -f "$1" ]; then
+      local filename="$1"
+    else
+      local title="TODO for $name: $title"
+      local filename="${2:-$filename}"
     fi
-    tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "vim $tododir/$filename" &>/dev/null
+    if [ ! -f "$filename" ]; then
+      echo -e "$title\n\n" >"$filename"
+    fi
+    __tmux "$filename"
   }
 
   case "$1" in
@@ -119,7 +129,7 @@ todo() {
 
   open | o)
     shift 1
-    run_tmux
+    __open "$1"
     ;;
 
   git)
@@ -128,7 +138,11 @@ todo() {
     ;;
 
   *)
-    run_tmux "$@"
+    if [ -n "$1" ]; then
+      __open "$1"
+    else
+      run_tmux "$tododir/$filename"
+    fi
     ;;
 
   esac

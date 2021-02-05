@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
-# _thememgr_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for thememgr
-
-_thememgr_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : thememgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : thememgr
+# @Description   : autocomplete for thememgr
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_thememgr() {
   local cur prev words cword
-  local prefix=thememgr
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/array)"
-  local LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/$prefix/list)"
-
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/thememgr/array)"
+  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/thememgr/list)"
   local cur prev words cword split
+
   _init_completion -s || return
 
   list_all() {
@@ -40,7 +47,7 @@ _thememgr_completions() {
       ;;
     update)
       k=0
-      i="$HOME/.local/share/CasjaysDev/apps/$prefix"
+      i="$HOME/.local/share/CasjaysDev/apps/thememgr"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -53,7 +60,7 @@ _thememgr_completions() {
       ;;
     cron)
       k=0
-      i="$HOME/.local/share/CasjaysDev/apps/$prefix"
+      i="$HOME/.local/share/CasjaysDev/apps/thememgr"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -72,10 +79,6 @@ _thememgr_completions() {
   $split && return
 
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _thememgr_completions -o default thememgr
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _thememgr -o default thememgr

@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
-# _myfilemanager_completions completion
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# myfilemanager for myfilemanager
-
-_myfilemanager_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myfilemanager --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : myfilemanager
+# @Description   : autocomplete for myfilemanager
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_myfilemanager() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--version --help --config --link ."
@@ -17,9 +27,6 @@ _myfilemanager_completions() {
     ;;
   esac
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _myfilemanager_completions -o default myfilemanager
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _myfilemanager -o default myfilemanager

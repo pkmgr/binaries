@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
-
-# completion file for bash
-
-# Copyright (C) 2012 - 2014 Jason A. Donenfeld <Jason@zx2c4.com> and
-# Brian Mattern <rephorm@rephorm.com>. All Rights Reserved.
-# This file is licensed under the GPLv2+. Please see COPYING for more information.
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : pass --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : pass
+# @Description   : autocomplete for pass
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _pass_complete_entries() {
   local prefix="${PASSWORD_STORE_DIR:-$HOME/.password-store/}"
   prefix="${prefix%/}/"
@@ -21,7 +28,7 @@ _pass_complete_entries() {
   # Use counter, can't use ${#items[@]} as we skip hidden directories
   local i=0 item
 
-  for item in ${items[@]}; do
+  for item in "${items[@]}"; do
     [[ $item =~ /\.[^/]*$ ]] && continue
 
     # if there is a unique match, and it is a directory with one entry
@@ -50,7 +57,7 @@ _pass_complete_entries() {
     if [[ $i -eq 0 ]]; then
       firstitem=$item
     fi
-    let i+=1
+    ((i += 1))
   done
 
   # The only time we want to add a space to the end is if there is only
@@ -66,7 +73,7 @@ _pass_complete_folders() {
 
   local IFS=$'\n'
   local items=($(compgen -d $prefix$cur))
-  for item in ${items[@]}; do
+  for item in "${items[@]}"; do
     [[ $item == $prefix.* ]] && continue
     COMPREPLY+=("${item#$prefix}/")
   done
@@ -74,7 +81,7 @@ _pass_complete_folders() {
 
 _pass_complete_keys() {
   local GPG="gpg"
-  which gpg2 &>/dev/null && GPG="gpg2"
+  command -v gpg2 &>/dev/null && GPG="gpg2"
 
   local IFS=$'\n'
   # Extract names and email addresses from gpg --list-keys
@@ -140,6 +147,7 @@ _pass() {
     COMPREPLY+=($(compgen -W "${commands}" -- ${cur}))
     _pass_complete_entries 1
   fi
-}
-
-complete -o filenames -F _pass pass
+} &&
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # enable completions
+  complete -o filenames -F _pass pass

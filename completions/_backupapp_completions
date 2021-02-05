@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
-# _backupapp_completions completion
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# autocomplete for backupapp
-
-_backupapp_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : backupapp --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : backupapp
+# @Description   : autocomplete for backupapp
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_backupapp() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="--help --term --cron --config ."
@@ -21,9 +31,6 @@ _backupapp_completions() {
     ;;
   esac
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _backupapp_completions -o default backupapp
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _backupapp -o default backupapp

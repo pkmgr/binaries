@@ -1,24 +1,30 @@
 #!/usr/bin/env bash
-# _todo_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for todo
-
-_todo_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : todo --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : todo
+# @Description   : autocomplete for todo
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_todo() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/todo/array)"
+  local tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/todo/array)"
+  local OPEN="$(find $tododir/*/* -type f | sed 's#'$tododir/'##g')"
 
   _init_completion || return
 
   case $prev in
-  list)
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
-    ;;
-
   open)
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    COMPREPLY=($(compgen -W '$OPEN' -- "$cur"))
     ;;
 
   *)
@@ -27,10 +33,6 @@ _todo_completions() {
   esac
 
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _todo_completions -o default todo
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _todo -o default todo

@@ -1,28 +1,29 @@
 #!/usr/bin/env bash
-# _scratchpad_completions completion
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# autocomplete for scratchpad
-
-_scratchpad_completions() {
+##@Version       : 020520211122-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : scratchpad --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @File          : scratchpad
+# @Description   : autocomplete for scratchpad
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_scratchpad() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/scratchpad/array)"
-
+  local scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
+  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/scratchpad/array)"
+  local OPEN="$(find $scratchdir/*/* -type f | sed 's#'$scratchdir/'##g')"
   _init_completion || return
 
   case $prev in
-  list)
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
-    ;;
-
   open)
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
-    ;;
-
-  new)
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    COMPREPLY=($(compgen -W '$OPEN' -- "$cur"))
     ;;
 
   *)
@@ -31,10 +32,6 @@ _scratchpad_completions() {
   esac
 
 } &&
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   # enable completions
-  complete -F _scratchpad_completions -o default scratchpad
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  complete -F _scratchpad -o default scratchpad
