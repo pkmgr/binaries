@@ -224,7 +224,7 @@ __server() {
   __mkd "$NOTES_TMPDIR"
   __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
-  notifications "Notes Server" "Launching server on port $_PORT"
+  [ "$NOTES_NOTIFY" = "yes" ] && notifications "Notes Server" "Launching server on port $_PORT"
   echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
   while :; do
     rm -Rf "$_TMPFILE"
@@ -236,7 +236,7 @@ __server() {
     if [ -f "$_KILL" ]; then
       rm -Rf "$_KILL"
       echo "Notes server is shutting down" >>"$NOTES_LOG_FILE"
-      notifications "Notes Server" "Notes server is shutting down"
+      [ "$NOTES_NOTIFY" = "yes" ] && notifications "Notes Server" "Notes server is shutting down"
       break
     fi
   done
@@ -275,8 +275,10 @@ __client() {
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   printf "%s\n" "$*" >"${_PATH}" 2>>$NOTES_TMPDIR/notes_client
-  cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client &&
-    notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" || __failed
+  cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client || __failed
+  if [ "$NOTES_NOTIFY" = "yes" ]; then
+    [ $? = 0 ] && notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" || notifications "NotesCLI" "Sending of note failed"
+  fi
   __local && __sync_tmp "$NOTES_PATH" "$_PATH"
   rm -Rf "$_PATH"
   return "$?"
@@ -445,9 +447,7 @@ case "$1" in
   else
     message="$*"
   fi
-  __client "$message" 2>/dev/null &&
-    notifications "$APPNAME" "note sent to $NOTES_SERVER_NAME" ||
-    notifications "$APPNAME" "failed to send to $NOTES_SERVER_NAME"
+  __client "$message" 2>/dev/null
   ;;
 
 *open)
@@ -498,7 +498,7 @@ case "$1" in
   fi
   if __find_mtime "${NOTES_PATH}" "1"; then
     __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
-    [ $? = 0 ] && notifications "New note" "Posted to: ${NOTES_PATH}"
+    [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
   fi
   ;;
 esac
