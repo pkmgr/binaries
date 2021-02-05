@@ -35,7 +35,6 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
 if [ -d "$1" ]; then
@@ -48,6 +47,7 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   MYCURRDIR="$PWD"
 fi
+if [ "$1" = "--skip" ]; then OVERWRITE="Y" && OPENEDIT="N" && shift 1; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults variables
 topdir="$(__git_top_dir "$MYCURRDIR" || echo $MYCURRDIR)"
@@ -263,13 +263,13 @@ else
   tmpfilename="$filename"
 fi
 filename=${tmpfilename// /_}
-if [ -f "$destfolder/$filename" ]; then
+if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
   printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
   printf_answer_yes "$YN" || exit 1
 fi
 __makefile "${template:?}" "$destfolder/$filename" || printf_exit 1 1
-printf_read_question "3" "Should we edit this file?" "1" "YN" "-s"
-printf_answer_yes "$YN" && $EDITOR "$destfolder/$filename"
+[ -n "$OPENEDIT" ] || printf_read_question "3" "Should we edit this file?" "1" "EDIT" "-s"
+printf_answer_yes "$EDIT" && $EDITOR "$destfolder/$filename"
 printf_newline ""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
