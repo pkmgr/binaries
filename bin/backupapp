@@ -212,7 +212,7 @@ case "$1" in
   shift 1
   __term
   ;;
-config)
+*config)
   shift 1
   __config "$@"
   ;;

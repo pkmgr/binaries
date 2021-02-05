@@ -121,7 +121,7 @@ case $1 in
   __config
   ;;
 
-*create | link)
+*create | *link)
   shift 1
   __create_link "$@"
   ;;

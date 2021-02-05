@@ -1,20 +1,16 @@
 #!/usr/bin/env bash
-# _backupapp_completions completion
+# _mydate_completions completion
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# autocomplete for backupapp
+# mydate for mydate
 
-_backupapp_completions() {
+_mydate_completions() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="--help --term --cron --config ."
+  local ARRAY="--version --help config nowtime nowdate setver setverfile custom"
 
   _init_completion || return
 
   case $prev in
-  *cron)
-    COMPREPLY=($(compgen -W '--list --add --del' -- "$cur"))
-    return 0
-    ;;
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     return 0
@@ -24,6 +20,6 @@ _backupapp_completions() {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _backupapp_completions -o default backupapp
+  complete -F _mydate_completions -o default mydate
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
