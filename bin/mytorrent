@@ -37,10 +37,14 @@ __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/mytorrent"
   echo -e '# Settings for mytorrent
-MYBROWSER="config"
-BROWSER="$BROWSER"
+MYTORRENT="config"
+TORRENT="$TORRENT"
 MYTORRENT_NOTIFICATIONS="$MYTORRENT_NOTIFICATIONS"
   ' >"$HOME/.config/mytorrent/settings"
+  if [ -f "$HOME/.config/mytorrent/settings" ]; then
+    printf_green "File saved to: $HOME/.config/mytorrent/settings"
+    [ -n "$MYTORRENT_NOTIFICATIONS" ] && notifications "MyTorrent" "File saved to:\n$HOME/.config/mytorrent/settings"
+  fi
   exit
 }
 

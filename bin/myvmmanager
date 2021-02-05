@@ -36,10 +36,14 @@ __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/myvmmanager"
   echo -e '# Settings for myvmmanager
-MYBROWSER="config"
-BROWSER="$BROWSER"
+MYVMMANAGER="config"
+VMMANAGER="$VMMANAGER"
 MYVMMANAGER_NOTIFICATIONS="$MYVMMANAGER_NOTIFICATIONS"
   ' >"$HOME/.config/myvmmanager/settings"
+  if [ -f "$HOME/.config/myvmmanager/settings" ]; then
+    printf_green "File saved to: $HOME/.config/myvmmanager/settings"
+    [ -n "$MYVMMANAGER_NOTIFICATIONS" ] && notifications "MyVMManager" "File saved to:\n$HOME/.config/myvmmanager/settings"
+  fi
   exit
 }
 
@@ -66,7 +70,7 @@ __create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$VMMANAGER" != "config" ]; then
+if [ "$MYVMMANAGER" != "config" ]; then
   if [ -f "$(command -v VirtualBox 2>/dev/null)" ]; then
     export VMMANAGER="VirtualBox"
   elif [ -f "$(command -v VMWare 2>/dev/null)" ]; then

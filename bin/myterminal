@@ -41,6 +41,10 @@ MYTERMINAL="config"
 TERMINAL="$TERMINAL"
 MYTERMINAL_NOTIFICATIONS="$MYTERMINAL_NOTIFICATIONS"
   ' >"$HOME/.config/myterminal/settings"
+  if [ -f "$HOME/.config/myterminal/settings" ]; then
+    printf_green "File saved to: $HOME/.config/myterminal/settings"
+    [ -n "$MYTERMINAL_NOTIFICATIONS" ] && notifications "MyTerminal" "File saved to:\n$HOME/.config/myterminal/settings"
+  fi
   exit
 }
 

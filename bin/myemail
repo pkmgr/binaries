@@ -35,11 +35,15 @@ MYEMAIL_NOTIFICATIONS="${MYEMAIL_NOTIFICATIONS:-yes}"
 __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/myemail"
-  echo -e '# Settings for myeditor
-MYBROWSER="config"
-BROWSER="$BROWSER"
+  echo -e '# Settings for myemail
+MYEMAIL="config"
+EMAIL="$EMAIL"
 MYEMAIL_NOTIFICATIONS="$MYEMAIL_NOTIFICATIONS"
   ' >"$HOME/.config/myemail/settings"
+  if [ -f "$HOME/.config/myemail/settings" ]; then
+    printf_green "File saved to: $HOME/.config/myemail/settings"
+    [ -n "$MYEMAIL_NOTIFICATIONS" ] && notifications "MyEMail" "File saved to:\n$HOME/.config/myemail/settings"
+  fi
   exit
 }
 
@@ -82,6 +86,8 @@ if [ "$MYEMAIL" != "config" ]; then
     export EMAIL="emacs"
   elif [ -f "$(command -v gmail 2>/dev/null)" ]; then
     EMAIL="mybrowser https://gmail.com"
+  elif [ -f "$(command -v ymail 2>/dev/null)" ]; then
+    EMAIL="mybrowser https://ymail.com"
   elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
     export EMAIL="sylpheed"
   fi
