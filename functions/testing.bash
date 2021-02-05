@@ -382,6 +382,7 @@ __counter() {
     ((temp_cnt--))
   done
 }
+
 ###################### MyCurDir ######################
 #mycurrdir "$*" | returns $MyCurDir
 __mycurrdir() {
