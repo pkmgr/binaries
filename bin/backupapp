@@ -23,7 +23,6 @@ HOME="${USER_HOME:-${HOME}}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
@@ -36,11 +35,11 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
 __require_app tar
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 declare filename count backupdir rmpre4vbackup _APPNAME _APPDIRS
-__mkd "$HOME/.config/backupapp"
+[ "$1" = "--yes" ] && YN="Y" && shift 1
+__mkd "$HOME/.config/backupapp" "$HOME/.config/backupapp/cron"
 [ -f "$HOME/.config/backupapp/settings" ] && . "$HOME/.config/backupapp/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
@@ -57,39 +56,42 @@ __config() {
     echo _APPDIRS="'$_APPDIRS'" | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
   fi
   shift
-  echo 'LOGDIR="'$HOME/.local/log/backups'"
-BACKUPDIR="'$HOME/.local/backups/apps'"
-NOTIFYENABLED="yes"
-DATEFORMAT="%Y-%m-%d-%H_%M-%S"
-FILENAMEFORMAT="$(date +"$DATEFORMAT")"
-KEEPAMOUNT="5"
+  echo 'LOG_DIR="'$HOME/.local/log/backups/apps'"
+BACKUP_DIR="'$HOME/.local/backups/apps'"
+NOTIFY_ENABLED="yes"
+DATE_FORMAT="%Y-%m-%d-%H_%M-%S"
+FILENAME_FORMAT="$(date +"$DATEFORMAT")"
+LOGNAME_FORMAT="$(date +"$DATEFORMAT")"
+LOGFILE_EXTENSION=".log"
+KEEP_AMOUNT="5"
 BICON_GOOD="[ 🆗 ]"
 BICON_WARN="[ ⚠️ ]"
 BICON_ERROR="[ ✖ }"
-
-# You can create per app setting by running backupapp config Name Directories
 ' | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
-
+  __ln_sf "$HOME/.config/backupapp/$appname" "$HOME/.config/backupapp/cron/$appname"
   printf_green "File saved to: $HOME/.config/backupapp/$appname"
   printf_blue "You can create per app setting by running backupapp config Name Directories"
 }
 
 main() {
-  __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$appname.log" 2>>"$logdir/$appname.log" || return 1; }
   local e err appname appdir
   local appname="${1:-$_APPNAME}" && shift 1
   local appdir="${*:-$_APPDIRS}" && shift
-  local logdir="${LOGDIR:-$HOME/.local/log/backups}"
+  local logdir="${LOG_DIR:-$HOME/.local/log/backups/apps}"
   local datefmt="%Y-%m-%d-%H-%M-%S"
-  local curdate="$(date +"${DATEFORMAT:-$datefmt}")"
-  local filenameformate="${FILENAMEFORMAT:-$curdate}"
-  local backupdir="${BACKUPDIR:-$HOME/.local/backups/apps}"
-  local notifyEnabled="${NOTIFYENABLED:-yes}"
-  local leaveCount="${KEEPAMOUNT:-5}"
+  local curdate="$(date +"${DATE_FORMAT:-$datefmt}")"
+  local filenameformate="${FILENAME_FORMAT:-$curdate}"
+  local logfilenameformat="${LOGNAME_FORMAT:-$curdate}"
+  local logfilenameextension="${LOGFILE_EXTENSION:-.log}"
+  local backupdir="${BACKUP_DIR:-$HOME/.local/backups/apps}"
+  local notifyEnabled="${NOTIFY_ENABLED:-yes}"
+  local leaveCount="${KEEP_AMOUNT:-5}"
   local icon_good="${BICON_GOOD:-🆗}"
   local icon_warn="${BICON_WARN:-⚠️}"
   local icon_error="${BICON_ERROR:-✖}"
   local filename="$appname-$filenameformate.tar.gz"
+  local logname="$appname-$logfilenameformat.$logfilenameextension"
+  __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname" || return 1; }
   [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Initializing backup of $appname"
   execute "sleep 3" "Initializing"
   for e in $appdir; do [ -e "$e" ] || err="$e"; done
@@ -100,12 +102,12 @@ main() {
   fi
   shift
 
-  mkdir -p "$backupdir" "$logdir"
-  printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$appname.log" >>"$logdir/$appname.log"
+  __mkd "$backupdir" "$logdir"
+  printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$logname" >>"$logdir/$logname"
   execute "__backupcmd" "Backing up $appname to $backupdir"
   exitCode=$?
-  printf_header " #Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$appname.log"
-  printf_newline "\n\n" >>"$logdir/$appname.log"
+  printf_header " #Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$logname"
+  printf_newline "\n\n" >>"$logdir/$logname"
   if [ "$exitCode" = 0 ]; then
     printf_green "$icon_good The backup has completed successfully and Saved to:"
     printf_green "$icon_good $backupdir/$filename"
@@ -113,16 +115,19 @@ main() {
   else
     printf_red "$icon_error The backup has failed to complete."
     printf_red "$icon_error More information can be found in the log file:"
-    printf_exit "$icon_warn $logdir/$appname.log"
+    printf_exit "$icon_warn $logdir/$logname"
     [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has failed"
   fi
+  logfileCount=$(ls $logdir/$appname*.$logfilenameextension 2>/dev/null | wc -l 2>/dev/null)
+  logremoveoldbackups=$(ls $logdir/$appname*.$logfilenameextension 2>/dev/null)
   fileCount=$(ls $backupdir/$appname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)
   removeoldbackups=$(ls $backupdir/$appname*.tar.gz 2>/dev/null)
   tailCount=$((fileCount - leaveCount))
   if [ "$fileCount" -gt "$leaveCount" ] && [ $leaveCount -ne 0 ]; then
     ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+    ls -t $logremoveoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
   fi
-  exit $exitCode
+  return $exitCode
 }
 
 __term() {
@@ -161,6 +166,24 @@ case "$1" in
   shift 1
   #cron case 2
   case "$1" in
+  *all)
+    shift 1
+    if [ "$(__count_files "$HOME/.config/backupapp/cron/")" -ne 0 ]; then
+      for cronjob in $(ls "$HOME/.config/backupapp/cron/"); do
+        source "$HOME/.config/backupapp/cron/$cronjob"
+        if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
+          echo "Backup up $cronjob"
+          main "$_APPNAME" "$_APPDIRS" >/dev/null 2>&1
+          exitCode=$?
+          sleep 3
+          if [ "$exitCode" = 0 ]; then echo "Backup up of $cronjob has completed"; else echo "Backup up of $cronjob has failed"; fi
+        fi
+        unset _APPNAME _APPDIRS
+      done
+    else
+      printf_exit 0 1 "No files were found"
+    fi
+    ;;
   *list)
     shift 1
     if [ -z "$(crontab -l | grep -F "backupapp ")" ]; then
@@ -218,7 +241,7 @@ case "$1" in
   ;;
 *)
   if [ -f "$HOME/.config/backupapp/${1}" ]; then
-    printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
+    [ "$YN" = "Y" ] || printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
     if printf_answer_yes "$YN"; then
       . "$HOME/.config/backupapp/${1}"
       if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then

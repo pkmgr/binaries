@@ -606,6 +606,8 @@ __mkd() {
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
 __netcat_test() { __cmd_exists "$netcat" || printf_error "The program netcat is not installed"; }
 __netcat_pids() { netstat -tupln 2>/dev/null | grep ":$1 " | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/$(basename ${netcat:-nc})'##g'; }
+# kill_netpid "port" "procname"
+__kill_netpid() { netstatg "$1" | grep "$(basename $2)" | awk '{print $7}' | sed 's#/'$2'##g' && netstat -taupln | grep -qv "$1" || return 1; }
 __netcat_kill() {
   pidof "$netcat" >/dev/null 2>&1 && kill -s KILL "$(__netcat_pids $1)" >/dev/null 2>&1
   netstat -taupln | grep -Fqv ":$1 " || return 1
@@ -628,8 +630,6 @@ __sed() { "$sed" "$@"; }
 __tar_create() { tar cfvz "$@"; }
 #tar filename
 __tar_extract() { tar xfvz "$@"; }
-# kill_netpid "port" "procname"
-__kill_netpid() { netstatg "$1" | grep "$(basename $2)" | awk '{print $7}' | sed 's#/'$2'##g' && netstat -taupln | grep -qv "$1" || return 1; }
 #while_true "command"
 __while_loop() { while :; do "${@}" && sleep .3; done; }
 #for_each "option" "command"
@@ -646,9 +646,9 @@ __ip2hostname() { getent hosts "$1" | awk '{print $2}' | head -n1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
 #count_files "dir"
-__count_files() { __devnull2 find "${1:-./}" -not -path "${1:-./}/.git/*" -mindepth 1 -maxdepth 1 -type f | wc -l; }
+__count_files() { __devnull2 find -L "${1:-./}" -maxdepth 1 -not -path "${1:-./}/.git/*" -type f | wc -l; }
 #count_dir "dir"
-__count_dir() { __devnull2 find "${1:-./}" -mindepth 1 -maxdepth 1 -type d | wc -l; }
+__count_dir() { __devnull2 find -L "${1:-./}" -mindepth 1 -maxdepth 1 -not -path "${1:-./}/.git/*" -type d | wc -l; }
 __touch() { touch "$@" 2>/dev/null || return 0; }
 #symlink "file" "dest"
 __symlink() { if [ -e "$1" ]; then __devnull __ln_sf "${1}" "${2}" || return 0; fi; }
@@ -659,19 +659,20 @@ __cp_rf() { if [ -e "$1" ]; then __devnull cp -Rfa "$1" "$2" || return 0; fi; }
 #rm_rf "file"
 __rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@" || return 0; fi; }
 #ln_rm "file"
-__ln_rm() { if [ -e "$1" ]; then __devnull find "$1" -mindepth 1 -maxdepth 1 -xtype l -delete; fi; }
+__ln_rm() { if [ -e "$1" ]; then __devnull find $1 -mindepth 1 -maxdepth 1 -xtype l -delete; fi; }
 #ln_sf "file"
 __ln_sf() {
   [ -L "$2" ] && __rm_rf "$2"
   __devnull ln -sf "$1" "$2"
 }
 #find_mtime "file/dir" "time minutes"
-__find_mtime() { [ "$(find "${1:-.}" -type f -cmin "${2:-1}" | wc -l)" -ne 0 ] && return 0 || return 1; }
+__find_mtime() { [ "$(find ${1:-.} -type f -cmin ${2:-1} | wc -l)" -ne 0 ] && return 0 || return 1; }
 #find "dir" "options"
 __find() {
-  [ -n "${10}" ] && local opts=${10} && shift 1
-  [ -n "$1" ] && local dir="$*" && shift || local dir="./"
-  find $dir -not -path "$dir/.git/*" $opts
+  local DEF_OPTS="-type f,d"
+  local opts="${FIND_OPTS:-$DEF_OPTS}"
+  echo $opts $*
+  __devnull2 find "${*:-.}" -not -path "$dir/.git/*" $opts
 }
 #find_old "dir" "minutes" "action"
 __find_old() {
