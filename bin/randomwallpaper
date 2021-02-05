@@ -42,7 +42,7 @@ __config() {
 }
 
 __startup() {
-  printf_green "Adding the Notification Daemon to startup"
+  printf_green "Adding the randomwallpaper to startup"
   cat <<EOF >"$HOME/.config/autostart/randomwallpaper.desktop"
 #!/usr/bin/env xdg-open
 
@@ -61,8 +61,8 @@ Hidden=false
 
 EOF
   [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ] &&
-    printf_green "Successfully installed Notification Daemon" ||
-    printf_error "Failed to install Notification Daemon"
+    printf_green "Successfully installed randomwallpaper Daemon" ||
+    printf_error "Failed to install randomwallpaper Daemon"
   exit $?
 }
 
@@ -76,11 +76,17 @@ background_job() {
     kill -15 "$(cat /tmp/randomwallpaper.$USER)"
     rm -Rf "/tmp/randomwallpaper.$USER" && return 1
   }
-
   if [ -f "$HOME/.config/variety/variety.conf" ] &&
     grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq True; then
-    printf_error "Refusing to run: variety is already changing the wallpaper"
-    return 1
+    variety -q &>/dev/null
+    sed -i 's#change_enabled =.*#change_enabled = False#g' "$HOME/.config/variety/variety.conf"
+    if grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq True; then
+      printf_error "Refusing to run: variety is already changing the wallpaper"
+      return 1
+    fi
+    variety &>/dev/null &
+    disown
+    sleep 5
   fi
   if [ -f "/tmp/randomwallpaper.$USER" ]; then
     kill -15 "$(cat "$pidfile" 2>/dev/null && sleep 3)" >/dev/null 2>&1
