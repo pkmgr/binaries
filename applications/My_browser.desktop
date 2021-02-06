@@ -7,6 +7,7 @@ Name=My Browser
 GenericName=Browser
 Comment=Browse the web.
 Icon=web-browser
+TryExec=mybrowser
 Exec=mybrowser
 Path=~
 Terminal=true

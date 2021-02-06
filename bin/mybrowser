@@ -131,7 +131,7 @@ case $1 in
   if [ -f "$HOME/.local/bin/mybrowser" ]; then
     __devnull2 "$HOME/.local/bin/mybrowser" "$@"
   else
-    devnull2 eval $BROWSER "$*"
+    devnull2 $BROWSER "$@"
   fi
   ;;
 esac

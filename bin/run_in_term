@@ -34,7 +34,7 @@ run_in_term() {
   local CMD="$1"
   shift 1
   if [ $# -gt 0 ]; then
-    $CMD "$@"
+    eval $CMD "$*"
     exit $?
   else
     echo -e "\n\n\n"

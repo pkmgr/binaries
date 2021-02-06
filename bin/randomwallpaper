@@ -209,23 +209,23 @@ __randomwallpaper() {
 # execute application
 __variety
 case $1 in
-config)
+*config)
   shift 1
   __config
   ;;
-startup | enable)
+*startup | *enable)
   shift 1
   __startup
   ;;
-disable)
+*disable)
   __rm_rf "$HOME/.config/autostart/randomwallpaper.desktop"
   notifications "Wallpaper Changer" "Deleted the autostart service"
   ;;
---term)
+*term)
   shift 1
-  __term
+  __term "$@"
   ;;
---bg)
+*bg)
   shift 1
   if [[ "$1" = *new ]]; then
     randomwallpaper

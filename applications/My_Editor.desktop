@@ -7,6 +7,7 @@ Name=My Editor
 GenericName=TextEditor
 Comment=Edit Files.
 Icon=accessories-text-editor
+TryExec=myeditor
 Exec=myeditor
 Path=~
 Terminal=true
