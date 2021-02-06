@@ -2,7 +2,7 @@
 
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
-set -x
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
 # @Author      : Jason
