@@ -49,7 +49,7 @@ __config() {
     __mkd "$HOME/.config/notify-daemon"
     cat <<EOF >"$HOME/.config/notify-daemon/settings"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
- NOTIFYD_HOST="${NOTIFYD_HOST}"
+NOTIFYD_HOST="${NOTIFYD_HOST}"
 
 #Uncomment and insert this into $HOME/.config/notify-daemon/notifyd
 #if __cmd_exists pathToDaemon; then
