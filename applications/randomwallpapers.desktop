@@ -7,10 +7,10 @@ Name=Random Wallpaper
 GenericName=Random Wallpaper
 Comment=Change the wallpaper.
 Icon=wallpaper
-Exec=myterminal -e randomwallpaper --term
+Exec=run_in_term randomwallpaper --term
 Path=~
 Terminal=true
-Actions=
+Actions=Actions=Status;Stop;
 Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;
 Keywords=wallpaper;my;
 StartupNotify=true
