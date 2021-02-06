@@ -7,9 +7,8 @@ Name=Random Wallpaper
 GenericName=Random Wallpaper
 Comment=Change the wallpaper.
 Icon=wallpaper
-TryExec=randomwallpaper --term
-Exec=bash -c "randomwallpaper --term"
-Path=
+Exec=randomwallpaper '--term'
+Path=~
 Terminal=true
 Actions=Actions=Status;Stop;
 Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;

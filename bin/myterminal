@@ -114,11 +114,13 @@ case $1 in
   ;;
 
 *)
+  if [ $# -gt 0 ]; then opt="-e"; fi
+  echo "$@" >/tmp/myterminal.log
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    ~/.local/bin/myterminal "$@" 2>/dev/null
+    __devnull2 ~/.local/bin/myterminal "$@"
   else
-    $TERMINAL "$@" 2>/dev/null
+    "$TERMINAL" ${opt:-} "$@"
   fi
   ;;
 esac

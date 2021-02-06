@@ -16,7 +16,7 @@
 _mybrowser() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY='--version --help --config --link "http://"'
+  local ARRAY='--version --help --config --link http:// localhost '$HOSTNAME''
 
   _init_completion || return
 
