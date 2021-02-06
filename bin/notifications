@@ -27,7 +27,7 @@ elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/notifications/settings" ] && . "$HOME/.config/notifications/settings"
@@ -234,8 +234,7 @@ client | --client)
   else
     if [ ${#} -eq 1 ]; then
       title="$notifyAppName"
-      shift 1
-      msg="$(</dev/stdin)"
+      msg="$1"
       shift
     else
       title="${1}"

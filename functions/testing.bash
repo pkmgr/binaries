@@ -1844,7 +1844,7 @@ pkmgr_install() {
 
 ###################### systemmgr settings ######################
 systemmgr_install() {
-  requiresudo "true"
+  __requiresudo "true"
   system_installdirs
   SCRIPTS_PREFIX="systemmgr"
   REPO="$SYSTEMMGRREPO"
@@ -1950,7 +1950,7 @@ wallpapermgr_install() {
   __mkd "$WALLPAPERS"
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
-  export installtype="wallpapermgr_install"
+  installtype="wallpapermgr_install"
 
   ######## Installer Functions ########
   wallpapermgr_run_postinst() {
@@ -2152,8 +2152,6 @@ __options() {
       return 1
     fi
     ;;
-
-  *) ;;
   esac
 }
 
