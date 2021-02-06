@@ -432,7 +432,7 @@ __system_service_active() {
 #system_service_running "list of services to check"
 __system_service_running() {
   for service in "$@"; do
-    if [[ $(systemctl status $service | grep running >/dev/null) = "yes" ]]; then
+    if systemctl status $service 2>/dev/null | grep -Fq running; then
       return 0
     else
       return 1
@@ -450,7 +450,7 @@ __system_service_exists() {
 #system_service_enable "servicename"
 __system_service_enable() {
   for service in "$@"; do
-    if __system_service_exists; then __devnull "sudo systemctl enable -f $service"; fi
+    if __system_service_exists; then __devnull "sudo systemctl enable --now -f $service"; fi
     __setexitstatus $?
   done
   set --
@@ -458,7 +458,7 @@ __system_service_enable() {
 #system_service_disable "servicename"
 __system_service_disable() {
   for service in "$@"; do
-    if __system_service_exists; then __devnull "sudo systemctl disable --now $service"; fi
+    if __system_service_exists; then __devnull "sudo systemctl disable --now -f $service"; fi
     __setexitstatus $?
   done
   set --

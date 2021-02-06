@@ -190,9 +190,11 @@ __gen_header() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
 USER="${SUDO_USER:-${USER}}"
-HOME="${USER_HOME:-${HOME}}"'
-  cat <<EOF | tee
+HOME="${USER_HOME:-${HOME}}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts'
 
+  cat <<EOF | tee
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
 # @Author        : ${GEN_SCRIPTS_AUTHOR}
@@ -213,8 +215,7 @@ EOF
 }
 
 __gen_functions() {
-  echo '
-# Import functions
+  echo '# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
@@ -225,7 +226,7 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
 else
-  echo "Can not load the functions file" 1>&2
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

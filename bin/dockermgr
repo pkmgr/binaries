@@ -24,11 +24,14 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 dockermgr_install
 __options "$@"
-__am_i_online_err "Can not setup docker: No internet"
+__am_i_online_err "Can not setup docker: No internet" || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __init() {
@@ -52,8 +55,8 @@ ExecStart=
 ExecStart=/usr/bin/dockerd -H tcp://0.0.0.0:2375 -H unix://var/run/docker.sock
 EOF
   fi
-  __requiresudo systemctl enable docker --now
-  if systemctl status docker | grep -q active 2>/dev/null; then
+  __system_service_enable docker
+  if __system_service_active docker; then
     printf_green "docker installation has completed"
   else
     printf_red "docker installation has failed"
@@ -168,65 +171,68 @@ __ssh_main() {
 
 case "$1" in
 
-init)
+*init)
   shift
   [ "$1" = "--help" ] && __init_help
   __init "$@"
   ;;
 
-install)
+*install)
   shift
   [ "$1" = "--help" ] && __install_help
   __install "$@"
   ;;
 
-ssh)
+*ssh)
   shift
   [ "$1" = "--help" ] && __ssh_help
   __ssh_main "$1"
   ;;
 
-run)
+*run)
   shift
   [ "$1" = "--help" ] && __run_help
   __run_main "$1"
   ;;
 
-active)
+active | -*active)
   [ "$1" = "--help" ] && printf_exit "Show active containers"
   sudo docker ps | sed "s#$(head -n1)##g" | grep -v "^#" ||
     printf_exit "There are no active containers"
   ;;
 
-inactive)
+*inactive)
   [ "$1" = "--help" ] && printf_exit "Show all containers"
   sudo docker ps -a | sed "s#$(head -n1)##g" | grep -v "^#" ||
     printf_exit "There doesn't seem to be any containers on this system"
   ;;
 
-log)
+*log)
   shift
   docker log "$1"
   ;;
 
-update)
+*update)
   shift
   pkmgr update docker
   __run_update "$@"
   ;;
 
-help)
+*help)
   __help
   ;;
 
-updater | cron)
+*updater | *cron)
   shift 1
   __run_cron "$*"
   ;;
 
-list)
+*list)
   shift 1
   run_install_available
+  ;;
+*-)
+  __help
   ;;
 
 *)
