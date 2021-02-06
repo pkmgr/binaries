@@ -201,7 +201,7 @@ run_postinst() {
   cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
   cmd_exists update-motd && update-ip && update-motd
-  echo 'for f in '$INSTDIR/completions'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
+  echo 'for f in '$APPDIR/completions'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
 }
 
 execute \
