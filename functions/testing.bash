@@ -36,9 +36,21 @@ if ! command -v "git" >/dev/null 2>&1; then
 fi
 
 ###################### devnull handling ######################
-__devnull() { eval "$@" >/dev/null 2>&1; }
-__devnull1() { eval "$@" 1>/dev/null >&0; }
-__devnull2() { eval "$@" 2>/dev/null; }
+__devnull() {
+  local CMD="$1" && shift 1
+  local ARGS="$*" && shift
+  $CMD "$ARGS" >/dev/null 2>&1
+}
+__devnull1() {
+  local CMD="$1" && shift 1
+  local ARGS="$*" && shift
+  $CMD "$ARGS" 1>/dev/null >&0
+}
+__devnull2() {
+  local CMD="$1" && shift 1
+  local ARGS="$*" && shift
+  $CMD "$ARGS" 2>/dev/null
+}
 ###################### error handling ######################
 #err "commands"
 __err() {
