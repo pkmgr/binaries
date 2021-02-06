@@ -127,6 +127,8 @@ __background_job() {
   __background_job
 }
 
+__getstatus() { __get_status_pid "$GETTPID"; }
+
 __term() {
   local main sleeptime
   while :; do
@@ -135,9 +137,11 @@ __term() {
     shift 1
     printf_newline "\n\n\n\n"
     printf_head "Random Wall Paper Menu"
+    printf_newline
+    __getstatus && printf_green "randomwallpapers is running" || printf_red "randomwallpapers is not running"
+    printf_newline
     printf_green "a. Stop randomwallpaper"
     printf_green "b. Change the wallpaper every x minutes"
-    printf_green "c. status of randomwallpapers"
     printf_green "y. change the wallpaper"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
@@ -155,10 +159,6 @@ __term() {
       printf_green "Started randomwallpaper in the background"
       printf_counter "5" "4" "exiting menu in"
       break
-      ;;
-    c)
-      randomwallpaper --bg --status
-      sleep 3
       ;;
     $'\E' | $'\e' | z | x | n)
       clear
@@ -235,7 +235,7 @@ disable)
     if [ -f "$RUN_FILE" ]; then
       GETTPID=$(cat "$RUN_FILE" | head -n1)
       PSPID="$(ps -ux | grep -v grep | grep -q "$GETTPID" 2>/dev/null)"
-      if ps -ux | grep -v grep | grep -q "$GETTPID"; then
+      if __getstatus; then
         notifications "RandomWallPapers" "randomwallpapers is running with PID: $GETTPID"
         printf_exit 2 0 "randomwallpapers is running with PID: $GETTPID"
       else
