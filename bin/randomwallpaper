@@ -137,6 +137,7 @@ __term() {
     printf_head "Random Wall Paper Menu"
     printf_green "a. Stop randomwallpaper"
     printf_green "b. Change the wallpaper every x minutes"
+    printf_green "c. status of randomwallpapers"
     printf_green "y. change the wallpaper"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
@@ -144,7 +145,7 @@ __term() {
     case "$main" in
     a)
       randomwallpaper --bg --kill
-      printf_green "randomwallpapaers will be shutdown at the next rotation"
+      printf_green "randomwallpaper will be shutdown at the next rotation"
       sleep 3
       ;;
     b)
@@ -154,6 +155,10 @@ __term() {
       printf_green "Started randomwallpaper in the background"
       printf_counter "5" "4" "exiting menu in"
       break
+      ;;
+    c)
+      randomwallpaper --bg --status
+      sleep 3
       ;;
     $'\E' | $'\e' | z | x | n)
       clear
