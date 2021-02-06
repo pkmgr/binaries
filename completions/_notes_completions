@@ -17,7 +17,7 @@ _notes() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="- --help --status --all config client open server"
-  local SERVEROPTS="--kill systemd open enable start"
+  local SERVEROPTS="--kill --status systemd open enable start"
   local SYSTEMD="install remove start stop restart status run"
   local SYSTEMDRUN="vars stop start restart"
 

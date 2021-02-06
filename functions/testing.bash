@@ -681,6 +681,14 @@ __find_old() {
   local action="$1" && shift 1
   find "${dir:-$HOME/.local/tmp}" -type f -mmin +${time:-120} -${action:-delete}
 }
+#find "dir" - return path relative to dir
+__find_rel() {
+  #f for file | d for dir
+  local DIR="${*:-.}"
+  local DEF_TYPE="${FIND_TYPE:-f}"
+  local DEF_DEPTH="${FIND_DEPTH:-1}"
+  __devnull2 find $DIR/* -maxdepth $DEF_DEPTH -type $DEF_TYPE -not -path "$dir/.git/*" -print | sed 's#'$DIR'/##g'
+}
 #cd "dir"
 __cd() { cd "$1" || return 1; }
 # cd into directory with message
@@ -1058,7 +1066,12 @@ sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null && return 
 sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
 sudorerun() {
   local ARGS="$ARGS"
-  if [[ $UID != 0 ]]; then if sudoif; then sudo "$APPNAME" "$ARGS" && exit $?; else sudoreq; fi; fi
+  if [[ $UID != 0 ]]; then if sudoif; then
+    sudo "$APPNAME" "$ARGS"
+    if [[ $? -ne 0 ]]; then
+      exit 1
+    fi
+  else sudoreq; fi; fi
 }
 
 sudoreq() {
@@ -1985,7 +1998,9 @@ __debug() {
   printf_info "InstallType:               $installtype"
   printf_info "Prefix:                    $SCRIPTS_PREFIX"
   printf_info "SystemD dir:               $SYSTEMDDIR"
-  exit $?
+  if [[ $? -ne 0 ]]; then
+    exit 1
+  fi
 }
 
 ###################### get info from app ######################
@@ -2103,7 +2118,9 @@ __options() {
   if [ "$1" = "--remove" ] || [ "$1" = "--uninstall" ]; then
     shift 1
     app_uninstall
-    exit $?
+    if [[ $? -ne 0 ]]; then
+      exit 1
+    fi
   fi
 }
 
