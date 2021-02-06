@@ -14,3 +14,11 @@ Actions=
 Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;
 Keywords=wallpaper;my;
 StartupNotify=true
+
+[Desktop Action Status]
+Name=status
+Exec=randomwallpaper --bg --status
+
+[Desktop Action Stop]
+Name=stop
+Exec=randomwallpaper --bg --stop

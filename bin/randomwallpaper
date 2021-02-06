@@ -229,8 +229,8 @@ disable)
   if [[ "$1" = *status ]]; then
     if [ -f "$RUN_FILE" ]; then
       GETTPID=$(cat "$RUN_FILE" | head -n1)
-      PSPID="$(ps | awk '{print $1}' | grep -q "$GETTPID" 2>/dev/null)"
-      if ps | awk '{print $1}' | grep -q "$GETTPID"; then
+      PSPID="$(ps -ux | grep -v grep | grep -q "$GETTPID" 2>/dev/null)"
+      if ps -ux | grep -v grep | grep -q "$GETTPID"; then
         notifications "RandomWallPapers" "randomwallpapers is running with PID: $GETTPID"
         printf_exit 2 0 "randomwallpapers is running with PID: $GETTPID"
       else
