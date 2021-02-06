@@ -10,6 +10,7 @@
 # @Description : installer functions for apps
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
@@ -1943,10 +1944,10 @@ run_postinst_global() {
     ln_rm "$SYSBIN/"
     ln_rm "$COMPDIR/"
 
-    dfunFiles="$(ls $INSTDIR/completions)"
-    for dfun in $dfunFiles; do
-      rm_rf "$COMPDIR/$dfun"
-    done
+    # dfunFiles="$(ls $INSTDIR/completions)"
+    # for dfun in $dfunFiles; do
+    #   rm_rf "$COMPDIR/$dfun"
+    # done
 
     myfunctFiles="$(ls $INSTDIR/functions)"
     for myfunct in $myfunctFiles; do
