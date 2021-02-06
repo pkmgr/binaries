@@ -72,7 +72,7 @@ __filename() { basename "$1"; }
 
 # Set up options
 __header_opts() {
-  local t=$(getopt -o h,d:,t:,c:,o:,r: --long help,desc:,todo:,copy:,other:,res: -n "$APPNAME" -- "$@")
+  local t=$(getopt -o h,d:,t:,c:,o:,r:,f: --long help,desc:,todo:,copy:,other:,res:,funct*: -n "$APPNAME" -- "$@")
   eval set -- "$t"
   while :; do
     case "$1" in
@@ -98,6 +98,10 @@ __header_opts() {
     -r | --res)
       shift
       res="$1"
+      ;;
+    -f | --funct*)
+      shift
+      showFunctions=true
       ;;
     --)
       shift
@@ -169,6 +173,7 @@ __gen_header_help() {
   printf_blue "-c: Copyright"
   printf_blue "-o: Other"
   printf_blue "-r: Resources"
+  printf_blue "-f: Include functions"
   printf_blue 'IE: gen-script header filename -d "My Descr" -c "My Copy" -t "My TODO" -o "OTHER" -r "RESOURCE"'
   exit 0
 }
@@ -258,8 +263,7 @@ case "$1" in
 
 *header)
   shift 1
-  [[ $1 = *funct* ]] && showFunctions=true && shift 1
-  [ "$1" = "--help" ] || [ "$2" = "--help" ] && __gen_header_help
+  #[[ $1 = *funct* ]] && showFunctions=true && shift 1
   [[ $1 != -* ]] && filename="$1" && shift 1 || filename="template"
   printf_green "New header info for $filename"
   __gen_header "$filename" "$@"
@@ -340,7 +344,7 @@ if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
   printf_answer_yes "$YN" || exit 1
 fi
 printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $destfolder/$filename"
-__makefile "${template:?}" "$destfolder/$filename" || printf_exit 1 1 "Failed"
+__makefile "${template:?}" "$destfolder/$filename" || printf_exit 1 1 "Failed to create $destfolder/$filename"
 [ -n "$OPENEDIT" ] || printf_read_question "3" "Should we edit this file?" "1" "EDIT" "-s"
 printf_answer_yes "$EDIT" && $EDITOR "$destfolder/$filename"
 printf_newline ""
