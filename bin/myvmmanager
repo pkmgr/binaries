@@ -105,12 +105,12 @@ case $1 in
 *)
   [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "Attempting to launch $VMMANAGER"
   if [ -f "$HOME/.local/bin/myvmmanager" ]; then
-    __devnull2 ~/.local/bin/myvmmanager "$@" >/dev/null 2>&1 &
+    ~/.local/bin/myvmmanager "$@" 2>/dev/null
   else
     if [ "$VMMANAGER" = docker ] || [ "$VMMANAGER" = kubectl ]; then
-      __devnull2 run_in_term $VMMANAGER "$@"
+      run_in_term $VMMANAGER "$@" 2>/dev/null
     else
-      __devnull2 $MYVMMANAGER "$@"
+      $MYVMMANAGER "$@" 2>/dev/null
     fi
   fi
   ;;

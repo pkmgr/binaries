@@ -39,17 +39,17 @@ fi
 __devnull() {
   local CMD="$1" && shift 1
   local ARGS="$*" && shift
-  $CMD "$ARGS" >/dev/null 2>&1
+  "$CMD" "$ARGS" &>/dev/null
 }
 __devnull1() {
   local CMD="$1" && shift 1
   local ARGS="$*" && shift
-  $CMD "$ARGS" 1>/dev/null >&0
+  "$CMD" "$ARGS" 1>/dev/null >&0
 }
 __devnull2() {
   local CMD="$1" && shift 1
   local ARGS="$*" && shift
-  $CMD "$ARGS" 2>/dev/null
+  "$CMD" "$ARGS" 2>/dev/null
 }
 ###################### error handling ######################
 #err "commands"
@@ -2519,33 +2519,32 @@ export -f __cd_into
 __getpythonver
 
 ###################### debugging tool ######################
-__load_debug() {
-  if [ -f ./applications.debug ]; then . ./applications.debug; fi
-  DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-  printf_info "$(dirname $0)/$APPNAME"
-  printf_custom "4" "ARGS: $DEBUGARGS"
-  printf_custom "4" "FUNCTIONSDir: $DIR"
-  for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX CONF:$CONF SHARE:$SHARE \
-    HOMEDIR:$HOMEDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
-    [ -z "$path" ] || printf_custom "4" $path
-  done
-  __devnull() {
-    TMP_FILE="$(mktemp "${TMP:-/tmp}"/_XXXXXXX.err)"
-    eval "$@" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=1
-    [ ! -s "$TMP_FILE" ] || return_error "$1" "$TMP_FILE"
-    rm -rf "$TMP_FILE"
-    return $EXIT
-  }
-  __devnull1() { __devnull "$@"; }
-  __devnull2() { __devnull "$@"; }
-  return_error() {
-    PREV="$1"
-    ERRL="$2"
-    printf_red "Command $PREV failed"
-    cat "$ERRL" | printf_readline "3"
-  }
-}
-
+# __load_debug() {
+#   if [ -f ./applications.debug ]; then . ./applications.debug; fi
+#   DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+#   printf_info "$(dirname $0)/$APPNAME"
+#   printf_custom "4" "ARGS: $DEBUGARGS"
+#   printf_custom "4" "FUNCTIONSDir: $DIR"
+#   for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX CONF:$CONF SHARE:$SHARE \
+#     HOMEDIR:$HOMEDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+#     [ -z "$path" ] || printf_custom "4" $path
+#   done
+#   __devnull() {
+#     TMP_FILE="$(mktemp "${TMP:-/tmp}"/_XXXXXXX.err)"
+#     eval "$@" 2>"$TMP_FILE" >/dev/null && EXIT=0 || EXIT=1
+#     [ ! -s "$TMP_FILE" ] || return_error "$1" "$TMP_FILE"
+#     rm -rf "$TMP_FILE"
+#     return $EXIT
+#   }
+#   __devnull1() { __devnull "$@"; }
+#   __devnull2() { __devnull "$@"; }
+#   return_error() {
+#     PREV="$1"
+#     ERRL="$2"
+#     printf_red "Command $PREV failed"
+#     cat "$ERRL" | printf_readline "3"
+#   }
+# }
 ###################### unload variables ######################
 # unload_var_path() {
 #   unset APPDIR APPVERSION ARRAY BACKUPDIR BIN CASJAYSDEVSAPPDIR CASJAYSDEVSHARE COMPDIR CONF DEVENVMGR

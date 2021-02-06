@@ -114,9 +114,9 @@ case $1 in
 *)
   [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL"
   if [ -f "$HOME/.local/bin/myemail" ]; then
-    __devnull2 exec ~/.local/bin/myemail "$@"
+    exec ~/.local/bin/myemail "$@" 2>/dev/null
   else
-    __devnull2 exec $EMAIL "$@"
+    exec $EMAIL "$@" 2>/dev/null
   fi
   ;;
 esac

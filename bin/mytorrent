@@ -118,12 +118,12 @@ case $1 in
 *)
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
   if [ "$TORRENT" = "transmission-remote-cli" ]; then
-    __devnull2 myterminal -e "$TORRENT $*"
+    myterminal -e "$TORRENT $*" 2>/dev/null
   else
     if [ -f "$HOME/.local/bin/mytorrent" ]; then
-      __devnull2 ~/.local/bin/mytorrent "$@" &
+      ~/.local/bin/mytorrent "$@" 2>/dev/null &
     else
-      __devnull2 $TORRENT "$@" &
+      $TORRENT "$@" 2>/dev/null &
     fi
   fi
   ;;
