@@ -114,7 +114,6 @@ case $1 in
   ;;
 
 *)
-  echo "$*" >>/tmp/myterminal.log
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
     ~/.local/bin/myterminal "$@" 2>/dev/null
