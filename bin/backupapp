@@ -157,8 +157,8 @@ __term() {
   printf_newline "\n\n"
   exit $?
 }
-__local_cron_add() { __setupcrontab "${3:-0 0 * * *}" "backupapp $1 $2 >/dev/null 2>&1"; }
-__local_cron_del() { __removecrontab "backupapp $1 $2"; }
+__local_cron_add() { __setupcrontab "${3:-0 0 * * *}" "backupapp --yes $1 $2 >/dev/null 2>&1"; }
+__local_cron_del() { __removecrontab "backupapp --yes $1 $2"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
@@ -240,7 +240,7 @@ case "$1" in
   __config "$@"
   ;;
 *)
-  if [ -f "$HOME/.config/backupapp/${1}" ]; then
+  if [ -f "$HOME/.config/backupapp/${1}" ] && [ "$#" -lt 2 ]; then
     [ "$YN" = "Y" ] || printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
     if printf_answer_yes "$YN"; then
       . "$HOME/.config/backupapp/${1}"
