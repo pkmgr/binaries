@@ -889,8 +889,8 @@ __git_repobase() { basename "$(__git_top_dir "${1:-.}")"; }
 
 ###################### crontab functions ######################
 __removecrontab() {
-  command="$(echo $1 | sed 's#>/dev/null 2>&1##g')"
-  crontab -l | grep -Fv "${command}" | crontab -
+  command="$(echo $* | sed 's#>/dev/null 2>&1##g')"
+  crontab -l | grep -v "${command}" | crontab -
   return $?
 }
 
