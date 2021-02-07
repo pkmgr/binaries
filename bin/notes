@@ -474,11 +474,6 @@ case "$1" in
   fi
   ;;
 
--)
-  shift 1
-  printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
-  ;;
-
 *all)
   shift 1
   __sync_all "${NOTES_PATH}" "${NOTES_DIRECTORY}/all.txt"
@@ -499,6 +494,17 @@ case "$1" in
   [ -f "$NOTES_PATH" ] && cat "$NOTES_PATH" 2>/dev/null | printf_readline "7" || printf_exit ""
   ;;
 
+-)
+  shift 1
+  echo "Type your note, hit control-d when done"
+  printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
+  ;;
+
+-*)
+  shift $#
+  set --
+  notes
+  ;;
 *)
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
