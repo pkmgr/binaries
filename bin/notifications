@@ -131,7 +131,6 @@ __notifications() {
   fi
 
 }
-DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u ${USER})/bus"
 __notifications_all() {
   local title="$1"
   local msg="$2"
