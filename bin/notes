@@ -451,7 +451,9 @@ case "$1" in
   if [ $# = 0 ]; then
     ls -A ${NOTES_DIRECTORY}/*/* | sed 's#"##g' | sort -u | printf_readline "6"
   else
-    __notes "$@" 2>/dev/null
+    filepath="$(__get_full_file "$1")"
+    filename="$NOTES_DIRECTORY/${1//$NOTES_DIRECTORY/$filename}"
+    __notes "$filename" 2>/dev/null
   fi
   ;;
 
