@@ -72,12 +72,15 @@ __filename() { basename "$1"; }
 
 # Set up options
 __header_opts() {
-  local t=$(getopt -o h,d:,t:,c:,o:,r:,f: --long help,desc:,todo:,copy:,other:,res:,funct*: -n "$APPNAME" -- "$@")
+  local t=$(getopt -o h,d:,t:,c:,o:,r:,f --long help,desc:,todo:,copy:,other:,res:,funct*: -n "$APPNAME" -- "$@")
   eval set -- "$t"
   while :; do
     case "$1" in
     -h | --help)
       __gen_header_help
+      ;;
+    -f | --funct*)
+      showFunctions=true
       ;;
     -d | --desc)
       shift
@@ -98,10 +101,6 @@ __header_opts() {
     -r | --res)
       shift
       res="$1"
-      ;;
-    -f | --funct*)
-      shift
-      showFunctions=true
       ;;
     --)
       shift
@@ -184,15 +183,16 @@ __gen_header() {
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
 
-  echo '
-#!/usr/bin/env bash
+  echo '#!/usr/bin/env bash
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#set opts'
+#set opts
+'
 
   cat <<EOF | tee
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

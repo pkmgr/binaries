@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="notes"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : notes
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : take notes using bash
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020720210101-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : notes --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Feb 07, 2021 01:01 EST
+# @File          : notes
+# @Description   : Take notes using bash
+# @TODO          : Refactor code
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,11 +32,15 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Default variables
 NOTES_NOTIFY="yes"
 NOTES_TMPDIR="${TMP:-/tmp}"
 NOTES_FOLDER="$(date +%Y)"
@@ -46,11 +58,11 @@ NOTES_SERVER_PATH="$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$NOTES_FILE"
 NOTES_PREV_FILE="$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$NOTES_PREV_MONTH"
 NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
 
-netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
-
+# Import settings
 [ -f "$HOME/.config/notes/config" ] && . "$HOME/.config/notes/config"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Tmux config
 if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
   __mkd "$NOTES_DIRECTORY"
   cat <<EOF >"$NOTES_DIRECTORY/tmux.conf"
@@ -83,6 +95,7 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
 fi
 
+# Generate config file
 gen_config() {
   __mkd "$HOME/.config/notes"
   echo 'NOTES_FOLDER="$(date +%Y)"
@@ -101,7 +114,11 @@ NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
 ' >"$HOME/.config/notes/config"
 }
 
+# SystemD service file
 systemd_service() {
+  if [ -f "$HOME/.config/autostart/notes-server.desktop" ]; then
+    printf_exit 1 1 "User autostart is enabled"
+  fi
   [ -f "$1" ] && sudo rm -Rf "$1"
   echo '
 [Unit]
@@ -140,8 +157,11 @@ WantedBy=multi-user.target
 ' | sudo tee "$1" &>/dev/null
 }
 
+# Enable user autostart
 __server_enable() {
-  __system_service_exists notes_server.service && printf_exit 1 1 "$ICON_WARN systemd service already exists"
+  if __system_service_exists notes_server.service; then
+    printf_exit 1 1 "$ICON_WARN systemd service already exists"
+  fi
   printf_green "Enabling the Notes Server on port $NOTES_SERVER_PORT"
   cat <<EOF >"$HOME/.config/autostart/notes-server.desktop"
 #!/usr/bin/env xdg-open
@@ -167,15 +187,12 @@ EOF
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_debug() {
-  echo $NOTES_FOLDER $NOTES_FILE $NOTES_TMPDIR $NOTES_DIRECTORY $NOTES_EDITOR $NOTES_SERVER_NAME $NOTES_SERVER_PORT $NOTES_SERVER_DIRECTORY $NOTES_LOG_FILE $NOTES_TMP_FILE $NOTES_PATH $NOTES_SERVER_PATH
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Netcat fix
+netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
 __nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE" || return 1; }
-__notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${1:-$NOTES_PATH}" &>/dev/null || return 1; }
-__dedupe() { cat "$1" | grep -v "$2"; }
 __local() { if [ "$NOTES_SERVER_NAME" = "$(hostname -f)" ] || [ "$NOTES_SERVER_NAME" = "localhost" ]; then return 1; else return 0; fi; }
+__notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${1:-$NOTES_PATH}" &>/dev/null || return 1; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __sync_tmp() {
@@ -214,7 +231,7 @@ __sync_all() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# Server function for user autostart
 __server() {
   echo ""
   local _PORT="${NOTES_SERVER_PORT}"
@@ -243,7 +260,7 @@ __server() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# Server function for SystemD
 __run_service() {
   local _PORT="${NOTES_SERVER_PORT}"
   local _PATH="${NOTES_TMP_FILE}"
@@ -263,10 +280,10 @@ __run_service() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# Client function
 __client() {
   __failed() {
-    printf_red "failed to send massage"
+    printf_red "failed to send message"
     return 1
   }
   local _SERVER="${NOTES_SERVER_NAME}"
@@ -284,22 +301,27 @@ __client() {
   return "$?"
 }
 
+# Import previous month notes
 __import() {
   [ -f "$NOTES_PREV_FILE" ] && cat "$NOTES_PREV_FILE" | sed '/^\#/d;/^$/d' >>"${NOTES_PATH}" || return 1
   printf_green "Notes have been imported"
 }
 
+# sync to all.txt
 __run_sync() {
   if __find_mtime "${NOTES_PATH}" "5"; then
     __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
     [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
   fi
 }
+
+# list all notes
 __list_all() {
   printf_custom "6" "all.txt"
   find ${NOTES_DIRECTORY}/*/* -type f -iname "*.txt" -not -path "${NOTES_DIRECTORY}/archive/*" | sed 's#'$NOTES_DIRECTORY/'##g' | sort -u | printf_readline "6"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup
 mkdir -p "${NOTES_DIRECTORY}/$NOTES_FOLDER"
 if [ ! -f "$NOTES_PREV_FILE" ]; then
   echo -e "## Notes for $(date --date="1 Month Ago" +%B) created on $(date --date="1 Month Ago" +"%D at %H:%M") ##\n" >"$NOTES_PREV_FILE"
@@ -318,6 +340,7 @@ if [ ! -f "$NOTES_PATH" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Manual import
 case $1 in
 --import)
   shift 1
@@ -327,6 +350,7 @@ case $1 in
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main application
 case "$1" in
 *server | *service)
   if [ "$2" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
@@ -346,7 +370,7 @@ case "$1" in
     exit $?
   fi
 
-  # begin systemd 2 ddep
+  # begin systemd 2 deep
   case "$2" in
   *systemd)
     shift 1
@@ -381,7 +405,7 @@ case "$1" in
       __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       __devnull sudo systemctl restart notes_server && printf_green "Service has been restarted" || printf_red "Failed to restart service"
       ;;
-    *run)
+    *run) # SystemD run
       case $3 in
       *vars)
         shift 3
