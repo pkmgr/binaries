@@ -517,12 +517,12 @@ case "$1" in
   else
     printf "%s\n" "${*}" >>"${NOTES_PATH}"
   fi
-  if __find_mtime "${NOTES_PATH}" "1"; then
-    __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
-    [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
-  fi
   ;;
 esac
+if __find_mtime "${NOTES_PATH}" "1"; then
+  __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
+  [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
+fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
