@@ -198,35 +198,38 @@ __notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s not
 __sync_tmp() {
   local _NOTESP="${1:-$NOTES_PATH}"
   local _TPATH="${2:-$_PATH}"
+  shift
   if [ -n "$_TPATH" ]; then cat "$_NOTESP" "$_TPATH" >"$NOTES_TMPDIR/notes_cli.tmp" && __mv_f "$NOTES_TMPDIR/notes_cli.tmp" "$_NOTESP"; fi
   [ -f "$NOTES_DIRECTORY/all.txt" ] && __sync_all && echo synced >>"$NOTES_LOG_FILE"
 }
 __sync_all() {
   local exitCode=0
   [ "$1" = "--show" ] && local show=true && shift 1 || local show=
+  [ "$1" = "--all" ] && local all=true && shift 1 || local show=
   local _NOTESP=${1:-$NOTES_PATH}
   local _NOTESA="${2:-$NOTES_DIRECTORY/all.txt}"
   local _NOTES_TMPFILE="${NOTES_TMPDIR:-/tmp}/notes.$$.tmp"
   local _ARCHIVE="$NOTES_DIRECTORY/archive/$(date +"%y-%m-%d")"
+  shift
   [ -f "$_NOTESA" ] || touch "$_NOTESP"
   [ -f "$_NOTESA" ] || cat "$_NOTESP" | tee "$_NOTESA" &>/dev/null
   #cat "$_NOTESP" "$_NOTESA" | sort -u | sed '/^\#/d;/^$/d' >"$_NOTES_TMPFILE" || local exitCode=1
-  if [ "$1" = "all" ]; then
-    [ -n "$show" ] && printf_green "Archiving ${_NOTESA/$NOTES_DIRECTORY\//} to ${_ARCHIVE/$NOTES_DIRECTORY\//}"
+  if [ "$all" = "true" ]; then
+    [ "$show" = "true" ] && printf_green "Archiving ${_NOTESA/$NOTES_DIRECTORY\//} to ${_ARCHIVE/$NOTES_DIRECTORY\//}"
     __mkd "$NOTES_DIRECTORY/archive"
     __cp_rf $_NOTESA "$_ARCHIVE"
     __cp_rf "$_NOTESA" "$_NOTESA.tmp"
-    [ -n "$show" ] && printf_green "Syncing */*.txt to ${_NOTESA/$NOTES_DIRECTORY\//}"
+    [ "$show" = "true" ] && printf_green "Syncing */*.txt to ${_NOTESA/$NOTES_DIRECTORY\//}"
     cat "$NOTES_DIRECTORY"/*/*.txt "$_NOTESA.tmp" | sed '/^\#/d;/^$/d' | sort -u | tee "$_NOTES_TMPFILE" &>/dev/null || local exitCode=1
   else
-    [ -n "$show" ] && printf_green "Syncing ${_NOTESP} notes to ${_NOTESA/$NOTES_DIRECTORY\//}"
+    [ "$show" = "true" ] && printf_green "Syncing ${_NOTESP} notes to ${_NOTESA/$NOTES_DIRECTORY\//}"
     cat "$_NOTESP" "$_NOTESA" | sed '/^\#/d;/^$/d' | sort -u | tee "$_NOTES_TMPFILE" &>/dev/null || local exitCode=1
   fi
   if [ -f "$_NOTES_TMPFILE" ]; then
     echo "### All Active notes as of $(date)" >"$_NOTESA" && cat "$_NOTES_TMPFILE" >>"$_NOTESA" || local exitCode=1
   fi
   __rm_rf "$_NOTES_TMPFILE" "$_NOTESA.tmp"
-  if [ -n "$show" ]; then [ "$exitCode" = 0 ] && printf_green "Sync completed" || printf_error 1 "Sync failed"; fi
+  if [ "$show" = "true" ]; then [ "$exitCode" = 0 ] && printf_green "Sync completed" || printf_error 1 "Sync failed"; fi
   return "$exitCode"
 }
 
@@ -309,7 +312,7 @@ __import() {
 
 # sync to all.txt
 __run_sync() {
-  if __find_mtime "${NOTES_PATH}" "5"; then
+  if __find_mtime "${NOTES_PATH}" "1"; then
     __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
     [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
   fi
@@ -521,8 +524,8 @@ case "$1" in
 
 *sync)
   shift 1
-  default="--show all"
-  __sync_all "${1:-$default}"
+  default="--show --all"
+  __sync_all "${@:-$default}"
   ;;
 
 *config)
