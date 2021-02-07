@@ -1,57 +1,41 @@
 #!/usr/bin/env sh
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
-USER="${SUDO_USER:-${USER}}"
-HOME="${USER_HOME:-${HOME}}"
+USER="$USER"
+HOME="$HOME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : REPLACE_VERSION
 # @Author        : REPLACE_AUTHOR
 # @Contact       : REPLACE_EMAIL
 # @License       : REPLACE_LICENSE
-# @Copyright     : Copyright (c) REPLACE_YEAR, REPLACE_AUTHOR
+# @ReadME        : REPLACE_README
+# @Copyright     : REPLACE_COPYRIGHT
 # @Created       : REPLACE_DATE
 # @File          : REPLACE_FILENAME
-# @Description   :
-# @TODO          :
-# @Other         :
-# @Resource      :
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set functions
-CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/casjay-dotfiles/scripts/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-$CASJAYSDEVDIR/functions}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
-elif [ -f "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
-else
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/$SCRIPTSFUNCTFILE"
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-user_install
-__options "$@"
+# @Description   : REPLACE_DESC
+# @TODO          : REPLACE_TODO
+# @Other         : REPLACE_OTHER
+# @Resource      : REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__check_app bash            #graphical prompt
-__cmd_exists bash || exit 1 # return 1 if not found
+__check_app bash            # graphical prompt
+__cmd_exists bash || exit 1 # exit if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 printf_color() { printf "%b" "$(tput setaf "$1" 2>/dev/null)" "\t\t$2\n" "$(tput sgr0 2>/dev/null)"; }
-__help() { printf_color "4" "usage: $APPNAME  |  " && exit; }
+__help() { printf_color "4" "usage: REPLACE_FILENAME  |  " && exit; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # bring in user config
-[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
+[ -f "$HOME/.config/REPLACE_FILENAME/settings" ] && . "$HOME/.config/REPLACE_FILENAME/settings"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application

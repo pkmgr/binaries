@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : REPLACE_VERSION
@@ -17,28 +19,28 @@ HOME="${USER_HOME:-${HOME}}"
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set functions
+# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/casjay-dotfiles/scripts/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-$CASJAYSDEVDIR/functions}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
-elif [ -f "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$HOME/.local/share/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
 else
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/$SCRIPTSFUNCTFILE"
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__check_app bash            #graphical prompt
-__cmd_exists bash || exit 1 # return 1 if not found
+__check_app bash            # graphical prompt
+__cmd_exists bash || exit 1 # exit 1 if not found
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
@@ -51,50 +53,9 @@ __cmd_exists bash || exit 1 # return 1 if not found
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # bring in user config
-[ -f "$HOME/.config/$APPNAME/settings" ] && . "$HOME/.config/$APPNAME/settings"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set up the case statements
-t=$(getopt -o h,t:,n: --long help,title:,name: -n "$APPNAME" -- "$@") #get options
-eval set -- "$t"                                                      #set
-
-while :; do
-  case "$1" in
-  -h | --help)
-    usage
-    exit 0
-    ;;
-  -t | --title)
-    shift
-    title="$1"
-    ;;
-  -n | --name)
-    shift
-    name="$1"
-    ;;
-  --)
-    shift
-    break
-    ;;
-  *)
-    echo >&2 "$APPNAME: Internal error: [$1] not recognized!"
-    exit 1
-    ;;
-  esac
-  shift
-done
-
-case "$1" in
-config)
-  shift 1
-  __config
-  exit
-  ;;
-
-*)
-  printf_exit "1" "1" "Error"
-  ;;
-esac
-
+if [ -f "$HOME/.config/REPLACE_FILENAME/settings" ]; then
+  . "$HOME/.config/REPLACE_FILENAME/settings"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 

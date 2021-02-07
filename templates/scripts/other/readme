@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
-#----------------
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : REPLACE_VERSION
+# @Author        : REPLACE_AUTHOR
+# @Contact       : REPLACE_EMAIL
+# @License       : REPLACE_LICENSE
+# @ReadME        : REPLACE_README
+# @Copyright     : REPLACE_COPYRIGHT
+# @Created       : REPLACE_DATE
+# @File          : REPLACE_FILENAME
+# @Description   : REPLACE_DESC
+# @TODO          : REPLACE_TODO
+# @Other         : REPLACE_OTHER
+# @Resource      : REPLACE_RES
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
@@ -7,5 +21,6 @@ printf_help() {
   shift
   printf_color "\t\t$msg\n" "$color"
 }
-#----------------
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create help
 printf_help "${1:-4}" ""

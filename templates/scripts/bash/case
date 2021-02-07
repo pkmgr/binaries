@@ -11,14 +11,13 @@ HOME="${USER_HOME:-${HOME}}"
 # @Author        : REPLACE_AUTHOR
 # @Contact       : REPLACE_EMAIL
 # @License       : REPLACE_LICENSE
-# @ReadME        : REPLACE_README
-# @Copyright     : REPLACE_COPYRIGHT
+# @Copyright     : Copyright (c) REPLACE_YEAR, REPLACE_AUTHOR
 # @Created       : REPLACE_DATE
 # @File          : REPLACE_FILENAME
-# @Description   : REPLACE_DESC
-# @TODO          : REPLACE_TODO
-# @Other         : REPLACE_OTHER
-# @Resource      : REPLACE_RES
+# @Description   :
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -54,11 +53,50 @@ __cmd_exists bash || exit 1 # exit 1 if not found
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # bring in user config
-if [ -f "$HOME/.config/REPLACE_FILENAME/settings" ]; then
-  . "$HOME/.config/REPLACE_FILENAME/settings"
-fi
+[ -f "$HOME/.config/REPLACE_FILENAME/settings" ] && . "$HOME/.config/REPLACE_FILENAME/settings"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set up the case statements
+t=$(getopt -o h,v,c,t:,n: --long help,version,config,title:,name: -n "REPLACE_FILENAME" -- "$@") # get options
+eval set -- "$t"                                                                                 # set
+
+while :; do
+  case "$1" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -c | --config)
+    shift 1
+    __config
+    exit
+    ;;
+  -t | --title)
+    shift
+    title="$1"
+    ;;
+  -n | --name)
+    shift
+    name="$1"
+    ;;
+  --)
+    shift
+    break
+    ;;
+  *)
+    echo >&2 "REPLACE_FILENAME: Internal error: [$1] not recognized!"
+    exit 1
+    ;;
+  esac
+  shift
+done
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
+case "$1" in
+*)
+  printf_exit "1" "1" "Error"
+  ;;
+esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?

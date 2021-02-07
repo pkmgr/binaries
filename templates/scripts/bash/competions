@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : REPLACE_VERSION
+# @Author        : REPLACE_AUTHOR
+# @Contact       : REPLACE_EMAIL
+# @License       : REPLACE_LICENSE
+# @Copyright     : Copyright (c) REPLACE_YEAR, REPLACE_AUTHOR
+# @Created       : REPLACE_DATE
+# @File          : REPLACE_FILENAME
+# @Description   : bash completions for REPLACE_FILENAME
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+_REPLACE_FILENAME_completions() {
+  local cur prev words cword
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local ARRAY="--help --config --version"
+
+  _init_completion || return
+
+  case $prev in
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return 0
+    ;;
+  esac
+} &&
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # enable completions
+  complete -F _REPLACE_FILENAME_completions -o default REPLACE_FILENAME

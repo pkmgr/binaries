@@ -72,6 +72,7 @@ __filename() { basename "$1"; }
 
 # Set up options
 __header_opts() {
+  printf_blue "Setting header options"
   local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f --long help,desc:,todo:,copy:,other:,res:,type:,funct*: -n "$APPNAME" -- "$@")
   eval set -- "$t"
   while :; do
@@ -140,6 +141,7 @@ EOF
 }
 
 __copy_templates() {
+  __vars "$@"
   printf_green "Copying the files from:"
   printf_green "$CASJAYSDEVDIR/templates/scripts to $HOME/.config/gen-script/files/"
   __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
@@ -149,6 +151,8 @@ __copy_templates() {
 __makefile() {
   local temp="$1"
   local new="$2"
+  shift 2
+  __vars "$new"
   __cp_rf "$temp" "$new" || return 1
   __edit_header "$new" || return 1
   chmod -f 755 "$new" || return 1
@@ -158,16 +162,24 @@ __makefile() {
 
 __edit_header() {
   local GEN_SCRIPTS_NEWFILE="$1"
+  __vars "$1"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
-  sed -i 's#Copyright (c) REPLACE_YEAR.*#'"${GEN_SCRIPTS_COPYRIGHT}"'#g' "$GEN_SCRIPTS_NEWFILE"
+  sed -i 's#REPLACE_COPYRIGHT#'"${GEN_SCRIPTS_COPYRIGHT}"'#g' "$GEN_SCRIPTS_NEWFILE"
   sed -i 's#REPLACE_VERSION#'"$(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_FILENAME#'"$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_VERSION#'"$(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_DATE#'"$(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_LICENSE#'"${GEN_SCRIPTS_DEFLICENSE}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_AUTHOR#'"${GEN_SCRIPTS_AUTHOR}"'#g' "$GEN_SCRIPTS_NEWFILE" #2>/dev/null
+  sed -i 's#REPLACE_README#'"${GEN_SCRIPTS_DEFREADME}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_AUTHOR#'"${GEN_SCRIPTS_AUTHOR}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_EMAIL#'"${GEN_SCRIPTS_EMAIL}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_YEAR#'"${GEN_SCRIPTS_YEAR}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  #
+  sed -i 's#REPLACE_DESC#'"${desc}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_TODO#'"${todo}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_OTHER#'"${other}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_RES#'"${res}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+
   return $?
 }
 
@@ -184,10 +196,11 @@ __gen_header_help() {
   exit 0
 }
 __gen_header() {
-  local GEN_SCRIPTS_DEFREADME="$1 --help"
-  local GEN_SCRIPTS_NEWFILE="$1" && shift 1
-  __header_opts "$@"
   printf_green "New header info for $filename"
+  local GEN_SCRIPTS_DEFREADME="$filename --help"
+  local GEN_SCRIPTS_NEWFILE="$1" && shift 1
+  __vars "$GEN_SCRIPTS_NEWFILE"
+  __header_opts "$@"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
 
@@ -223,6 +236,7 @@ EOF
 }
 
 __gen_functions() {
+  __vars "$@"
   echo '# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
@@ -245,14 +259,31 @@ __options "$@"
 '
 }
 
+__vars() {
+  [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="$GEN_SCRIPTS_DEFREADME.md" || GEN_SCRIPTS_DEFREADME="$(basename "$1" 2>/dev/null) --help"
+  [ -f "$topdir/LICENSE.md" ] && GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE.md" || GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE"
+  [ -f "$topdir/version.txt" ] && GEN_SCRIPTS_VERSION="$(cat $topdir/version.txt 2>/dev/null)" || GEN_SCRIPTS_VERSION="$GEN_SCRIPTS_VERSION"
+}
+
+__find_file() {
+  if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1/${2:-default}" ]; then
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1/${2:-default}"
+    dest="$3"
+    shift 2
+  elif [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/${1:-default}" ]; then
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/${1:-default}"
+    dest="$2"
+    shift 1
+  else
+    printf_green "Using the default template: bash"
+    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/bash"
+    dest="$1"
+  fi
+  __vars "$dest"
+  __header_opts "$@"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script" || __mkd "$HOME/.config/gen-script"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set vars base on files
-[ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="$GEN_SCRIPTS_DEFREADME.md" || GEN_SCRIPTS_DEFREADME="$(basename "$1" 2>/dev/null) --help"
-[ -f "$topdir/LICENSE.md" ] && GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE.md" || GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE"
-[ -f "$topdir/version.txt" ] && GEN_SCRIPTS_VERSION="$(cat $topdir/version.txt 2>/dev/null)" || GEN_SCRIPTS_VERSION="$GEN_SCRIPTS_VERSION"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
@@ -282,62 +313,40 @@ case "$1" in
 *installers)
   case "$2" in
   *)
-    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$2" ]; then
-      template="${GEN_SCRIPTS_TEMPLATE_DIR}/installers/$2"
-      dest="$3"
-    fi
+    __find_file "$@"
     ;;
   esac
-  shift
   ;;
 
 *os)
   case "$2" in
   *) ## Allows drop in without need to update this
-    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/os/$2" ]; then
-      template="${GEN_SCRIPTS_TEMPLATE_DIR}/os/$2"
-      dest="$3"
-    fi
+    __find_file "$@"
     ;;
   esac
-  shift
   ;;
 
 *shell)
   case "$2" in
   *) ## Allows drop in without need to update this
-    if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/shell/$2" ]; then
-      template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/$2"
-      dest="$3"
-    fi
+    __find_file "$@"
     ;;
   esac
-  shift
   ;;
 
 *) ## Allows drop in without need to update this
-  if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1/$2" ]; then
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/$2"
-    dest="$3"
-  elif [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1" ]; then
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1"
-    dest="$2"
-  else
-    printf_green "Using the default bash template"
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/bash"
-    dest="$1"
-  fi
+  __find_file "$@"
   ;;
 esac
 shift
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sanity check
-[ -f "$template" ] || printf_exit "The template file doesn't exist"
+[ -f "$template" ] || printf_exit "The template file doesn't exist: $template"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # file and folder setup
-filename="$(__basename ${dest:-newScript} 2>/dev/null)"
+filename="$(__basename ${dest:-newScript} 2>/dev/null || echo .)"
 destfolder="$(__basedir $GEN_SCRIPTS_CURRENT_DIR/$filename 2>/dev/null)"
 # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate the file
