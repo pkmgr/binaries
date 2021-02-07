@@ -17,7 +17,7 @@ _notes() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local notesdir="${NOTES_DIRECTORY:-$HOME/.local/share/editors/notes}"
-  local ARRAY="client --help all --show --config --server open"
+  local ARRAY="client --help all --show --config --server open sync"
   local SERVEROPTS="--help --kill --status systemd edit enable start"
   local SYSTEMD="install remove start stop restart status run"
   local SYSTEMDRUN="vars stop start restart"

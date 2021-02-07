@@ -190,22 +190,26 @@ __sync_all() {
   local _NOTESP=${1:-$NOTES_PATH}
   local _NOTESA="${2:-$NOTES_DIRECTORY/all.txt}"
   local _NOTES_TMPFILE="${NOTES_TMPDIR:-/tmp}/notes.$$.tmp"
-  [ -n "$show" ] && printf_green "Syncing $_NOTESP:"
-  [ -n "$show" ] && printf_green "to $_NOTESA"
+  local _ARCHIVE="$NOTES_DIRECTORY/archive/$(date +"%y-%m-%d_%H-%M")"
   [ -f "$_NOTESA" ] || touch "$_NOTESP"
   [ -f "$_NOTESA" ] || cat "$_NOTESP" | tee "$_NOTESA" &>/dev/null
   #cat "$_NOTESP" "$_NOTESA" | sort -u | sed '/^\#/d;/^$/d' >"$_NOTES_TMPFILE" || local exitCode=1
   if [ "$1" = "all" ]; then
+    [ -n "$show" ] && printf_green "Archiving ${_NOTESA/$NOTES_DIRECTORY\//} to ${_ARCHIVE/$NOTES_DIRECTORY\//}"
+    __mkd "$NOTES_DIRECTORY/archive"
+    __cp_rf $_NOTESA "$_ARCHIVE"
     __cp_rf "$_NOTESA" "$_NOTESA.tmp"
+    [ -n "$show" ] && printf_green "Syncing ${NOTES_DIRECTORY}/*/*.txt to ${_NOTESA/$NOTES_DIRECTORY\//}"
     cat "$NOTES_DIRECTORY"/*/*.txt "$_NOTESA.tmp" | sed '/^\#/d;/^$/d' | sort -u | tee "$_NOTES_TMPFILE" &>/dev/null || local exitCode=1
   else
+    [ -n "$show" ] && printf_green "Syncing ${_NOTESP} notes to ${_NOTESA/$NOTES_DIRECTORY\//}"
     cat "$_NOTESP" "$_NOTESA" | sed '/^\#/d;/^$/d' | sort -u | tee "$_NOTES_TMPFILE" &>/dev/null || local exitCode=1
   fi
   if [ -f "$_NOTES_TMPFILE" ]; then
     echo "### All Active notes as of $(date)" >"$_NOTESA" && cat "$_NOTES_TMPFILE" >>"$_NOTESA" || local exitCode=1
   fi
   __rm_rf "$_NOTES_TMPFILE" "$_NOTESA.tmp"
-  if [ -n "$show" ]; then [ "$exitCode" = 0 ] printf_green "Sync completed" || printf_error 1 "Sync failed"; fi
+  if [ -n "$show" ]; then [ "$exitCode" = 0 ] && printf_green "Sync completed" || printf_error 1 "Sync failed"; fi
   return "$exitCode"
 }
 
@@ -283,6 +287,13 @@ __client() {
 __import() {
   [ -f "$NOTES_PREV_FILE" ] && cat "$NOTES_PREV_FILE" | sed '/^\#/d;/^$/d' >>"${NOTES_PATH}" || return 1
   printf_green "Notes have been imported"
+}
+
+__run_sync() {
+  if __find_mtime "${NOTES_PATH}" "5"; then
+    __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
+    [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
+  fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -430,6 +441,7 @@ case "$1" in
     elif [ "$2" = "all" ]; then
       ssh -qt "$NOTES_SERVER_NAME" notes all
     else ssh -qt "$NOTES_SERVER_NAME" notes; fi
+    __run_sync
     ;;
 
   *)
@@ -472,6 +484,7 @@ case "$1" in
     fi
     __notes "$filename" 2>/dev/null
   fi
+  __run_sync
   ;;
 
 *all)
@@ -482,7 +495,7 @@ case "$1" in
 
 *sync)
   shift
-  __sync_all "all"
+  __sync_all --show all
   ;;
 
 *config)
@@ -504,6 +517,7 @@ case "$1" in
   shift $#
   set --
   notes
+  __run_sync
   ;;
 *)
   if [ ${#} -eq 0 ]; then
@@ -517,12 +531,9 @@ case "$1" in
   else
     printf "%s\n" "${*}" >>"${NOTES_PATH}"
   fi
+  __run_sync
   ;;
 esac
-if __find_mtime "${NOTES_PATH}" "1"; then
-  __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
-  [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
-fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
