@@ -69,13 +69,13 @@ __git_push() {
     if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
       git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
-      __getexitcode $exitCode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes" || exit 1
+      __getexitcode $exitCode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
     else
       printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
       if printf_answer_yes "$push"; then
         printf_green "Pushing the changes to $repo"
         git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
-        __getexitcode $exitCode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes" || exit 1
+        __getexitcode $exitCode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
       fi
     fi
   fi
