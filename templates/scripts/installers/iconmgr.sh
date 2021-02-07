@@ -44,7 +44,7 @@ scripts_check
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-template}"
+APPNAME="${APPNAME:-REPLACE_APPNAME}"
 APPDIR="${APPDIR:-$SHARE/CasjaysDev/iconmgr}/$APPNAME"
 INSTDIR="${APPDIR}"
 REPO="${ICONMGRREPO:-https://github.com/iconmgr}/${APPNAME}"
@@ -58,13 +58,6 @@ iconmgr_install
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end with a space
-APP=""
-
-# install packages - useful for package that have the same name on all oses
-install_packages "$APP"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Ensure directories exist

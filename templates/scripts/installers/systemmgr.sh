@@ -44,7 +44,7 @@ scripts_check
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-template}"
+APPNAME="${APPNAME:-REPLACE_APPNAME}"
 APPDIR="/usr/local/etc/${APPNAME}"
 INSTDIR="${APPDIR}"
 REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}/${APPNAME}"
@@ -120,7 +120,7 @@ failexitcode
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run post install scripts
 run_postinst() {
-  systemmgr_run_postinst
+  systemmgr_run_post
 }
 
 execute \

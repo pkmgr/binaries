@@ -46,15 +46,15 @@ dockermgr_install
 # Setup
 mkdir -p "$DATADIR"/{data,config} && chmod -Rf 777 "$DATADIR"
 
-if docker ps -a | grep "$APPNAME" >/dev/null 2>&1; then
-  docker pull template && docker restart "$APPNAME"
+if docker ps -a | grep "REPLACE_APPNAME" >/dev/null 2>&1; then
+  docker pull template && docker restart "REPLACE_APPNAME"
 else
   docker run -d \
-    --name="$APPNAME" \
-    --hostname "$APPNAME" \
+    --name="REPLACE_APPNAME" \
+    --hostname "REPLACE_APPNAME" \
     --restart=always \
     --privileged \
     -p 4040:80 \
-    -v "$DATADIR/data":/template/data:z \
+    -v "$DATADIR/data":/template/data \
     template
 fi

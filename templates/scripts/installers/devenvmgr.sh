@@ -48,7 +48,7 @@ scripts_check
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-template}"
+APPNAME="${APPNAME:-REPLACE_APPNAME}"
 APPDIR="${APPDIR:-$HOME/.local/share/development/$APPNAME}"
 INSTDIR="${APPDIR}"
 REPO="${DEVENVMGRREPO:-https://github.com/devenvmgr}/${APPNAME}"

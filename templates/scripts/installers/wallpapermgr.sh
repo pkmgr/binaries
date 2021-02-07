@@ -44,12 +44,12 @@ scripts_check
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-template}"
-APPDIR="${APPDIR:-$SHARE/CasjaysDev/wallpapermgr}/$APPNAME"
-INSTDIR="${APPDIR}"
-REPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}/${APPNAME}"
-REPORAW="${REPORAW:-$REPO/raw}"
-APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
+APPNAME="${APPNAME:-REPLACE_APPNAME}"
+APPDIR="${WALLPAPERS:-$SHARE/wallpapers}/$APPNAME"
+INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+REPO="${WALLPAPERMGRREPO}"
+REPORAW="$REPO/$APPNAME/raw"
+APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the wallpapermgr function
@@ -58,13 +58,6 @@ wallpapermgr_install
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end with a space
-APP=""
-
-# install packages - useful for package that have the same name on all oses
-install_packages "$APP"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Ensure directories exist
@@ -103,5 +96,4 @@ wallpapermgr_install_version
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # exit
 run_exit
-
 # end

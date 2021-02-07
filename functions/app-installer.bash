@@ -130,10 +130,6 @@ printf_yellow() { printf_color "$1" 3; }
 printf_blue() { printf_color "$1" 4; }
 printf_cyan() { printf_color "$1" 6; }
 printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
-printf_exit() {
-  printf_color "\t\t$1\n" 1
-  exit $?
-}
 printf_help() {
   printf_color "\t\t$1\n" 1
   exit $?
@@ -158,6 +154,26 @@ printf_execute_error_stream() { while read -r line; do printf_execute_error "? E
 ##################################################################################################
 printf_question() {
   printf_color "\t\t$ICON_QUESTION $1 " 6
+}
+
+#printf_error "color" "exitcode" "message"
+printf_error() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local exitCode="$1" && shift 1 || local exitCode="1"
+  local msg="$*"
+  printf_color "\t\t$ICON_ERROR $msg\n" "$color"
+  return $exitCode
+}
+
+#printf_exit "color" "exitcode" "message"
+printf_exit() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local exitCode="$1" && shift 1 || local exitCode="1"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg" "$color"
+  echo ""
+  exit "$exitCode"
 }
 
 printf_readline() {
@@ -1661,6 +1677,7 @@ dfmgr_install_version() {
 
 dockermgr_install() {
   user_installdirs
+  cmd_exists docker || printf_exit 1 1 "This requires docker, however docker wasn't found"
   SCRIPTS_PREFIX="dockermgr"
   REPO="${DOCKERMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
@@ -1782,7 +1799,7 @@ pkmgr_install() {
   export installtype="pkmgr_install"
 }
 
-pkmgr_run_postinst() {
+pkmgr_run_post() {
   pkmgr_install
   run_postinst_global
 }
@@ -1815,7 +1832,7 @@ systemmgr_install() {
   export installtype="systemmgr_install"
 }
 
-systemmgr_run_postinst() {
+systemmgr_run_post() {
   systemmgr_install
   run_postinst_global
 }
@@ -1879,26 +1896,25 @@ wallpapermgr_install() {
   SCRIPTS_PREFIX="wallpapermgr"
   REPO="${WALLPAPERMGRREPO}"
   REPORAW="$REPO/$APPNAME/raw"
-  HOMEDIR="$SYSSHARE/CasjaysDev/wallpapers/$APPNAME"
-  APPDIR="${APPDIR:-$HOMEDIR}"
-  INSTDIR="${INSTDIR:-$APPDIR}"
-  USRUPDATEDIR="$SHARE/CasjaysDev/apps/wallpapers"
-  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/wallpapers"
-  WALLPAPERS="${WALLPAPERS:-$SHARE/wallpapers}"
+  APPDIR="${WALLPAPERS:-$SHARE/wallpapers}/$APPNAME"
+  INSTDIR="$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME"
+  USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   export installtype="wallpapermgr_install"
 }
 
-wallpapermgr_run_postinst() {
+wallpapermgr_run_post() {
   wallpapermgr_install
   run_postinst_global
   if [ -d "$INSTDIR/images" ]; then
     local wallpapers="$(ls $INSTDIR/images/ 2>/dev/null | wc -l)"
     if [ "$wallpapers" != "0" ]; then
-      mkd "$WALLPAPERS/$APPNAME"
+      [ -L "$APPDIR" ] && rm_rf "$APPDIR"
+      mkd "$APPDIR"
       wallpaperFiles="$(ls $INSTDIR/images)"
       for wallpaper in $wallpaperFiles; do
-        ln_sf "$INSTDIR/images/$wallpaper" "$WALLPAPERS/$APPNAME/$wallpaper"
+        ln_sf "$INSTDIR/images/$wallpaper" "$APPDIR/$wallpaper"
       done
     fi
   fi

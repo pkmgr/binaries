@@ -48,7 +48,7 @@ scripts_check
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-template}"
+APPNAME="${APPNAME:-REPLACE_APPNAME}"
 APPDIR="${APPDIR:-$HOME/.config/$APPNAME}"
 INSTDIR="${INSTDIR}"
 REPO="${dfmgrREPO:-https://github.com/dfmgr}/${APPNAME}"

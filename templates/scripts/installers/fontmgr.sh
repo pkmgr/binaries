@@ -44,7 +44,7 @@ scripts_check
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-template}"
+APPNAME="${APPNAME:-REPLACE_APPNAME}"
 APPDIR="${APPDIR:-$SHARE/CasjaysDev/fontmgr}/$APPNAME"
 INSTDIR="${APPDIR}"
 REPO="${FONTMGRREPO:-https://github.com/fontmgr}/${APPNAME}"
@@ -58,13 +58,6 @@ fontmgr_install
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end with a space
-APP=""
-
-# install packages - useful for package that have the same name on all oses
-install_packages "$APP"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Ensure directories exist
