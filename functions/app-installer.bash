@@ -1892,11 +1892,22 @@ wallpapermgr_install() {
 wallpapermgr_run_postinst() {
   wallpapermgr_install
   run_postinst_global
+  if [ -d "$INSTDIR/images" ]; then
+    local wallpapers="$(ls $INSTDIR/images/ 2>/dev/null | wc -l)"
+    if [ "$wallpapers" != "0" ]; then
+      mkd "$WALLPAPERS/$APPNAME"
+      wallpaperFiles="$(ls $INSTDIR/images)"
+      for wallpaper in $wallpaperFiles; do
+        ln_sf "$INSTDIR/images/$wallpaper" "$WALLPAPERS/$APPNAME/$wallpaper"
+      done
+    fi
+  fi
+
 }
 
-wallpaper_install_version() {
+wallpapermgr_install_version() {
   wallpapermgr_install
-  mkdir -p "$CASJAYSDEVSAPPDIR/wallpapermgr" "$CASJAYSDEVSAPPDIR/wallpapermgr"
+  mkd "$CASJAYSDEVSAPPDIR/wallpapermgr" "$CASJAYSDEVSAPPDIR/wallpapermgr"
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
     ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/wallpapermgr/$APPNAME"
   fi
@@ -2078,8 +2089,6 @@ run_postinst_global() {
 
   # Permission fix
   ensure_perms
-
-  #  IFS="$OIFS"
 }
 
 ##################################################################################################

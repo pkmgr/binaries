@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+APPNAME="REPLACE_APPNAME"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

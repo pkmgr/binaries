@@ -135,14 +135,14 @@ __config() {
   printf_cyan "$HOME/.config/gen-script/settings"
   __rm_rf "$HOME/.config/gen-script/settings"
   cat <<EOF >>"$HOME/.config/gen-script/settings"
-GEN_SCRIPTS_EMAIL="${GEN_SCRIPTS_EMAIL}"
-GEN_SCRIPTS_AUTHOR="${GEN_SCRIPTS_AUTHOR}"
-GEN_SCRIPTS_COMPANY="${GEN_SCRIPTS_COMPANY}"
+GEN_SCRIPTS_EMAIL="$GEN_SCRIPTS_EMAIL"
+GEN_SCRIPTS_AUTHOR="$GEN_SCRIPTS_AUTHOR"
+GEN_SCRIPTS_COMPANY="$GEN_SCRIPTS_COMPANY"
 GEN_SCRIPTS_VERSION="%m%d%Y%H%M-git"
 GEN_SCRIPTS_DEFREADME="README"
 GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
-GEN_SCRIPTS_TEMPLATE_DIR="${GEN_SCRIPTS_TEMPLATE_DIR}"
+GEN_SCRIPTS_TEMPLATE_DIR="$GEN_SCRIPTS_TEMPLATE_DIR"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
 
 EOF
@@ -171,23 +171,25 @@ __makefile() {
 
 __edit_header() {
   local GEN_SCRIPTS_NEWFILE="$1"
+  local GEN_SCRIPTS_NEWFILEDIR="$(__basedir $GEN_SCRIPTS_NEWFILE)"
   __vars "$1"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
-  sed -i 's#REPLACE_COPYRIGHT#'"${GEN_SCRIPTS_COPYRIGHT}"'#g' "$GEN_SCRIPTS_NEWFILE"
-  sed -i 's#REPLACE_VERSION#'"$(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_COPYRIGHT#'"$GEN_SCRIPTS_COPYRIGHT"'#g' "$GEN_SCRIPTS_NEWFILE"
+  sed -i 's#REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_FILENAME#'"$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_VERSION#'"$(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_DATE#'"$(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_LICENSE#'"${GEN_SCRIPTS_DEFLICENSE}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_README#'"${GEN_SCRIPTS_DEFREADME}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_AUTHOR#'"${GEN_SCRIPTS_AUTHOR}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_EMAIL#'"${GEN_SCRIPTS_EMAIL}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_YEAR#'"${GEN_SCRIPTS_YEAR}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_DATE#'"$(__date "$GEN_SCRIPTS_DATEFMT" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_LICENSE#'"$GEN_SCRIPTS_DEFLICENSE"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_README#'"$GEN_SCRIPTS_DEFREADME"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_AUTHOR#'"$GEN_SCRIPTS_AUTHOR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_EMAIL#'"$GEN_SCRIPTS_EMAIL"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_YEAR#'"$GEN_SCRIPTS_YEAR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   #
-  sed -i 's#REPLACE_DESC#'"${desc}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_TODO#'"${todo}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_OTHER#'"${other}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_RES#'"${res}"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_DESC#'"$desc"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_TODO#'"$todo"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_OTHER#'"$other"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#REPLACE_RES#'"$res"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
 
   return $?
 }
@@ -227,11 +229,11 @@ HOME="${USER_HOME:-${HOME}}"
   cat <<EOF | tee
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
-# @Author        : ${GEN_SCRIPTS_AUTHOR}
-# @Contact       : ${GEN_SCRIPTS_EMAIL}
-# @License       : ${GEN_SCRIPTS_DEFLICENSE}
-# @ReadME        : ${GEN_SCRIPTS_DEFREADME}
-# @Copyright     : ${GEN_SCRIPTS_COPYRIGHT}
+# @Author        : $GEN_SCRIPTS_AUTHOR
+# @Contact       : $GEN_SCRIPTS_EMAIL
+# @License       : $GEN_SCRIPTS_DEFLICENSE
+# @ReadME        : $GEN_SCRIPTS_DEFREADME
+# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
 # @Created       : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
 # @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
 # @Description   : ${desc:-}
@@ -269,23 +271,23 @@ __options "$@"
 }
 
 __vars() {
-  [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="$GEN_SCRIPTS_DEFREADME.md" || GEN_SCRIPTS_DEFREADME="$(basename "$1" 2>/dev/null) --help"
-  [ -f "$topdir/LICENSE.md" ] && GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE.md" || GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE"
+  [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="README.md" || GEN_SCRIPTS_DEFREADME="$(basename "$1" 2>/dev/null) --help"
+  [ -f "$topdir/LICENSE.md" ] && GEN_SCRIPTS_DEFLICENSE="LICENSE.md" || GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE"
   [ -f "$topdir/version.txt" ] && GEN_SCRIPTS_VERSION="$(cat $topdir/version.txt 2>/dev/null)" || GEN_SCRIPTS_VERSION="$GEN_SCRIPTS_VERSION"
 }
 
 __find_file() {
-  if [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/$1/${2:-default}" ]; then
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/$1/${2:-default}"
+  if [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$1/${2:-default}" ]; then
+    template="$GEN_SCRIPTS_TEMPLATE_DIR/$1/${2:-default}"
     dest="$3"
     shift 2
-  elif [ -f "${GEN_SCRIPTS_TEMPLATE_DIR}/${1:-default}" ]; then
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/${1:-default}"
+  elif [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/${1:-default}" ]; then
+    template="$GEN_SCRIPTS_TEMPLATE_DIR/${1:-default}"
     dest="$2"
     shift 1
   else
     printf_green "Using the default template: bash"
-    template="${GEN_SCRIPTS_TEMPLATE_DIR}/shell/bash"
+    template="$GEN_SCRIPTS_TEMPLATE_DIR/shell/bash"
     dest="$1"
   fi
   __vars "$dest"
