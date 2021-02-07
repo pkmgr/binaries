@@ -144,7 +144,7 @@ __notifications_all() {
       sudo -u "${NAME[0]}" DISPLAY="${DISPLAY}" \
         DBUS_SESSION_BUS_ADDRESS="${DBUS_ADDRESS}" \
         PATH="${PATH}" \
-        notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
+        notify-send --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$title" "$msg" || return 0
       __cmd_exists wall && echo "$title: $msg" | wall
       printf_console "3" "$title: $msg" >/dev/fd/0
     done
