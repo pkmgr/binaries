@@ -2134,7 +2134,7 @@ __options() {
         printf_red "File was found, however, No information was provided"
     else
       printf_red "${1:-$appname} was not found"
-      return 1
+      exit
     fi
     ;;
 
@@ -2150,7 +2150,9 @@ __options() {
     shift 1
     app_uninstall
     if [[ $? -ne 0 ]]; then
-      return 1
+      exit 1
+    else
+      exit 0
     fi
     ;;
   esac

@@ -8,4 +8,4 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" ""
+printf_help "${1:-4}" ""

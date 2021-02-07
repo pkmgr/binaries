@@ -552,12 +552,6 @@ search)
   printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
   ;;
 
--*)
-  shift $#
-  set --
-  notes
-  __run_sync
-  ;;
 *)
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then

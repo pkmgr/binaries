@@ -72,7 +72,7 @@ __filename() { basename "$1"; }
 
 # Set up options
 __header_opts() {
-  local t=$(getopt -o h,d:,t:,c:,o:,r:,f --long help,desc:,todo:,copy:,other:,res:,funct*: -n "$APPNAME" -- "$@")
+  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f --long help,desc:,todo:,copy:,other:,res:,type:,funct*: -n "$APPNAME" -- "$@")
   eval set -- "$t"
   while :; do
     case "$1" in
@@ -102,6 +102,11 @@ __header_opts() {
       shift
       res="$1"
       ;;
+    -i | --type)
+      shift
+      type="$1"
+      ;;
+
     --)
       shift
       break
@@ -173,13 +178,16 @@ __gen_header_help() {
   printf_blue "-o: Other"
   printf_blue "-r: Resources"
   printf_blue "-f: Include functions"
-  printf_blue 'IE: gen-script header filename -d "My Descr" -c "My Copy" -t "My TODO" -o "OTHER" -r "RESOURCE"'
+  printf_blue "-i: Install function to use - user_install"
+  printf_yellow "Types: user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr"
+  printf_yellow 'IE: gen-script header filename -d "My Descr" -c "My Copy" -t "My TODO" -o "OTHER" -r "RESOURCE" -i "system" -f'
   exit 0
 }
 __gen_header() {
   local GEN_SCRIPTS_DEFREADME="$1 --help"
   local GEN_SCRIPTS_NEWFILE="$1" && shift 1
   __header_opts "$@"
+  printf_green "New header info for $filename"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
 
@@ -230,7 +238,8 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-user_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+'${type:-user}_install'
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 '
@@ -266,7 +275,6 @@ case "$1" in
   shift 1
   #[[ $1 = *funct* ]] && showFunctions=true && shift 1
   [[ $1 != -* ]] && filename="$1" && shift 1 || filename="template"
-  printf_green "New header info for $filename"
   __gen_header "$filename" "$@"
   exit
   ;;

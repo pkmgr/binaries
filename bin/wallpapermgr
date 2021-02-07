@@ -1,46 +1,48 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="wallpapermgr"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author          : Jason
-# @Contact         : casjaysdev@casjay.net
-# @File            : wallpapermgr
-# @Created         : Wed, Aug 18, 2020, 02:48 EST
-# @License         : WTFPL
-# @Copyright       : Copyright (c) CasjaysDev
-# @Description     : Install Wallpapers
-#
+#set opts
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/wallpapermgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+##@Version       : 020720210125-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : wallpapermgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Feb 07, 2021 01:25 EST
+# @File          : wallpapermgr
+# @Description   : Wallpaper installer and manager
+# @TODO          : Refactor Code
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 wallpapermgr_install
 __options "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # main program
-
 case "$1" in
-
-help | -*)
+*help | -*)
   __help
   ;;
 
@@ -49,6 +51,7 @@ remove)
   PCKLIST=$*
   declare -a LISTARRAY=$PCKLIST
   for wallpaper in ${LISTARRAY[*]}; do
+    [ -d "$INSTDIR" ] && rm_rf "$INSTDIR"
     rm_rf "${WALLPAPERS:-$SYSSHARE/wallpapers}/$wallpaper"
   done
   ;;
