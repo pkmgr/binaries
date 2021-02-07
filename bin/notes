@@ -318,8 +318,10 @@ case "$1" in
   if [ "$2" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
   if [ "$2" = "--status" ]; then
     shift 1
-    netstatg "$NOTES_SERVER_PORT" 2>/dev/null | printf_readline
-    exit 0
+    if netstatg "$NOTES_SERVER_PORT"; then
+      netstatg "$NOTES_SERVER_PORT" 2>/dev/null | printf_readline
+    else printf_exit 1 1 "$ICON_ERROR The notes server is not running"; fi
+    exit $?
   fi
   if [ "$2" = "--kill" ]; then
     printf_red "Starting shutdown"
@@ -416,12 +418,18 @@ case "$1" in
     __server &>/dev/null
     sleep 3
     ;;
+
   *enable)
     __server_enable
     ;;
-  *open)
+
+  *edit)
     shift 1
-    [ "$2" = "all" ] && ssh -qt "$NOTES_SERVER_NAME" notes all || ssh -qt "$NOTES_SERVER_NAME" notes
+    if [ "$2" = prev ]; then
+      ssh -qt "$NOTES_SERVER_NAME" notes open "$NOTES_PREV_FILE"
+    elif [ "$2" = "all" ]; then
+      ssh -qt "$NOTES_SERVER_NAME" notes all
+    else ssh -qt "$NOTES_SERVER_NAME" notes; fi
     ;;
 
   *)
@@ -448,11 +456,20 @@ case "$1" in
 
 *open)
   shift 1
-  if [ $# = 0 ]; then
-    ls -A ${NOTES_DIRECTORY}/*/* | sed 's#"##g' | sort -u | printf_readline "6"
+  if [ "$1" = list ] || [ $# = 0 ]; then
+    printf_custom "6" "all.txt"
+    find ${NOTES_DIRECTORY}/*/* -type f -iname "*.txt" | sed 's#'$NOTES_DIRECTORY/'##g' | sort -u | printf_readline "6"
   else
-    filepath="$(__get_full_file "$1")"
-    filename="$NOTES_DIRECTORY/${1//$NOTES_DIRECTORY/$filename}"
+    if [ $1 = $NOTES_DIRECTORY/all.txt ] || [[ "$1" = */all* ]] || [[ "$1" = all ]]; then
+      filename="$NOTES_DIRECTORY/all.txt"
+    elif [[ "$1" = prev ]]; then
+      filename="$NOTES_PREV_FILE"
+    elif [[ "$1" = cur ]]; then
+      filename="$NOTES_PATH"
+    else
+      filepath="$(__get_full_file "$1")"
+      filename="$NOTES_DIRECTORY/${1//$NOTES_DIRECTORY/$filename}"
+    fi
     __notes "$filename" 2>/dev/null
   fi
   ;;
@@ -479,7 +496,7 @@ case "$1" in
   ;;
 
 *show)
-  [ -f "$NOTES_PATH" ] && cat "$NOTES_PATH" 2>/dev/null | printf_readline "5" || printf_exit ""
+  [ -f "$NOTES_PATH" ] && cat "$NOTES_PATH" 2>/dev/null | printf_readline "7" || printf_exit ""
   ;;
 
 *)

@@ -701,7 +701,8 @@ __find_rel() {
   local DIR="${*:-.}"
   local DEF_TYPE="${FIND_TYPE:-f}"
   local DEF_DEPTH="${FIND_DEPTH:-1}"
-  __devnull2 find $DIR/* -maxdepth $DEF_DEPTH -type $DEF_TYPE -not -path "$dir/.git/*" -print | sed 's#'$DIR'/##g'
+  local DEF_OPTS="${FIND_OPTS:-}"
+  __devnull2 find $DIR/* -maxdepth $DEF_DEPTH -type $DEF_TYPE $DEF_OPTS -not -path "$dir/.git/*" -print | sed 's#'$DIR'/##g'
 }
 #cd "dir"
 __cd() { cd "$1" || return 1; }
