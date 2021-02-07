@@ -202,15 +202,13 @@ __sync_tmp() {
   if [ -n "$_TPATH" ]; then cat "$_NOTESP" "$_TPATH" >"$NOTES_TMPDIR/notes_cli.tmp" && __mv_f "$NOTES_TMPDIR/notes_cli.tmp" "$_NOTESP"; fi
   [ -f "$NOTES_DIRECTORY/all.txt" ] && __sync_all && echo synced >>"$NOTES_LOG_FILE"
 }
+
 __sync_all() {
   local exitCode=0
-  [ "$1" = "--show" ] && local show=true && shift 1 || local show=
-  [ "$1" = "--all" ] && local all=true && shift 1 || local show=
   local _NOTESP=${1:-$NOTES_PATH}
   local _NOTESA="${2:-$NOTES_DIRECTORY/all.txt}"
   local _NOTES_TMPFILE="${NOTES_TMPDIR:-/tmp}/notes.$$.tmp"
   local _ARCHIVE="$NOTES_DIRECTORY/archive/$(date +"%y-%m-%d")"
-  shift
   [ -f "$_NOTESA" ] || touch "$_NOTESP"
   [ -f "$_NOTESA" ] || cat "$_NOTESP" | tee "$_NOTESA" &>/dev/null
   #cat "$_NOTESP" "$_NOTESA" | sort -u | sed '/^\#/d;/^$/d' >"$_NOTES_TMPFILE" || local exitCode=1
@@ -222,7 +220,7 @@ __sync_all() {
     [ "$show" = "true" ] && printf_green "Syncing */*.txt to ${_NOTESA/$NOTES_DIRECTORY\//}"
     cat "$NOTES_DIRECTORY"/*/*.txt "$_NOTESA.tmp" | sed '/^\#/d;/^$/d' | sort -u | tee "$_NOTES_TMPFILE" &>/dev/null || local exitCode=1
   else
-    [ "$show" = "true" ] && printf_green "Syncing ${_NOTESP} notes to ${_NOTESA/$NOTES_DIRECTORY\//}"
+    [ "$show" = "true" ] && printf_green "Syncing ${_NOTESP/$NOTES_DIRECTORY\//} notes to ${_NOTESA/$NOTES_DIRECTORY\//}"
     cat "$_NOTESP" "$_NOTESA" | sed '/^\#/d;/^$/d' | sort -u | tee "$_NOTES_TMPFILE" &>/dev/null || local exitCode=1
   fi
   if [ -f "$_NOTES_TMPFILE" ]; then
@@ -312,6 +310,7 @@ __import() {
 
 # sync to all.txt
 __run_sync() {
+  shift $#
   if __find_mtime "${NOTES_PATH}" "1"; then
     __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
     [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
@@ -524,8 +523,9 @@ case "$1" in
 
 *sync)
   shift 1
-  default="--show --all"
-  __sync_all "${@:-$default}"
+  [ "$1" = show ] && show=true && shift 1 || show=""
+  [ "$1" = all ] && all=true && shift 1 || all=""
+  __sync_all "${NOTES_PATH}" "${NOTES_DIRECTORY}/all.txt"
   ;;
 
 *config)
