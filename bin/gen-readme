@@ -93,7 +93,8 @@ generate_readme() {
     printf_green "Using the $whichreadme README for $curDir"
     create_local_file "$readmeDir/$readmeFile"
     [ -f ${curDir}/README.md ] && sed -i "s#AuthorName#${author}#g" "${curDir}/README.md"
-    [ -f ${curDir}/README.md ] && sed -i "s#ProjectName#${BaseDir} #g" "${curDir}/README.md"
+    [ -f ${curDir}/README.md ] && sed -i "s#ProjectName#${BaseDir}#g" "${curDir}/README.md"
+    [ -f ${curDir}/README.md ] && sed -i "s#REPLACE_APPNAME#${BaseDir}#g" "${curDir}/README.md"
   else
     printf_exit 1 1 "$readmeDir/$readmeFile does not exist"
   fi
@@ -117,11 +118,29 @@ if [ "$(__count_files $readmeDir)" -eq 0 ]; then
   if [ "$(__count_files "$CASJAYSDEVDIR/templates/readmes")" -ne 0 ]; then
     printf_green "Setting up the README directory"
     __cp_rf "$CASJAYSDEVDIR/templates/readmes/." "$readmeDir/"
-    __help
   else
     printf_exit "1" "1" "No readme files exist"
   fi
 fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Find the readme
+__find_file() {
+  if [ -f "$(ls -A $readmeDir/$1/$2)" ]; then
+    template="$(ls -A $readmeDir/$1/$2)"
+    shift 2
+  elif [ -f "$(ls -A $readmeDir/$readmeFile)" ]; then
+    template="$(ls -A $readmeDir/$readmeFile)"
+    shift 1
+  elif [ -f "$readmeDir/$*" ]; then
+    template="$readmeDir/$*"
+    shift 1
+  else
+    template="$readmeDir/default"
+    dest="$curDir/README.md"
+  fi
+  template="${template//$readmeDir\//}"
+}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -129,19 +148,27 @@ case "$readmeFile" in
 
 *list)
   shift 1
-  __find "$readmeDir" | printf_readline "2"
+  find ${readmeDir}/ -type f -not -path "${readmeDir}/*/.git/*" | sed 's#'$readmeDir/'##g' | sort -u | printf_readline "2"
   ;;
 
 *config)
   shift 1
   printf_green "Generating the config file $HOME/.config/gen-readme/settings"
   gen_config >"$HOME/.config/gen-readme/settings"
+  printf_green "Installing the readme files"
+  if [ -d "${CASJAYSDEVDIR}/templates/readmes" ]; then
+    __cp_rf "${CASJAYSDEVDIR}/templates/readmes/." "$HOME/.config/gen-readme/files/"
+  else
+    printf_exit 1 1 "Can not get readme files"
+  fi
+  exit
   ;;
 
 *download)
   shift 1
-  printf_green "Cloning the repo to $readmeDir/files"
-  __git_clone "$1 " "$readmeDir/files"
+  printf_green "Cloning the repo to $readmeDir/"
+  __git_clone "$1 " "$readmeDir/"
+  exit
   ;;
 
 *custom)
@@ -155,16 +182,19 @@ case "$readmeFile" in
 
 *pro | *proj | project*)
   shift 1
-  generate_readme "project.md"
+  __find_file "$@"
+  generate_readme "$template"
   ;;
 
 *install*)
   shift 1
-  generate_readme "installers.md"
+  __find_file "$@"
+  generate_readme "$template"
   ;;
 
 *)
-  generate_readme "$@"
+  __find_file "$@"
+  generate_readme "$template"
   ;;
 
 esac

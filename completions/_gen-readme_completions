@@ -16,11 +16,34 @@
 _gen-readme() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/gen-readme/array)"
+  local GEN_README_DIR="$HOME/.config/gen-readme/files"
+  local ARRAY="all $(</usr/local/share/CasjaysDev/scripts/helpers/gen-readme/array)"
+  local INST="$(ls -A $GEN_README_DIR/installers | sed 's#'$GEN_README_DIR/'##g' 2>/dev/null)"
+  local PROJ="$(ls -A $GEN_README_DIR/projects | sed 's#'$GEN_README_DIR/'##g' 2>/dev/null)"
+  local ALL="$(find ${GEN_README_DIR}/ -type f -not -path "${GEN_README_DIR}/*/.git/*" | sed 's#'$GEN_README_DIR/'##g' | sort -u)"
 
   _init_completion || return
 
-  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+  case $prev in
+  project*)
+    COMPREPLY=($(compgen -W '$PROJ' -- "$cur"))
+    return
+    ;;
+
+  install*)
+    COMPREPLY=($(compgen -W '$INST' -- "$cur"))
+    return
+    ;;
+
+  all)
+    COMPREPLY=($(compgen -W '$ALL' -- "$cur"))
+    return
+    ;;
+  *)
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return
+    ;;
+  esac
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
