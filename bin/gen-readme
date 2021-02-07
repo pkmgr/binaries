@@ -1,20 +1,28 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="gen-readme"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 013020210039-git
-# @Author        : Jason
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020720211332-git
+# @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
-# @readme       : WTFPL
-# @Copyright     : Copyright (c) 2021, Casjays Developments
-# @Created       : Saturday Jan 30, 2021 00:39:26 EST
+# @License       : WTFPL
+# @ReadME        : gen-readme --help
+# @Copyright     : Copyright: (c) 2021 CasjaysDev
+# @Created       : Sunday, Feb 07, 2021 13:32 EST
 # @File          : gen-readme
-# @Description   : create a readme from template
+# @Description   : Create a readme from template
+# @TODO          :
 # @Other         :
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# Import functions
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
@@ -24,8 +32,12 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,10 +52,8 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   curDir="$PWD"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-readme/settings" ] && . "$HOME/.config/gen-readme/settings"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 readmeFile="$1"
 readmeDefault="${readmeDefault:-default.md}"
@@ -54,8 +64,23 @@ __mkd "$readmeDir"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __file_failed() { printf_exit "Failed to get the readme file: $readmeFile"; }
-create_local_file() { cat "$1" >"$curDir/README.md" 2>/dev/null || __file_failed; }
-get_remote_file() { __curl "$1" >"$curDir/README.md" 2>/dev/null || __file_failed; }
+create_local_file() {
+  cat "$1" >"$curDir/README.md" 2>/dev/null
+  if [ -f "$curDir/README.md" ]; then
+    printf_green "Your README file has been created"
+  else
+    __file_failed "$1"
+  fi
+}
+
+get_remote_file() {
+  __curl "$1" >"$curDir/README.md" 2>/dev/null
+  if [ -f "$curDir/README.md" ]; then
+    printf_green "Your README file has been created"
+  else
+    __file_failed "$1"
+  fi
+}
 
 generate_readme() {
   local readmeFile="${1:-$readmeDefault}"
@@ -89,9 +114,9 @@ EOF
 # Init
 if [ "$(__count_files $readmeDir)" -eq 0 ]; then
   __mkd "$readmeDir"
-  if [ "$(__count_files "$SCRIPTSFUNCTDIR/templates/readmes")" -ne 0 ]; then
+  if [ "$(__count_files "$CASJAYSDEVDIR/templates/readmes")" -ne 0 ]; then
     printf_green "Setting up the README directory"
-    __cp_rf "$SCRIPTSFUNCTDIR/templates/readmes/." "$readmeDir/"
+    __cp_rf "$CASJAYSDEVDIR/templates/readmes/." "$readmeDir/"
     __help
   else
     printf_exit "1" "1" "No readme files exist"
@@ -102,24 +127,24 @@ fi
 
 case "$readmeFile" in
 
-list)
+*list)
   shift 1
   __find "$readmeDir" | printf_readline "2"
   ;;
 
-config)
+*config)
   shift 1
   printf_green "Generating the config file $HOME/.config/gen-readme/settings"
   gen_config >"$HOME/.config/gen-readme/settings"
   ;;
 
-download)
+*download)
   shift 1
   printf_green "Cloning the repo to $readmeDir/files"
   __git_clone "$1 " "$readmeDir/files"
   ;;
 
-custom)
+*custom)
   shift 1
   if [ -f "$readmeFile" ]; then
     generate_readme "$readmeFile"
@@ -128,12 +153,12 @@ custom)
   fi
   ;;
 
-pro | proj | project*)
+*pro | *proj | project*)
   shift 1
   generate_readme "project.md"
   ;;
 
-install*)
+*install*)
   shift 1
   generate_readme "installers.md"
   ;;

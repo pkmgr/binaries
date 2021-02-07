@@ -43,6 +43,7 @@ THEMEMGRREPO="https://github.com/thememgr"
 SYSTEMMGRREPO="https://github.com/systemmgr"
 WALLPAPERMGRREPO="https://github.com/wallpapermgr"
 WHICH_LICENSE_URL="https://github.com/devenvmgr/licenses/raw/master"
+WHICH_LICENSE_DEF="$CASJAYSDEVDIR/templates/wtfpl.md"
 
 # OS Settings
 if [ -f "$CASJAYSDEVDIR/bin/detectostype" ]; then
@@ -1229,6 +1230,7 @@ __returnexitcode() {
 #getexitcode "OK Message" "Error Message"
 __getexitcode() {
   local EXITCODE="$?"
+  test -n "$1" && test -z "${1//[0-9]/}" && local EXITCODE="$1" && shift 1
   if [ ! -z "$1" ]; then
     local PSUCCES="$1"
   elif [ ! -z "$SUCCES" ]; then
@@ -2129,13 +2131,13 @@ __options() {
       printf_newline
       printf_green "Getting info for $appname"
       cat "$filename" | grep '^# @' | grep '  :' >/dev/null 2>&1 &&
-        cat "$filename" | grep "^# @" | grep '  :' | sed 's/# @//g' | printf_readline "3" &&
-        printf_green "$(cat $filename | grep "##@Version" | sed 's/##@//g')" ||
+        cat "$filename" | grep '^# @' | grep -v '\$' | grep '  :' | sed 's/# @//g' | printf_readline "3" &&
+        printf_green "$(cat $filename | grep -v '\$' | grep "##@Version" | sed 's/##@//g')" ||
         printf_red "File was found, however, No information was provided"
     else
       printf_red "${1:-$appname} was not found"
-      exit
     fi
+    exit
     ;;
 
     # if [ "$1" = "--cron" ]; then

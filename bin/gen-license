@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="gen-license"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : gen-license
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Create a license file
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020720211353-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL.md
+# @ReadME        : gen-license --help.md
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Feb 07, 2021 13:53 EST
+# @File          : gen-license
+# @Description   : Create a license file
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,13 +32,16 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __check_app curl
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
 if [ -d "$1" ]; then
@@ -50,15 +61,33 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 licenseDir="${licenseDir:-$HOME/.config/gen-license/files}"
 licenseURL="${licenseURL:-$WHICH_LICENSE_URL}"
-licenseFile="${licenseFile:-wtfpl.md}"
+licenseFile="${licenseFile:-$WHICH_LICENSE_DEF}"
 whichLicense="$(echo "$1" | tr [A-Z] [a-z])"
 gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
 gitconfig_email="${gitconfig_email:-$(__git_globalemail)}"
 __mkd "$licenseDir"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-create_local_file() { cat "$1" >"$licDir/LICENSE.md" 2>/dev/null || printf_exit "Failed to get the license file"; }
-get_remote_file() { __curl "$1" >"$licDir/LICENSE.md" 2>/dev/null || printf_exit "Failed to get the license file"; }
+__file_failed() {
+  printf_error "Failed to get the license file"
+  printf_exit 1 1 "from: $1"
+}
+create_local_file() {
+  cat "$1" >"$licDir/LICENSE.md" 2>/dev/null
+  if [ -f "$licDir/LICENSE.md" ]; then
+    printf_green "Your LICENSE file has been created"
+  else
+    __file_failed "$1"
+  fi
+}
+get_remote_file() {
+  __curl "$1" >"$licDir/LICENSE.md" 2>/dev/null
+  if [ -f "$licDir/LICENSE.md" ]; then
+    printf_green "Your LICENSE file has been created"
+  else
+    __file_failed "$1"
+  fi
+}
 
 if [ -d "$licenseDir" ] && [ "$(__count_files "$licenseDir")" -ne 0 ]; then
   licenseURL="$licenseDir"
@@ -70,20 +99,30 @@ fi
 gen_config() {
   cat <<EOF
 # Settings for $APPNAME
-licenseFile="$licenseFile"
+# Default license
+licenseFile="${licenseFile:-$WHICH_LICENSE_DEF}"
+# Default directory
 licenseDir="$licenseDir"
+# Default URL
 licenseURL="$WHICH_LICENSE_URL"
+# Default name
 gitconfig_user="$gitconfig_user"
+# Default e-mail
 gitconfig_email="$gitconfig_email"
 
 EOF
 }
 
 create_new_wtfpl() {
-  if [[ "$licenseFile" =~ wtfpl ]]; then
-    [ -f "$licDir/LICENSE.md" ] && sed -i "s# 2004 # $(date +'%Y') #g" "$licDir/LICENSE.md"
-    [ -f "$licDir/LICENSE.md" ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "$licDir/LICENSE.md"
-    [ -f "$licDir/LICENSE.md" ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "$licDir/LICENSE.md"
+  if grep -q 'What The Fuck Public License' "$licDir/LICENSE.md"; then
+    if grep -q 'CURYEAR AuthorName' "$licDir/LICENSE.md"; then
+      [ -f "$licDir/LICENSE.md" ] && sed -i "s# CURYEAR # $(date +'%Y') #g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && sed -i "s#AuthorName#${gitconfig_user}#g" "$licDir/LICENSE.md"
+    else
+      [ -f "$licDir/LICENSE.md" ] && sed -i "s# 2004 # $(date +'%Y') #g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "$licDir/LICENSE.md"
+    fi
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,13 +131,29 @@ case "$whichLicense" in
 
 list)
   shift 1
-  cat "${SCRIPTSFUNCTDIR}/helpers/gen-license/array" | printf_readline "2"
+  if [ "$(__count_files "$licenseDir/files")" -eq 0 ]; then
+    cat "${CASJAYSDEVDIR}/helpers/gen-license/array" | printf_readline "2"
+  else
+    __find "$licenseDir/files" | printf_readline "2"
+  fi
   ;;
 
 config)
   shift 1
   printf_green "Generating the config file $HOME/.config/gen-license/settings"
   gen_config >"$HOME/.config/gen-license/settings"
+  if [ -d "${CASJAYSDEVDIR}/templates/license" ] && [ "$(__count_files "$licenseDir")" -eq 0 ]; then
+    printf_green "Installing the license files"
+    if __am_i_online; then
+      __git_clone "$licenseURL" "$licenseDir/files"
+    else
+      if [ -d "${CASJAYSDEVDIR}/templates/licenses" ]; then
+        __cp_rf "${CASJAYSDEVDIR}/templates/licenses/." "$HOME/.config/gen-license/files/"
+      else
+        printf_exit 1 1 "Can not get license files"
+      fi
+    fi
+  fi
   ;;
 
 download)
@@ -174,8 +229,12 @@ custom)
 
 *)
   shift
-  printf_green "Using the default license: $licenseFile for $licDir"
-  get_lic "$licenseURL/$licenseFile"
+  printf_green "Using the default license for $licDir"
+  if [ -f "$licenseFile" ]; then
+    create_local_file "$licenseFile"
+  else
+    get_remote_file "$licenseFile"
+  fi
   create_new_wtfpl
   ;;
 

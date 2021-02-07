@@ -1,21 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="gen-script"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="gen-script"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 020120210023-git
-# @Author        : Jason
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020720211325-git
+# @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @Copyright     : Copyright (c) 2021, Casjays Developments
-# @Created       : Monday Feb 01, 2021 00:23:58 EST
+# @ReadME        : gen-script --help
+# @Copyright     : Copyright: (c) 2021 CasjaysDev
+# @Created       : Sunday, Feb 07, 2021 13:25 EST
 # @File          : gen-script
-# @Description   : create scripts
+# @Description   : Create a script from template
 # @TODO          :
 # @Other         :
-#
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -27,8 +32,12 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -196,10 +205,10 @@ __gen_header_help() {
   exit 0
 }
 __gen_header() {
-  printf_green "New header info for $filename"
-  local GEN_SCRIPTS_DEFREADME="$filename --help"
+  printf_green "New header info for $1"
+  local GEN_SCRIPTS_DEFREADME="$1 --help"
   local GEN_SCRIPTS_NEWFILE="$1" && shift 1
-  __vars "$GEN_SCRIPTS_NEWFILE"
+  __vars "$1"
   __header_opts "$@"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
