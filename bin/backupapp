@@ -97,7 +97,7 @@ main() {
   local logname="$appname-$logfilenameformat.$logfilenameextension"
   __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname" || return 1; }
   [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Initializing backup of $appname"
-  execute "sleep 3" "Initializing"
+  __execute "sleep 3" "Initializing"
   for e in $appdir; do [ -e "$e" ] || err="$e"; done
   if [ -n "$err" ]; then
     [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Can't back up: $err doesn't exists"
@@ -108,7 +108,7 @@ main() {
 
   __mkd "$backupdir" "$logdir"
   printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$logname" >>"$logdir/$logname"
-  execute "__backupcmd" "Backing up $appname to $backupdir"
+  __execute "__backupcmd" "Backing up $appname to $backupdir"
   exitCode=$?
   printf_header " #Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$logname"
   printf_newline "\n\n" >>"$logdir/$logname"
