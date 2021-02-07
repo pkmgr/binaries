@@ -295,7 +295,10 @@ __run_sync() {
     [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
   fi
 }
-
+__list_all() {
+  printf_custom "6" "all.txt"
+  find ${NOTES_DIRECTORY}/*/* -type f -iname "*.txt" -not -path "${NOTES_DIRECTORY}/archive/*" | sed 's#'$NOTES_DIRECTORY/'##g' | sort -u | printf_readline "6"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mkdir -p "${NOTES_DIRECTORY}/$NOTES_FOLDER"
 if [ ! -f "$NOTES_PREV_FILE" ]; then
@@ -469,8 +472,7 @@ case "$1" in
 *open)
   shift 1
   if [ "$1" = list ] || [ $# = 0 ]; then
-    printf_custom "6" "all.txt"
-    find ${NOTES_DIRECTORY}/*/* -type f -iname "*.txt" | sed 's#'$NOTES_DIRECTORY/'##g' | sort -u | printf_readline "6"
+    __list_all
   else
     if [ $1 = $NOTES_DIRECTORY/all.txt ] || [[ "$1" = */all* ]] || [[ "$1" = all ]]; then
       filename="$NOTES_DIRECTORY/all.txt"
@@ -494,8 +496,9 @@ case "$1" in
   ;;
 
 *sync)
-  shift
-  __sync_all --show all
+  shift 1
+  default="--show all"
+  __sync_all "${1:-$default}"
   ;;
 
 *config)
@@ -504,7 +507,19 @@ case "$1" in
   ;;
 
 *show)
+  shift 1
   [ -f "$NOTES_PATH" ] && cat "$NOTES_PATH" 2>/dev/null | printf_readline "7" || printf_exit ""
+  ;;
+
+*list)
+  shift 1
+  __list_all
+  ;;
+
+search)
+  shift 1
+  printf_green "Search results: "
+  cat "$NOTES_DIRECTORY/all.txt" "$NOTES_PREV_FILE" "$NOTES_PATH" | grep -i "$1" 2>/dev/null | printf_readline "7" || printf_red "No results found"
   ;;
 
 -)
