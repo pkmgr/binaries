@@ -30,8 +30,22 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# variables
+# Init
+WALLPAPERS="${WALLPAPERS:-$HOME/.local/share/wallpapers/system}"
+[ -d "$WALLPAPERS/system " ] || __mkd "$WALLPAPERS/system"
+if [ -d /usr/share/backgrounds ]; then
+  for l in $(ls /usr/share/backgrounds); do
+    [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"
+  done
+fi
+if [ -d /usr/share/wallpapers ]; then
+  for l in $(ls /usr/share/wallpapers); do
+    [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"
+  done
+fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# variables
 if [ -f "$1" ]; then
   RANDOMWALLPAPER="$1"
   shift 1
@@ -39,7 +53,6 @@ elif [ -d "$1" ]; then
   RANDOMWALLPAPER="$(find -L "$1" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
   shift 1
 else
-  [ -n "$WALLPAPERS" ] || exit 1
   SETRANDOM="$(find -L "$WALLPAPERS" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
 fi
 
@@ -48,29 +61,29 @@ RAND="${RANDOMWALLPAPER}"
 SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 
 ROTATE_TIME="${ROTATE_TIME:-300}"
-KILL_FILE="${TMPDIR:-/tmp}/randomwallpaper.$USER.kill"
-RUN_FILE="${TMPDIR:-/tmp}/randomwallpaper.$USER"
+KILL_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER.kill"
+RUN_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER"
 NOTIFICATIONS="${NOTIFICATIONS:-enabled}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
-if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { true "$@"; }; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config"
   __mkd "$HOME/.config/randomwallpaper"
   echo '# Randomwallpaper Settings
 ROTATE_TIME='"${ROTATE_TIME:-300}"'
-KILL_FILE="'${TMPDIR:-/tmp}/randomwallpaper.$USER.kill'"
-RUN_FILE="'${TMPDIR:-/tmp}/randomwallpaper.$USER'"
-NOTIFICATIONS="enabled"
+KILL_FILE="'${TMP_DIR:-/tmp}/randomwallpaper.$USER.kill'"
+RUN_FILE="'${TMP_DIR:-/tmp}/randomwallpaper.$USER'"
+NOTIFICATIONS="'${NOTIFICATIONS:-enabled}'"
 ' >"$HOME/.config/randomwallpaper/settings"
   printf_exit "2" "$?" "config saved to $HOME/.config/randomwallpaper/settings"
 }
 
+if [ "$NOTIFICATIONS" != "enabled" ]; then notification() { true "$@"; }; fi
+
 __startup() {
   printf_green "Adding the randomwallpaper to startup"
-  __mkd "$HOME/.config/autostart"
   cat <<EOF >"$HOME/.config/autostart/randomwallpaper.desktop"
 #!/usr/bin/env xdg-open
 
@@ -78,7 +91,7 @@ __startup() {
 Encoding=UTF-8
 Version=0.9.4
 Type=Application
-Name=RandomWallPapers
+Name=Wallpaper Changer
 Icon=preferences-desktop-notification
 Comment=Random Wallpaper
 Exec=randomwallpaper --bg
@@ -88,14 +101,10 @@ Terminal=false
 Hidden=false
 
 EOF
-  if [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ]; then
-    printf_green "Successfully installed randomwallpaper Daemon"
-    notifications "RandomWallPaper" "Successfully installed randomwallpaper Daemon"
-  else
+  [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ] &&
+    printf_green "Successfully installed randomwallpaper Daemon" ||
     printf_error "Failed to install randomwallpaper Daemon"
-    notifications "RandomWallPaper" "Failed to install randomwallpaper Daemon"
-    exit 1
-  fi
+  exit $?
 }
 
 __variety() {
@@ -108,17 +117,18 @@ __variety() {
       return 1
     fi
     variety &>/dev/null &
-    disown
   fi
 }
 
-__mesg_ok() { notifications "RandomWallPapers" "Wallpaper has been changed to $SHORTNAME"; }
-__mesg_fail() { notifications "RandomWallPapers" "Failed to change the wallpaper"; }
+__mesg_ok() { notifications "Wallpaper Changer" "Wallpaper has been changed to $SHORTNAME"; }
+__mesg_fail() { notifications "Wallpaper Changer" "Failed to change the wallpaper"; }
 
 __kill() {
+  __getstatus
   if [ -f "$KILL_FILE" ]; then
-    notifications "RandomWallPapers" "Background service is shutting down"
+    notifications "Wallpaper Changer" "Background service is shutting down"
     __rm_rf "$KILL_FILE" "$RUN_FILE"
+    kill -9 "$PPID"
     return 1
   else
     return 0
@@ -126,6 +136,7 @@ __kill() {
 }
 
 __background_job() {
+  __getstatus
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
   local PPID=$$
   local PID=$!
@@ -138,7 +149,16 @@ __background_job() {
   __background_job
 }
 
-__getstatus() { __get_status_pid "$GETTPID"; }
+__getstatus() {
+  if [ -f "$RUN_FILE" ]; then
+    GETTPID=$(cat "$RUN_FILE" | head -n1)
+    PSPID="$(ps -ux | grep -v grep | grep -q "$GETTPID" 2>/dev/null)"
+    __get_status_pid "$GETTPID" && return 0 || return 1
+  else
+    return 1
+  fi
+
+}
 
 __term() {
   local main sleeptime
@@ -191,16 +211,6 @@ __randomwallpaper() {
       xfconf-query --channel xfce4-desktop --property "$path" --set "$1"
     done
   }
-  if [ -d /usr/share/backgrounds ]; then
-    for l in $(ls /usr/share/backgrounds); do
-      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"
-    done
-  fi
-  if [ -d /usr/share/wallpapers ]; then
-    for l in $(ls /usr/share/wallpapers); do
-      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"
-    done
-  fi
 
   [ -n "$RAND" ] || exit 1
   if __cmd_exists variety; then
@@ -230,7 +240,7 @@ case $1 in
   ;;
 *disable)
   __rm_rf "$HOME/.config/autostart/randomwallpaper.desktop"
-  notifications "RandomWallPapers" "Deleted the autostart service"
+  notifications "Wallpaper Changer" "Deleted the autostart service"
   ;;
 *term)
   shift 1
@@ -262,7 +272,7 @@ case $1 in
   if [[ "$1" = *stop ]] || [[ "$1" = *kill ]]; then
     printf_green "Killing background service" && touch "$KILL_FILE" && exit
   fi
-  notifications "RandomWallPapers" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME"
+  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
   __background_job "${ROTATE_TIME}" "$@" &
   ;;

@@ -15,13 +15,13 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _randomwallpaper() {
   local cur prev words cword
-  local ARRAY="--bg --help --term config startup ."
-
+  local ARRAY="--bg --help --term config enable disable"
+  local BGOPTS="--status --kill --stop --start"
   _init_completion || return
 
   case $prev in
-  -*)
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+  --bg)
+    COMPREPLY=($(compgen -W '$BGOPTS' -- "$cur"))
     return
     ;;
 

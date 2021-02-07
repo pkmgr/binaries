@@ -223,7 +223,7 @@ pkginit="$pkgmgrbincle ; $pkgmgrbincac ; $pkgmgrbinupdsil"
 
 cpan_run() {
   if c__md_exists cpan; then
-    local cpandir="$(devnull2 sudo find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
+    local cpandir="$(__devnull2 sudo find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
     local cpanconf="https://raw.githubusercontent.com/casjay-base/centos/master/usr/share/perl5/CPAN/Config.pm"
     local cpanfile="$cpandir/Config.pm"
     if [ ! -f "$cpanfile" ] || [ ! -f "$cpandir/.init" ]; then
@@ -458,11 +458,11 @@ exportpkg() {
 
 #---------------------------------------------------------------------------------------
 
-if [[ "$(devnull2 python3 -V)" =~ "Python 3" ]]; then
+if [[ "$(__devnull2 python3 -V)" =~ "Python 3" ]]; then
   PYTHONVER="python3"
   PIP="pip3"
   PATH="${PATH}:$(python3 -c 'import site; print(site.USER_BASE)')/bin"
-elif [[ "$(devnull2 python2 -V)" =~ "Python 2" ]]; then
+elif [[ "$(__devnull2 python2 -V)" =~ "Python 2" ]]; then
   PYTHONVER="python"
   PIP="pip"
   PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
@@ -493,7 +493,7 @@ available)
 
 aliases)
   shift 1
-  if [ -d "$HOME/.config/bash/local" ] && devnull grep userbashprofilelocal "$HOME/.bashrc"; then
+  if [ -d "$HOME/.config/bash/local" ] && __devnull grep userbashprofilelocal "$HOME/.bashrc"; then
     ALIASFILE="$HOME/.config/bash/local/pkmgr.bash"
   else
     ALIASFILE="$HOME/.bash_profile"
