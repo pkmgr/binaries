@@ -190,7 +190,7 @@ __sync_all() {
   local _NOTESP=${1:-$NOTES_PATH}
   local _NOTESA="${2:-$NOTES_DIRECTORY/all.txt}"
   local _NOTES_TMPFILE="${NOTES_TMPDIR:-/tmp}/notes.$$.tmp"
-  local _ARCHIVE="$NOTES_DIRECTORY/archive/$(date +"%y-%m-%d_%H-%M")"
+  local _ARCHIVE="$NOTES_DIRECTORY/archive/$(date +"%y-%m-%d")"
   [ -f "$_NOTESA" ] || touch "$_NOTESP"
   [ -f "$_NOTESA" ] || cat "$_NOTESP" | tee "$_NOTESA" &>/dev/null
   #cat "$_NOTESP" "$_NOTESA" | sort -u | sed '/^\#/d;/^$/d' >"$_NOTES_TMPFILE" || local exitCode=1
@@ -199,7 +199,7 @@ __sync_all() {
     __mkd "$NOTES_DIRECTORY/archive"
     __cp_rf $_NOTESA "$_ARCHIVE"
     __cp_rf "$_NOTESA" "$_NOTESA.tmp"
-    [ -n "$show" ] && printf_green "Syncing ${NOTES_DIRECTORY}/*/*.txt to ${_NOTESA/$NOTES_DIRECTORY\//}"
+    [ -n "$show" ] && printf_green "Syncing */*.txt to ${_NOTESA/$NOTES_DIRECTORY\//}"
     cat "$NOTES_DIRECTORY"/*/*.txt "$_NOTESA.tmp" | sed '/^\#/d;/^$/d' | sort -u | tee "$_NOTES_TMPFILE" &>/dev/null || local exitCode=1
   else
     [ -n "$show" ] && printf_green "Syncing ${_NOTESP} notes to ${_NOTESA/$NOTES_DIRECTORY\//}"
