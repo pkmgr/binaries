@@ -70,18 +70,6 @@ available)
   run_install_available
   ;;
 
-list-installed)
-  shift 1
-  FONT="$1"
-  fc-list "$@" | printf_readline || printf_exit "Something went wrong 😕"
-  ;;
-
-search-installed)
-  shift 1
-  FONT="$1"
-  fc-list | grep -Fi "$FONT" | printf_readline || printf_exit "That font does not exist"
-  ;;
-
 remove)
   shift 1
   printf_green "Removing the fonts from $APPDIR"
@@ -109,11 +97,16 @@ update)
 
 install)
   shift 1
-  printf_green "Installing fonts to $FONTDIR"
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
-  for ins in ${LISTARRAY[*]}; do
-    run_install_init "$ins"
-  done
+  if [ $# -eq 0 ]; then
+    printf_green "Running the updater script" && fontmgr update
+    exit $?
+  else
+    printf_green "Installing fonts to $FONTDIR"
+    [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+    for ins in ${LISTARRAY[*]}; do
+      run_install_init "$ins"
+    done
+  fi
   ;;
 
 updater | cron)

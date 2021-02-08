@@ -180,7 +180,12 @@ case "$1" in
 *install)
   shift
   [ "$1" = "--help" ] && __install_help
-  __install "$@"
+  if [ $# -eq 0 ]; then
+    printf_green "Running the updater script" && dockermgr update
+    exit $?
+  else
+    __install "$@"
+  fi
   ;;
 
 *ssh)
@@ -231,6 +236,7 @@ active | -*active)
   shift 1
   run_install_available
   ;;
+
 *-)
   __help
   ;;

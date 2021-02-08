@@ -84,10 +84,15 @@ update)
 install)
   shift 1
   [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
-  printf_green "Installing $* to $THEMEDIR"
-  for ins in ${LISTARRAY[*]}; do
-    run_install_init "$ins"
-  done
+  if [ $# -eq 0 ]; then
+    printf_green "Running the updater script" && thememgr update
+    exit $?
+  else
+    printf_green "Installing $* to $THEMEDIR"
+    for ins in ${LISTARRAY[*]}; do
+      run_install_init "$ins"
+    done
+  fi
   ;;
 
 cron)

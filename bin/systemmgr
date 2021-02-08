@@ -105,10 +105,15 @@ install)
   shift 1
   __requiresudo true || exit 1
   [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
-  printf_green "Installing to $INSTDIR"
-  for ins in ${LISTARRAY[*]}; do
-    run_install_init "$ins"
-  done
+  if [ $# -eq 0 ]; then
+    printf_green "Running the updater script" && sudo systemmgr update
+    exit $?
+  else
+    printf_green "Installing to $INSTDIR"
+    for ins in ${LISTARRAY[*]}; do
+      run_install_init "$ins"
+    done
+  fi
   ;;
 
 cron)
