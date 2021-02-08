@@ -135,9 +135,11 @@ __find_file() {
   elif [ -f "$readmeDir/$*" ]; then
     template="$readmeDir/$*"
     shift 1
-  else
+  elif [ -f "$readmeDir/default" ]; then
     template="$readmeDir/default"
     dest="$curDir/README.md"
+  else
+    printf_exit 1 1 "Can not find any readmes matching $1 $2"
   fi
   template="${template//$readmeDir\//}"
 }
