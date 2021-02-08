@@ -16,7 +16,7 @@
 _wallpapermgr() {
   local cur prev words cword
   local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/wallpapermgr/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/wallpapermgr/list)"
+  local LIST="--all $(</usr/local/share/CasjaysDev/scripts/helpers/wallpapermgr/list)"
   local cur prev words cword split
 
   _init_completion -s || return
@@ -79,4 +79,4 @@ _wallpapermgr() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _wallpapermgr_completions -o default wallpapermgr
+  complete -F _wallpapermgr -o default wallpapermgr

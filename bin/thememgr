@@ -31,12 +31,11 @@ thememgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ARRAY="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/array)"
-LIST="$(cat $SCRIPTSFUNCTDIR/helpers/thememgr/list)"
+ARRAY="$(<$CASJAYSDEVDIR/helpers/thememgr/array)"
+LIST="$(<$CASJAYSDEVDIR/helpers/thememgr/list)"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-__mkd "$HOMEDIR"
 __mkd "$THEMEDIR"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
