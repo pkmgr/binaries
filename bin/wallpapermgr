@@ -70,16 +70,20 @@ search)
 available)
   shift 1
   run_install_available
+  exit $?
   ;;
 
 list-installed)
   shift 1
-  __dirwallpaper "${1:-}" || printf_exit "Something went wrong 😕"
+  results="$(__dirwallpaper | grep -Fi "${1:-}" || printf_exit "Something went wrong 😕")"
+  echo "$results" | tr ' ' '\n' | printf_readline 4
   ;;
 
 search-installed)
   shift 1
-  __dirwallpaper "$1" | grep --color=auto -Fi "$1" | printf_readline "4" || printf_exit "That Wallpaper does not exist"
+  [ $# = 0 ] && printf_exit 1 1 "Nothing to search for"
+  results="$(__dirwallpaper "$1" | grep -Fi "$1" || printf_exit "That Wallpaper does not exist")"
+  echo "$results" | printf_readline "4"
   ;;
 
 remove)
@@ -129,7 +133,7 @@ updater | cron)
   declare -a LISTARRAY="$*"
   for cron in ${LISTARRAY[*]}; do
     APPNAME="$cron"
-    cron_updater "$APPNAME"
+    __cron_updater "$APPNAME"
   done
   ;;
 

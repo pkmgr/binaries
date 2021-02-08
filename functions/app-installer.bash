@@ -659,7 +659,7 @@ addtocrontab() {
   local command="$2"
   local additional="$3"
   local job="$frequency $command $additional"
-  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+  cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab - &>/dev/null
 }
 
 crontab_add() {
@@ -672,27 +672,28 @@ crontab_add() {
     shift 1
     if [[ $EUID -ne 0 ]]; then
       printf_green "\t\tRemoving $file from $WHOAMI crontab\n"
-      crontab -l | grep -v -F "$file" | crontab -
+      crontab -l | grep -v -F "$file" | crontab - &>/dev/null
       printf_custom "2" "$file has been removed from automatically updating\n"
     else
       printf_green "\t\tRemoving $file from root crontab\n"
-      sudo crontab -l | grep -v -F "$file" | sudo crontab -
+      sudo crontab -l | grep -v -F "$file" | sudo crontab - &>/dev/null
       printf_custom "2" "$file has been removed from automatically updating\n"
     fi
     ;;
 
   add)
     shift 1
-    if [[ $EUID -ne 0 ]]; then
+    [ -f "$file" ] || printf_exit "1" "Can not find $file"
+    if [[ "$EUID" -ne 0 ]]; then
       local croncmd="logr"
-      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
       printf_custom "3" "To remove run $file --cron remove\n"
     else
       local croncmd="logr"
-      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
       sudo crontab -l | grep -qv -F "$croncmd"
       addtocrontab "$frequency" "$croncmd" "$additional"
@@ -702,16 +703,17 @@ crontab_add() {
     ;;
 
   *)
-    if [[ $EUID -ne 0 ]]; then
+    [ -f "$file" ] || printf_exit "1" "Can not find $file"
+    if [[ "$EUID" -ne 0 ]]; then
       local croncmd="logr"
-      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
       printf_custom "3" "To remove run $file --cron remove\n"
     else
       local croncmd="logr"
-      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$APPDIR'/install.sh &"'
+      local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
       printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
       sudo crontab -l | grep -qv -F "$croncmd"
       addtocrontab "$frequency" "$croncmd" "$additional"
@@ -725,7 +727,7 @@ crontab_add() {
 ##################################################################################################
 
 versioncheck() {
-  if [ -f $APPDIR/version.txt ]; then
+  if [ -f "$APPDIR/version.txt" ]; then
     printf_green "\t\tChecking for updates\n"
     local NEWVERSION="$(echo $APPVERSION | grep -v "#" | tail -n 1)"
     local OLDVERSION="$(cat $APPDIR/version.txt | grep -v "#" | tail -n 1)"
@@ -1629,11 +1631,11 @@ devenvmgr_install() {
   devenv_run_init() {
     local mgr_init="${mgr_init:-}"
     if [ "$mgr_init" != "true" ]; then
-      printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+      printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/\n"
       if [ -d "$APPDIR" ]; then
-        printf_green "\t\tUpdating packages in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+        printf_green "\t\tUpdating packages in ${APPDIR//$HOME/'~'}\n"
       else
-        printf_green "\t\tInstalling packages to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+        printf_green "\t\tInstalling packages to ${APPDIR//$HOME/'~'}\n"
       fi
     fi
   }
@@ -1817,10 +1819,10 @@ iconmgr_run_init() {
 iconmgr_run_post() {
   iconmgr_install
   run_postinst_global
-  [ -d "$ICONDIR/$APPNAME" ] || ln_sf "$APPDIR" "$ICONDIR/$APPNAME"
-  devnull sudo find "$ICONDIR/$APPNAME" -type d -exec chmod 755 {} \;
-  devnull sudo find "$ICONDIR/$APPNAME" -type f -exec chmod 644 {} \;
-  devnull sudo gtk-update-icon-cache -q -t -f "$ICONDIR/$APPNAME"
+  [ -d "$ICONDIR" ] || ln_sf "$APPDIR" "$ICONDIR"
+  devnull sudo find "$ICONDIR" -type d -exec chmod 755 {} \;
+  devnull sudo find "$ICONDIR" -type f -exec chmod 644 {} \;
+  devnull sudo gtk-update-icon-cache -q -t -f "$ICONDIR"
 }
 
 iconmgr_install_version() {
@@ -1962,7 +1964,7 @@ thememgr_run_init() {
 thememgr_run_post() {
   thememgr_install
   run_postinst_global
-  [ -d "$THEMEDIR/$APPNAME" ] && [ ! -L "$APPDIR" ] || ln_sf "$APPDIR" "$THEMEDIR/$APPNAME"
+  [ -d "$THEMEDIR" ] && [ ! -L "$APPDIR" ] || ln_sf "$APPDIR" "$THEMEDIR"
   generate_theme_index
 }
 
@@ -2205,7 +2207,7 @@ run_postinst_global() {
 
 run_exit() {
   local mgr_init="${mgr_init:-}"
-  [ -d "$INSTDIR/$APPNAME" ]
+  [ -d "$INSTDIR" ]
   if [ -d "$APPDIR" ] && [ ! -f "$APPDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed" 2>/dev/null
   fi

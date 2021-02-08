@@ -741,7 +741,7 @@ __curl_version() { curl --disable -LSsk --connect-timeout 3 --retry 0 "${1:-$REP
 #curl_upload "file" "url"
 __curl_upload() { curl -disable -LSsk --connect-timeout 3 --retry 0 --upload-file "$1" "$2"; }
 #curl_api "API URL"
-__curl_api() { curl --disable -LSsk --connect-timeout 3 --retry 0 "https://api.github.com/orgs/$SCRIPTS_PREFIX/repos?per_page=1000"; }
+__curl_api() { curl --disable -LSsk --connect-timeout 3 --retry 0 "https://api.github.com/orgs/${1:-SCRIPTS_PREFIX}/repos?per_page=1000"; }
 #urlcheck "url"
 __urlcheck() { curl --disable -k --connect-timeout 1 --retry 0 --retry-delay 0 --output /dev/null --silent --head --fail "$1" && __curl_exit; }
 #urlverify "url"
@@ -760,8 +760,8 @@ __api_test() {
   if __am_i_online && __cmd_exists jq; then
     return 0
   else
-    [ -n "$1" ] && printf_red "$1"
-    return 1
+    if [ -n "$1" ]; then printf_error "$1"; fi
+    exit 1
   fi
 }
 #do_not_add_a_url "url"
@@ -919,8 +919,8 @@ __addtocrontab() {
 }
 
 __cron_updater() {
-  [ "$*" = "--help" ] && printf_help "Usage: $APPNAME updater $APPNAME"
-  if [[ "$USER" = "root" ]]; then
+  [ "$*" = "--help" ] && shift 1 && printf_help "Usage: ${PROG:-$APPNAME} updater $APPNAME"
+  if user_is_root; then
     if [ -z "$1" ] && [ -d "$SYSUPDATEDIR" ] && ls "$SYSUPDATEDIR"/* 1>/dev/null 2>&1; then
       for upd in $(ls $SYSUPDATEDIR/); do
         file="$(ls -A $SYSUPDATEDIR/$upd 2>/dev/null)"
@@ -944,7 +944,7 @@ __cron_updater() {
         file="$(ls -A $USRUPDATEDIR/$upd 2>/dev/null)"
         if [ -f "$file" ]; then
           appname="$(basename $file)"
-          sudo file=$file bash -c "$file --cron $*"
+          file=$file bash -c "$file --cron $*"
         fi
       done
     else
@@ -952,7 +952,7 @@ __cron_updater() {
         file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
         if [ -f "$file" ]; then
           appname="$(basename $file)"
-          sudo file=$file bash -c "$file --cron $*"
+          file=$file bash -c "$file --cron $*"
         fi
       fi
     fi
@@ -1294,7 +1294,7 @@ __am_i_online() {
     local httpExit=$?
     return_code $httpExit
   }
-  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" >&2; }
+  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" 1>&2; }
   __test_ping "$site" || __test_http "$site" || err "$@"
 }
 #am_i_online_err "Message" "color" "exitCode"
@@ -2008,7 +2008,7 @@ run_install_init() {
         __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
       __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
-      local exitCode=$?
+      local exitCode+=$?
     else
       printf_yellow "Initializing the installer from"
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
@@ -2019,10 +2019,10 @@ run_install_init() {
         __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
       __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
-      local exitCode=$?
+      local exitCode+=$?
     fi
   done
-  unset mgr_init
+  unset mgr_init ins
   printf_newline
   return $exitCode
 }
@@ -2052,7 +2052,7 @@ run_install_update() {
       local exitCode+=$?
     done
   fi
-  unset mgr_init
+  unset mgr_init upd
   printf_newline
   return $exitCode
 }
@@ -2097,23 +2097,27 @@ run_install_list() {
       printf_red "Nothing was found"
     fi
   fi
+  unset args
   return $?
 }
 
 run_install_search() {
   [ $# = 0 ] && printf_exit "Nothing to search for"
-  for search in "$@"; do
-    echo -n "$LIST" | tr ' ' '\n' 2>/dev/null | grep -Fi "$search" | printf_read "2" || printf_exit "Your seach produced no results"
+  declare -a LSINST="$*"
+  for search in ${LSINST[*]}; do
+    echo -n "$LIST" | grep -Fiq "$search" || printf_exit "Your seach produced no results"
+    echo -n "$LIST" | tr ' ' '\n' | grep -Fi "$search" 2>/dev/null | printf_read "2"
   done
+  unset search
   exit $?
 }
 
 run_install_available() {
-  __api_test "Failed to load the API" && __curl_api | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
+  __api_test "Failed to load the API" && __curl_api ${1:-$APPNAME} | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
 }
 
 run_install_version() {
-  [ $# = 0 ] && local args="${PROG:-APPNAME}" || local args="$*"
+  [ $# = 0 ] && local args="${PROG:-$APPNAME}" || local args="$*"
   local exitCode="0"
   for version in $args; do
     if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$version 2>/dev/null)" ]; then
@@ -2135,15 +2139,17 @@ run_install_version() {
       return 1
     fi
   done
+  unset args version
   [ "$exitCode" = 0 ] && scripts_version || exit 1
 }
 
 installer_delete() {
+  local rmf
   local exitCode=0
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
     if [ -d "$APPDIR/$rmf" ] || [ -d "$INSTDIR/$rmf" ]; then
-      printf_yellow "Removing $app from your system"
+      printf_yellow "Removing $rmf from your system"
       [ -d "$INSTDIR/$rmf" ] && __rm_rf "$INSTDIR/$rmf"
       __rm_rf "$APPDIR/$rmf" "$INSTDIR/$rmf" || exitCode+=1
       __rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$rmf" || exitCode+=1
@@ -2155,6 +2161,7 @@ installer_delete() {
       printf_error "1" "$exitCode" "$rmf doesn't seem to be installed"
     fi
   done
+  unset rmf
 }
 
 ###################### export and call functions ######################
