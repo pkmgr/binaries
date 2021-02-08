@@ -2058,7 +2058,6 @@ run_install_update() {
     done
   fi
   unset mgr_init upd
-  printf_newline
   return $exitCode
 }
 
