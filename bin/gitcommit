@@ -135,7 +135,7 @@ version)
   if ! __git_porcelain "$gitdir"; then
     git -C "$gitdir" commit -q -S -m "$versionbump" "$gitdir/version.txt" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-  __getexitcode $exitCode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change"
+  __getexitcode $exitCode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change in $gitdir"
   exit $?
   ;;
 
