@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _dfmgr() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword split
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dfmgr/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/dfmgr/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/dfmgr/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/dfmgr/list)"
 
   _init_completion -s || return
 

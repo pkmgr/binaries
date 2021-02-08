@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _wallpapermgr() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/wallpapermgr/array)"
-  local LIST="--all $(</usr/local/share/CasjaysDev/scripts/helpers/wallpapermgr/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/wallpapermgr/array)"
+  local LIST="--all $(<$CASJAYSDEVDIR/helpers/wallpapermgr/list)"
   local cur prev words cword split
 
   _init_completion -s || return

@@ -40,18 +40,6 @@ fi
 wallpapermgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__listwallpaper() {
-  printf_green "All Wallpapers"
-  printf_green "$LIST"
-}
-
-__dirwallpaper() {
-  [ -d "$WALLPAPERS" ] && walldir="$WALLPAPERS"
-  ls "$walldir"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main program
 case "$1" in
 *help | -*)
@@ -71,19 +59,6 @@ available)
   shift 1
   run_install_available
   exit $?
-  ;;
-
-list-installed)
-  shift 1
-  results="$(__dirwallpaper | grep -Fi "${1:-}" || printf_exit "Something went wrong 😕")"
-  echo "$results" | tr ' ' '\n' | printf_readline 4
-  ;;
-
-search-installed)
-  shift 1
-  [ $# = 0 ] && printf_exit 1 1 "Nothing to search for"
-  results="$(__dirwallpaper "$1" | grep -Fi "$1" || printf_exit "That Wallpaper does not exist")"
-  echo "$results" | printf_readline "4"
   ;;
 
 remove)
@@ -127,7 +102,7 @@ install)
   done
   ;;
 
-updater | cron)
+cron)
   shift 1
   unset APPNAME
   declare -a LISTARRAY="$*"

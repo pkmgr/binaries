@@ -14,10 +14,11 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _scratchpad() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/scratchpad/array)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/scratchpad/array)"
   local OPEN="$(find $scratchdir/*/* -type f | sed 's#'$scratchdir/'##g')"
 
   _init_completion || return

@@ -117,7 +117,7 @@ install)
   done
   ;;
 
-updater | cron)
+cron)
   shift 1
   unset APPNAME
   declare -a LISTARRAY="$*"

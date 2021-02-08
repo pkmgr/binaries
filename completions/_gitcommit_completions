@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _gitcommit() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/gitcommit/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/gitcommit/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/gitcommit/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/gitcommit/list)"
   _init_completion || return
 
   if [[ $cur == -* ]]; then

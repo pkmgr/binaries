@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _gen-license() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/gen-license/array)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/gen-license/array)"
 
   _init_completion || return
 

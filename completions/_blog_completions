@@ -14,6 +14,7 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _blog() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword split
   local BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blog}"
   ARRAY="new page post edit config -c --help"

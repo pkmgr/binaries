@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _emojis() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/emojis/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/emojis/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/emojis/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/emojis/list)"
   _init_completion || return
 
   case $prev in

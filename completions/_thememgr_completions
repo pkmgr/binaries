@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _thememgr() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/thememgr/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/thememgr/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/thememgr/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/thememgr/list)"
   local cur prev words cword split
 
   _init_completion -s || return

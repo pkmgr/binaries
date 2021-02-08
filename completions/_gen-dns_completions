@@ -14,8 +14,9 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _gen-dns() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/gen-dns/list)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/gen-dns/list)"
   _init_completion || return
 
   case $prev in

@@ -14,6 +14,7 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _pass_complete_entries() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local prefix="${PASSWORD_STORE_DIR:-$HOME/.password-store/}"
   prefix="${prefix%/}/"
   local suffix=".gpg"

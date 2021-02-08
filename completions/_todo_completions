@@ -14,10 +14,11 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _todo() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/todo/array)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/todo/array)"
   local OPEN="$(find $tododir/*/* -type f | sed 's#'$tododir/'##g')"
 
   _init_completion || return

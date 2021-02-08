@@ -15,6 +15,7 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [[ $OSTYPE == *@(linux|freebsd|darwin)* ]] || return 1
 _killall() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword split
 
   _init_completion -s || return

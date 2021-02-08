@@ -14,10 +14,11 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _pkmgr() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/pkmgr/array)"
-  local dotfiles="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/pkmgr/array)"
+  local dotfiles="$(<$CASJAYSDEVDIR/helpers/dotfiles/list)"
   _init_completion || return
 
   case $prev in

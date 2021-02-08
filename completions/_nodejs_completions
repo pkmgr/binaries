@@ -14,6 +14,7 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _node() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur_word options
   local cur_word="${COMP_WORDS[COMP_CWORD]}"
   local options+="--max-http-header-size --experimental-specifier-resolution --inspect-brk-node "

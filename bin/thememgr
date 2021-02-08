@@ -32,18 +32,6 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mkd "$THEMEDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__listthemes() {
-  printf_green "All Themes"
-  printf_green "$LIST"
-}
-
-__dirtheme() {
-  [ -d "$THEMEDIR" ] && themedir="$THEMEDIR"
-  ls "$themedir"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 case "$1" in
 help | -*)
   __help
@@ -67,19 +55,6 @@ search)
 available)
   shift 1
   run_install_available
-  ;;
-
-list-installed)
-  shift 1
-  results="$(__dirtheme $1 | grep -Fi "${1:-}")"
-  echo $results | printf_readline || printf_exit 1 1 "Something went wrong 😕"
-  ;;
-
-search-installed)
-  shift 1
-  [ $# = 0 ] && printf_exit 1 1 "Nothing to search for"
-  results="$(__dirtheme "$1" | grep -Fi "$1")"
-  echo "$results" | printf_readline "4" || printf_exit 1 1 "That theme does not exist"
   ;;
 
 remove)
@@ -115,7 +90,7 @@ install)
   done
   ;;
 
-updater | cron)
+cron)
   shift 1
   cron_updater "$*"
   ;;

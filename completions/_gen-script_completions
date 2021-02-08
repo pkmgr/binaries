@@ -14,10 +14,11 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _gen-script() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   if [ -d "$HOME/.config/gen-script/files" ]; then
     local GEN_SCRIPTS_TEMPLATE_DIR="$HOME/.config/gen-script/files"
   else
-    local GEN_SCRIPTS_TEMPLATE_DIR="/usr/local/share/CasjaysDev/scripts/templates/scripts"
+    local GEN_SCRIPTS_TEMPLATE_DIR="$CASJAYSDEVDIR/templates/scripts"
   fi
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"

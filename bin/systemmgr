@@ -111,7 +111,7 @@ install)
   done
   ;;
 
-updater | cron)
+cron)
   shift 1
   __requiresudo true || exit 1
   cron_updater "$*"

@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _iconmgr() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword split
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/iconmgr/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/iconmgr/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/iconmgr/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/iconmgr/list)"
 
   _init_completion -s || return
 

@@ -14,14 +14,15 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _dotfiles() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/list)"
-  local ADMIN="$(</usr/local/share/CasjaysDev/scripts/helpers/dotfiles/admin)"
-  local STOW="$(</usr/local/share/CasjaysDev/scripts/helpers/config/array)"
-  local LSBIN="$(ls /usr/local/share/CasjaysDev/scripts/bin/)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/dotfiles/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/dotfiles/list)"
+  local ADMIN="$(<$CASJAYSDEVDIR/helpers/dotfiles/admin)"
+  local STOW="$(<$CASJAYSDEVDIR/helpers/config/array)"
+  local LSBIN="$(ls $CASJAYSDEVDIR/bin/)"
 
   _init_completion || return
 

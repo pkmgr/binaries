@@ -14,10 +14,11 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _music() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/music/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/music/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/music/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/music/list)"
 
   _init_completion || return
 

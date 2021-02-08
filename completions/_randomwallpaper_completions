@@ -14,9 +14,11 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _randomwallpaper() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local ARRAY="--bg --help --term config enable disable"
   local BGOPTS="--status --kill --stop --start"
+
   _init_completion || return
 
   case $prev in

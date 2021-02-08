@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _gitignore() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/gitignore/array)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/gitignore/array)"
 
   _init_completion || return
 

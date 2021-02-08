@@ -14,10 +14,11 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _devenv() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/devenv/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/devenv/list)"
-  local START="$(</usr/local/share/CasjaysDev/scripts/helpers/devenv/start)"
+  local ARRAY="$(<$CASJAYSDEVDIR/scripts/helpers/devenv/array)"
+  local LIST="$(<$CASJAYSDEVDIR/scripts/helpers/devenv/list)"
+  local START="$(<$CASJAYSDEVDIR/scripts/helpers/devenv/start)"
 
   _init_completion || return
 

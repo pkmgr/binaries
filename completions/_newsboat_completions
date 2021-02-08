@@ -14,6 +14,7 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _newsboat() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local ARRAY="-e --export-to-opml -r --refresh-on-start -i --import-from-opml -u --url-file "
   local ARRAY+="-c --cache-file -C --config-file -X  --vacuum -x --execute -q --quiet  -v --version "

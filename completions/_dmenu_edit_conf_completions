@@ -14,8 +14,9 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _dmenu_edit_conf() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dmenu_edit_conf/array)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/dmenu_edit_conf/array)"
   _init_completion || return
 
   case $prev in

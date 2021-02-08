@@ -222,7 +222,7 @@ active | -*active)
   __help
   ;;
 
-*updater | *cron)
+*cron)
   shift 1
   __run_cron "$*"
   ;;

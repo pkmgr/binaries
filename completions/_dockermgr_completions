@@ -14,9 +14,10 @@
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _dockermgr() {
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword split
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/dockermgr/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/dockermgr/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/dockermgr/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/dockermgr/list)"
 
   _init_completion -s || return
 

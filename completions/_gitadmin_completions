@@ -15,10 +15,11 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _gitadmin() {
   mkdir -p "$HOME/Projects" >/dev/null 2>&1
+  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/gitadmin/array)"
-  local LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/gitadmin/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/gitadmin/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/gitadmin/list)"
   local gitOPTS="init clone remote"
   local automatedOpts="--automated"
   local updateOpts="--while"
