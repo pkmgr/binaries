@@ -30,32 +30,15 @@ fi
 thememgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-ARRAY="$(<$CASJAYSDEVDIR/helpers/thememgr/array)"
-LIST="$(<$CASJAYSDEVDIR/helpers/thememgr/list)"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __mkd "$THEMEDIR"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-removetheme() {
-  __devnull sudo rm -Rf "$HOMEDIR/$1"
-  __devnull sudo unlink "$THEMEDIR/$rmf"
-  __devnull generate_theme_index "$THEMEDIR"
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __listthemes() {
   printf_green "All Themes"
   printf_green "$LIST"
 }
 
-__themedir() {
-  [ -d /usr/share/theme ] && themedir="/usr/share/themes "
-  [ -d /usr/local/share/theme ] && themedir+="/usr/local/share/themes "
+__dirtheme() {
+  [ -d "$THEMEDIR" ] && themedir="$THEMEDIR"
   ls "$themedir"
 }
 
@@ -67,10 +50,12 @@ help | -*)
   ;;
 
 makecache)
-  generate_theme_index "$THEMEDIR"
+  shift 1
+  generate_theme_index "$*"
   ;;
 
 list)
+  shift 1
   __listthemes
   ;;
 
@@ -86,19 +71,20 @@ available)
 
 list-installed)
   shift 1
-  THEME="$1"
-  __themedir || printf_exit "Something went wrong 😕"
+  results="$(__dirtheme $1 | grep -Fi "${1:-}")"
+  echo $results | printf_readline || printf_exit 1 1 "Something went wrong 😕"
   ;;
 
 search-installed)
   shift 1
-  THEME="$1"
-  __themedir | grep --color=auto -Fi "$THEME" || printf_exit "That theme does not exist"
+  [ $# = 0 ] && printf_exit 1 1 "Nothing to search for"
+  results="$(__dirtheme "$1" | grep -Fi "$1")"
+  echo "$results" | printf_readline "4" || printf_exit 1 1 "That theme does not exist"
   ;;
 
 remove)
   shift 1
-  printf_green "Removing $* from $HOMEDIR"
+  printf_green "Removing $* from $THEMEDIR"
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
     printf_yellow "Removing $rmf theme from your system"
@@ -110,7 +96,7 @@ remove)
 
 update)
   shift 1
-  printf_green "Updating the themes in $HOMEDIR"
+  printf_green "Updating the themes in $THEMEDIR"
   if [[ -n $* ]]; then
     run_install_update "$@"
   elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then

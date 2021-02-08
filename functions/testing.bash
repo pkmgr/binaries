@@ -1755,7 +1755,7 @@ thememgr_install() {
   SCRIPTS_PREFIX="thememgr"
   REPO="$THEMEMGRREPO"
   REPORAW="$REPO/$APPNAME/raw"
-  APPDIR="${THEMEDIR:-$SHARE/themes/$APPNAME}"
+  APPDIR="${THEMEDIR:-$SYSSHARE/themes/$APPNAME}"
   INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1772,10 +1772,15 @@ thememgr_install() {
   ######## Installer Functions ########
   generate_theme_index() {
     printf_green "Updating the theme index in $THEMEDIR"
-    THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-    sudo find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
-      if [ -f "$THEME/index.theme" ]; then
-        __cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
+    local -a LISTARRAY="${*:-$APPNAME}"
+    for index in ${LISTARRAY[*]}; do
+      THEMEDIR="${THEMEDIR:-$SHARE/themes}/${index:-}"
+      if [ -d "$THEMEDIR" ]; then
+        find "$THEMEDIR" -mindepth 0 -maxdepth 2 -type f,l,d -not -path "*/.git/*" | while read -r THEME; do
+          if [ -f "$THEME/index.theme" ]; then
+            __cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -qf "$THEME"
+          fi
+        done
       fi
     done
   }
