@@ -80,7 +80,7 @@ remove)
     installer_delete "$APPNAME"
     echo ""
   done
-  ln_rm "$FONTDIR/"
+  __ln_rm "$FONTDIR/"
   ;;
 
 update)
