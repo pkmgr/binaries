@@ -25,11 +25,15 @@ CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-app-installer.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+connect_test() { ping -c1 1.1.1.1 &>/dev/null || curl --disable -LSs --connect-timeout 3 --retry 0 --max-time 1 1.1.1.1 2>/dev/null | grep -e "HTTP/[0123456789]" | grep -q "200" -n1 &>/dev/null; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+elif connect_test; then
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/$SCRIPTSFUNCTFILE"
 else
   echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
   exit 1
@@ -37,17 +41,15 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the main function
 system_installdirs
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Make sure the scripts repo is installed
 scripts_check
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-REPLACE_APPNAME}"
 APPDIR="${APPDIR:-$SHARE/wallpapers/$APPNAME}"
 INSTDIR="${INSTDIR:-SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
-REPO="${WALLPAPERMGRREPO}"
+REPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr/$APPNAME}"
 REPORAW="$REPO/$APPNAME/raw"
 APPVERSION="$(__appversion "${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
