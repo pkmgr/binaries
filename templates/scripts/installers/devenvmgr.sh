@@ -62,6 +62,7 @@ PLUGDIR="${SHARE:-$HOME/.local/share}/$APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the devenvmgr function
 devenvmgr_install
+devenvmgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help --version
 show_optvars "$@"

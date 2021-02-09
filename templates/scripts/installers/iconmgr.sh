@@ -55,6 +55,7 @@ APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the iconmgr function
 iconmgr_install
+iconmgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"

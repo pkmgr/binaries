@@ -55,6 +55,7 @@ APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the systemmgr function
 systemmgr_install
+systemmgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"

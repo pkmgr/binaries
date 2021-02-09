@@ -55,6 +55,7 @@ APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the fontmgr function
 fontmgr_install
+fontmgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"

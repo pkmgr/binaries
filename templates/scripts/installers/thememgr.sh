@@ -55,6 +55,7 @@ APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the thememgr function
 thememgr_install
+thememgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"

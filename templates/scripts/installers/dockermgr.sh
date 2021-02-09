@@ -53,6 +53,7 @@ APPVERSION="$(__appversion $REPORAW/master/version.txt)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the dockermgr function
 dockermgr_install
+dockermgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup
 mkdir -p "$DATADIR"/{data,config}

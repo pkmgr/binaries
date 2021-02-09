@@ -1718,7 +1718,7 @@ devenvmgr_install() {
   user_is_root && mkd "$SYSUPDATEDIR"
   export installtype="devenvmgr_install"
   ######## Installer Functions ########
-  devenv_run_init() {
+  devenvmgr_run_init() {
     local mgr_init="${mgr_init:-}"
     if [ "$mgr_init" != "true" ]; then
       printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/\n"
@@ -1760,7 +1760,7 @@ dfmgr_install() {
   export installtype="dfmgr_install"
 }
 ######## Installer Functions ########
-pkmgrmgr_run_init() {
+dfmgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
     printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
@@ -2071,7 +2071,7 @@ wallpapermgr_install() {
   export installtype="wallpapermgr_install"
 }
 ######## Installer Functions ########
-wallpaper_run_init() {
+wallpapermgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
     printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
