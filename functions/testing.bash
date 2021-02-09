@@ -1,23 +1,31 @@
 #!/usr/bin/env bash
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="${APPNAME:-app-installer}"
+FUNCFILE="app-installer.bash"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 020620211125-git
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020920211625-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
-# @License       : WTFPL.md
+# @License       : LICENSE.md
 # @ReadME        : README.md
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Feb 06, 2021 12:46 EST
-# @File          : testing.bash
-# @Description   : Functions for installed apps
-# @TODO          : Better error handling/refactor code
-# @Other         : Split to 3 files applications, app-installer, sys-installer
+# @Created       : Tuesday, Feb 09, 2021 17:17 EST
+# @File          : app-installer.bash
+# @Description   : Installer functions for apps
+# @TODO          : Refactor code - It is a mess
+# @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main scripts location
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+
 # Fail if git, curl, wget are not installed
 for check in git curl wget; do
   if ! command -v "$check" >/dev/null 2>&1; then
@@ -26,8 +34,10 @@ for check in git curl wget; do
   fi
 done
 
-# Main scripts location
-CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+# Versioning Info - __required_version "VersionNumber"
+localVersion="${localVersion:-020920211703-git}"
+requiredVersion="${requiredVersion:-020920211703-git}"
+currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 
 # Set Main Repo for dotfiles
 DOTFILESREPO="https://github.com/dfmgr"
@@ -730,8 +740,6 @@ __curl() {
   __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1
 }
 __curl_exit() { EXIT=0 && return 0 || EXIT=1 && return 1; }
-#appversion "urlToVersion"
-__appversion() { __curl "${1:-$REPORAW/master/version.txt}" || echo 011920210931-git; }
 #curl_header "site" "code"
 __curl_header() { curl --disable -LSIsk --connect-timeout 3 --retry 0 --max-time 2 "$1" | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
@@ -1842,11 +1850,6 @@ ensure_dirs() {
 
 get_installer_version() {
   $installtype
-  if [ -f "$INSTDIR/version.txt" ]; then
-    local version="$(cat "$INSTDIR/version.txt" | grep -v "#" | tail -n 1)"
-  else
-    local version="0000000"
-  fi
   local GITREPO=""$REPO/$APPNAME""
   local APPVERSION="${APPVERSION:-$(__appversion)}"
   [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
@@ -1969,7 +1972,8 @@ __options() {
       printf_green "Getting info for $appname"
       cat "$filename" | grep '^# @' | grep '  :' >/dev/null 2>&1 &&
         cat "$filename" | grep '^# @' | grep -v '\$' | grep '  :' | sed 's/# @//g' | printf_readline "3" &&
-        printf_green "$(cat $filename | grep -v '\$' | grep "##@Version" | sed 's/##@//g')" ||
+        printf_green "$(cat $filename | grep -v '\$' | grep "##@Version" | sed 's/##@//g')" &&
+        printf_blue "Required ver  : $requiredVersion" ||
         printf_red "File was found, however, No information was provided"
     else
       printf_red "${1:-$appname} was not found"
@@ -2167,6 +2171,50 @@ installer_delete() {
   done
   unset rmf
 }
+
+##################################################################################################
+# Versioning
+__appversion() {
+  if [ -f "$INSTDIR/version.txt" ]; then
+    localVersion="$(<$INSTDIR/version.txt)"
+  else
+    localVersion="$localVersion"
+  fi
+  __curl "${1:-$REPORAW/master/version.txt}" || echo "$localVersion"
+}
+
+__required_version() {
+  if [ -f "$CASJAYSDEVDIR/version.txt" ]; then
+    local requiredVersion="${1:-$requiredVersion}"
+    local currentVersion="${APPVERSION:-$currentVersion}"
+    local rVersion="${requiredVersion//-git/}"
+    local cVersion="${currentVersion//-git/}"
+    if [ "$cVersion" -lt "$rVersion" ]; then
+      set -Ee
+      printf_exit 1 2 "Requires version higher than $rVersion\n"
+      exit 1
+    fi
+  fi
+}
+__required_version "020920211625-git"
+#[ "$installtype" = "devenvmgr_install" ] &&
+devenvmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "dfmgr_install" ] &&
+dfmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "dockermgr_install" ] &&
+dockermgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "fontmgr_install" ] &&
+fontmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "iconmgr_install" ] &&
+iconmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "pkmgr_install" ] &&
+pkmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "systemmgr_install" ] &&
+systemmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "thememgr_install" ] &&
+thememgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "wallpapermgr_install" ] &&
+wallpapermgr_req_version() { __required_version "$1"; }
 
 ###################### export and call functions ######################
 export -f __cd_into

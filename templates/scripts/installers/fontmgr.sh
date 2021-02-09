@@ -53,6 +53,9 @@ REPO="${FONTMGRREPO:-https://github.com/fontmgr/$APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Require a version higher than
+fontmgr_req_version "$APPVERSION"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the fontmgr function
 fontmgr_install
 fontmgr_run_init

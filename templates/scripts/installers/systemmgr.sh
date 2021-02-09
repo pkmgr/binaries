@@ -53,6 +53,9 @@ REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr/$APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Require a version higher than
+systemmgr_req_version "$APPVERSION"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the systemmgr function
 systemmgr_install
 systemmgr_run_init

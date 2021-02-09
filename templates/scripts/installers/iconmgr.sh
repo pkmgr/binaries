@@ -53,6 +53,9 @@ REPO="${ICONMGRREPO:-https://github.com/iconmgr/$APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Require a version higher than
+iconmgr_req_version "$APPVERSION"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the iconmgr function
 iconmgr_install
 iconmgr_run_init

@@ -1,26 +1,38 @@
 #!/usr/bin/env bash
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : app-installer.bash
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : installer functions for apps
-#
+APPNAME="${APPNAME:-app-installer}"
+FUNCFILE="app-installer.bash"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020920211625-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : README.md
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Feb 09, 2021 17:17 EST
+# @File          : app-installer.bash
+# @Description   : Installer functions for apps
+# @TODO          : Refactor code - It is a mess
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+
+# Versioning Info - __required_version "VersionNumber"
+localVersion="${localVersion:-020920211703-git}"
+requiredVersion="${requiredVersion:-020920211703-git}"
+currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
 TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:$PATH"
-
-APPNAME="${APPNAME:-app-installer}"
-
-set -o pipefail
-trap '' ERR EXIT
-
 export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 export TMP="${TMP:-/tmp}"
@@ -120,7 +132,7 @@ ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
 
 ##################################################################################################
-
+set -o pipefail
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
 printf_green() { printf_color "$1" 2; }
@@ -281,7 +293,6 @@ notifications() {
 
 ##################################################################################################
 __curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
-__appversion() { __curl "${1:-$REPORAW/master/version.txt}" || echo 012420211755-git; }
 
 die() { echo -e "$1" exit ${2:9999}; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
@@ -727,10 +738,10 @@ crontab_add() {
 ##################################################################################################
 
 versioncheck() {
-  if [ -f "$APPDIR/version.txt" ]; then
+  if [ -f "$INSTDIR/version.txt" ]; then
     printf_green "\t\tChecking for updates\n"
     local NEWVERSION="$(echo $APPVERSION | grep -v "#" | tail -n 1)"
-    local OLDVERSION="$(cat $APPDIR/version.txt | grep -v "#" | tail -n 1)"
+    local OLDVERSION="$(cat $INSTDIR/version.txt | grep -v "#" | tail -n 1)"
     if [ "$NEWVERSION" == "$OLDVERSION" ]; then
       printf_green "\t\tNo updates available current\n\t\tversion is $OLDVERSION\n"
     else
@@ -740,8 +751,8 @@ versioncheck() {
       read -n 1 -s choice
       echo ""
       if [[ $choice == "y" || $choice == "Y" ]]; then
-        [ -f "$APPDIR/install.sh" ] && bash -c "$APPDIR/install.sh" && echo ||
-          cd $APPDIR && git pull -q &&
+        [ -f "$INSTDIR/install.sh" ] && bash -c "$INSTDIR/install.sh" && echo ||
+          git -C "$INSTDIR" pull -q &&
           printf_green "\t\tUpdated to $NEWVERSION\n" ||
           printf_red "\t\tFailed to update\n"
       else
@@ -1463,7 +1474,7 @@ show_optvars() {
     #    elif cmd_exists open; then
     #      open "$REPO/$APPNAME"
     #    else
-    printf_cyan "\t\tGo to $REPO/$APPNAME for help"
+    printf_cyan "\t\tGo to $REPO/$APPNAME for help\n\n"
     #    fi
     exit
   fi
@@ -2027,23 +2038,25 @@ wallpapermgr_install_version() {
 
 ##################################################################################################
 
-run_install_init() {
-  if [ "$mgr_init" != "true" ]; then
-    printf "\n"
-    printf_yellow "\t\tInitializing the installer from\n"
-    if [ -f "$INSTDIR/install.sh" ]; then
-      printf_purple "\t\t${INSTDIR//$HOME/'~'}/install.sh\n"
-    else
-      printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-      printf_purple "\t\t$REPORAW/install.sh\n"
+if [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
+  run_install_init() {
+    if [ "$mgr_init" != "true" ]; then
+      printf "\n"
+      printf_yellow "\t\tInitializing the installer from\n"
+      if [ -f "$INSTDIR/install.sh" ]; then
+        printf_purple "\t\t${INSTDIR//$HOME/'~'}/install.sh\n"
+      else
+        printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
+        printf_purple "\t\t$REPORAW/install.sh\n"
+      fi
+      if [ -d "$APPDIR" ]; then
+        printf_green "\t\tUpdating ${1:-configurations} in ${APPDIR//$HOME/'~'}\n"
+      else
+        printf_green "\t\tInstalling ${1:-configurations} to ${APPDIR//$HOME/'~'}\n"
+      fi
     fi
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating ${1:-configurations} in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling ${1:-configurations} to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
-}
+  }
+fi
 
 run_install_list() {
   if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
@@ -2193,6 +2206,49 @@ vdebug() {
     printf_custom "4" $path
   done
 }
+##################################################################################################
+# Versioning
+__appversion() {
+  if [ -f "$INSTDIR/version.txt" ]; then
+    local localVersion="$(<$INSTDIR/version.txt)"
+  else
+    local localVersion="$localVersion"
+  fi
+  __curl "${1:-$REPORAW/master/version.txt}" || echo "$localVersion"
+}
+
+__required_version() {
+  if [ -f "$CASJAYSDEVDIR/version.txt" ]; then
+    local requiredVersion="${1:-$requiredVersion}"
+    local currentVersion="${APPVERSION:-$currentVersion}"
+    local rVersion="${requiredVersion//-git/}"
+    local cVersion="${currentVersion//-git/}"
+    if [ "$cVersion" -lt "$rVersion" ]; then
+      set -Ee
+      printf_exit 1 2 "Requires version higher than $rVersion\n"
+      exit 1
+    fi
+  fi
+}
+__required_version "020920211625-git"
+#[ "$installtype" = "devenvmgr_install" ] &&
+devenvmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "dfmgr_install" ] &&
+dfmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "dockermgr_install" ] &&
+dockermgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "fontmgr_install" ] &&
+fontmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "iconmgr_install" ] &&
+iconmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "pkmgr_install" ] &&
+pkmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "systemmgr_install" ] &&
+systemmgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "thememgr_install" ] &&
+thememgr_req_version() { __required_version "$1"; }
+#[ "$installtype" = "wallpapermgr_install" ] &&
+wallpapermgr_req_version() { __required_version "$1"; }
 
 ##################################################################################################
 # if [ "$*" = "--vdebug" ]; then

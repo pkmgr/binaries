@@ -60,6 +60,9 @@ APPVERSION="$(__appversion $REPORAW/master/version.txt)"
 PLUGNAMES=""
 PLUGDIR="${SHARE:-$HOME/.local/share}/$APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Require a version higher than
+devenvmgr_req_version "$APPVERSION"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the devenvmgr function
 devenvmgr_install
 devenvmgr_run_init

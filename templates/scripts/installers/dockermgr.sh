@@ -51,6 +51,9 @@ REPO="${DOCKERMGRREPO:-https://github.com/dockermgr/$APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion $REPORAW/master/version.txt)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Require a version higher than
+dockermgr_req_version "$APPVERSION"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the dockermgr function
 dockermgr_install
 dockermgr_run_init
