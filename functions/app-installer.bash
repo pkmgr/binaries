@@ -2206,6 +2206,23 @@ run_postinst_global() {
     fi
   fi
 
+  if [ -d "$INSTDIR/theme" ]; then
+    local theme="$(ls "$INSTDIR/theme" 2>/dev/null | wc -l)"
+    if [ "$theme" != "0" ]; then
+      fFiles="$(ls $INSTDIR/theme --ignore='.uuid')"
+      for f in $fFiles; do
+        ln_sf "$INSTDIR/theme/$f" "$THEMEDIR/$f"
+        find "$THEMEDIR/$f" -mindepth 1 -maxdepth 1 -type d | while read -r THEME; do
+          if [ -f "$THEME/index.theme" ]; then
+            cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
+          fi
+        done
+      done
+    fi
+    ln_rm "$THEMEDIR/"
+    return 0
+  fi
+
   # Permission fix
   ensure_perms
 }
