@@ -1719,15 +1719,7 @@ devenvmgr_install() {
   export installtype="devenvmgr_install"
   ######## Installer Functions ########
   devenvmgr_run_init() {
-    local mgr_init="${mgr_init:-}"
-    if [ "$mgr_init" != "true" ]; then
-      printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/\n"
-      if [ -d "$APPDIR" ]; then
-        printf_green "\t\tUpdating packages in ${APPDIR//$HOME/'~'}\n"
-      else
-        printf_green "\t\tInstalling packages to ${APPDIR//$HOME/'~'}\n"
-      fi
-    fi
+    mgr_init="${mgr_init:-}" run_install_init "dev enviroment"
   }
 
   devenvmgr_run_post() {
@@ -1761,15 +1753,7 @@ dfmgr_install() {
 }
 ######## Installer Functions ########
 dfmgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating configurations in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling configurations to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "configurations"
 }
 
 dfmgr_run_post() {
@@ -1806,15 +1790,7 @@ dockermgr_install() {
 }
 ######## Installer Functions ########
 dockermgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating files in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling files to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "docker configurations"
 }
 
 dockermgr_run_post() {
@@ -1849,15 +1825,7 @@ fontmgr_install() {
 }
 ######## Installer Functions ########
 fontmgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating fonts in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling fonts to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "fonts"
 }
 
 fontmgr_run_post() {
@@ -1892,15 +1860,7 @@ iconmgr_install() {
 }
 ######## Installer Functions ########
 iconmgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating icons in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling icons to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "icons"
 }
 
 iconmgr_run_post() {
@@ -1941,15 +1901,7 @@ pkmgr_install() {
 }
 ######## Installer Functions ########
 pkmgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating packages in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling packages to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "packages"
 }
 
 pkmgr_run_post() {
@@ -1985,15 +1937,7 @@ systemmgr_install() {
 }
 ######## Installer Functions ########
 systemmgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating files in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling files to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "configurations"
 }
 systemmgr_run_post() {
   systemmgr_install
@@ -2030,15 +1974,7 @@ generate_theme_index() {
 }
 ######## Installer Functions ########
 thememgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating theme in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling theme to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "theme"
 }
 thememgr_run_post() {
   thememgr_install
@@ -2072,15 +2008,7 @@ wallpapermgr_install() {
 }
 ######## Installer Functions ########
 wallpapermgr_run_init() {
-  local mgr_init="${mgr_init:-}"
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-    if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating wallpapers in ${APPDIR//$HOME/'~'}\n"
-    else
-      printf_green "\t\tInstalling wallpapers to ${APPDIR//$HOME/'~'}\n"
-    fi
-  fi
+  mgr_init="${mgr_init:-}" run_install_init "wallpapers"
 }
 wallpapermgr_run_post() {
   wallpapermgr_install
@@ -2100,15 +2028,21 @@ wallpapermgr_install_version() {
 ##################################################################################################
 
 run_install_init() {
-  if urlcheck "$REPO/$1/raw/master/install.sh"; then
+  if [ "$mgr_init" != "true" ]; then
+    printf "\n"
     printf_yellow "\t\tInitializing the installer from\n"
-    printf_purple "$REPO/$1"
-    bash -c "$(curl -LSs $REPO/$1/raw/master/install.sh)"
-    getexitcode "$1 has been installed"
-  else
-    urlinvalid "$REPO/$1/raw/master/install.sh"
+    if [ -f "$INSTDIR/install.sh" ]; then
+      printf_purple "\t\t${INSTDIR//$HOME/'~'}/install.sh\n"
+    else
+      printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
+      printf_purple "\t\t$REPORAW/install.sh\n"
+    fi
+    if [ -d "$APPDIR" ]; then
+      printf_green "\t\tUpdating ${1:-configurations} in ${APPDIR//$HOME/'~'}\n"
+    else
+      printf_green "\t\tInstalling ${1:-configurations} to ${APPDIR//$HOME/'~'}\n"
+    fi
   fi
-  echo ""
 }
 
 run_install_list() {
