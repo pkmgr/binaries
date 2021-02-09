@@ -1130,9 +1130,9 @@ os_support() {
 }
 
 supported_os() {
-for OSes in "$@"; do
-if_os $OSes || printf_exit 1 1 "Your os is not supported"
-done
+  for OSes in "$@"; do
+    if_os $OSes || printf_exit 1 1 "Your os is not supported"
+  done
 }
 
 unsupported_oses() {
@@ -1941,6 +1941,7 @@ thememgr_install() {
   REPORAW="$THEMEMGRREPO/$APPNAME/raw"
   APPDIR="$SHARE/themes/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  THEMEDIR="${THEMEDIR:-$SHARE/themes}/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
@@ -1949,7 +1950,6 @@ thememgr_install() {
 
 generate_theme_index() {
   thememgr_install
-  THEMEDIR="${THEMEDIR:-$SHARE/themes}"
   sudo find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
     if [ -f "$THEME/index.theme" ]; then
       cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
