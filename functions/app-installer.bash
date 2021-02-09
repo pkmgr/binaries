@@ -1621,8 +1621,8 @@ install_version() {
 devenvmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="devenv"
-  REPO="$DEVENVMGRREPO/$APPNAME"
-  REPORAW="$DEVENVMGRREPO/$APPNAME/raw"
+  REPO="$DEVENVMGRREPO"
+  REPORAW="$DEVENVMGRREPO/raw"
   APPDIR="$SHARE/$SCRIPTS_PREFIX/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1667,8 +1667,8 @@ devenvmgr_install() {
 dfmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dfmgr"
-  REPO="$DFMGRREPO/$APPNAME"
-  REPORAW="$DFMGRREPO/$APPNAME/raw"
+  REPO="$DFMGRREPO"
+  REPORAW="$DFMGRREPO/raw"
   APPDIR="$CONF/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1711,8 +1711,8 @@ dockermgr_install() {
   user_installdirs
   cmd_exists docker || printf_exit 1 1 "This requires docker, however docker wasn't found"
   SCRIPTS_PREFIX="dockermgr"
-  REPO="$DOCKERMGRREPO/$APPNAME"
-  REPORAW="$DOCKERMGRREPO/$APPNAME/raw"
+  REPO="$DOCKERMGRREPO"
+  REPORAW="$DOCKERMGRREPO/raw"
   APPDIR="$SHARE/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   DATADIR="${SHARE/docker/data/$APPNAME:-/srv/docker/$APPNAME}"
@@ -1754,8 +1754,8 @@ dockermgr_install_version() {
 fontmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="fontmgr"
-  REPO="$FONTMGRREPO/$APPNAME"
-  REPORAW="$FONTMGRREPO/$APPNAME/raw"
+  REPO="$FONTMGRREPO"
+  REPORAW="$FONTMGRREPO/raw"
   APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1800,8 +1800,8 @@ fontmgr_install_version() {
 iconmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="iconmgr"
-  REPO="$ICONMGRREPO/$APPNAME"
-  REPORAW="$ICONMGRREPO/$APPNAME/raw"
+  REPO="$ICONMGRREPO"
+  REPORAW="$ICONMGRREPO/raw"
   APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1852,8 +1852,8 @@ generate_icon_index() {
 pkmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="pkmgr"
-  REPO="$PKMGRREPO/$APPNAME"
-  REPORAW="$PKMGRREPO/$APPNAME/raw"
+  REPO="$PKMGRREPO"
+  REPORAW="$PKMGRREPO/raw"
   APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1895,8 +1895,8 @@ systemmgr_install() {
   requiresudo "true"
   system_installdirs
   SCRIPTS_PREFIX="systemmgr"
-  REPO="$SYSTEMMGRREPO/$APPNAME"
-  REPORAW="$SYSTEMMGRREPO/$APPNAME/raw"
+  REPO="$SYSTEMMGRREPO"
+  REPORAW="$SYSTEMMGRREPO/raw"
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
   APPDIR="/usr/local/etc/$APPNAME"
@@ -1937,8 +1937,8 @@ systemmgr_install_version() {
 thememgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="thememgr"
-  REPO="$THEMEMGRREPO/$APPNAME"
-  REPORAW="$THEMEMGRREPO/$APPNAME/raw"
+  REPO="$THEMEMGRREPO"
+  REPORAW="$THEMEMGRREPO/raw"
   APPDIR="$SHARE/themes/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}/$APPNAME"
@@ -1989,8 +1989,8 @@ thememgr_install_version() {
 wallpapermgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="wallpapermgr"
-  REPO="$WALLPAPERMGRREPO/$APPNAME"
-  REPORAW="$WALLPAPERMGRREPO/$APPNAME/raw"
+  REPO="$WALLPAPERMGRREPO"
+  REPORAW="$WALLPAPERMGRREPO/raw"
   APPDIR="$SHARE/wallpapers/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
