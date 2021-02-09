@@ -1616,6 +1616,89 @@ install_version() {
   fi
 }
 
+__install_fonts() {
+  if [ -d "$INSTDIR/fontconfig" ]; then
+    local fontconfdir="$FONTCONF"
+    local fontconf="$(ls $INSTDIR/fontconfig 2>/dev/null | wc -l)"
+    if [ "$fontconf" != "0" ]; then
+      fcFiles="$(ls $INSTDIR/fontconfig)"
+      for fc in $fcFiles; do
+        ln_sf "$INSTDIR/fontconfig/$fc" "$fontconfdir/$fc"
+      done
+    fi
+  fi
+
+  if [ -d "$INSTDIR/fonts" ]; then
+    [ -d "$HOME/Library/Fonts" ] && local fontdir="$HOME/Library/Fonts" || local fontdir="$FONTDIR"
+    ln_sf "$INSTDIR/fonts" "$fontdir/$APPNAME"
+    cmd_exists fc-cache && fc-cache -f "$FONTCONF"
+    cmd_exists fc-cache && fc-cache -f "$FONTDIR"
+    return 0
+  fi
+}
+
+__install_icons() {
+  if [ -d "$INSTDIR/icons" ]; then
+    local icondir="$ICONDIR"
+    local icons="$(ls "$INSTDIR/icons" 2>/dev/null | wc -l)"
+    if [ "$icons" != "0" ]; then
+      fFiles="$(ls $INSTDIR/icons --ignore='.uuid')"
+      for f in $fFiles; do
+        ln_sf "$INSTDIR/icons/$f" "$icondir/$f"
+        find "$ICONDIR/$f" -mindepth 1 -maxdepth 1 -type d | while read -r ICON; do
+          if [ -f "$ICON/index.theme" ]; then
+            cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$ICON"
+          fi
+        done
+      done
+    fi
+  fi
+  devnull find "$ICONDIR" -type d -exec chmod 755 {} \;
+  devnull find "$ICONDIR" -type f -exec chmod 644 {} \;
+  cmd_exists gtk-update-icon-cache && devnull gtk-update-icon-cache -q -t -f "$ICONDIR"
+  return 0
+}
+
+__install_theme() {
+  if [ -d "$INSTDIR/theme" ]; then
+    local themedir="$THEMEDIR"
+    local theme="$(ls "$INSTDIR/theme" 2>/dev/null | wc -l)"
+    if [ "$theme" != "0" ]; then
+      fFiles="$(ls $INSTDIR/theme --ignore='.uuid')"
+      for f in $fFiles; do
+        ln_sf "$INSTDIR/theme/$f" "$themedir/$f"
+        find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d | while read -r THEME; do
+          if [ -f "$THEME/index.theme" ]; then
+            cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
+          fi
+        done
+      done
+    fi
+    ln_rm "$THEMEDIR"
+  fi
+  find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
+    if [ -f "$THEME/index.theme" ]; then
+      cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
+    fi
+  done
+  return 0
+}
+
+__install_wallpapers() {
+  if [ -d "$INSTDIR/images" ]; then
+    local wallpapers="$(ls $INSTDIR/images/ 2>/dev/null | wc -l)"
+    if [ "$wallpapers" != "0" ]; then
+      if [ "$INSTDIR" != "$APPDIR" ] && [ -e "$APPDIR" ]; then rm_rf "$APPDIR"; fi
+      mkd "$APPDIR"
+      wallpaperFiles="$(ls $INSTDIR/images/)"
+      for wallpaper in $wallpaperFiles; do
+        ln_sf "$INSTDIR/images/$wallpaper" "$APPDIR/$wallpaper"
+      done
+    fi
+  fi
+  return 0
+}
+
 ##################################################################################################
 ###################### devenv settings ######################
 devenvmgr_install() {
@@ -1680,11 +1763,11 @@ dfmgr_install() {
 pkmgrmgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating configurations in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating configurations in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling configurations to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling configurations to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
@@ -1725,11 +1808,11 @@ dockermgr_install() {
 dockermgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating files in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating files in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling files to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling files to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
@@ -1756,7 +1839,7 @@ fontmgr_install() {
   SCRIPTS_PREFIX="fontmgr"
   REPO="$FONTMGRREPO"
   REPORAW="$FONTMGRREPO/raw"
-  APPDIR="$SHARE/fonts/$APPNAME"
+  APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1768,11 +1851,11 @@ fontmgr_install() {
 fontmgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating fonts in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating fonts in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling fonts to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling fonts to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
@@ -1780,10 +1863,7 @@ fontmgr_run_init() {
 fontmgr_run_post() {
   fontmgr_install
   run_postinst_global
-  if [ -d "$HOME/Library/Fonts" ] && [ -d "$INSTDIR/fonts" ]; then
-    ln_sf "$INSTDIR/fonts" "$HOME/Library/Fonts"
-  fi
-  fc-cache -f "$ICONDIR"
+  __install_fonts
 }
 
 fontmgr_install_version() {
@@ -1802,7 +1882,7 @@ iconmgr_install() {
   SCRIPTS_PREFIX="iconmgr"
   REPO="$ICONMGRREPO"
   REPORAW="$ICONMGRREPO/raw"
-  APPDIR="$SHARE/icons/$APPNAME"
+  APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1814,11 +1894,11 @@ iconmgr_install() {
 iconmgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating icons in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating icons in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling icons to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling icons to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
@@ -1826,10 +1906,7 @@ iconmgr_run_init() {
 iconmgr_run_post() {
   iconmgr_install
   run_postinst_global
-  [ -d "$ICONDIR" ] || ln_sf "$APPDIR" "$ICONDIR"
-  devnull sudo find "$ICONDIR" -type d -exec chmod 755 {} \;
-  devnull sudo find "$ICONDIR" -type f -exec chmod 644 {} \;
-  devnull sudo gtk-update-icon-cache -q -t -f "$ICONDIR"
+  __install_fonts
 }
 
 iconmgr_install_version() {
@@ -1844,7 +1921,7 @@ iconmgr_install_version() {
 generate_icon_index() {
   iconmgr_install
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  fc-cache -f "$ICONDIR"
+  cmd_exists fc-cache && fc-cache -f "$ICONDIR"
 }
 
 ##################################################################################################
@@ -1866,11 +1943,11 @@ pkmgr_install() {
 pkmgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating packages in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating packages in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling packages to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling packages to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
@@ -1910,11 +1987,11 @@ systemmgr_install() {
 systemmgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating files in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating files in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling files to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling files to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
@@ -1939,7 +2016,7 @@ thememgr_install() {
   SCRIPTS_PREFIX="thememgr"
   REPO="$THEMEMGRREPO"
   REPORAW="$THEMEMGRREPO/raw"
-  APPDIR="$SHARE/themes/$APPNAME"
+  APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1950,28 +2027,23 @@ thememgr_install() {
 
 generate_theme_index() {
   thememgr_install
-  sudo find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
-    if [ -f "$THEME/index.theme" ]; then
-      cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
-    fi
-  done
 }
 ######## Installer Functions ########
 thememgr_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating theme in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating theme in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling theme to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling theme to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
 thememgr_run_post() {
   thememgr_install
   run_postinst_global
-  [ -d "$THEMEDIR" ] && [ ! -L "$APPDIR" ] || ln_sf "$APPDIR" "$THEMEDIR"
+  __install_theme
   generate_theme_index
 }
 
@@ -2002,27 +2074,17 @@ wallpapermgr_install() {
 wallpaper_run_init() {
   local mgr_init="${mgr_init:-}"
   if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}/$APPNAME\n"
+    printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating wallpapers in ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tUpdating wallpapers in ${APPDIR//$HOME/'~'}\n"
     else
-      printf_green "\t\tInstalling wallpapers to ${APPDIR//$HOME/'~'}/$APPNAME\n"
+      printf_green "\t\tInstalling wallpapers to ${APPDIR//$HOME/'~'}\n"
     fi
   fi
 }
 wallpapermgr_run_post() {
   wallpapermgr_install
-  if [ -d "$INSTDIR/images" ]; then
-    local wallpapers="$(ls $INSTDIR/images/ 2>/dev/null | wc -l)"
-    if [ "$wallpapers" != "0" ]; then
-      if [ "$INSTDIR" != "$APPDIR" ] && [ -e "$APPDIR" ]; then rm_rf "$APPDIR"; fi
-      mkd "$APPDIR"
-      wallpaperFiles="$(ls $INSTDIR/images/)"
-      for wallpaper in $wallpaperFiles; do
-        ln_sf "$INSTDIR/images/$wallpaper" "$APPDIR/$wallpaper"
-      done
-    fi
-  fi
+  __install_wallpapers
   run_postinst_global
 }
 
@@ -2161,68 +2223,10 @@ run_postinst_global() {
       fi
       ln_rm "$SHARE/applications/"
     fi
-
-    if [ -d "$INSTDIR/fontconfig" ]; then
-      local fontconf="$(ls $INSTDIR/fontconfig 2>/dev/null | wc -l)"
-      if [ "$fontconf" != "0" ]; then
-        fcFiles="$(ls $INSTDIR/fontconfig)"
-        for fc in $fcFiles; do
-          ln_sf "$INSTDIR/fontconfig/$fc" "$FONTCONF/$fc"
-        done
-      fi
-      ln_rm "$FONTCONF/"
-      cmd_exists fc-cache && fc-cache -f "$FONTCONF"
-      return 0
-    fi
-
-    if [ -d "$INSTDIR/fonts" ]; then
-      local font="$(ls "$INSTDIR/fonts" 2>/dev/null | wc -l)"
-      if [ "$font" != "0" ]; then
-        fFiles="$(ls $INSTDIR/fonts --ignore='.conf' --ignore='.uuid')"
-        for f in $fFiles; do
-          ln_sf "$INSTDIR/fonts/$f" "$FONTDIR/$f"
-        done
-      fi
-      ln_rm "$FONTDIR/"
-      cmd_exists fc-cache && fc-cache -f "$FONTDIR"
-      return 0
-    fi
-
-    if [ -d "$INSTDIR/icons" ]; then
-      local icons="$(ls "$INSTDIR/icons" 2>/dev/null | wc -l)"
-      if [ "$icons" != "0" ]; then
-        fFiles="$(ls $INSTDIR/icons --ignore='.uuid')"
-        for f in $fFiles; do
-          ln_sf "$INSTDIR/icons/$f" "$ICONDIR/$f"
-          find "$ICONDIR/$f" -mindepth 1 -maxdepth 1 -type d | while read -r ICON; do
-            if [ -f "$ICON/index.theme" ]; then
-              cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$ICON"
-            fi
-          done
-        done
-      fi
-      ln_rm "$ICONDIR/"
-      return 0
-    fi
+    [ "$installtype" = "fontmgr_install" ] || __install_fonts
+    [ "$installtype" = "iconmgr_install" ] || __install_icons
+    [ "$installtype" = "thememgr_install" ] || __install_theme
   fi
-
-  if [ -d "$INSTDIR/theme" ]; then
-    local theme="$(ls "$INSTDIR/theme" 2>/dev/null | wc -l)"
-    if [ "$theme" != "0" ]; then
-      fFiles="$(ls $INSTDIR/theme --ignore='.uuid')"
-      for f in $fFiles; do
-        ln_sf "$INSTDIR/theme/$f" "$THEMEDIR/$f"
-        find "$THEMEDIR/$f" -mindepth 1 -maxdepth 1 -type d | while read -r THEME; do
-          if [ -f "$THEME/index.theme" ]; then
-            cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
-          fi
-        done
-      done
-    fi
-    ln_rm "$THEMEDIR/"
-    return 0
-  fi
-
   # Permission fix
   ensure_perms
 }
@@ -2231,7 +2235,7 @@ run_postinst_global() {
 
 run_exit() {
   local mgr_init="${mgr_init:-}"
-  [ -d "$INSTDIR" ]
+  [ -e "$INSTDIR/$APPNAME" ] || rm_rf "$INSTDIR/$APPNAME"
   if [ -d "$APPDIR" ] && [ ! -f "$APPDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed" 2>/dev/null
   fi
