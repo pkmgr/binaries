@@ -90,10 +90,10 @@ main() {
   local curdate="$(date +"${DATE_FORMAT:-$datefmt}")"
   local filenameformate="${FILENAME_FORMAT:-$curdate}"
   local logfilenameformat="${LOGNAME_FORMAT:-$curdate}"
-  local logfilenameextension="${LOGFILE_EXTENSION:-.log}"
+  local logfilenameextension="${LOGFILE_EXTENSION:-log}"
   local backupdir="${BACKUP_DIR:-$HOME/.local/backups/apps}"
   local notifyEnabled="${NOTIFY_ENABLED:-yes}"
-  local leaveCount="${KEEP_AMOUNT:-5}"
+  local leaveCount="${KEEP_AMOUNT:-14}"
   local icon_good="${BICON_GOOD:-🆗}"
   local icon_warn="${BICON_WARN:-⚠️}"
   local icon_error="${BICON_ERROR:-✖}"
@@ -131,8 +131,8 @@ main() {
   removeoldbackups=$(ls $backupdir/$appname*.tar.gz 2>/dev/null)
   tailCount=$((fileCount - leaveCount))
   if [ "$fileCount" -gt "$leaveCount" ] && [ $leaveCount -ne 0 ]; then
-    ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
-    ls -t $logremoveoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+    [ -z "$leaveCount" ] || ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+    [ -z "$leaveCount" ] || ls -t $logremoveoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
   fi
   return $exitCode
 }
