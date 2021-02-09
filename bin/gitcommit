@@ -345,7 +345,7 @@ else
   printf_yellow "$mess"
   [ -f "$versionfile" ] && __version
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
-    cp -Rf "$gitdir/gitmasterconfig" "$gitdir/git/config"
+    cp -Rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
   fi
   if [ -z "$files" ]; then git -C "$gitdir" add . >/dev/null 2>&1; fi
   if [ -z "$mess" ]; then

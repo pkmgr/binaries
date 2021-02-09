@@ -37,15 +37,13 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the main function
 user_installdirs
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the dockermgr function
 dockermgr_install
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup
 mkdir -p "$DATADIR"/{data,config} && chmod -Rf 777 "$DATADIR"
-
+#
 if docker ps -a | grep "REPLACE_APPNAME" >/dev/null 2>&1; then
   docker pull template && docker restart "REPLACE_APPNAME"
 else
@@ -58,3 +56,10 @@ else
     -v "$DATADIR/data":/template/data \
     template
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# create version file
+dockermgr_install_version
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# exit
+run_exit
+# end

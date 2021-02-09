@@ -37,15 +37,12 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the main function
 user_installdirs
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # OS Support: supported_os unsupported_oses
 unsupported_oses
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Make sure the scripts repo is installed
 scripts_check
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-REPLACE_APPNAME}"
@@ -54,29 +51,23 @@ INSTDIR="${INSTDIR}"
 REPO="${dfmgrREPO:-https://github.com/dfmgr}/${APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion $REPORAW/master/version.txt)"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
 PLUGNAMES=""
 PLUGDIR="${SHARE:-$HOME/.local/share}/$APPNAME"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the dfmgr function
 dfmgr_install
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help --version
 show_optvars "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Do not update
 #installer_noupdate
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Requires root - no point in continuing
 #sudoreq  # sudo required
 #sudorun  # sudo optional
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end with a space
 APP="$APPNAME "
@@ -115,59 +106,45 @@ dotfilesreqadmin
 # Ensure directories exist
 ensure_dirs
 ensure_perms
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
 if [ -d "$APPDIR" ]; then
   execute "backupapp $APPDIR $APPNAME" "Backing up $APPDIR"
 fi
 
-if [ -d "$INSTDIR/.git" ]; then
-  execute \
-    "git_update $INSTDIR" \
-    "Updating $APPNAME configurations"
-else
-  execute \
-    "git_clone $REPO/$APPNAME $INSTDIR" \
-    "Installing $APPNAME configurations"
+if __am_i_online; then
+  if [ -d "$INSTDIR/.git" ]; then
+    execute "git_update $INSTDIR" "Updating $APPNAME configurations"
+  else
+    execute "git_clone $REPO/$APPNAME $INSTDIR" "Installing $APPNAME configurations"
+  fi
+  # exit on fail
+  failexitcode $? "Git has failed"
 fi
-
-# exit on fail
-failexitcode
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Plugins
 if __am_i_online; then
   if [ "$PLUGNAMES" != "" ]; then
     if [ -d "$PLUGDIR"/PLUREP/.git ]; then
-      execute \
-        "git_update $PLUGDIR/PLUGREP" \
-        "Updating plugin PLUGNAME"
+      execute "git_update $PLUGDIR/PLUGREP" "Updating plugin PLUGNAME"
     else
-      execute \
-        "git_clone PLUGINREPO $PLUGDIR/PLUGREP" \
-        "Installing plugin PLUGREP"
+      execute
+      "git_clone PLUGINREPO $PLUGDIR/PLUGREP" "Installing plugin PLUGREP"
     fi
   fi
-
   # exit on fail
-  failexitcode
+  failexitcode $? "Git has failed"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run post install scripts
 run_postinst() {
   dfmgr_run_post
 }
-
-execute \
-  "run_postinst" \
-  "Running post install scripts"
-
+#
+execute "run_postinst" "Running post install scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # create version file
 dfmgr_install_version
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # exit
 run_exit

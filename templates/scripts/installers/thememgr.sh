@@ -37,11 +37,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the main function
 system_installdirs
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Make sure the scripts repo is installed
 scripts_check
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-REPLACE_APPNAME}"
@@ -50,55 +48,38 @@ INSTDIR="${APPDIR}"
 REPO="${ICONMGRREPO:-https://github.com/iconmgr}/${APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the thememgr function
 thememgr_install
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Ensure directories exist
 ensure_dirs
 ensure_perms
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
-if [ -d "$APPDIR" ]; then
-  execute "backupapp $APPDIR $APPNAME" "Backing up $APPDIR"
+if __am_i_online; then
+  if [ -d "$INSTDIR/.git" ]; then
+    execute "git_update $INSTDIR" "Updating $APPNAME theme pack"
+  else
+    execute "git_clone $REPO/$APPNAME $INSTDIR" "Installing $APPNAME theme pack"
+  fi
+  # exit on fail
+  failexitcode $? "Git has failed"
 fi
-
-if [ -d "$APPDIR/.git" ]; then
-  execute \
-    "git_update $APPDIR" \
-    "Updating $APPNAME configurations"
-else
-  execute \
-    "git_clone $REPO/$APPNAME $APPDIR" \
-    "Installing $APPNAME configurations"
-fi
-
-# exit on fail
-failexitcode
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run post install scripts
 run_postinst() {
   thememgr_run_post
 }
-
-execute \
-  "run_postinst" \
-  "Running post install scripts"
-
+#
+execute "run_postinst" "Running post install scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # create version file
 thememgr_install_version
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # exit
 run_exit
-
 # end

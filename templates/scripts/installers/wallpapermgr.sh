@@ -50,59 +50,38 @@ INSTDIR="${INSTDIR:-SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
 REPO="${WALLPAPERMGRREPO}"
 REPORAW="$REPO/$APPNAME/raw"
 APPVERSION="$(__appversion "${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt")"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the wallpapermgr function
 wallpapermgr_install
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Script options IE: --help
 show_optvars "$@"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end with a space
-APP=""
-
-# install packages - useful for package that have the same name on all oses
-install_packages "$APP"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Ensure directories exist
 ensure_dirs
 ensure_perms
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main progam
 if __am_i_online; then
   if [ -d "$INSTDIR/.git" ]; then
-    execute \
-      "git_update $INSTDIR" \
-      "Updating $APPNAME wallpaper pack"
+    execute "git_update $INSTDIR" "Updating $APPNAME wallpaper pack"
   else
-    execute \
-      "git_clone -q $REPO/$APPNAME $INSTDIR" \
-      "Installing $APPNAME wallpaper pack"
+    execute "git_clone $REPO/$APPNAME $INSTDIR" "Installing $APPNAME wallpaper pack"
   fi
   # exit on fail
   failexitcode $? "Git has failed"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run post install scripts
 run_postinst() {
   wallpapermgr_run_post
 }
-
-execute \
-  "run_postinst" \
-  "Running post install scripts"
-
+#
+execute "run_postinst" "Running post install scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # create version file
 wallpapermgr_install_version
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # exit
 run_exit
-
 # end
