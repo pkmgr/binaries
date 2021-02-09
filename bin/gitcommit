@@ -135,7 +135,7 @@ version)
   if ! __git_porcelain "$gitdir"; then
     git -C "$gitdir" commit -q -S -m "$versionbump" "$gitdir/version.txt" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-  __getexitcode $exitCode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change in $gitdir"
+  __getexitcode $exitCode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change in ${gitdir//$PWD/.}"
   exit $?
   ;;
 
@@ -337,7 +337,7 @@ esac
 shift
 
 if __git_porcelain "$gitdir"; then
-  printf_red "There are no changes to commit in $gitdir"
+  printf_red "There are no changes to commit in ${gitdir//$PWD/.}"
   exit
 else
   printf_newline
@@ -353,7 +353,7 @@ else
   else
     git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-  __getexitcode $exitCode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes to $gitdir" &&
+  __getexitcode $exitCode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes to ${gitdir//$PWD/.}" &&
     printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" || exit 1
 
   if __am_i_online_err "No internet connection. Skipping push"; then
