@@ -77,6 +77,10 @@ BICON_ERROR="[ ✖ }"
   printf_blue "You can create per app setting by running backupapp config Name Directories"
 }
 
+__backupcmd() {
+  tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname" || return 1
+}
+
 main() {
   local e err appname appdir
   local appname="${1:-$_APPNAME}" && shift 1
@@ -95,7 +99,6 @@ main() {
   local icon_error="${BICON_ERROR:-✖}"
   local filename="$appname-$filenameformate.tar.gz"
   local logname="$appname-$logfilenameformat.$logfilenameextension"
-  __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname" || return 1; }
   [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Initializing backup of $appname"
   __execute "sleep 3" "Initializing"
   for e in $appdir; do [ -e "$e" ] || err="$e"; done
