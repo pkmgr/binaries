@@ -1774,8 +1774,8 @@ fontmgr_run_init() {
 fontmgr_run_post() {
   fontmgr_install
   run_postinst_global
-  if [ -d "$HOME/Library/Fonts" ] && [ -d "$APPDIR/fonts" ]; then
-    ln_sf "$APPDIR/fonts" "$HOME/Library/Fonts"
+  if [ -d "$HOME/Library/Fonts" ] && [ -d "$INSTDIR/fonts" ]; then
+    ln_sf "$INSTDIR/fonts" "$HOME/Library/Fonts"
   fi
   fc-cache -f "$ICONDIR"
 }
@@ -1784,8 +1784,8 @@ fontmgr_install_version() {
   fontmgr_install
   install_version
   mkdir -p "$CASJAYSDEVSAPPDIR/fontmgr" "$CASJAYSDEVSAPPDIR/fontmgr"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/fontmgr/$APPNAME"
+  if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+    ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/fontmgr/$APPNAME"
   fi
 }
 
