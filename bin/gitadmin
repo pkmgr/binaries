@@ -152,7 +152,7 @@ run_git_init() {
     if printf_answer_yes "$push"; then
       printf_read_question "3" "This will overwrite the repo if it exists. Continue? [y/n]" "1" "confirm_repo" "-s"
       if printf_answer_yes "$confirm_repo"; then
-        if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}gitmasterconfig" "${REPODIR}/.git/config"; fi
+        if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
         __devnull git -C "${REPODIR}" push -q --set-upstream origin master -f &&
           __devnull git -C "${REPODIR}" push -q -f &&
           printf_green "Successfully pushed to $repo" || printf_red "Push to $repo has failed"
