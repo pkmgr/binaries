@@ -2044,22 +2044,20 @@ wallpapermgr_install_version() {
 
 ##################################################################################################
 
-if [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
+if [ "$mgr_init" != "true" ] || [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
   run_install_init() {
-    if [ "$mgr_init" != "true" ]; then
-      printf "\n"
-      printf_yellow "\t\tInitializing the installer from\n"
-      if [ -f "$INSTDIR/install.sh" ]; then
-        printf_purple "\t\t${INSTDIR//$HOME/'~'}/install.sh\n"
-      else
-        printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-        printf_purple "\t\t$REPORAW/install.sh\n"
-      fi
-      if [ -d "$APPDIR" ]; then
-        printf_green "\t\tUpdating ${1:-configurations} in ${APPDIR//$HOME/'~'}\n"
-      else
-        printf_green "\t\tInstalling ${1:-configurations} to ${APPDIR//$HOME/'~'}\n"
-      fi
+    printf "\n"
+    printf_yellow "\t\tInitializing the installer from\n"
+    if [ -f "$INSTDIR/install.sh" ]; then
+      printf_purple "\t\t${INSTDIR//$HOME/'~'}/install.sh\n"
+    else
+      printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
+      printf_purple "\t\t$REPORAW/install.sh\n"
+    fi
+    if [ -d "$APPDIR" ]; then
+      printf_green "\t\tUpdating ${1:-configurations} in ${APPDIR//$HOME/'~'}\n"
+    else
+      printf_green "\t\tInstalling ${1:-configurations} to ${APPDIR//$HOME/'~'}\n"
     fi
   }
 fi

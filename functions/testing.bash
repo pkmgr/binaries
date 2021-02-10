@@ -2072,7 +2072,7 @@ __options() {
 run_install_init() {
   local exitCode
   local -a LISTARRAY="$*"
-  export mgr_init="true"
+  export mgr_init="${mgr_init:-true}"
   for ins in ${LISTARRAY[*]}; do
     if user_is_root; then
       printf_yellow "Initializing the installer from"
@@ -2105,7 +2105,7 @@ run_install_init() {
 
 run_install_update() {
   local exitCode
-  export mgr_init="true"
+  export mgr_init="${mgr_init:-true}"
   if [ $# = 0 ]; then
     if [[ -d "$USRUPDATEDIR " && -n "$(ls -A $USRUPDATEDIR)" ]]; then
       for upd in $(ls $USRUPDATEDIR); do
@@ -2263,7 +2263,7 @@ __required_version() {
     fi
   fi
 }
-__required_version "020920211625-git"
+__required_version "$requiredVersion"
 #[ "$installtype" = "devenvmgr_install" ] &&
 devenvmgr_req_version() { __required_version "$1"; }
 #[ "$installtype" = "dfmgr_install" ] &&
