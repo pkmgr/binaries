@@ -1,34 +1,44 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="todo"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : todo
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Setup a console base todo
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 020920212058-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : README.md
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Feb 09, 2021 22:13 EST
+# @File          : todo
+# @Description   : Setup a console base todo
+# @TODO          : Clean up code
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 unset TMUX
@@ -38,13 +48,8 @@ month="$(date +"%m")"
 year="$(date +"%Y")"
 day="$(date +"%d")"
 archive="$year/$month/$day.md"
-name="${1:-all}"
 title="Created on: $(date +"%B") $(date +"%d"), $year at $hour"
-filename="$name/index.md"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__mkd "$tododir/$name"
-
+__mkd $tododir/all
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
   if [ ! -f "$tododir/tmux.conf" ]; then
@@ -80,84 +85,64 @@ EOF
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__filename() {
+  cleaninput=${*// /\/}
+  name="${cleaninput:-all}"
+  file="${name//$tododir/name}index.md"
+  filename=${file//tododir/$file}
+  printf_debug $filename $name
+}
+__run_tmux() {
+  local name="$name"
+  local filename="$filename"
+  if [ ! -f "$filename" ]; then
+    local title="TODO for $name: $title"
+    __mkd "$tododir/$name"
+    printf "$title\n\n" >"$filename"
+  fi
+  printf_debug $tododir/$filename $name
+  __tmux "$tododir/$filename"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s scratchpad "vim $1" &>/dev/null; }
-__open() {
-  filepath="$(__get_full_file "$1")"
-  filename="$tododir/${1//$tododir/$filename}"
-  run_tmux "$filename"
-}
-todo() {
-  run_git() {
-    cd "$tododir" &&
-      if [ -d "$tododir/.git" ]; then gitcommit todo; else git init . &>/dev/null && gitcommit todo; fi ||
-      exit $?
-  }
-  run_tmux() {
-    if [ -f "$1" ]; then
-      local filename="$1"
-    else
-      local title="TODO for $name: $title"
-      local filename="${2:-$filename}"
-    fi
-    if [ ! -f "$filename" ]; then
-      echo -e "$title\n\n" >"$filename"
-    fi
-    __tmux "$filename"
-  }
-
-  case "$1" in
-
-  list | l)
-    shift 1
-    if [ -d "$tododir" ]; then
-      __find "$tododir" -iname "*.md" | sed 's#'$tododir/'##g'
-    else
-      printf_exit "No todos exist for this month in: $tododir/$name"
-    fi
-    ;;
-
-  archive)
-    shift 1
-    mv -f "$tododir/$name" "$tododir/$archive"
-    ;;
-
-  # mv)
-  #   shift 1
-  #   ls "$tododir/$name" | printf_read "3"
-  #   #mv -f "$tododir/$1" "$tododir/$2"
-  #   ;;
-
-  open | o)
-    shift 1
-    __open "$1"
-    ;;
-
-  git)
-    shift 1
-    run_git
-    ;;
-
-  *)
-    if [ -n "$1" ]; then
-      __open "$1"
-    else
-      run_tmux "$tododir/$filename"
-    fi
-    ;;
-
-  esac
-
-}
+__run_git() { if [ -d "$tododir/.git" ]; then gitcommit "$tododir" todo; else gitadmin "$tododir" setup; fi; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case "$1" in
 
-main() {
-  tmux_conf
-  todo "$@"
-}
+*git)
+  shift 1
+  __run_git
+  ;;
 
+*list | *l)
+  shift 1
+  if [ "$(__count_files $tododir/*)" -ne 0 ]; then
+    __find "$tododir" -iname "*.md" | sed 's#'$tododir/'##g'
+  else
+    printf_exit "No todos exist in: $tododir"
+  fi
+  ;;
+
+*archive)
+  shift 1
+  __filename "$*"
+  mv -f "$name" "$tododir/$archive"
+  ;;
+
+*open | *o)
+  shift 1
+  __filename "$*"
+  __run_tmux "$filename"
+  ;;
+
+*)
+  __filename "$*"
+  __run_tmux "$filename"
+  ;;
+
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

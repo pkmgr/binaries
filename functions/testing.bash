@@ -388,8 +388,10 @@ printf_counter() {
 }
 printf_debug() {
   printf_yellow "Running in debug mode "
-  echo "$d" | printf_readline "5"
-  exit
+  for d in "$@"; do
+    echo "$d" | printf_readline "5"
+  done
+  exit 1
 }
 #counter time "color" "message" "seconds(s) "
 __counter() {

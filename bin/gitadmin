@@ -234,7 +234,7 @@ run_git_setup_automated() {
     exit 1
   fi
   printf_red "Setting up the repo as requested" && sleep 5
-  rm -Rf .git
+  __rm_rf .git
   [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   ls ${REPODIR}/README* 1>/dev/null 2>&1 || create_new_readme_template
   ls ${REPODIR}/LICENSE* 1>/dev/null 2>&1 || create_new_wtfpl
