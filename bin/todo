@@ -42,14 +42,16 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 unset TMUX
-tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
 hour="$(date +"%H:%M")"
 month="$(date +"%m")"
 year="$(date +"%Y")"
 day="$(date +"%d")"
-archive="$year/$month/$day.md"
-title="Created on: $(date +"%B") $(date +"%d"), $year at $hour"
-__mkd $tododir/all
+todoeditor="${TODO_EDITOR:-vim}"
+tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
+todoarchive="${TODO_ARCHIVE:-$year/$month/$day.md}"
+todotitle="${TODO_TITLE:-Created on: $(date +"%B") $(date +"%d"), $year at $hour}"
+[ -f "$HOME/.config/todo/settings" ] && . "$HOME/.config/todo/settings"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
   if [ ! -f "$tododir/tmux.conf" ]; then
@@ -84,32 +86,50 @@ EOF
   fi
 }
 
+__config() {
+  __mkd "$HOME/.config/todo"
+  cat <<EOF >$HOME/.config/todo/settings
+# Settings for todo
+TODO_DIR="$tododir"
+# Title for new files
+TODO_TITLE="$todotitle"
+# archive folder
+TODO_ARCHIVE="$todoarchive"
+# vim/nano/emacs
+TODO_EDITOR="$todoeditor"
+# run git commit
+TODO_GIT="enabled"
+EOF
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __filename() {
   cleaninput=${*// /\/}
   name="${cleaninput:-all}"
-  file="${name//$tododir/name}index.md"
-  filename=${file//tododir/$file}
-  printf_debug $filename $name
+  file="${name//$tododir/name}/index.md"
+  filename="${file//tododir/$file}"
 }
 __run_tmux() {
   local name="$name"
   local filename="$filename"
-  if [ ! -f "$filename" ]; then
-    local title="TODO for $name: $title"
-    __mkd "$tododir/$name"
-    printf "$title\n\n" >"$filename"
+  if [ ! -f "$tododir/$filename" ] || [ ! -s "$tododir/$filename" ]; then
+    local titleheader="TODO for $name: $todotitle"
+    [ -d "$tododir/all" ] || __mkd "$tododir/all"
+    [ -d "$tododir/$name" ] || __mkd "$tododir/$name"
+    printf "$titleheader\n\n" >"$tododir/$filename"
   fi
-  printf_debug $tododir/$filename $name
-  __tmux "$tododir/$filename"
+  __tmux "$1"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s scratchpad "vim $1" &>/dev/null; }
+__tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "$todoeditor $1" &>/dev/null; }
 __run_git() { if [ -d "$tododir/.git" ]; then gitcommit "$tododir" todo; else gitadmin "$tododir" setup; fi; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
+*config)
+  shift 1
+  __config
+  ;;
 
 *git)
   shift 1
@@ -128,21 +148,22 @@ case "$1" in
 *archive)
   shift 1
   __filename "$*"
-  mv -f "$name" "$tododir/$archive"
+  mv -f "$tododir/$name" "$tododir/$todoarchive"
   ;;
 
 *open | *o)
   shift 1
   __filename "$*"
-  __run_tmux "$filename"
+  __run_tmux "$tododir/$filename"
   ;;
 
 *)
   __filename "$*"
-  __run_tmux "$filename"
+  __run_tmux "$tododir/$filename"
   ;;
-
 esac
+
+[ "$TODO_GIT" != "enabled" ] || __run_git
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end

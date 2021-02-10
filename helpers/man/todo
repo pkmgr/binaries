@@ -9,7 +9,8 @@ printf_help() {
 }
 #----------------
 printf_help 'Usage: '$APPNAME' "ProjectName"  |  '$APPNAME' "MyNewApp"'
+printf_help "4" "$APPNAME git       | Create a git repo and keep changes via git "
 printf_help "4" "$APPNAME list      | List all todos "
 printf_help "4" "$APPNAME archive   | Archive the current todo "
 printf_help "4" "$APPNAME open      | Open the current todo "
-printf_help "4" "$APPNAME git       | Create a git repo and keep changes via git "
+printf_help "4" "$APPNAME todoname  | Will take all input and create a todo "
