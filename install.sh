@@ -57,7 +57,7 @@ APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
 PLUGNAMES=""
-PLUGDIR="$/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME"
+PLUGDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Require a version higher than
 systemmgr_req_version "$APPVERSION"
