@@ -9,6 +9,4 @@ printf_help() {
 }
 #----------------
 printf_help "4" "Generate a dns zone"
-printf_help "4" "This will look for a"
-printf_help "4" "$HOME/templates/dns-zone.txt"
-printf_help "4" "Usage: $APPNAME Domain"
+printf_help "4" "Usage: $APPNAME Domain HOSTIP DNSIP DNSIP6 HOSTIP6"

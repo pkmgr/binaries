@@ -35,10 +35,10 @@ __options "$@"
 
 EDITOR="${EDITOR:-vim}"
 DNSROOT="${DNSROOT:-$HOME/.config/gen-dns/zones}"
-
+SERIAL="${SERIAL:-%Y%m%d}"
 DOMAIN="${1:-$DOMAIN}"
 HOSTIP="${2:-$HOSTIP}"
-DNSIP4="${3:-$DNSIP4}"
+DNSIP="${3:-$DNSIP}"
 DNSIP6="${4:-$DNSIP6}"
 HOSTIP6="${5:-$HOSTIP6}"
 
@@ -47,9 +47,9 @@ if [ ! -d "$DNSROOT" ]; then
 fi
 
 __ip_addr() {
-  [ -n "$DNSIP4" ] || printf_read_question "3" "What is your DNS Servers IP" 120 DNSIP4
+  [ -n "$DNSIP" ] || printf_read_question "3" "What is your DNS Servers IP" 120 DNSIP
   [ -n "$HOSTIP" ] || printf_read_question "3" "What is your hosts IP address" 120 HOSTIP
-  if [ -z "$DNSIP6" ] || [ -z "$DNSIP4" ]; then printf_read_question "3" "Does you dns or host have IP6?" 1 HASIP6 "-s"; fi
+  if [ -z "$DNSIP6" ] || [ -z "$DNSIP" ]; then printf_read_question "3" "Does you dns or host have IP6?" 1 HASIP6 "-s"; fi
   if printf_answer_yes "$HASIP6"; then
     [ -n "$DNSIP6" ] || printf_read_question "3" "What is your DNS Servers IP6" 120 DNSIP6
     [ -n "$HOSTIP6" ] || printf_read_question "3" "What is your hosts IP6 address" 120 HOSTIP6
@@ -66,7 +66,7 @@ EDITOR="${EDITOR:-vim}"
 DNSROOT="$HOME/.config/gen-dns/zones"
 SERIAL="%Y%m%d"
 HOSTIP="${1:-$HOSTIP}"
-DNSIP4="${2:-$DNSIP4}"
+DNSIP="${2:-$DNSIP}"
 DNSIP6="${3:-$DNSIP6}"
 HOSTIP6="${4:-$HOSTIP6}"
 
@@ -85,22 +85,26 @@ __edit_conf() {
 }
 
 __template() {
+  SERIAL="$(date +"$SERIAL")01"
   echo '; Default zone
-$ORIGIN                                      '$DOMAIN'.
-$TTL                                         38400
-' >"$DNSROOT/$DOMAIN.zone"
+$ORIGIN                                     '$DOMAIN'.
+$TTL                                        38400
+'
   cat <<EOF
 ;  **********soa settings**********
-@                            IN  SOA         dns1 dns-admin ( $(date +$SERIAL)01 10800 3600 1209600 38400)
+@                            IN  SOA         dns1 dns-admin ( ${SERIAL}01 10800 3600 1209600 38400)
+*                            IN  SOA         dns1 dns-admin ( ${SERIAL}01 10800 3600 1209600 38400)
 
 ;  **********nameserver settings**********
 @                            IN  NS          dns1
 @                            IN  NS          dns2
+*                            IN  NS          dns1
+*                            IN  NS          dns2
 
 ;  **********dns settings**********
-dns                          IN  A           ${DNSIP4:-149.28.32.84}
-dns1                         IN  A           ${DNSIP4:-149.28.32.84}
-dns2                         IN  A           ${DNSIP4:-149.28.32.84}
+dns                          IN  A           ${DNSIP:-149.28.32.84}
+dns1                         IN  A           ${DNSIP:-149.28.32.84}
+dns2                         IN  A           ${DNSIP:-149.28.32.84}
 
 dns                          IN  AAAA        ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
 dns1                         IN  AAAA        ${DNSIP6:-2001:19f0:5:2653:5400:02ff:fee3:f42e}
@@ -181,7 +185,7 @@ news                         IN  CNAME       mail
 ;  **********ntp settings**********
 ;machines on ntp.org
 ntp                          IN  CNAME       0.casjay.pool.ntp.org.
-pool.ntp                     IN  CNAME	 	   ntp
+pool.ntp                     IN  CNAME       ntp
 *.pool.ntp                   IN  CNAME       ntp
 
 ;  **********gsuite settings**********
@@ -224,6 +228,15 @@ localhost                    IN  AAAA        ::1
 EOF
 }
 
+__addtonamed() {
+  printf_yellow "Add the contents of $DOMAIN.zone.conf to your named.conf file"
+  echo 'zone "'$DOMAIN'" {
+        type master;
+        file "'$DNSROOT/$DOMAIN.zone'";
+        allow-update {key "certbot."; key "dhcp-key"; trusted;};
+    };' >"$DNSROOT/$DOMAIN.zone.conf"
+}
+
 __replace_conf() {
   printf_read_question "3" "Would you like to replace the zone?" "1" REPLACE "-s"
   printf_answer_yes $REPLACE || printf_exit "1" "2" "$DNSROOT/$DOMAIN.zone already exist\n"
@@ -234,7 +247,7 @@ __gen_dns() {
   [ -n "$DOMAIN" ] || printf_read_question "3" "What is your Domain name" 120 DOMAIN
   [ -f "$DNSROOT/$DOMAIN.zone" ] && __replace_conf
   __ip_addr
-  [ -n "$DOMAIN" ] || [ -n "$DNSIP4" ] || [ -n "$HOSTIP" ] || printf_error "Continuing but with unset variables"
+  [ -n "$DOMAIN" ] || [ -n "$DNSIP" ] || [ -n "$HOSTIP" ] || printf_error "Continuing but with unset variables"
 
   if [ -z "$DNSIP6" ] || [ -z "$HOSTIP6" ]; then
     __template | grep -Fv 'AAAA' >"$DNSROOT/$DOMAIN.zone"
@@ -255,6 +268,7 @@ __gen_dns() {
   if [ $? = 0 ] && [ -f "$DNSROOT/$DOMAIN.zone" ]; then
     printf_green "zone for $DOMAIN has been setup and"
     printf_yellow "saved to $DNSROOT/$DOMAIN.zone"
+    __addtonamed
   else
     printf_exit 1 1 "Failed to configure $DOMAIN"
   fi
