@@ -186,6 +186,12 @@ case "$1" in
   fi
   ;;
 
+-*)
+  shift 1
+  __find_file "$*"
+  generate_readme "$template"
+  ;;
+
 projects)
   shift 1
   __find_file "$*"
@@ -199,12 +205,6 @@ installers)
   ;;
 
 all)
-  shift 1
-  __find_file "$*"
-  generate_readme "$template"
-  ;;
-
--*)
   shift 1
   __find_file "$*"
   generate_readme "$template"
