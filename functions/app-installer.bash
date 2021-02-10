@@ -8,6 +8,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+[[ "$*" = *-debug ]] && shift 1 && set -Ex && export debug=true
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 020920211625-git
@@ -1125,7 +1126,7 @@ execute() {
   fi
   if [ "$*" = "--verbose" ] || [ "$*" = "--vdebug" ]; then
     if [ -f "$TMP_FILE" ]; then
-      cat "$TMP_FILE" >>"$LOGDIR/debug/$APPNAME.debug"
+      cat "$TMP_FILE" >>"$LOGDIR_DEBUG/$APPNAME.debug"
     fi
   fi
   rm -rf "$TMP_FILE"
@@ -1323,7 +1324,6 @@ user_installdirs() {
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
   git_repo_urls
 }
 
@@ -1381,7 +1381,6 @@ system_installdirs() {
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  DOWNLOADED_TO="${DOWNLOADED_TO:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
   git_repo_urls
 }
 
@@ -1551,38 +1550,6 @@ show_optvars() {
   fi
 
   if [ "$1" = "--full" ]; then
-    get_app_version
-    printf_info "UserHomeDir:               $HOME"
-    printf_info "UserBinDir:                $BIN"
-    printf_info "UserConfDir:               $CONF"
-    printf_info "UserShareDir:              $SHARE"
-    printf_info "UserLogDir:                $LOGDIR"
-    printf_info "UserStartDir:              $STARTUP"
-    printf_info "SysConfDir:                $SYSCONF"
-    printf_info "SysBinDir:                 $SYSBIN"
-    printf_info "SysConfDir:                $SYSCONF"
-    printf_info "SysShareDir:               $SYSSHARE"
-    printf_info "SysLogDir:                 $SYSLOGDIR"
-    printf_info "SysBackUpDir:              $BACKUPDIR"
-    printf_info "ApplicationsDir:           $SHARE/applications"
-    printf_info "ThemeDir                   $THEMEDIR"
-    printf_info "IconDir:                   $ICONDIR"
-    printf_info "FontDir:                   $FONTDIR"
-    printf_info "FontConfDir:               $FONTCONF"
-    printf_info "CompletionsDir:            $COMPDIR"
-    printf_info "CasjaysDevDir:             $CASJAYSDEVSHARE"
-    printf_info "DevEnv Repo:               $DEVENVMGRREPO"
-    printf_info "Package Manager Repo:      $PKMGRREPO"
-    printf_info "Icon Manager Repo:         $ICONMGRREPO"
-    printf_info "Font Manager Repo:         $FONTMGRREPO"
-    printf_info "Theme Manager Repo         $THEMEMGRREPO"
-    printf_info "System Manager Repo:       $SYSTEMMGRREPO"
-    printf_info "Wallpaper Manager Repo:    $WALLPAPERMGRREPO"
-    printf_info "REPORAW:                   $REPO/$APPNAME/raw"
-    exit $?
-  fi
-
-  if [ "$1" = "--debug" ]; then
     get_app_version
     printf_info "UserHomeDir:               $HOME"
     printf_info "UserBinDir:                $BIN"
@@ -2291,21 +2258,16 @@ thememgr_req_version() { __required_version "$1"; }
 wallpapermgr_req_version() { __required_version "$1"; }
 
 ##################################################################################################
-# if [ "$*" = "--vdebug" ]; then
-#   shift 1
-#   vdebug
-#   #set -xveE
-#   mkdir -p "$LOGDIR/debug"
-#   touch "$LOGDIR/debug/$APPNAME.log" "$LOGDIR/debug/$APPNAME.err"
-#   chmod -Rf 755 "$LOGDIR/debug"
-#   exec >>"$LOGDIR/debug/$APPNAME.debug" 2>&1
-#   devnull() {
-#     "$@" >>"$LOGDIR/debug/$APPNAME.log" 2>>"$LOGDIR/debug/$APPNAME.err"
-#   }
-#   devnull2() {
-#     "$@" 2>>"$LOGDIR/debug/$APPNAME.err" >/dev/null
-#   }
-# fi
+if [ "$debug" = "true" ]; then
+  #exec >>"$LOGDIR_DEBUG/$APPNAME.debug" 2>&1 >&0
+  export LOGDIR_DEBUG=/tmp/debug
+  mkdir -p "$LOGDIR_DEBUG"
+  touch "$LOGDIR_DEBUG/$APPNAME.log" "$LOGDIR_DEBUG/$APPNAME.err"
+  chmod -Rf 755 "$LOGDIR_DEBUG"
+  devnull() { "$@" >>"$LOGDIR_DEBUG/$APPNAME.log" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >&0; }
+  devnull2() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
+  execute() { $1 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0 && set --; }
+fi
 
 #set_trap "EXIT" "install_packages"
 #set_trap "EXIT" "install_required"
