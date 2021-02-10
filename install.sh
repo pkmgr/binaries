@@ -139,18 +139,18 @@ run_postinst() {
   if [ "$fontdir" = "0" ]; then
     sudo fontmgr install Hack
   fi
-  for function in $(ls "$SCRIPTSFUNCTDIR/functions"); do
-    ln_sf "$SCRIPTSFUNCTDIR/functions/$function" "$CASJAYSDEVSHARE/functions/$function"
+  for function in $(ls "$CASJAYSDEVDIR/functions"); do
+    ln_sf "$CASJAYSDEVDIR/functions/$function" "$CASJAYSDEVSHARE/functions/$function"
   done
-  for app in $(ls "$SCRIPTSFUNCTDIR/applications"); do
-    ln_sf "$SCRIPTSFUNCTDIR/applications/$app" "$SYSSHARE/applications/$app"
+  for app in $(ls "$CASJAYSDEVDIR/applications"); do
+    ln_sf "$CASJAYSDEVDIR/applications/$app" "$SYSSHARE/applications/$app"
   done
   ln_rm "$SHARE/applications/"
-  ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
+  ln_sf "$INSTDIR" "$SYSSHARE/CasjaysDev/installer"
   mkd /etc/casjaysdev/messages/motd
   mkd /etc/casjaysdev/messages/issue
-  if [ -f "$APPDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/legal/000.txt ]; then
-    cp_rf "$APPDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
+  if [ -f "$INSTDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/legal/000.txt ]; then
+    cp_rf "$INSTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
   fi
   replace /etc/casjaysdev/messages/ MYHOSTIP "$CURRIP4"
   replace /etc/casjaysdev/messages/ MYHOSTNAME "$(hostname -s)"
@@ -158,10 +158,10 @@ run_postinst() {
   grep -Riq "git" /etc/casjaysdev/updates/versions/configs.txt && sudo rm -Rfv /etc/casjaysdev/updates/versions/configs.txt
   [ -f /etc/casjaysdev/updates/versions/configs.txt ] || date +"%m%d%Y%H%M-git" | sudo tee /etc/casjaysdev/updates/versions/configs.txt
   [ -f /etc/casjaysdev/updates/versions/date.configs.txt ] || date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.configs.txt
-  cp_rf "$APPDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
+  cp_rf "$INSTDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
   cmd_exists update-motd && update-ip && update-motd
-  echo 'for f in '$SCRIPTSFUNCTDIR/completions/*'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
+  echo 'for f in '$CASJAYSDEVDIR/completions/*'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
 }
 #
 execute "run_postinst" "Running post install scripts"
