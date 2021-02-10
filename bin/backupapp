@@ -43,37 +43,38 @@ __require_app tar
 # Main application
 declare filename count backupdir rmpre4vbackup _APPNAME _APPDIRS
 [ "$1" = "--yes" ] && YN="Y" && shift 1
-__mkd "$HOME/.config/backupapp" "$HOME/.config/backupapp/cron"
+[ -d "$HOME/.config/backupapp" ] || __mkd "$HOME/.config/backupapp"
 [ -f "$HOME/.config/backupapp/settings" ] && . "$HOME/.config/backupapp/settings"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   local appname="${1:-settings}"
   printf_green "Generating the config file for ${1:-main}"
-  echo -e '# Settings for backupapp - '${1:-main}'\nCONFIGNAME="'${1:-main}'"' >"$HOME/.config/backupapp/$appname"
+  echo -e '# Settings for backupapp - '${1:-main}'\nCONFIGNAME="'${1:-main}'"' >"$HOME/.config/backupapp/$appname.conf"
   if [ -n "$1" ]; then
     _APPNAME="$1"
-    echo _APPNAME="'$appname'" | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
+    echo PROJECTNAME="'$_APPNAME'" | tee -a "$HOME/.config/backupapp/$appname.conf" &>/dev/null
     shift 1
   fi
-  if [ -n "$1" ]; then
+  if [ -n "$*" ]; then
     _APPDIRS="$*"
-    echo _APPDIRS="'$_APPDIRS'" | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
+    echo PROJECTDIRS="'$_APPDIRS'" | tee -a "$HOME/.config/backupapp/$appname.conf" &>/dev/null
   fi
   shift
   echo 'LOG_DIR="'$HOME/.local/log/backups/apps'"
 BACKUP_DIR="'$HOME/.local/backups/apps'"
+KEEP_AMOUNT="14"
 NOTIFY_ENABLED="yes"
+LOGFILE_EXTENSION="log"
 DATE_FORMAT="%Y-%m-%d-%H_%M-%S"
 FILENAME_FORMAT="$(date +"$DATEFORMAT")"
 LOGNAME_FORMAT="$(date +"$DATEFORMAT")"
-LOGFILE_EXTENSION=".log"
-KEEP_AMOUNT="5"
 BICON_GOOD="[ 🆗 ]"
 BICON_WARN="[ ⚠️ ]"
 BICON_ERROR="[ ✖ }"
-' | tee -a "$HOME/.config/backupapp/$appname" &>/dev/null
-  __ln_sf "$HOME/.config/backupapp/$appname" "$HOME/.config/backupapp/cron/$appname"
-  printf_green "File saved to: $HOME/.config/backupapp/$appname"
+
+' | tee -a "$HOME/.config/backupapp/$appname.conf" &>/dev/null
+  printf_green "File saved to: $HOME/.config/backupapp/$appname.conf"
   printf_blue "You can create per app setting by running backupapp config Name Directories"
 }
 
@@ -83,6 +84,8 @@ __backupcmd() {
 
 main() {
   local e err appname appdir
+  local _APPNAME="${_APPNAME:-$PROJECTNAME}"
+  local _APPDIRS="${_APPDIRS:-$PROJECTDIRS}"
   local appname="${1:-$_APPNAME}" && shift 1
   local appdir="${*:-$_APPDIRS}" && shift
   local logdir="${LOG_DIR:-$HOME/.local/log/backups/apps}"
@@ -101,6 +104,7 @@ main() {
   local logname="$appname-$logfilenameformat.$logfilenameextension"
   [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Initializing backup of $appname"
   __execute "sleep 3" "Initializing"
+  __mkd "$backupdir" "$logdir"
   for e in $appdir; do [ -e "$e" ] || err="$e"; done
   if [ -n "$err" ]; then
     [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Can't back up: $err doesn't exists"
@@ -109,7 +113,6 @@ main() {
   fi
   shift
 
-  __mkd "$backupdir" "$logdir"
   printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$logname" >>"$logdir/$logname"
   __execute "__backupcmd" "Backing up $appname to $backupdir"
   exitCode=$?
@@ -171,6 +174,7 @@ __local_cron_del() { __removecrontab "backupapp --yes $1 "; }
 case "$1" in
 *cron)
   shift 1
+  __mkd "$HOME/.config/backupapp/cron"
   #cron case 2
   case "$1" in
   *all)
@@ -178,14 +182,14 @@ case "$1" in
     if [ "$(__count_files "$HOME/.config/backupapp/cron/")" -ne 0 ]; then
       for cronjob in $(ls "$HOME/.config/backupapp/cron/"); do
         source "$HOME/.config/backupapp/cron/$cronjob"
-        if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
+        if [ -n "${_APPNAME:-$PROJECTNAME}" ] && [ -n "${_APPNAME:-$PROJECTNAME}" ]; then
           echo "Backup up $cronjob"
-          main "$_APPNAME" "$_APPDIRS" >/dev/null 2>&1
+          main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}" >/dev/null 2>&1
           exitCode=$?
           sleep 3
           if [ "$exitCode" = 0 ]; then echo "Backup up of $cronjob has completed"; else echo "Backup up of $cronjob has failed"; fi
         fi
-        unset _APPNAME _APPDIRS
+        unset _APPNAME _APPDIRS PROJECTNAME PROJECTDIRS
       done
     else
       printf_exit 0 1 "No files were found"
@@ -247,26 +251,28 @@ case "$1" in
   __config "$@"
   ;;
 *)
-  if [ -f "$HOME/.config/backupapp/${1}" ] && [ "$#" -lt 2 ]; then
+  if [ -f "$HOME/.config/backupapp/${1}.conf" ] && [ "$#" -lt 2 ]; then
     [ "$YN" = "Y" ] || printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
     if printf_answer_yes "$YN"; then
-      . "$HOME/.config/backupapp/${1}"
-      if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
-        main "$_APPNAME" "$_APPDIRS"
+      . "$HOME/.config/backupapp/${1}.conf"
+      if [ -n "${_APPNAME:-$PROJECTNAME}" ] && [ -n "${_APPDIRS:-$PROJECTDIRS}" ]; then
+        main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
       else
-        printf_exit 1 1 "Could get the settings for _APPNAME and _APPDIRS"
+        [ -n "${_APPNAME:-$PROJECTNAME}" ] || printf_return 1 1 "Could get the settings for _APPNAME/PROJECTNAME"
+        [ -n "${_APPDIRS:-$PROJECTDIRS}" ] || printf_return 1 1 "Could get the settings for _APPDIRS/PROJECTDIRS"
+        exit $?
       fi
     elif [ "$#" -gt 1 ]; then
       _APPNAME="$1" && shift 1
       _APPDIRS="$*" && shift
-      main "$_APPNAME" "$_APPDIRS"
+      main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
     else
       __help
     fi
   elif [ "$#" -gt 1 ]; then
     _APPNAME="$1" && shift 1
     _APPDIRS="$*" && shift
-    main "$_APPNAME" "$_APPDIRS"
+    main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
   else
     __help
   fi
