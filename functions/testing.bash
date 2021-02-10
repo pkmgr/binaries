@@ -2069,36 +2069,36 @@ __options() {
 }
 
 ###################### *mgr scripts install/update/version ######################
+export mgr_init="${mgr_init:-true}"
 run_install_init() {
   local exitCode
   local -a LISTARRAY="$*"
-  export mgr_init="${mgr_init:-true}"
   for ins in ${LISTARRAY[*]}; do
     if user_is_root; then
-      printf_yellow "Initializing the installer from"
+      # printf_yellow "Initializing the installer from"
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        printf_purple "${INSTDIR//$HOME/'~'}/$ins/install.sh"
+        # printf_purple "${INSTDIR//$HOME/'~'}/$ins/install.sh"
         sudo bash -c "$INSTDIR/$ins/install.sh"
       else
-        printf_purple "$REPO/$ins"
+        # printf_purple "$REPO/$ins"
         __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
       __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
       local exitCode+=$?
     else
-      printf_yellow "Initializing the installer from"
+      # printf_yellow "Initializing the installer from"
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        printf_purple "$INSTDIR/$ins/install.sh"
+        # printf_purple "$INSTDIR/$ins/install.sh"
         bash -c "$INSTDIR/$ins/install.sh"
       else
-        printf_purple "$REPO/$ins"
+        # printf_purple "$REPO/$ins"
         __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
       __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
       local exitCode+=$?
     fi
   done
-  unset mgr_init ins
+  unset ins
   printf_newline
   return $exitCode
 }
@@ -2128,7 +2128,7 @@ run_install_update() {
       local exitCode+=$?
     done
   fi
-  unset mgr_init upd
+  unset upd
   return $exitCode
 }
 

@@ -2044,7 +2044,7 @@ wallpapermgr_install_version() {
 
 ##################################################################################################
 
-if [ "$mgr_init" != "true" ] || [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
+if [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
   run_install_init() {
     printf "\n"
     printf_yellow "\t\tInitializing the installer from\n"
@@ -2053,12 +2053,15 @@ if [ "$mgr_init" != "true" ] || [[ $* = -* ]]; then export mgr_init="true" && ru
     else
       printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
       printf_purple "\t\t$REPORAW/install.sh\n"
+      __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
     fi
     if [ -d "$APPDIR" ]; then
       printf_green "\t\tUpdating ${1:-configurations} in ${APPDIR//$HOME/'~'}\n"
     else
       printf_green "\t\tInstalling ${1:-configurations} to ${APPDIR//$HOME/'~'}\n"
     fi
+    local exitCode+=$?
+    return $exitCode
   }
 fi
 
@@ -2183,9 +2186,7 @@ run_postinst_global() {
 }
 
 ##################################################################################################
-
 run_exit() {
-  local mgr_init="${mgr_init:-}"
   [ -e "$APPDIR/$APPNAME" ] || rm_rf "$APPDIR/$APPNAME"
   [ -e "$INSTDIR/$APPNAME" ] || rm_rf "$INSTDIR/$APPNAME"
   if [ -d "$APPDIR" ] && [ ! -f "$APPDIR/.installed" ]; then
@@ -2194,14 +2195,14 @@ run_exit() {
   if [ -d "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed" 2>/dev/null
   fi
-
   if [ -f "$TEMP/$.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
-  if [ "$mgr_init" != "true" ]; then
-    printf_yellow "\t\t$APPNAME has been installed\n"
+  if [ -n "$EXIT" ]; then
+    printf_yellow "\t\t$ICON_WARN Running exit commands: Exit Code ${EXIT:-$?}\n"
+  else
+    printf_yellow "\t\t$ICON_GOOD Running exit commands: Exit Code 0\n"
   fi
-  if [ -n "$EXIT" ]; then exit "$EXIT"; fi
-  unset mgr_init
+  exit "${EXIT:-$?}"
 }
 
 ##################################################################################################
