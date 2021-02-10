@@ -1319,11 +1319,11 @@ user_installdirs() {
     USRUPDATEDIR="$SHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
   fi
-  export installtype="user_installdirs"
-  export APPDIR=""
-  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
+  APPDIR="${APPDIR:-}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
+  installtype="user_installdirs"
   git_repo_urls
 }
 
@@ -1376,11 +1376,11 @@ system_installdirs() {
     USRUPDATEDIR="$HOME/.local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSUPDATEDIR="$HOME/.local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
   fi
-  export installtype="system_installdirs"
-  export APPDIR=""
-  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
+  APPDIR="${APPDIR:-}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
+  installtype="system_installdirs"
   git_repo_urls
 }
 
@@ -1641,7 +1641,11 @@ __install_fonts() {
     fi
   fi
 
-  if [ -d "$HOME/Library/Fonts" ]; then local fontdir="$HOME/Library/Fonts" else local fontdir="$FONTDIR"; fi
+  if [ -d "$HOME/Library/Fonts" ]; then
+    local fontdir="$HOME/Library/Fonts"
+  else
+    local fontdir="$FONTDIR"
+  fi
   if [ -d "$INSTDIR/fonts" ]; then
     ln_sf "$INSTDIR/fonts" "$fontdir/$APPNAME"
     cmd_exists fc-cache && fc-cache -f "$FONTCONF"
@@ -1879,7 +1883,7 @@ iconmgr_run_init() {
 iconmgr_run_post() {
   iconmgr_install
   run_postinst_global
-  __install_fonts
+  __install_icons
 }
 
 iconmgr_install_version() {
@@ -2258,12 +2262,12 @@ wallpapermgr_req_version() { __required_version "$1"; }
 
 ##################################################################################################
 if [ "$debug" = "true" ]; then
-  #exec >>"$LOGDIR_DEBUG/$APPNAME.debug" 2>&1 >&0
   export LOGDIR_DEBUG=/tmp/debug
   mkdir -p "$LOGDIR_DEBUG"
   touch "$LOGDIR_DEBUG/$APPNAME.log" "$LOGDIR_DEBUG/$APPNAME.err"
   chmod -Rf 755 "$LOGDIR_DEBUG"
-  devnull() { "$@" >>"$LOGDIR_DEBUG/$APPNAME.log" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >&0; }
+  devnull() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
+  devnull1() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
   devnull2() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
   execute() { $1 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0 && set --; }
 fi
