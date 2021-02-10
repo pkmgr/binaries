@@ -1641,8 +1641,8 @@ __install_fonts() {
     fi
   fi
 
+  if [ -d "$HOME/Library/Fonts" ]; then local fontdir="$HOME/Library/Fonts" else local fontdir="$FONTDIR"; fi
   if [ -d "$INSTDIR/fonts" ]; then
-    [ -d "$HOME/Library/Fonts" ] && local fontdir="$HOME/Library/Fonts" || local fontdir="$FONTDIR"
     ln_sf "$INSTDIR/fonts" "$fontdir/$APPNAME"
     cmd_exists fc-cache && fc-cache -f "$FONTCONF"
     cmd_exists fc-cache && fc-cache -f "$FONTDIR"
