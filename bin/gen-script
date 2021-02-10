@@ -75,7 +75,7 @@ fi
 [ -f "$HOME/.config/gen-script/settings" ] && . "$HOME/.config/gen-script/settings"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$(__count_files $HOME/.config/gen-script/files)" -eq 0 ]; then
+if [ "$(__count_files $HOME/.config/gen-script/files "3")" -eq 0 ]; then
   __mkd "$HOME/.config/gen-script/files"
   if [ "$(__count_files "$CASJAYSDEVDIR/templates/scripts" "2")" -ne 0 ]; then
     printf_green "Setting up the Scripts directory"
