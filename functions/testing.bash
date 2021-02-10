@@ -690,9 +690,9 @@ __ip2hostname() { getent hosts "$1" | awk '{print $2}' | head -n1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
 #count_files "dir"
-__count_files() { __devnull2 find "${1:-./}" -maxdepth 1 -not -path "${1:-./}/.git/*" -type l,f | wc -l; }
+__count_files() { __devnull2 find "${1:-./}" -maxdepth "${2:-1}" -not -path "${1:-./}/.git/*" -type l,f | wc -l; }
 #count_dir "dir"
-__count_dir() { __devnull2 find -L "${1:-./}" -mindepth 1 -maxdepth 1 -not -path "${1:-./}/.git/*" -type d | wc -l; }
+__count_dir() { __devnull2 find -L "${1:-./}" -mindepth 1 -maxdepth "${2:-1}" -not -path "${1:-./}/.git/*" -type d | wc -l; }
 __touch() { touch "$@" 2>/dev/null || return 0; }
 #symlink "file" "dest"
 __symlink() { if [ -e "$1" ]; then __devnull __ln_sf "${1}" "${2}" || return 0; fi; }

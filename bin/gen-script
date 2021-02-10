@@ -75,6 +75,16 @@ fi
 [ -f "$HOME/.config/gen-script/settings" ] && . "$HOME/.config/gen-script/settings"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ "$(__count_files $HOME/.config/gen-script/files)" -eq 0 ]; then
+  __mkd "$HOME/.config/gen-script/files"
+  if [ "$(__count_files "$CASJAYSDEVDIR/templates/scripts" "2")" -ne 0 ]; then
+    printf_green "Setting up the Scripts directory"
+    __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
+  else
+    printf_exit "1" "1" "No scripts exist"
+  fi
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Application functions
 __date() { date +"$1"; }
 __filename() { basename "$1"; }
@@ -150,11 +160,14 @@ EOF
 }
 
 __copy_templates() {
-  __vars "$@"
-  printf_green "Copying the files from:"
-  printf_green "$CASJAYSDEVDIR/templates/scripts to $HOME/.config/gen-script/files/"
-  __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
-  [ $? -eq 0 ] && [ -d "$HOME/.config/gen-script/files" ] && printf_green "Copy succeeded" || printf_red "Copy failed"
+  if [ -d "$HOME/.config/gen-script/files/.git" ]; then
+    printf_green "Copying the files from:"
+    printf_green "$CASJAYSDEVDIR/templates/scripts to $HOME/.config/gen-script/files"
+    __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
+  else
+    git -C "$HOME/.config/gen-script/files" pull -q
+  fi
+  [ $? -eq 0 ] && [ -d "$HOME/.config/gen-script/files" ] && printf_green "Install has succeeded" || printf_red "Install of the files failed"
 }
 
 __makefile() {
@@ -277,12 +290,19 @@ __vars() {
 }
 
 __find_file() {
-  if [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$1/${2:-default}" ]; then
-    template="$GEN_SCRIPTS_TEMPLATE_DIR/$1/${2:-default}"
+  arg1=${1// /\/}
+  arg2=${2// /\/}
+  arg3=${3// /\/}
+  if [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/${arg3:-default}" ]; then
+    template="$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/${arg3:-default}"
+    dest="$4"
+    shift 3
+  elif [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/${arg2:-default}" ]; then
+    template="$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/${arg2:-default}"
     dest="$3"
     shift 2
-  elif [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/${1:-default}" ]; then
-    template="$GEN_SCRIPTS_TEMPLATE_DIR/${1:-default}"
+  elif [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/${arg1:-default}" ]; then
+    template="$GEN_SCRIPTS_TEMPLATE_DIR/${arg1:-default}"
     dest="$2"
     shift 1
   else
@@ -295,15 +315,16 @@ __find_file() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script" || __mkd "$HOME/.config/gen-script"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$1" in
 *config)
   shift 1
   __config
+  __copy_templates "$@"
   exit
   ;;
+
 *funct*)
   shift 1
   [ $# -lt 2 ] || printf_exit "Only takes a filename as an argument"
@@ -316,7 +337,7 @@ case "$1" in
 *header)
   shift 1
   #[[ $1 = *funct* ]] && showFunctions=true && shift 1
-  [[ $1 != -* ]] && filename="$1" && shift 1 || filename="template"
+  [[ "$1" != -* ]] && filename="$1" && shift 1 || filename="template"
   __gen_header "$filename" "$@"
   exit
   ;;
@@ -354,7 +375,6 @@ shift
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sanity check
 [ -f "$template" ] || printf_exit "The template file doesn't exist: $template"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # file and folder setup
 filename="$(__basename ${dest:-newScript} 2>/dev/null || echo .)"

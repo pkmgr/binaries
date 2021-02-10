@@ -126,29 +126,32 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Find the readme
-__find_file() {
-  findfile="${*// /\/}"
-  if [ -f "$readmeDir/$findfile" ]; then
-    template="$readmeDir/$findfile"
-    shift 2
-  elif [ -f "$readmeDir/$1" ]; then
-    template="$readmeDir/$1"
-    shift 2
-  elif [ -f "$readmeDir/$readmeDefault" ]; then
-    template="$readmeDir/$readmeDefault"
-  elif [ -f "$readmeDir/default" ]; then
-    template="$readmeDir/default"
-  else
-    printf_exit 1 1 "Can not find any readmes matching $1 ${2:-$template}"
-  fi
-  template="${template//$readmeDir\//}"
-  dest="$curDir/README.md"
-}
-
+arg1=${1// /\/}
+arg2=${2// /\/}
+arg2=${2// /\/}
+if [ -f "$readmeDir/$arg1/$arg2/${arg3:-default}" ]; then
+  template="$readmeDir/$arg1/$arg2/${arg3:-default}"
+  dest="${4:-$curDir/README.md}"
+  shift 2
+elif [ -f "$readmeDir/$arg1/${arg2:-default}" ]; then
+  template="$readmeDir/$arg1/${arg2:-default}"
+  dest="${3:-$curDir/README.md}"
+  shift 2
+elif [ -f "$readmeDir/${arg1:-default}" ]; then
+  template="$readmeDir/${arg1:-default}"
+  dest="${2:-$curDir/README.md}"
+  shift 1
+elif [ -f "$readmeDir/default" ]; then
+  printf_green "Using the default template: bash"
+  template="$readmeDir/default"
+  dest="${1:-$curDir/README.md}"
+else
+  printf_exit 1 1 "Can not find any readmes matching $1 ${2:-$template}"
+fi
+template="${template//$readmeDir\//}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
-
 *list)
   shift 1
   __findcmd "${1:-}" | printf_column "2"
@@ -190,30 +193,15 @@ case "$1" in
 
 -*)
   shift 1
-  __find_file "$*"
-  generate_readme "$template"
-  ;;
-
-projects)
-  shift 1
-  __find_file "$*"
-  generate_readme "$template"
-  ;;
-
-installers)
-  shift 1
-  __find_file "$*"
   generate_readme "$template"
   ;;
 
 all)
   shift 1
-  __find_file "$*"
   generate_readme "$template"
   ;;
 
 *)
-  __find_file "$*"
   generate_readme "$template"
   ;;
 
