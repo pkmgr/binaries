@@ -142,7 +142,7 @@ __find_file() {
   elif [ -f "$readmeDir/default" ]; then
     template="$readmeDir/default"
   else
-    printf_exit 1 1 "Can not find any readmes matching $1 $2: $template"
+    printf_exit 1 1 "Can not find any readmes matching $1 ${2:-$template}"
   fi
   template="${template//$readmeDir\//}"
   dest="$curDir/README.md"
@@ -184,6 +184,30 @@ case "$1" in
   else
     get_remote_file "$1"
   fi
+  ;;
+
+projects)
+  shift 1
+  __find_file "$*"
+  generate_readme "$template"
+  ;;
+
+installers)
+  shift 1
+  __find_file "$*"
+  generate_readme "$template"
+  ;;
+
+all)
+  shift 1
+  __find_file "$*"
+  generate_readme "$template"
+  ;;
+
+-*)
+  shift 1
+  __find_file "$*"
+  generate_readme "$template"
   ;;
 
 *)
