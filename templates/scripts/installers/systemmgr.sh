@@ -53,6 +53,10 @@ REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr/$APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup plugins
+PLUGNAMES=""
+PLUGDIR="${SHARE:-$HOME/.local/share}/$APPNAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Require a version higher than
 systemmgr_req_version "$APPVERSION"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

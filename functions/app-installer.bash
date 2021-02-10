@@ -1972,13 +1972,17 @@ systemmgr_install() {
   SCRIPTS_PREFIX="systemmgr"
   REPO="$SYSTEMMGRREPO"
   REPORAW="$SYSTEMMGRREPO/raw"
-  CONF="/usr/local/etc"
-  SHARE="/usr/local/share"
-  APPDIR="/usr/local/etc/$APPNAME"
-  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  CONF="${SYSCONF:-/usr/local/etc}"
+  SHARE="${SYSSHARE:-/usr/local/share}"
+  APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
+    APPDIR="/usr/local/share/CasjaysDev/scripts"
+    INSTDIR="/usr/local/share/CasjaysDev/scripts"
+  fi
   export installtype="systemmgr_install"
 }
 ######## Installer Functions ########
@@ -2058,8 +2062,8 @@ wallpapermgr_run_init() {
 }
 wallpapermgr_run_post() {
   wallpapermgr_install
-  __install_wallpapers
   run_postinst_global
+  __install_wallpapers
 }
 
 wallpapermgr_install_version() {
@@ -2232,6 +2236,7 @@ run_exit() {
     printf_yellow "\t\t$APPNAME has been installed\n"
   fi
   if [ -n "$EXIT" ]; then exit "$EXIT"; fi
+  unset mgr_init
 }
 
 ##################################################################################################

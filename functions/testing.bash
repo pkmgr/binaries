@@ -1628,7 +1628,12 @@ devenvmgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="devenvmgr_install"
@@ -1648,7 +1653,12 @@ dfmgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dfmgr_install"
@@ -1669,7 +1679,12 @@ dockermgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dockermgr_install"
@@ -1690,7 +1705,12 @@ fontmgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   __mkd "$FONTDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
@@ -1719,7 +1739,12 @@ iconmgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   __mkd "$ICONDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
@@ -1748,7 +1773,12 @@ pkmgr_install() {
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="pkmgr_install"
@@ -1770,7 +1800,12 @@ systemmgr_install() {
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="systemmgr_install"
@@ -1791,7 +1826,12 @@ thememgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="thememgr_install"
@@ -1828,6 +1868,7 @@ wallpapermgr_install() {
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
+  __main_installer_info
   __mkd "$WALLPAPERS"
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
@@ -1865,6 +1906,13 @@ ensure_dirs() {
   return 0
 }
 
+##
+__main_installer_info() {
+  if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
+    APPDIR="/usr/local/share/CasjaysDev/scripts"
+    INSTDIR="/usr/local/share/CasjaysDev/scripts"
+  fi
+}
 ###################### get installer versions ######################
 
 get_installer_version() {

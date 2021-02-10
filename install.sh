@@ -1,174 +1,137 @@
 #!/usr/bin/env bash
-
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="scripts"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# @Author          : Jason
-# @Contact         : casjaysdev@casjay.net
-# @File            : install.sh
-# @Created         : Wed, Aug 09, 2020, 02:00 EST
-# @License         : WTFPL
-# @Copyright       : Copyright (c) CasjaysDev
-# @Description     : My custom scripts
-#
+##@Version       : 021020210200-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : README.md
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Wednesday, Feb 10, 2021 02:00 EST
+# @File          : install.sh
+# @Description   : My custom scripts
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-app-installer.bash}"
-
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+connect_test() { ping -c1 1.1.1.1 &>/dev/null || curl --disable -LSs --connect-timeout 3 --retry 0 --max-time 1 1.1.1.1 2>/dev/null | grep -e "HTTP/[0123456789]" | grep -q "200" -n1 &>/dev/null; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+elif connect_test; then
+  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/$SCRIPTSFUNCTFILE" || exit 1
+  . "/tmp/$SCRIPTSFUNCTFILE"
 else
-  mkdir -p "/tmp/CasjaysDev/functions"
-  curl -LSs "$SCRIPTSFUNCTURL/$SCRIPTSFUNCTFILE" -o "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE" || exit 1
-  . "/tmp/CasjaysDev/functions/$SCRIPTSFUNCTFILE"
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# Call the main function
+system_installdirs
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Make sure the scripts repo is installed
-
 #scripts_check
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Defaults
-
-APPNAME="scripts"
-PLUGNAME=""
-
+APPNAME="${APPNAME:-scripts}"
+#APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
+#INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+APPDIR="/usr/local/share/CasjaysDev/scripts"
+INSTDIR="/usr/local/share/CasjaysDev/scripts"
+REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr/$APPNAME}"
+REPORAW="${REPORAW:-$REPO/raw}"
+APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# git repos
-
-PLUGINREPO=""
-
+# Setup plugins
+PLUGNAMES=""
+PLUGDIR="$/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# if installing system wide - change to system_installdirs
-
+# Require a version higher than
+systemmgr_req_version "$APPVERSION"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Call the systemmgr function
 systemmgr_install
-
+systemmgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Version
-
-APPVERSION="$(__appversion ${DOTFILESREPO:-https://github.com/dfmgr}/$APPNAME/raw/master/version.txt)"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set options
-
-APPDIR="/usr/local/share/CasjaysDev/$APPNAME"
-PLUGDIR="/usr/local/share/CasjaysDev/addons/${PLUGNAME}"
-INSTDIR="$APPDIR"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Script options IE: --help
-
 show_optvars "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Requires root - no point in continuing
-
 sudoreq # sudo required
-#sudorun  # sudo optional
-
+#sudorun # sudo optional
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Do not update - add --force to overwrite
+#installer_noupdate "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end with a space
 if_os mac && APP="jq sudo curl wget "
 if_os linux && APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python " &&
-  APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli "
+  APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli mdless"
 PERL="CPAN "
 PYTH="pip "
-PIPS=""
+PIPS="speedtest-cli "
 CPAN=""
 GEMS="mdless "
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # install packages - useful for package that have the same name on all oses
-install_packages $APP
-
+install_packages "$APP"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # install required packages using file
-install_required $APP
-
+install_required "$APP"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for perl modules and install using system package manager
-install_perl $PERL
-
+install_perl "$PERL"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for python modules and install using system package manager
-install_python $PYTH
-
+install_python "$PYTH"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for pip binaries and install using python package manager
-install_pip $PIPS
-
+install_pip "$PIPS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for cpan binaries and install using perl package manager
-install_cpan $CPAN
-
+install_cpan "$CPAN"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for ruby binaries and install using ruby package manager
-install_gem $GEMS
-
+install_gem "$GEMS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Other dependencies
 dotfilesreq
 dotfilesreqadmin
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Ensure directories exist
-
 ensure_dirs
 ensure_perms
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# Backup if needed
+if [ -d "$APPDIR" ]; then
+  execute "backupapp $APPDIR $APPNAME" "Backing up $APPDIR"
+fi
 # Main progam
-
-if [ -d "$APPDIR/.git" ]; then
-  execute \
-    "git_update $APPDIR" \
-    "Updating $APPNAME configurations"
-else
-  execute \
-    "git_clone $REPO/$APPNAME $APPDIR" \
-    "Installing $APPNAME configurations"
-fi
-
-# exit on fail
-failexitcode
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Plugins
-
 if __am_i_online; then
-  if [ "$PLUGNAME" != "" ]; then
-    if [ -d "$PLUGDIR"/.git ]; then
-      execute \
-        "git_update $PLUGDIR" \
-        "Updating $PLUGNAME"
-    else
-      execute \
-        "git_clone $PLUGINREPO $PLUGDIR" \
-        "Installing $PLUGNAME"
-    fi
+  if [ -d "$INSTDIR/.git" ]; then
+    execute "git_update $INSTDIR" "Updating $APPNAME configurations"
+  else
+    execute "git_clone $REPO/$APPNAME $INSTDIR" "Installing $APPNAME configurations"
   fi
-
   # exit on fail
-  failexitcode
+  failexitcode $? "Git has failed"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # run post install scripts
-
 run_postinst() {
   systemmgr_run_postinst
   dotfilesreqadmin cron
@@ -176,15 +139,12 @@ run_postinst() {
   if [ "$fontdir" = "0" ]; then
     sudo fontmgr install Hack
   fi
-
   for function in $(ls "$SCRIPTSFUNCTDIR/functions"); do
     ln_sf "$SCRIPTSFUNCTDIR/functions/$function" "$CASJAYSDEVSHARE/functions/$function"
   done
-
   for app in $(ls "$SCRIPTSFUNCTDIR/applications"); do
     ln_sf "$SCRIPTSFUNCTDIR/applications/$app" "$SYSSHARE/applications/$app"
   done
-
   ln_rm "$SHARE/applications/"
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/installer"
   mkd /etc/casjaysdev/messages/motd
@@ -203,20 +163,12 @@ run_postinst() {
   cmd_exists update-motd && update-ip && update-motd
   echo 'for f in '$SCRIPTSFUNCTDIR/completions/*'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
 }
-
-execute \
-  "run_postinst" \
-  "Running post install scripts"
-
+#
+execute "run_postinst" "Running post install scripts"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # create version file
-
 systemmgr_install_version
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # exit
 run_exit
-
 # end

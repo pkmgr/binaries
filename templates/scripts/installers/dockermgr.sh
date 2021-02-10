@@ -51,6 +51,10 @@ REPO="${DOCKERMGRREPO:-https://github.com/dockermgr/$APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion $REPORAW/master/version.txt)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup plugins
+PLUGNAMES=""
+PLUGDIR="${SHARE:-$HOME/.local/share}/$APPNAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Require a version higher than
 dockermgr_req_version "$APPVERSION"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
