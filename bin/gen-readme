@@ -55,7 +55,6 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-readme/settings" ] && . "$HOME/.config/gen-readme/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-readmeFile="$1"
 readmeDefault="${readmeDefault:-default.md}"
 readmeDir="${readmeDir:-$HOME/.config/gen-readme/files}"
 gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
@@ -110,7 +109,9 @@ gitconfig_email="$gitconfig_email"
 
 EOF
 }
-
+__findcmd() {
+  find "$readmeDir" -type f ${1} -not -path "${readmeDir}/*/.git/*" 2>/dev/null | sed 's#'$readmeDir/'##g' | sort -u
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Init
 if [ "$(__count_files $readmeDir)" -eq 0 ]; then
@@ -126,31 +127,34 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Find the readme
 __find_file() {
-  if [ -f "$(ls -A $readmeDir/$1/$2)" ]; then
-    template="$(ls -A $readmeDir/$1/$2)"
+  findfile="${*// /\/}"
+  if [ -f "$readmeDir/$findfile" ]; then
+    template="$readmeDir/$findfile"
     shift 2
-  elif [ -f "$(ls -A $readmeDir/$readmeFile)" ]; then
-    template="$(ls -A $readmeDir/$readmeFile)"
-    shift 1
-  elif [ -f "$readmeDir/$*" ]; then
-    template="$readmeDir/$*"
-    shift 1
+  elif [ -f "$readmeDir/$1" ]; then
+    template="$readmeDir/$1"
+    shift 2
+  elif [ -f "$(__findcmd "-iname=*$1*" 2>/dev/null)" ]; then
+    template="$(__findcmd "-iname=*$1*" 2>/dev/null)"
+    shift $#
+  elif [ -f "$readmeDir/$readmeDefault" ]; then
+    template="$readmeDir/$readmeDefault"
   elif [ -f "$readmeDir/default" ]; then
     template="$readmeDir/default"
-    dest="$curDir/README.md"
   else
-    printf_exit 1 1 "Can not find any readmes matching $1 $2"
+    printf_exit 1 1 "Can not find any readmes matching $1 $2: $template"
   fi
   template="${template//$readmeDir\//}"
+  dest="$curDir/README.md"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-case "$readmeFile" in
+case "$1" in
 
 *list)
   shift 1
-  find ${readmeDir}/ -type f -not -path "${readmeDir}/*/.git/*" | sed 's#'$readmeDir/'##g' | sort -u | printf_readline "2"
+  __findcmd "${1:-*}" | printf_readline "2"
   ;;
 
 *config)
@@ -182,20 +186,8 @@ case "$readmeFile" in
   fi
   ;;
 
-*pro | *proj | project*)
-  shift 1
-  __find_file "$@"
-  generate_readme "$template"
-  ;;
-
-*install*)
-  shift 1
-  __find_file "$@"
-  generate_readme "$template"
-  ;;
-
 *)
-  __find_file "$@"
+  __find_file "$*"
   generate_readme "$template"
   ;;
 

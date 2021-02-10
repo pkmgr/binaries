@@ -460,7 +460,7 @@ __system_service_exists() {
 #system_service_enable "servicename"
 __system_service_enable() {
   for service in "$@"; do
-    if __system_service_exists; then __devnull "sudo systemctl enable --now -f $service"; fi
+    if __system_service_exists "$service"; then __devnull "sudo systemctl enable --now -f $service"; fi
     __setexitstatus $?
   done
   set --
@@ -468,7 +468,7 @@ __system_service_enable() {
 #system_service_disable "servicename"
 __system_service_disable() {
   for service in "$@"; do
-    if __system_service_exists; then __devnull "sudo systemctl disable --now -f $service"; fi
+    if __system_service_exists "$service"; then __devnull "sudo systemctl disable --now -f $service"; fi
     __setexitstatus $?
   done
   set --
@@ -476,7 +476,7 @@ __system_service_disable() {
 #system_service_start "servicename"
 __system_service_start() {
   for service in "$@"; do
-    if __system_service_exists; then __devnull "sudo systemctl start $service"; fi
+    if __system_service_exists "$service"; then __devnull "sudo systemctl start $service"; fi
     __setexitstatus $?
   done
   set --
@@ -484,7 +484,15 @@ __system_service_start() {
 #system_service_stop "servicename"
 __system_service_stop() {
   for service in "$@"; do
-    if __system_service_exists; then __devnull "sudo systemctl stop $service"; fi
+    if __system_service_exists "$service"; then __devnull "sudo systemctl stop $service"; fi
+    __setexitstatus $?
+  done
+  set --
+}
+#system_service_restart "servicename"
+__system_service_restart() {
+  for service in "$@"; do
+    if __system_service_exists "$service"; then __devnull "sudo systemctl restart $service"; fi
     __setexitstatus $?
   done
   set --
@@ -1745,7 +1753,7 @@ systemmgr_install() {
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
   APPDIR="/usr/local/etc"
-  INSTDIR="$APPDIR"
+  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"

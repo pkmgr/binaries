@@ -300,37 +300,72 @@ hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1; }
 set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
 getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
 
+#system_service_active "list of services to check"
+system_service_active() {
+  for service in "$@"; do
+    if [ "$(systemctl show -p ActiveState $service | cut -d'=' -f2)" == active ]; then
+      return 0
+    else
+      return 1
+    fi
+  done
+}
+#system_service_running "list of services to check"
+system_service_running() {
+  for service in "$@"; do
+    if systemctl status $service 2>/dev/null | grep -Fq running; then
+      return 0
+    else
+      return 1
+    fi
+  done
+}
+#system_service_exists "servicename"
 system_service_exists() {
   for service in "$@"; do
-    if sudo systemctl list-units --full -all | grep -Fq "$1"; then return 0; else return 1; fi
+    if sudo systemctl list-units --full -all | grep -Fq "$service.service" || sudo systemctl list-units --full -all | grep -Fq "$service.socket"; then return 0; else return 1; fi
+    setexitstatus $?
   done
-  setexitstatus
   set --
 }
-
+#system_service_enable "servicename"
 system_service_enable() {
-  run_systemctl() {
-    for service in "$@"; do
-      sudo systemctl enable -f $service" "Enabling service: $1 || return 1
-    done
-  }
-  if system_service_exists "$@"; then
-    execute "run_systemctl $*" "Enabling service: $1"
-  fi
-  setexitstatus
+  for service in "$@"; do
+    if system_service_exists "$service"; then __devnull "sudo systemctl enable --now -f $service"; fi
+    setexitstatus $?
+  done
   set --
 }
-
+#system_service_disable "servicename"
 system_service_disable() {
-  run_systemctl() {
-    for service in "$@"; do
-      sudo systemctl disable --now $service || return 1
-    done
-  }
-  if system_service_exists "$@"; then
-    execute "run_systemctl $*" "Disabling service: $1"
-  fi
-  setexitstatus
+  for service in "$@"; do
+    if system_service_exists "$service"; then __devnull "sudo systemctl disable --now -f $service"; fi
+    setexitstatus $?
+  done
+  set --
+}
+#system_service_start "servicename"
+system_service_start() {
+  for service in "$@"; do
+    if system_service_exists "$service"; then __devnull "sudo systemctl start $service"; fi
+    setexitstatus $?
+  done
+  set --
+}
+#system_service_stop "servicename"
+system_service_stop() {
+  for service in "$@"; do
+    if system_service_exists "$service"; then __devnull "sudo systemctl stop $service"; fi
+    setexitstatus $?
+  done
+  set --
+}
+#system_service_restart "servicename"
+system_service_restart() {
+  for service in "$@"; do
+    if system_service_exists "$service"; then __devnull "sudo systemctl restart $service"; fi
+    setexitstatus $?
+  done
   set --
 }
 
@@ -363,8 +398,8 @@ export -f mlocate xfce4 imagemagick fdfind speedtest neovim chromium firefox gtk
 
 backupapp() {
   local filename count backupdir rmpre4vbackup
-  [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
-  [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
+  [ -n "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
+  [ -n "$2" ] && local myappname="$2" || local myappname="$APPNAME"
   local downloaddir="$INSTDIR"
   local logdir="$HOME/.local/log/backupapp"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
@@ -1940,7 +1975,7 @@ systemmgr_install() {
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
   APPDIR="/usr/local/etc/$APPNAME"
-  INSTDIR="$APPDIR"
+  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"

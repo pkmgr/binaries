@@ -47,8 +47,8 @@ scripts_check
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-REPLACE_APPNAME}"
-APPDIR="/usr/local/etc/${APPNAME}"
-INSTDIR="${APPDIR}"
+APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
+INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
 REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr/$APPNAME}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
@@ -63,8 +63,15 @@ systemmgr_run_init
 # Script options IE: --help
 show_optvars "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Requires root - no point in continuing
+sudoreq # sudo required
+#sudorun # sudo optional
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Do not update - add --force to overwrite
+#installer_noupdate "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end with a space
-APP=""
+APP="$APPNAME "
 PERL=""
 PYTH=""
 PIPS=""
