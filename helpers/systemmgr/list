@@ -1,1 +1,1 @@
-lightdm grub tor ssl ssh samba postfix cron
+ --all lightdm grub tor ssl ssh samba postfix cron
