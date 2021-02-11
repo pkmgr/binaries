@@ -91,6 +91,8 @@ remove)
 update)
   shift 1
   __requiresudo true || exit 1
+  unset APPNAME
+  [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   printf_green "Updating in $INSTDIR"
   if [[ -n $* ]]; then
     run_install_update "$@"
@@ -104,12 +106,13 @@ update)
 install)
   shift 1
   __requiresudo true || exit 1
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+  unset APPNAME
+  [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   if [ $# -eq 0 ]; then
     printf_green "Running the updater script" && sudo systemmgr update
     exit $?
   else
-    printf_green "Installing to $INSTDIR"
+    printf_green "Installing configurations to $SYSCONF"
     for ins in ${LISTARRAY[*]}; do
       run_install_init "$ins"
     done

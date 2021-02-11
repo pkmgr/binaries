@@ -71,6 +71,8 @@ remove)
 
 update)
   shift 1
+  unset APPNAME
+  [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   printf_green "Updating the themes in $THEMEDIR"
   if [[ -n $* ]]; then
     run_install_update "$@"
@@ -83,12 +85,12 @@ update)
 
 install)
   shift 1
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+  [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   if [ $# -eq 0 ]; then
     printf_green "Running the updater script" && thememgr update
     exit $?
   else
-    printf_green "Installing $* to $THEMEDIR"
+    printf_green "Installing themes to $THEMEDIR"
     for ins in ${LISTARRAY[*]}; do
       run_install_init "$ins"
     done

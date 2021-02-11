@@ -558,7 +558,7 @@ getexitcode() {
   else
     printf_red "$PERROR"
   fi
-  __returnexitcode "$EXITCODE"
+  returnexitcode "$EXITCODE"
   return "$EXITCODE"
 }
 ##################################################################################################
@@ -1735,7 +1735,7 @@ devenvmgr_install() {
 }
 ######## Installer Functions ########
 devenvmgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "dev enviroment"
+  run_install_init "dev enviroment"
 }
 
 devenvmgr_run_post() {
@@ -1775,7 +1775,7 @@ dfmgr_install() {
 }
 ######## Installer Functions ########
 dfmgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "configurations"
+  run_install_init "configurations"
 }
 
 dfmgr_run_post() {
@@ -1819,7 +1819,7 @@ dockermgr_install() {
 }
 ######## Installer Functions ########
 dockermgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "docker configurations"
+  run_install_init "docker configurations"
 }
 
 dockermgr_run_post() {
@@ -1861,7 +1861,7 @@ fontmgr_install() {
 }
 ######## Installer Functions ########
 fontmgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "fonts"
+  run_install_init "fonts"
 }
 
 fontmgr_run_post() {
@@ -1903,7 +1903,7 @@ iconmgr_install() {
 }
 ######## Installer Functions ########
 iconmgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "icons"
+  run_install_init "icons"
 }
 
 iconmgr_run_post() {
@@ -1951,7 +1951,7 @@ pkmgr_install() {
 }
 ######## Installer Functions ########
 pkmgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "packages"
+  run_install_init "packages"
 }
 
 pkmgr_run_post() {
@@ -1998,7 +1998,7 @@ systemmgr_install() {
 }
 ######## Installer Functions ########
 systemmgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "configurations"
+  run_install_init "configurations"
 }
 systemmgr_run_post() {
   systemmgr_install
@@ -2042,7 +2042,7 @@ generate_theme_index() {
 }
 ######## Installer Functions ########
 thememgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "theme"
+  run_install_init "theme"
 }
 thememgr_run_post() {
   thememgr_install
@@ -2083,7 +2083,7 @@ wallpapermgr_install() {
 }
 ######## Installer Functions ########
 wallpapermgr_run_init() {
-  mgr_init="${mgr_init:-}" run_install_init "wallpapers"
+  run_install_init "wallpapers"
 }
 wallpapermgr_run_post() {
   wallpapermgr_install
@@ -2097,6 +2097,25 @@ wallpapermgr_install_version() {
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
+}
+##################################################################################################
+run_install_init() {
+  printf ""
+  printf_yellow "Initializing the installer from"
+  if [ -f "$INSTDIR/install.sh" ]; then
+    printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
+  else
+    printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
+    printf_purple "$REPORAW/install.sh"
+    __urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
+  fi
+  if [ -d "$APPDIR" ]; then
+    printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"
+  else
+    printf_green "Installing ${1:-configurations} to ${APPDIR//$HOME/'~'}"
+  fi
+  local exitCode=$?
+  [ "$exitCode" -eq 0 ] || exit 10
 }
 ##################################################################################################
 run_postinst_global() {
@@ -2186,8 +2205,8 @@ run_postinst_global() {
 }
 ##################################################################################################
 install_version() {
+  printf_blue "$ICON_GOOD installing version info"
   $installtype
-  echo install_version 0>&2 1>&2
   mkd "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   if [ "$APPNAME" = "installer" ]; then
     ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
@@ -2200,11 +2219,11 @@ install_version() {
       [ -f "$INSTDIR/install.sh" ] && ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
     fi
   fi
-  echo -e "INSTDIR:$INSTDIR\nAPPDIR:$APPDIR" 0>&2 1>&2
 }
 ##################################################################################################
 run_exit() {
   $installtype
+  printf_yellow "$ICON_GOOD Running exit commands"
   [ -e "$APPDIR/$APPNAME" ] || rm_rf "$APPDIR/$APPNAME"
   [ -e "$INSTDIR/$APPNAME" ] || rm_rf "$INSTDIR/$APPNAME"
   if [ -d "$APPDIR" ] && [ ! -f "$APPDIR/.installed" ]; then
@@ -2215,35 +2234,12 @@ run_exit() {
   fi
   if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
-  if [ -n "$EXIT" ]; then
-    printf_yellow "$ICON_WARN Running exit commands: Exit Code ${EXIT:-$?}"
-  else
-    printf_yellow "$ICON_GOOD Running exit commands: Exit Code 0"
-  fi
+  local exitCode+=$?
+  getexitcode "$APPNAME has been installed" "$APPNAME installer has encountered an error: Check the URL"
+  printf_newline "\n"
   exit "${EXIT:-$?}"
 }
 ##################################################################################################
-if [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
-  run_install_init() {
-    printf ""
-    printf_yellow "Initializing the installer from"
-    if [ -f "$INSTDIR/install.sh" ]; then
-      printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
-    else
-      printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
-      printf_purple "$REPORAW/install.sh"
-      __urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
-    fi
-    if [ -d "$APPDIR" ]; then
-      printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"
-    else
-      printf_green "Installing ${1:-configurations} to ${APPDIR//$HOME/'~'}"
-    fi
-    local exitCode+=$?
-    return $exitCode
-  }
-fi
-
 run_install_list() {
   if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
     file="$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)"
@@ -2311,7 +2307,6 @@ wallpapermgr_req_version() { __required_version "$1"; }
 
 ##################################################################################################
 vdebug() {
-  $installtype
   echo -e "VAR - "ARGS:$*""
   for path in "USER:$USER" "HOME:$HOME" "PREFIX:$SCRIPTS_PREFIX" "REPO:$REPO" "REPORAW:$REPORAW" "CONF:$CONF" "SHARE:$SHARE" "INSTDIR:$INSTDIR" \
     "APPDIR:$APPDIR" "USRUPDATEDIR:$USRUPDATEDIR" "SYSUPDATEDIR:$SYSUPDATEDIR" "FONTDIR:$FONTDIR " "ICONDIR:$ICONDIR" "THEMEDIR:$THEMEDIR" \
@@ -2320,7 +2315,6 @@ vdebug() {
     echo -e "VAR - $path"
   done
 }
-##################################################################################################
 __debugger() {
   if [ "$1" = "debug" ]; then
     shift 1 && set -Ex
@@ -2330,7 +2324,8 @@ __debugger() {
     rm_rf "$LOGDIR_DEBUG/$APPNAME.log" "$LOGDIR_DEBUG/$APPNAME.err"
     touch "$LOGDIR_DEBUG/$APPNAME.log" "$LOGDIR_DEBUG/$APPNAME.err"
     chmod -Rf 755 "$LOGDIR_DEBUG"
-    $installtype && vdebug "$*" >>"$LOGDIR_DEBUG/$APPNAME.log"
+    vdebug "$*" >>"$LOGDIR_DEBUG/$APPNAME.log"
+    exec 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0
     devnull() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
     devnull1() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
     devnull2() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }

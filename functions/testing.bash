@@ -2075,7 +2075,7 @@ run_install_init() {
         # printf_purple "$REPO/$ins"
         __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
-      __getexitcode "$ins has been installed" "$ins installer has encounterd an error: Check the URL"
+      #__getexitcode "$ins has been installed" "$ins installer has encountered an error: Check the URL"
       local exitCode+=$?
     else
       # printf_yellow "Initializing the installer from"
@@ -2086,12 +2086,11 @@ run_install_init() {
         # printf_purple "$REPO/$ins"
         __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
-      __getexitcode "$ins has been installed" "$ins installer has encounterd an error: Check the URL"
+      #__getexitcode "$ins has been installed" "$ins installer has encounterd an error: Check the URL"
       local exitCode+=$?
     fi
   done
   unset ins
-  printf_newline
   return $exitCode
 }
 
