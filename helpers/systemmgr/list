@@ -1,1 +1,10 @@
- --all lightdm grub tor ssl ssh samba postfix cron
+cron
+grub
+httpd
+lightdm
+nginx
+postfix
+samba
+ssh
+ssl
+tor

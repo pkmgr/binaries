@@ -17,13 +17,13 @@ _wallpapermgr() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/wallpapermgr/array)"
-  local LIST="--all $(<$CASJAYSDEVDIR/helpers/wallpapermgr/list)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/wallpapermgr/list)"
   local cur prev words cword split
 
   _init_completion -s || return
 
   list_all() {
-    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+    COMPREPLY=($(compgen -W '--all ${LIST}' -- "$cur"))
   }
 
   local special i

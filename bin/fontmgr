@@ -86,30 +86,35 @@ remove)
 update)
   shift 1
   unset APPNAME
-  [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   printf_green "Updating fonts in $FONTDIR"
-  if [[ -n $* ]]; then
-    run_install_update "$@"
+  if [ $# -ne 0 ]; then
+    if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
+    for ins in ${LISTARRAY[*]}; do
+      run_install_update "$ins"
+    done
   elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
     for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
       run_install_update "$upd"
     done
+  else
+    printf_yellow "There doesn't seem to be any packages installed"
   fi
+  exit $?
   ;;
 
 install)
   shift 1
   unset APPNAME
-  [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
   if [ $# -eq 0 ]; then
-    printf_green "Running the updater script" && fontmgr update
-    exit $?
+    fontmgr update
   else
     printf_green "Installing fonts to $FONTDIR"
+    [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       run_install_init "$ins"
     done
   fi
+  exit $?
   ;;
 
 cron)

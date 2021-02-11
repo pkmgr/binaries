@@ -1,1 +1,13 @@
-transmission ifconfig daapd gitea mongodb postgresql mariadb hub airsonic nginx-manager portainer registry registry-web
+airsonic
+daapd
+gitea
+hub
+ifconfig
+mariadb
+mongodb
+nginx-manager
+portainer
+postgresql
+registry
+registry-web
+transmission

@@ -23,7 +23,7 @@ _thememgr() {
   _init_completion -s || return
 
   list_all() {
-    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+    COMPREPLY=($(compgen -W '--all ${LIST}' -- "$cur"))
   }
 
   local special i
