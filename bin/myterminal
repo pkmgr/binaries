@@ -43,7 +43,7 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import settings
 [ -f "$HOME/.config/myterminal/settings" ] && . "$HOME/.config/myterminal/settings"
-MYTERMINAL_NOTIFICATIONS="${MYTERMINAL_NOTIFICATIONS:-yes}"
+MYTERMINAL_NOTIFICATIONS="${MYTERMINAL_NOTIFICATIONS:-no}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate the config function

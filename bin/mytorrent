@@ -29,6 +29,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export MYTERMINAL_NOTIFICATIONS="no"
 [ -f "$HOME/.config/mytorrent/settings" ] && . "$HOME/.config/mytorrent/settings"
 MYTORRENT_NOTIFICATIONS="${MYTORRENT_NOTIFICATIONS:-yes}"
 

@@ -36,6 +36,7 @@ __options "$@"
 # check for needed applications
 cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export MYTERMINAL_NOTIFICATIONS="no"
 if [ -f "$HOME/.config/mybluetooth/${1:-main}" ]; then
   printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
   if printf_answer_yes "$YN"; then
@@ -47,7 +48,6 @@ fi
 OPTIONS="$1" && shift 1
 DEVICE="${1:-$MY_BT_DEVICE}"
 MY_BT_DEVICE=${DEVICE:-0C:FC:83:99:BC:9A}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __ok_msg() { printf_green "$1" && return 0; }
 __fail_msg() { printf_exit "1" "1" "$ICON_ERROR $1"; }

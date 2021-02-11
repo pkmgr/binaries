@@ -29,6 +29,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export MYTERMINAL_NOTIFICATIONS="no"
 [ -f "$HOME/.config/myemail/settings" ] && . "$HOME/.config/myemail/settings"
 MYEMAIL_NOTIFICATIONS="${MYEMAIL_NOTIFICATIONS:-yes}"
 

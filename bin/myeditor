@@ -29,6 +29,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+export MYTERMINAL_NOTIFICATIONS="no"
 [ -f "$HOME/.config/myeditor/settings" ] && . "$HOME/.config/myeditor/settings"
 MYEDITOR_NOTIFICATIONS="${MYEDITOR_NOTIFICATIONS:-yes}"
 
