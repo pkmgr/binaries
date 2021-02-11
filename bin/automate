@@ -14,7 +14,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Wednesday, Feb 03, 2021 13:11 EST
 # @File          : automate
-# @Description   : Script to control ruko and hue devices
+# @Description   : Script to control roku and hue devices
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -40,7 +40,7 @@ __options "$@"
 main() {
   # variables
   local setopts="$1"
-  local state="/tmp/automate"
+  local state="${TMPDIR:-/tmp}/automate"
   touch "$state"
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

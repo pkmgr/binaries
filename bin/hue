@@ -38,7 +38,7 @@ main() {
   # variables
   unset hue_api_key hue_device hue_option
   local setopts="$1"
-  local state="/tmp/automate_hue"
+  local state="${TMPDIR:-/tmp}/automate_hue"
   local hue_device="$(__hostname2ip ${HUE_HUB_DEVICE:-$2})"
   local hue_device_name="${HUE_HUB_DEVICE:-$2}"
   local hue_api_key="${HUE_ACCESS_TOKEN}"

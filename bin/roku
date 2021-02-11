@@ -44,7 +44,7 @@ main() {
   # variables
   unset roku_device roku_command roku_option
   local setopts="$1"
-  local state="/tmp/automate_roku"
+  local state="${TMPDIR:-/tmp}/automate_roku"
   local roku_device="$(hostname2ip ${ROKU_DEVICE:-$3})"
   local roku_device_name="${ROKU_DEVICE:-$3}"
   local roku_command="$1"
@@ -56,21 +56,21 @@ main() {
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # functions
-  __curlcmd(){ curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@"; }
+  __curlcmd() { curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@"; }
   __curlapi() { __curlcmd -d '' "$@"; }
   __status_ok() { printf_green "Telling $roku_device_name to $1"; }
   __status_failed() { printf_error "Failed to send $1 to $roku_device_name"; }
   getstate() { cat "$state"; }
   roku_play() {
-    devnull __curlapi "$api_url/keypress/play" && echo play >"$state" && \
+    devnull __curlapi "$api_url/keypress/play" && echo play >"$state" &&
       __status_ok "play" || __status_failed "play"
   }
   roku_stop() {
-    devnull __curlapi "$api_url/keypress/stop" && echo stop >"$state" && \
+    devnull __curlapi "$api_url/keypress/stop" && echo stop >"$state" &&
       __status_ok "stop" || __status_failed "stop"
   }
   roku_pause() {
-    devnull __curlapi "$api_url/keypress/play" && echo pause >"$state" && \
+    devnull __curlapi "$api_url/keypress/play" && echo pause >"$state" &&
       __status_ok "pause" || __status_failed "pause"
   }
   roku_toggle() {
@@ -122,7 +122,7 @@ main() {
     shift 1
     [ -z "$roku_command" ] && printf_exit "Please enter the the command you want to send to your roku"
     [ -z "$roku_option" ] && printf_exit "Please enter the the command you want to send to your roku"
-    devnull __curlapi "$api_url/$roku_command/$roku_option" && echo "$roku_option" >"$state" && \
+    devnull __curlapi "$api_url/$roku_command/$roku_option" && echo "$roku_option" >"$state" &&
       __status_ok "$*" || __status_failed "$*"
     ;;
 

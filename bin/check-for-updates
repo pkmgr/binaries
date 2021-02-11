@@ -49,12 +49,12 @@ xmessageopts="-nearmouse -timeout 10 -geometry 500x200 -center"
 [ ! -f "$HOME/.local/tmp/update_check" ] || rm -Rf "$HOME/.local/tmp/update_check"
 
 # run
-#Arch update check
+# Arch update check
 if [ -f /usr/bin/pacman ]; then
   if ! updates_arch=$(pacman -Qu 2>/dev/null | wc -l); then
     updates_arch=0
   fi
-  #yay doesn't do sudo
+  # yay doesn't do sudo
   if [ -f /usr/bin/yay ]; then
     if ! updates_aur=$(yay -Qum 2>/dev/null | wc -l); then
       updates_aur=0
@@ -62,12 +62,13 @@ if [ -f /usr/bin/pacman ]; then
   fi
   updates=$(("$updates_arch" + "$updates_aur"))
 
-#Debian update check
+# Debian/Ubuntu update check
 elif [ -f /usr/bin/apt ]; then
   if ! updates=$(sudo apt-get update >/dev/null && apt-get --just-print upgrade | grep "Inst " | wc -l); then
     updates=0
   fi
 
+# Fedora/RedHat/CentOS
 elif [ -f /usr/bin/dnf ]; then
   if ! updates=$(sudo dnf check-update -q | grep -v Security | wc -l); then
     updates=0

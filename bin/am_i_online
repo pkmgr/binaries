@@ -14,7 +14,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Wednesday, Feb 03, 2021 13:07 EST
 # @File          : am_i_online
-# @Description   : check to see if you can connect to internet
+# @Description   : Check to see if you can connect to internet
 # @TODO          :
 # @Other         :
 # @Resource      :
