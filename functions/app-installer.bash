@@ -134,7 +134,7 @@ ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
 
 ##################################################################################################
-printf_newline() { printf "${*:-}"; }
+printf_newline() { printf "${*:-}\n"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
 printf_green() { printf_color "\t\t$1\n" 2; }
@@ -653,8 +653,9 @@ sudorerun() {
 }
 sudoreq() {
   if [[ $UID != 0 ]]; then
-    echo "" && printf_error "Please run this script with sudo"
-    returnexitcode
+    printf_newline
+    printf_error "Please run this script with sudo/root\n"
+    exit 1
   fi
 }
 
@@ -2123,7 +2124,7 @@ run_install_init() {
   else
     printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
     printf_purple "$REPORAW/install.sh"
-    __urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
+    urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
   fi
   if [ -d "$APPDIR" ]; then
     printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"
@@ -2252,7 +2253,7 @@ run_exit() {
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
   local exitCode+=$?
   getexitcode "$APPNAME has been installed" "$APPNAME installer has encountered an error: Check the URL"
-  printf_newline "\n"
+  printf_newline
   exit "${EXIT:-$?}"
 }
 ##################################################################################################

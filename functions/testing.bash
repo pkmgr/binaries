@@ -1120,7 +1120,8 @@ sudorerun() {
 
 sudoreq() {
   if [[ $UID != 0 ]]; then
-    printf_error "Please run this script with sudo\n"
+    printf_newline
+    printf_error "Please run this script with sudo/root\n"
     exit 1
   fi
 }

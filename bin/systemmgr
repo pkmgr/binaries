@@ -80,7 +80,7 @@ available)
 
 remove)
   shift 1
-  __requiresudo true || exit 1
+  sudoreq true || exit 1
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
     app_uninstall "$rmf"
@@ -89,7 +89,7 @@ remove)
   ;;
 
 update)
-  __requiresudo true || exit 1
+  sudoreq true || exit 1
   shift 1
   unset APPNAME
   printf_green "Updating the configurations in $SYSCONF"
@@ -109,7 +109,7 @@ update)
   ;;
 
 install)
-  __requiresudo true || exit 1
+  sudoreq true || exit 1
   shift 1
   unset APPNAME
   if [ $# -eq 0 ]; then
@@ -126,7 +126,7 @@ install)
 
 cron)
   shift 1
-  __requiresudo true || exit 1
+  sudoreq true || exit 1
   cron_updater "$*"
   ;;
 
