@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="myterminal"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : myterminal
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : setup terminal
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 021120211655-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myterminal --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Thursday, Feb 11, 2021 16:55 EST
+# @File          : myterminal
+# @Description   : Setup terminal application
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,14 +32,21 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import settings
 [ -f "$HOME/.config/myterminal/settings" ] && . "$HOME/.config/myterminal/settings"
 MYTERMINAL_NOTIFICATIONS="${MYTERMINAL_NOTIFICATIONS:-yes}"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate the config function
 __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/myterminal"
@@ -46,7 +61,8 @@ MYTERMINAL_NOTIFICATIONS="'$MYTERMINAL_NOTIFICATIONS'"
   fi
   exit
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create link function
 __create_link() {
   case "$1" in
   *)
@@ -65,8 +81,8 @@ __create_link() {
     ;;
   esac
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Find the terminal app
 if [ "$MYTERMINAL" != "config" ]; then
   if [ -n "$(command -v termite 2>/dev/null)" ]; then
     export TERMINAL="termite"
@@ -94,13 +110,13 @@ if [ "$MYTERMINAL" != "config" ]; then
     export TERMINAL="/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$TERMINAL" ]; then
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "No terminal emulators are installed"
   printf_exit 1 1 "No terminal emulators are installed"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$1" = -e ] && shift 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
@@ -115,16 +131,14 @@ case $1 in
 
 *)
   if [ $# -gt 0 ]; then opt="-e"; fi
-  echo "$@" >/tmp/myterminal.log
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    ~/.local/bin/myterminal "$@" 2>/dev/null
+    ~/.local/bin/myterminal "$*" 2>/dev/null
   else
-    $TERMINAL ${OPTIONS:-$opt} "$@" 2>/dev/null
+    $TERMINAL ${OPTIONS:-$opt} "$*" 2>/dev/null
   fi
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

@@ -220,10 +220,10 @@ __gen_header_help() {
   exit 0
 }
 __gen_header() {
-  printf_green "New header info for $1"
-  local GEN_SCRIPTS_DEFREADME="$1 --help"
-  local GEN_SCRIPTS_NEWFILE="$1" && shift 1
-  __vars "$1"
+  printf_green "New header info for $filename"
+  local GEN_SCRIPTS_DEFREADME="$filename --help"
+  local GEN_SCRIPTS_NEWFILE="$filename"
+  __vars "$filename"
   __header_opts "$@"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
@@ -336,9 +336,8 @@ case "$1" in
 
 *header)
   shift 1
-  #[[ $1 = *funct* ]] && showFunctions=true && shift 1
   [[ "$1" != -* ]] && filename="$1" && shift 1 || filename="template"
-  __gen_header "$filename" "$@"
+  __gen_header "$@"
   exit
   ;;
 
