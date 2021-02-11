@@ -2124,7 +2124,8 @@ run_install_init() {
   else
     printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
     printf_purple "$REPORAW/install.sh"
-    urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
+    urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)" ||
+      printf_exit "Failed to initialize the installer\n\t\t$REPO/$ins/raw/master/install.sh"
   fi
   if [ -d "$APPDIR" ]; then
     printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"

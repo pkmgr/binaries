@@ -2069,26 +2069,22 @@ run_install_init() {
   local -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
     if user_is_root; then
-      # printf_yellow "Initializing the installer from"
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        # printf_purple "${INSTDIR//$HOME/'~'}/$ins/install.sh"
         sudo bash -c "$INSTDIR/$ins/install.sh"
       else
-        # printf_purple "$REPO/$ins"
-        __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+        __urlcheck "$REPO/$ins/raw/master/install.sh" &&
+          sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" ||
+          printf_exit "Failed to initialize the installer"
       fi
-      #__getexitcode "$ins has been installed" "$ins installer has encountered an error: Check the URL"
       local exitCode+=$?
     else
-      # printf_yellow "Initializing the installer from"
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        # printf_purple "$INSTDIR/$ins/install.sh"
         bash -c "$INSTDIR/$ins/install.sh"
       else
-        # printf_purple "$REPO/$ins"
-        __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+        __urlcheck "$REPO/$ins/raw/master/install.sh" &&
+          bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" ||
+          printf_exit "Failed to initialize the installer\n\t\t$REPO/$ins/raw/master/install.sh"
       fi
-      #__getexitcode "$ins has been installed" "$ins installer has encounterd an error: Check the URL"
       local exitCode+=$?
     fi
   done
@@ -2121,7 +2117,7 @@ run_install_update() {
       local exitCode+=$?
     done
   fi
-  unset upd
+  unset upd updadmin ins
   return $exitCode
 }
 
@@ -2165,7 +2161,7 @@ run_install_list() {
       printf_red "Nothing was found"
     fi
   fi
-  unset args
+  unset args file df
   return $?
 }
 
@@ -2181,7 +2177,7 @@ run_install_search() {
 }
 
 run_install_available() {
-  __api_test "Failed to load the API" && __curl_api ${1:-$APPNAME} | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
+  __api_test "Failed to load the API for $APPNAME" && __curl_api ${1:-$APPNAME} | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
 }
 
 run_install_version() {
