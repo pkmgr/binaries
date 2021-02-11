@@ -116,7 +116,6 @@ case $1 in
   if [ -f "$HOME/.local/bin/myeditor" ]; then
     exec ~/.local/bin/myeditor "$@" 2>/dev/null
   else
-    EDITOR=vim
     exec $EDITOR "$@" 2>/dev/null
   fi
   ;;
