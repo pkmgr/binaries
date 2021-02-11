@@ -33,9 +33,11 @@ currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
-TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:.:$PATH"
-export PATH="$(echo $TMPPATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
-export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
+TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
+export PATH="$(echo "$TMPPATH" | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
+unset TMPPATH
+
+export SUDO_PROMPT="$(printf "\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 export TMP="${TMP:-/tmp}"
 export TEMP="${TEMP:-/tmp}"
 
@@ -75,7 +77,7 @@ devnull() { "$@" >/dev/null 2>&1; }
 devnull2() { "$@" >/dev/null 2>&1; }
 
 # fail if git is not installed
-if ! command -v "git" >/dev/null 2>&1; then
+if [ ! -f "$(command -v "git" 2>/dev/null)" ]; then
   echo -e "\t\t\033[0;31mAttempting to install git\033[0m"
   if cmd_exists brew; then
     brew install -f git >/dev/null 2>&1
@@ -87,7 +89,7 @@ if ! command -v "git" >/dev/null 2>&1; then
     yum install -yy -q git >/dev/null 2>&1
   elif cmd_exists choco; then
     choco install git -y >/dev/null 2>&1
-    if ! command -v git >/dev/null 2>&1; then
+    if [ ! -f "$(command -v "git" &>/dev/null)" ]; then
       echo -e "\t\t\033[0;31mGit was not installed\033[0m"
       exit 1
     fi
@@ -133,41 +135,37 @@ ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
 
 ##################################################################################################
-set -o pipefail
+printf_newline() { printf "${*:-}"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() { printf_color "\t\t$1\n" "$2"; }
-printf_green() { printf_color "$1" 2; }
-printf_red() { printf_color "$1" 1; }
-printf_purple() { printf_color "$1" 5; }
-printf_yellow() { printf_color "$1" 3; }
-printf_blue() { printf_color "$1" 4; }
-printf_cyan() { printf_color "$1" 6; }
+printf_green() { printf_color "\t\t$1\n" 2; }
+printf_red() { printf_color "\t\t$1\n" 1; }
+printf_purple() { printf_color "\t\t$1\n" 5; }
+printf_yellow() { printf_color "\t\t$1\n" 3; }
+printf_blue() { printf_color "\t\t$1\n" 4; }
+printf_cyan() { printf_color "\t\t$1\n" 6; }
 printf_info() { printf_color "\t\t$ICON_INFO $1\n" 3; }
-printf_help() {
-  printf_color "\t\t$1\n" 1
-  exit $?
-}
-printf_read() { printf_color "\t\t$1" 5; }
 printf_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
-printf_error() { printf_color "\t\t$ICON_ERROR $1 $2\n" 1; }
 printf_warning() { printf_color "\t\t$ICON_WARN $1\n" 3; }
-printf_error_stream() { while read -r line; do printf_error "? ERROR: $line"; done; }
+printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
 printf_execute_success() { printf_color "\t\t$ICON_GOOD $1\n" 2; }
 printf_execute_error() { printf_color "\t\t$ICON_WARN $1 $2\n" 1; }
+printf_execute_error_stream() { while read -r line; do printf_execute_error "↳ ERROR: $line"; done; }
 printf_execute_result() {
-  if [ "$1" -eq 0 ]; then
-    printf_execute_success "$2"
-  else
-    printf_execute_error "$2"
-  fi
+  if [ "$1" -eq 0 ]; then printf_execute_success "$2"; else printf_execute_error "${3:-$2}"; fi
   return "$1"
 }
-printf_execute_error_stream() { while read -r line; do printf_execute_error "? ERROR: $line"; done; }
 
 ##################################################################################################
+
 printf_question() {
-  printf_color "\t\t$ICON_QUESTION $1 " 6
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local msg="$*"
+  shift
+  printf_color "\t\t$ICON_QUESTION $msg? " "$color"
 }
+
+##################################################################################################
 
 #printf_error "color" "exitcode" "message"
 printf_error() {
@@ -177,6 +175,8 @@ printf_error() {
   printf_color "\t\t$ICON_ERROR $msg\n" "$color"
   return $exitCode
 }
+
+##################################################################################################
 
 #printf_exit "color" "exitcode" "message"
 printf_exit() {
@@ -189,19 +189,21 @@ printf_exit() {
   exit "$exitCode"
 }
 
+##################################################################################################
+
 printf_readline() {
-  $(set -o pipefail)
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="3"
+  set -o pipefail
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   while read line; do
-    printf_custom "$color" "$line"
+    printf_color "\t\t$line\n" "$color"
   done
-  $(set +o pipefail)
+  set +o pipefail
 }
 
 ##################################################################################################
 
 printf_custom() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
   local msg="$*"
   shift
   printf_color "\t\t$msg" "$color"
@@ -210,17 +212,7 @@ printf_custom() {
 
 ##################################################################################################
 
-printf_custom_input() {
-  local color="1"
-  local msg="$1"
-  shift
-  read -e -p
-}
-
-##################################################################################################
-
 printf_custom_question() {
-  local custom_question
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
@@ -230,40 +222,56 @@ printf_custom_question() {
 ##################################################################################################
 
 printf_question_timeout() {
-  local custom_question
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
-  local msg="$*"
-  shift
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local msg="$1" && shift 1
+  test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
+  reply="${1:-REPLY}" && shift 1
+  readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 10 -n 1 answer
-  #if [[ $answer == "y" || $answer == "Y" ]]; then
-  #fi
+  read -t 20 -er -n 1 answer
 }
 
 ##################################################################################################
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
-  local msg="$*"
+  local msg1="$1" && shift 1
+  local msg2="$1" && shift 1 || msg2=
+  local msg3="$1" && shift 1 || msg3=
+  local msg4="$1" && shift 1 || msg4=
+  local msg5="$1" && shift 1 || msg5=
+  local msg6="$1" && shift 1 || msg6=
+  local msg7="$1" && shift 1 || msg7=
   shift
-  printf_color "
-\t\t##################################################
-\t\t$msg
-\t\t##################################################\n\n" "$color"
+  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
+  [ -z "$msg1" ] || printf_color "\t\t$msg1\n" "$color"
+  [ -z "$msg2" ] || printf_color "\t\t$msg2\n" "$color"
+  [ -z "$msg3" ] || printf_color "\t\t$msg3\n" "$color"
+  [ -z "$msg4" ] || printf_color "\t\t$msg4\n" "$color"
+  [ -z "$msg5" ] || printf_color "\t\t$msg5\n" "$color"
+  [ -z "$msg6" ] || printf_color "\t\t$msg6\n" "$color"
+  [ -z "$msg7" ] || printf_color "\t\t$msg7\n" "$color"
+  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
 }
 
 ##################################################################################################
 
 printf_result() {
+  PREV="$4"
   [ ! -z "$1" ] && EXIT="$1" || EXIT="$?"
   [ ! -z "$2" ] && local OK="$2" || local OK="Command executed successfully"
-  [ ! -z "$2" ] && local FAIL="$2" || local FAIL="Last command failed"
+  [ ! -z "$3" ] && local FAIL="$3" || local FAIL="${PREV:-The previous command} has failed"
+  [ ! -z "$4" ] && local FAIL="$3" || local FAIL="$3"
   if [ "$EXIT" -eq 0 ]; then
     printf_success "$OK"
-    exit 0
+    return 0
   else
-    printf_error "$FAIL"
-    exit 1
+    if [ -z "$4" ]; then
+      printf_error "$FAIL"
+    else
+      printf_error "$FAIL: $PREV"
+    fi
+    return 1
   fi
 }
 
@@ -280,16 +288,6 @@ ask_for_input() {
 ask_question() {
   printf_question "$1 (y/N) "
   read -re -n 1 "REPLY"
-}
-
-##################################################################################################
-
-notifications() {
-  local title="$1"
-  shift 1
-  local msg="$*"
-  shift
-  cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }
 
 ##################################################################################################
@@ -413,11 +411,11 @@ backupapp() {
     echo -e " #################################" >>"$logdir/$myappname.log"
     echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
-    echo -e "#################################\n" >>"$logdir/$myappname.log"
+    echo -e "#################################" >>"$logdir/$myappname.log"
     tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>>"$logdir/$myappname.log"
-    echo -e "\n#################################" >>"$logdir/$myappname.log"
+    echo -e "#################################" >>"$logdir/$myappname.log"
     echo -e "# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
-    echo -e "#################################\n\n" >>"$logdir/$myappname.log"
+    echo -e "#################################" >>"$logdir/$myappname.log"
     [ -f "$APPDIR/.installed" ] || rm_rf "$myappdir"
   fi
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
@@ -442,13 +440,15 @@ replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {}
 rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 countwd() { cat "$@" | wc-l | rmcomments; }
 urlcheck() { devnull curl --config /dev/null --connect-timeout 3 --retry 3 --retry-delay 1 --output /dev/null --silent --head --fail "$1"; }
-urlinvalid() { if [ -z "$1" ]; then
-  printf_red "\t\tInvalid URL\n"
-  failexitcode
-else
-  printf_red "\t\tCan't find $1\n"
-  failexitcode
-fi; }
+urlinvalid() {
+  if [ -z "$1" ]; then
+    printf_red "Invalid URL"
+    failexitcode
+  else
+    printf_red "Can't find $1"
+    failexitcode
+  fi
+}
 urlverify() { urlcheck "$1" || urlinvalid "$1"; }
 symlink() { ln_sf "$1" "$2"; }
 rm_link() { unlink "$1"; }
@@ -538,19 +538,30 @@ returnexitcode() {
 ##################################################################################################
 
 getexitcode() {
-  local RETVAL="$?"
-  test -n "$1" && test -z "${1//[0-9]/}" && local RETVAL="$1" && shift 1
-  local ERROR="${1:-Setup failed}"
-  local SUCCES="$2"
-  EXIT="$RETVAL"
-  if [ "$RETVAL" -eq 0 ]; then
-    printf_success "$SUCCES"
+  local EXITCODE="$?"
+  test -n "$1" && test -z "${1//[0-9]/}" && local EXITCODE="$1" && shift 1
+  if [ ! -z "$1" ]; then
+    local PSUCCES="$1"
+  elif [ ! -z "$SUCCES" ]; then
+    local PSUCCES="$SUCCES"
   else
-    printf_error "$ERROR"
-    exit "$EXIT"
+    local PSUCCES="Command successful"
   fi
+  if [ ! -z "$2" ]; then
+    local PERROR="$2"
+  elif [ ! -z "$ERROR" ]; then
+    local PERROR="$ERROR"
+  else
+    local PERROR="Last command failed to complete"
+  fi
+  if [ "$EXITCODE" -eq 0 ]; then
+    printf_cyan "$PSUCCES"
+  else
+    printf_red "$PERROR"
+  fi
+  __returnexitcode "$EXITCODE"
+  return "$EXITCODE"
 }
-
 ##################################################################################################
 
 failexitcode() {
@@ -677,10 +688,10 @@ sudoask() {
 
 sudoexit() {
   if [ $? -eq 0 ]; then
-    sudoask || printf_green "\t\tGetting privileges successfull continuing\n" &&
+    sudoask || printf_green "Getting privileges successfull continuing" &&
       sudo -n true
   else
-    printf_red "\t\tFailed to get privileges\n"
+    printf_red "Failed to get privileges"
   fi
 }
 
@@ -693,7 +704,7 @@ requiresudo() {
       sudoexit && sudo "$@"
     fi
   else
-    printf_red "\t\tYou dont have access to sudo\n\t\tPlease contact the syadmin for access\n"
+    printf_red "You dont have access to sudoPlease contact the syadmin for access"
     exit 1
   fi
 }
@@ -718,13 +729,13 @@ crontab_add() {
   remove)
     shift 1
     if [[ $EUID -ne 0 ]]; then
-      printf_green "\t\tRemoving $file from $WHOAMI crontab\n"
+      printf_green "Removing $file from $WHOAMI crontab"
       crontab -l | grep -v -F "$file" | crontab - &>/dev/null
-      printf_custom "2" "$file has been removed from automatically updating\n"
+      printf_custom "2" "$file has been removed from automatically updating"
     else
-      printf_green "\t\tRemoving $file from root crontab\n"
+      printf_green "Removing $file from root crontab"
       sudo crontab -l | grep -v -F "$file" | sudo crontab - &>/dev/null
-      printf_custom "2" "$file has been removed from automatically updating\n"
+      printf_custom "2" "$file has been removed from automatically updating"
     fi
     ;;
 
@@ -734,18 +745,18 @@ crontab_add() {
     if [[ "$EUID" -ne 0 ]]; then
       local croncmd="logr"
       local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
-      printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
+      printf_green "Adding $frequency $croncmd $additional to $WHOAMI crontab"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
-      printf_custom "3" "To remove run $file --cron remove\n"
+      printf_custom "3" "To remove run $file --cron remove"
     else
       local croncmd="logr"
       local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
-      printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
+      printf_green "Adding $frequency $croncmd $additional to root crontab"
       sudo crontab -l | grep -qv -F "$croncmd"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
-      printf_custom "3" "To remove run $file --cron remove\n"
+      printf_custom "3" "To remove run $file --cron remove"
     fi
     ;;
 
@@ -754,18 +765,18 @@ crontab_add() {
     if [[ "$EUID" -ne 0 ]]; then
       local croncmd="logr"
       local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
-      printf_green "\t\tAdding $frequency $croncmd $additional to $WHOAMI crontab\n"
+      printf_green "Adding $frequency $croncmd $additional to $WHOAMI crontab"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
-      printf_custom "3" "To remove run $file --cron remove\n"
+      printf_custom "3" "To remove run $file --cron remove"
     else
       local croncmd="logr"
       local additional='bash -c "am_i_online && sleep $(expr $RANDOM \% 300) && '$file' &"'
-      printf_green "\t\tAdding $frequency $croncmd $additional to root crontab\n"
+      printf_green "Adding $frequency $croncmd $additional to root crontab"
       sudo crontab -l | grep -qv -F "$croncmd"
       addtocrontab "$frequency" "$croncmd" "$additional"
       printf_custom "2" "$file has been added to update automatically"
-      printf_custom "3" "To remove run $file --cron remove\n"
+      printf_custom "3" "To remove run $file --cron remove"
     fi
     ;;
   esac
@@ -775,24 +786,24 @@ crontab_add() {
 
 versioncheck() {
   if [ -f "$INSTDIR/version.txt" ]; then
-    printf_green "\t\tChecking for updates\n"
+    printf_green "Checking for updates"
     local NEWVERSION="$(echo $APPVERSION | grep -v "#" | tail -n 1)"
     local OLDVERSION="$(cat $INSTDIR/version.txt | grep -v "#" | tail -n 1)"
     if [ "$NEWVERSION" == "$OLDVERSION" ]; then
-      printf_green "\t\tNo updates available current\n\t\tversion is $OLDVERSION\n"
+      printf_green "No updates available currentversion is $OLDVERSION"
     else
-      printf_blue "\t\tThere is an update available\n"
-      printf_blue "\t\tNew version is $NEWVERSION and current\n\t\tversion is $OLDVERSION\n"
+      printf_blue "There is an update available"
+      printf_blue "New version is $NEWVERSION and currentversion is $OLDVERSION"
       printf_question "Would you like to update" [y/N]
       read -n 1 -s choice
       echo ""
       if [[ $choice == "y" || $choice == "Y" ]]; then
         [ -f "$INSTDIR/install.sh" ] && bash -c "$INSTDIR/install.sh" && echo ||
           git -C "$INSTDIR" pull -q &&
-          printf_green "\t\tUpdated to $NEWVERSION\n" ||
-          printf_red "\t\tFailed to update\n"
+          printf_green "Updated to $NEWVERSION" ||
+          printf_red "Failed to update"
       else
-        printf_cyan "\t\tYou decided not to update\n"
+        printf_cyan "You decided not to update"
       fi
     fi
   fi
@@ -804,7 +815,7 @@ versioncheck() {
 scripts_check() {
   if __am_i_online; then
     if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
-      printf_red "\t\tPlease install my scripts repo - requires root/sudo\n"
+      printf_red "Please install my scripts repo - requires root/sudo"
       printf_question "Would you like to do that now" [y/N]
       read -n 1 -s choice && echo ""
       if [[ $choice == "y" || $choice == "Y" ]]; then
@@ -1185,7 +1196,7 @@ supported_os() {
 unsupported_oses() {
   for OSes in "$@"; do
     if [[ "$(echo $OSes | tr '[:upper:]' '[:lower:]')" =~ $(os_support) ]]; then
-      printf_red "\t\t$(os_support $OSes) is not supported\n"
+      printf_red "$(os_support $OSes) is not supported"
       exit
     fi
   done
@@ -1465,15 +1476,15 @@ get_app_version() {
 
 app_uninstall() {
   if [ -d "$APPDIR" ]; then
-    printf_yellow "\n\t\tRemoving $APPNAME from your system\n"
+    printf_yellow "Removing $APPNAME from your system"
     [ -d "$INSTDIR" ] && rm_rf "$INSTDIR"
     rm_rf "$APPDIR" &&
       rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
       rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
       broken_symlinks $BIN $SHARE $COMPDIR $CONF
-    getexitcode "\n\t\t$APPNAME has been removed\n"
+    getexitcode "$APPNAME has been removed"
   else
-    printf_red "\n\t\t$APPNAME doesn't seem to be installed\n"
+    printf_red "$APPNAME doesn't seem to be installed"
     return 1
   fi
 }
@@ -1508,7 +1519,7 @@ show_optvars() {
     #    elif cmd_exists open; then
     #      open "$REPO/$APPNAME"
     #    else
-    printf_cyan "\t\tGo to $REPO/$APPNAME for help\n\n"
+    printf_cyan "Go to $REPO/$APPNAME for help"
     #    fi
     exit
   fi
@@ -1525,7 +1536,7 @@ show_optvars() {
   fi
 
   path_info() {
-    echo "$PATH" | tr ':' '\n' | sort -u
+    echo "$PATH" | tr ':' '' | sort -u
   }
 
   if [ "$1" = "--location" ]; then
@@ -1591,7 +1602,7 @@ show_optvars() {
   fi
 
   if [ "$1" = "--installed" ]; then
-    printf_green "\t\tUser                               Group                              AppName"
+    printf_green "User                               Group                              AppName"
     ls -l $CASJAYSDEVSAPPDIR/dotfiles | tr -s ' ' | cut -d' ' -f3,4,9 | sed 's# #                               #g' | grep -v "total." | printf_readline "5"
     exit $?
   fi
@@ -1604,7 +1615,7 @@ installer_noupdate() {
   if [ "$1" != "--force" ]; then
     if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d $APPDIR ]; then
       ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
-      printf_warning "\t\tUpdating of $APPNAME has been disabled"
+      printf_warning "Updating of $APPNAME has been disabled"
       exit 0
     fi
   fi
@@ -1615,16 +1626,16 @@ installer_noupdate() {
 install_version() {
   mkd "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    if [ "$APPNAME" = "installer" ]; then
-      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
-      ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
+    if [ "$APPNAME" = "installer" ] || [ "$APPNAME" = "scripts" ]; then
+      ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
+      ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
     fi
-    ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
   fi
   if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
+    ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
+    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  elif [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
     ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
-  fi
-  if [ "$APPDIR" != "$INSTDIR" ] && [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
     ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   fi
 }
@@ -1748,10 +1759,10 @@ devenvmgr_install() {
   devenvmgr_install_version() {
     devenvmgr_install
     install_version
-    mkdir -p "$CASJAYSDEVSAPPDIR/devenvmgr" "$CASJAYSDEVSAPPDIR/devenvmgr"
-    if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-      ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/devenvmgr/$APPNAME"
-    fi
+    mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+    # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+    #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+    # fi
   }
 }
 
@@ -1783,10 +1794,10 @@ dfmgr_run_post() {
 dfmgr_install_version() {
   dfmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/dfmgr" "$CASJAYSDEVSAPPDIR/dfmgr"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dfmgr/$APPNAME"
-  fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ##################################################################################################
@@ -1819,10 +1830,10 @@ dockermgr_run_post() {
 dockermgr_install_version() {
   dockermgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/dockermgr" "$CASJAYSDEVSAPPDIR/dockermgr"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/dockermgr/$APPNAME"
-  fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ##################################################################################################
@@ -1854,10 +1865,10 @@ fontmgr_run_post() {
 fontmgr_install_version() {
   fontmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/fontmgr" "$CASJAYSDEVSAPPDIR/fontmgr"
-  if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
-    ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/fontmgr/$APPNAME"
-  fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ##################################################################################################
@@ -1889,10 +1900,10 @@ iconmgr_run_post() {
 iconmgr_install_version() {
   iconmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/iconmgr" "$CASJAYSDEVSAPPDIR/apps/iconmgr"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/iconmgr/$APPNAME"
-  fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 generate_icon_index() {
@@ -1929,10 +1940,10 @@ pkmgr_run_post() {
 pkmgr_install_version() {
   pkmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/pkmgr" "$CASJAYSDEVSAPPDIR/pkmgr"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/pkmgr/$APPNAME"
-  fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ##################################################################################################
@@ -1968,10 +1979,10 @@ systemmgr_run_post() {
 systemmgr_install_version() {
   systemmgr_install
   install_version
-  mkdir -p "$SYSUPDATEDIR"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/systemmgr/$APPNAME"
-  fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ##################################################################################################
@@ -2007,10 +2018,10 @@ thememgr_run_post() {
 thememgr_install_version() {
   thememgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/thememgr" "$CASJAYSDEVSAPPDIR/thememgr"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/thememgr/$APPNAME"
-  fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ##################################################################################################
@@ -2040,29 +2051,29 @@ wallpapermgr_run_post() {
 wallpapermgr_install_version() {
   wallpapermgr_install
   install_version
-  mkd "$CASJAYSDEVSAPPDIR/wallpapermgr"
-  #if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
-  ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/wallpapermgr/$APPNAME"
-  #fi
+  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ##################################################################################################
 
 if [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
   run_install_init() {
-    printf "\n"
-    printf_yellow "\t\tInitializing the installer from\n"
+    printf ""
+    printf_yellow "Initializing the installer from"
     if [ -f "$INSTDIR/install.sh" ]; then
-      printf_purple "\t\t${INSTDIR//$HOME/'~'}/install.sh\n"
+      printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
     else
-      printf_yellow "\t\tDownloading to ${INSTDIR//$HOME/'~'}\n"
-      printf_purple "\t\t$REPORAW/install.sh\n"
-      __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
+      printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
+      printf_purple "$REPORAW/install.sh"
+      __urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
     fi
     if [ -d "$APPDIR" ]; then
-      printf_green "\t\tUpdating ${1:-configurations} in ${APPDIR//$HOME/'~'}\n"
+      printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"
     else
-      printf_green "\t\tInstalling ${1:-configurations} to ${APPDIR//$HOME/'~'}\n"
+      printf_green "Installing ${1:-configurations} to ${APPDIR//$HOME/'~'}"
     fi
     local exitCode+=$?
     return $exitCode
@@ -2073,7 +2084,7 @@ run_install_list() {
   if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
     file="$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)"
     if [ -f "$file" ]; then
-      printf_green "\t\tInformation about $1: \n$(bash -c "$file --version")\n"
+      printf_green "Information about $1: $(bash -c "$file --version")"
     else
       printf_exit "File was not found is it installed?"
       exit
@@ -2104,26 +2115,11 @@ run_postinst_global() {
       ln_sf "$INSTDIR/bin/$app" "$SYSBIN/$app"
     done
     cmd_exists updatedb && updatedb || return 0
-    # dfunFiles="$(ls $INSTDIR/completions)"
-    # for dfun in $dfunFiles; do
-    #   rm_rf "$COMPDIR/$dfun"
-    # done
-    # myfunctFiles="$(ls $INSTDIR/functions)"
-    # for myfunct in $myfunctFiles; do
-    #   ln_sf "$INSTDIR/functions/$myfunct" "$HOME/.local/share/CasjaysDev/functions/$myfunct"
-    # done
-
-    # compFiles="$(ls $INSTDIR/completions)"
-    # for comp in $compFiles; do
-    #   cp_rf "$INSTDIR/completions/$comp" "$COMPDIR/$comp"
-    # done
 
   else
     # Run on everything else
     if [ "$APPDIR" != "$INSTDIR" ]; then
-      if [ ! -L "$APPDIR" ] || [ ! -d "$APPDIR" ]; then mkd "$APPDIR"; fi
-      [ -d "$INSTDIR/etc" ] && cp_rf "$INSTDIR/etc/." "$APPDIR/"
-      date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$APPDIR/.installed"
+      [ -d "$INSTDIR/etc" ] && mkd "$APPDIR" && cp_rf "$INSTDIR/etc/." "$APPDIR/"
     fi
 
     if [ -d "$INSTDIR/backgrounds" ]; then
@@ -2199,12 +2195,12 @@ run_exit() {
   if [ -d "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed" 2>/dev/null
   fi
-  if [ -f "$TEMP/$.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
+  if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
   if [ -n "$EXIT" ]; then
-    printf_yellow "\t\t$ICON_WARN Running exit commands: Exit Code ${EXIT:-$?}\n"
+    printf_yellow "$ICON_WARN Running exit commands: Exit Code ${EXIT:-$?}"
   else
-    printf_yellow "\t\t$ICON_GOOD Running exit commands: Exit Code 0\n"
+    printf_yellow "$ICON_GOOD Running exit commands: Exit Code 0"
   fi
   exit "${EXIT:-$?}"
 }
@@ -2235,7 +2231,7 @@ __required_version() {
     local cVersion="${currentVersion//-git/}"
     if [ "$cVersion" -lt "$rVersion" ]; then
       set -Ee
-      printf_exit 1 2 "Requires version higher than $rVersion\n"
+      printf_exit 1 2 "Requires version higher than $rVersion"
       exit 1
     fi
   fi
