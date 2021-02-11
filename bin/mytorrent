@@ -122,9 +122,9 @@ case $1 in
     myterminal -e "$TORRENT $*" 2>/dev/null
   else
     if [ -f "$HOME/.local/bin/mytorrent" ]; then
-      ~/.local/bin/mytorrent "$@" 2>/dev/null &
+      exec ~/.local/bin/mytorrent "$@" 2>/dev/null &
     else
-      $TORRENT "$@" 2>/dev/null &
+      exec $TORRENT "$@" 2>/dev/null &
     fi
   fi
   ;;
