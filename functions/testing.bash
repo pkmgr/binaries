@@ -1801,7 +1801,7 @@ systemmgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1825,12 +1825,6 @@ thememgr_install() {
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
-  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
-  else
-    APPVERSION="$currentVersion"
-  fi
   __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
@@ -1866,8 +1860,6 @@ wallpapermgr_install() {
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
-  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
   __main_installer_info
   __mkd "$WALLPAPERS"
   __mkd "$USRUPDATEDIR"
@@ -2083,7 +2075,7 @@ run_install_init() {
         # printf_purple "$REPO/$ins"
         __urlcheck "$REPO/$ins/raw/master/install.sh" && sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
-      __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
+      __getexitcode "$ins has been installed" "$ins installer has encounterd an error: Check the URL"
       local exitCode+=$?
     else
       # printf_yellow "Initializing the installer from"
@@ -2094,7 +2086,7 @@ run_install_init() {
         # printf_purple "$REPO/$ins"
         __urlcheck "$REPO/$ins/raw/master/install.sh" && bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)"
       fi
-      __getexitcode "$ins has been installed" "An error has occurred while initiating the installer: Check the URL"
+      __getexitcode "$ins has been installed" "$ins installer has encounterd an error: Check the URL"
       local exitCode+=$?
     fi
   done

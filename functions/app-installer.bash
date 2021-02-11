@@ -8,7 +8,6 @@ HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-[[ "$*" = *-debug ]] && shift 1 && set -Ex && export debug=true
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 020920211625-git
@@ -1135,11 +1134,6 @@ execute() {
   if [ $exitCode -ne 0 ]; then
     printf_execute_error_stream <"$TMP_FILE"
   fi
-  if [ "$*" = "--verbose" ] || [ "$*" = "--vdebug" ]; then
-    if [ -f "$TMP_FILE" ]; then
-      cat "$TMP_FILE" >>"$LOGDIR_DEBUG/$APPNAME.debug"
-    fi
-  fi
   rm -rf "$TMP_FILE"
   return $exitCode
 }
@@ -1492,6 +1486,11 @@ app_uninstall() {
 ##################################################################################################
 
 show_optvars() {
+  if [ "$1" = "--debug" ]; then
+    shift 1
+    __debugger "debug"
+  fi
+
   if [ "$1" = "--update" ]; then
     versioncheck
     exit "$?"
@@ -1613,7 +1612,7 @@ show_optvars() {
 
 installer_noupdate() {
   if [ "$1" != "--force" ]; then
-    if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d $APPDIR ]; then
+    if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d "$APPDIR" ] || [ -d "$INSTDIR" ]; then
       ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
       printf_warning "Updating of $APPNAME has been disabled"
       exit 0
@@ -1622,23 +1621,6 @@ installer_noupdate() {
 }
 
 ##################################################################################################
-
-install_version() {
-  mkd "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    if [ "$APPNAME" = "installer" ] || [ "$APPNAME" = "scripts" ]; then
-      ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
-      ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
-    fi
-  fi
-  if [ -f "$APPDIR/install.sh" ] && [ -f "$APPDIR/version.txt" ]; then
-    ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
-    ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
-  elif [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
-    ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
-    ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
-  fi
-}
 
 __install_fonts() {
   if [ -d "$INSTDIR/fontconfig" ]; then
@@ -1741,29 +1723,33 @@ devenvmgr_install() {
   ARRAY="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(</usr/local/share/CasjaysDev/scripts/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ] && APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)" || APPVERSION="N/A"
-  mkd "$USRUPDATEDIR"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   user_is_root && mkd "$SYSUPDATEDIR"
   export installtype="devenvmgr_install"
-  ######## Installer Functions ########
-  devenvmgr_run_init() {
-    mgr_init="${mgr_init:-}" run_install_init "dev enviroment"
-  }
+}
+######## Installer Functions ########
+devenvmgr_run_init() {
+  mgr_init="${mgr_init:-}" run_install_init "dev enviroment"
+}
 
-  devenvmgr_run_post() {
-    devenvmgr_install
-    run_postinst_global
-    [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
-  }
+devenvmgr_run_post() {
+  devenvmgr_install
+  run_postinst_global
+  [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
+}
 
-  devenvmgr_install_version() {
-    devenvmgr_install
-    install_version
-    mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
-    # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
-    #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
-    # fi
-  }
+devenvmgr_install_version() {
+  devenvmgr_install
+  install_version
+  # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
+  #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+  # fi
 }
 
 ###################### dfmgr settings ######################
@@ -1777,6 +1763,14 @@ dfmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="dfmgr_install"
 }
 ######## Installer Functions ########
@@ -1794,7 +1788,6 @@ dfmgr_run_post() {
 dfmgr_install_version() {
   dfmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
@@ -1814,6 +1807,14 @@ dockermgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="dockermgr_install"
 }
 ######## Installer Functions ########
@@ -1830,7 +1831,6 @@ dockermgr_run_post() {
 dockermgr_install_version() {
   dockermgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
@@ -1849,6 +1849,14 @@ fontmgr_install() {
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="fontmgr_install"
 }
 ######## Installer Functions ########
@@ -1865,7 +1873,6 @@ fontmgr_run_post() {
 fontmgr_install_version() {
   fontmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
@@ -1884,6 +1891,14 @@ iconmgr_install() {
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="iconmgr_install"
 }
 ######## Installer Functions ########
@@ -1900,7 +1915,6 @@ iconmgr_run_post() {
 iconmgr_install_version() {
   iconmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
@@ -1925,6 +1939,14 @@ pkmgr_install() {
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="pkmgr_install"
 }
 ######## Installer Functions ########
@@ -1940,7 +1962,6 @@ pkmgr_run_post() {
 pkmgr_install_version() {
   pkmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
@@ -1961,10 +1982,18 @@ systemmgr_install() {
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
   if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
     APPDIR="/usr/local/share/CasjaysDev/scripts"
     INSTDIR="/usr/local/share/CasjaysDev/scripts"
   fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="systemmgr_install"
 }
 ######## Installer Functions ########
@@ -1979,7 +2008,6 @@ systemmgr_run_post() {
 systemmgr_install_version() {
   systemmgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
@@ -1998,6 +2026,14 @@ thememgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="thememgr_install"
 }
 
@@ -2018,7 +2054,6 @@ thememgr_run_post() {
 thememgr_install_version() {
   thememgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
@@ -2036,6 +2071,14 @@ wallpapermgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
+  mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="wallpapermgr_install"
 }
 ######## Installer Functions ########
@@ -2051,60 +2094,17 @@ wallpapermgr_run_post() {
 wallpapermgr_install_version() {
   wallpapermgr_install
   install_version
-  mkdir -p "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   # if [ -f "$INSTDIR/install.sh" ] && [ -f "$INSTDIR/version.txt" ]; then
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ##################################################################################################
-
-if [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
-  run_install_init() {
-    printf ""
-    printf_yellow "Initializing the installer from"
-    if [ -f "$INSTDIR/install.sh" ]; then
-      printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
-    else
-      printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
-      printf_purple "$REPORAW/install.sh"
-      __urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
-    fi
-    if [ -d "$APPDIR" ]; then
-      printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"
-    else
-      printf_green "Installing ${1:-configurations} to ${APPDIR//$HOME/'~'}"
-    fi
-    local exitCode+=$?
-    return $exitCode
-  }
-fi
-
-run_install_list() {
-  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
-    file="$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)"
-    if [ -f "$file" ]; then
-      printf_green "Information about $1: $(bash -c "$file --version")"
-    else
-      printf_exit "File was not found is it installed?"
-      exit
-    fi
-  else
-    declare -a LSINST="$(ls "$USRUPDATEDIR/" 2>/dev/null)"
-    if [ -z "$LSINST" ]; then
-      printf_red "No dotfiles are installed"
-      exit
-    else
-      for df in ${LSINST[*]}; do
-        printf_green "$df"
-      done
-    fi
-  fi
-}
-##################################################################################################
-
 run_postinst_global() {
-  if [ ! -d "$INSTDIR" ] || [ ! -L "$INSTDIR" ] || [ "$APPDIR" != "$INSTDIR" ]; then ln_sf "$APPDIR" "$INSTDIR"; fi
+  $installtype
+  if [ "$APPDIR" != "$INSTDIR" ]; then
+    ln_sf "$APPDIR" "$INSTDIR"
+    if [ -d "$INSTDIR" ] && [ ! -e "$APPDIR" ]; then ln_sf "$APPDIR" "$INSTDIR"; fi
+  fi
   if [[ "$APPNAME" = "scripts" ]] || [[ "$APPNAME" = "installer" ]]; then
     # Only run on the scripts install
     ln_rm "$SYSBIN/"
@@ -2184,9 +2184,27 @@ run_postinst_global() {
   # Permission fix
   ensure_perms
 }
-
+##################################################################################################
+install_version() {
+  $installtype
+  echo install_version 0>&2 1>&2
+  mkd "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
+  if [ "$APPNAME" = "installer" ]; then
+    ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
+    ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
+  else
+    [ -f "$APPDIR/version.txt" ] && ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
+    [ -f "$APPDIR/install.sh" ] && ln_sf "$APPDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+    if [ "$APPDIR" != "$INSTDIR" ]; then
+      [ -f "$INSTDIR/version.txt" ] && ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
+      [ -f "$INSTDIR/install.sh" ] && ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
+    fi
+  fi
+  echo -e "INSTDIR:$INSTDIR\nAPPDIR:$APPDIR" 0>&2 1>&2
+}
 ##################################################################################################
 run_exit() {
+  $installtype
   [ -e "$APPDIR/$APPNAME" ] || rm_rf "$APPDIR/$APPNAME"
   [ -e "$INSTDIR/$APPNAME" ] || rm_rf "$INSTDIR/$APPNAME"
   if [ -d "$APPDIR" ] && [ ! -f "$APPDIR/.installed" ]; then
@@ -2204,13 +2222,48 @@ run_exit() {
   fi
   exit "${EXIT:-$?}"
 }
-
 ##################################################################################################
-vdebug() {
-  for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE \
-    HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
-    printf_custom "4" $path
-  done
+if [[ $* = -* ]]; then export mgr_init="true" && run_install_init() { true; }; else
+  run_install_init() {
+    printf ""
+    printf_yellow "Initializing the installer from"
+    if [ -f "$INSTDIR/install.sh" ]; then
+      printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
+    else
+      printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
+      printf_purple "$REPORAW/install.sh"
+      __urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)"
+    fi
+    if [ -d "$APPDIR" ]; then
+      printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"
+    else
+      printf_green "Installing ${1:-configurations} to ${APPDIR//$HOME/'~'}"
+    fi
+    local exitCode+=$?
+    return $exitCode
+  }
+fi
+
+run_install_list() {
+  if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)" ]; then
+    file="$(ls -A "$USRUPDATEDIR/$1" 2>/dev/null)"
+    if [ -f "$file" ]; then
+      printf_green "Information about $1: $(bash -c "$file --version")"
+    else
+      printf_exit "File was not found is it installed?"
+      exit
+    fi
+  else
+    declare -a LSINST="$(ls "$USRUPDATEDIR/" 2>/dev/null)"
+    if [ -z "$LSINST" ]; then
+      printf_red "No dotfiles are installed"
+      exit
+    else
+      for df in ${LSINST[*]}; do
+        printf_green "$df"
+      done
+    fi
+  fi
 }
 ##################################################################################################
 # Versioning
@@ -2257,17 +2310,33 @@ thememgr_req_version() { __required_version "$1"; }
 wallpapermgr_req_version() { __required_version "$1"; }
 
 ##################################################################################################
-if [ "$debug" = "true" ]; then
-  export LOGDIR_DEBUG=/tmp/debug
-  mkdir -p "$LOGDIR_DEBUG"
-  touch "$LOGDIR_DEBUG/$APPNAME.log" "$LOGDIR_DEBUG/$APPNAME.err"
-  chmod -Rf 755 "$LOGDIR_DEBUG"
-  devnull() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
-  devnull1() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
-  devnull2() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
-  execute() { $1 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0 && set --; }
-fi
-
+vdebug() {
+  $installtype
+  echo -e "VAR - "ARGS:$*""
+  for path in "USER:$USER" "HOME:$HOME" "PREFIX:$SCRIPTS_PREFIX" "REPO:$REPO" "REPORAW:$REPORAW" "CONF:$CONF" "SHARE:$SHARE" "INSTDIR:$INSTDIR" \
+    "APPDIR:$APPDIR" "USRUPDATEDIR:$USRUPDATEDIR" "SYSUPDATEDIR:$SYSUPDATEDIR" "FONTDIR:$FONTDIR " "ICONDIR:$ICONDIR" "THEMEDIR:$THEMEDIR" \
+    "$INSTDIR/version.txt:$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" "$INSTDIR/install.sh:$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" \
+    "$APPDIR/version.txt:$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" "$APPDIR/install.sh:$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"; do
+    echo -e "VAR - $path"
+  done
+}
+##################################################################################################
+__debugger() {
+  if [ "$1" = "debug" ]; then
+    shift 1 && set -Ex
+    export debug=true
+    export LOGDIR_DEBUG="${LOGDIR:-/tmp/$USER}/debug"
+    mkdir -p "$LOGDIR_DEBUG"
+    rm_rf "$LOGDIR_DEBUG/$APPNAME.log" "$LOGDIR_DEBUG/$APPNAME.err"
+    touch "$LOGDIR_DEBUG/$APPNAME.log" "$LOGDIR_DEBUG/$APPNAME.err"
+    chmod -Rf 755 "$LOGDIR_DEBUG"
+    $installtype && vdebug "$*" >>"$LOGDIR_DEBUG/$APPNAME.log"
+    devnull() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
+    devnull1() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
+    devnull2() { "$@" 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0; }
+    execute() { $1 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0 && set --; }
+  fi
+}
 #set_trap "EXIT" "install_packages"
 #set_trap "EXIT" "install_required"
 #set_trap "EXIT" "install_python"
@@ -2275,5 +2344,4 @@ fi
 #set_trap "EXIT" "install_pip"
 #set_trap "EXIT" "install_cpan"
 #set_trap "EXIT" "install_gem"
-
 # end

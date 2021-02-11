@@ -133,9 +133,9 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run post install scripts
 run_postinst() {
-  systemmgr_run_postinst
+  systemmgr_run_post
   dotfilesreqadmin cron
-  local fontdir="$(devnull2 ls "$CASJAYSDEVSAPPDIR/fontmgr" | wc -l)"
+  local fontdir="$(ls "$CASJAYSDEVSAPPDIR/fontmgr" | wc -l)"
   if [ "$fontdir" = "0" ]; then
     sudo fontmgr install Hack
   fi
