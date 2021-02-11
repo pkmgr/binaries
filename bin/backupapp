@@ -94,7 +94,7 @@ main() {
   local filenameformate="${FILENAME_FORMAT:-$curdate}"
   local logfilenameformat="${LOGNAME_FORMAT:-$curdate}"
   local logfilenameextension="${LOGFILE_EXTENSION:-log}"
-  local backupdir="${BACKUP_DIR:-$HOME/.local/backups/apps}"
+  local backupdir="${BACKUP_DIR:-$HOME/.local/backups}/apps"
   local notifyEnabled="${NOTIFY_ENABLED:-yes}"
   local leaveCount="${KEEP_AMOUNT:-14}"
   local icon_good="${BICON_GOOD:-🆗}"
