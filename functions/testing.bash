@@ -990,27 +990,28 @@ __cron_updater() {
 #backupapp "directory" "filename"
 __backupapp() {
   local filename count backupdir rmpre4vbackup
-  [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
-  [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
-  local logdir="$HOME/.local/log/backups"
+  [ -n "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
+  [ -n "$2" ] && local myappname="$2" || local myappname="$APPNAME"
+  local downloaddir="$INSTDIR"
+  local logdir="${LOGDIR:-$HOME/.local/log}/backups/${SCRIPTS_PREFIX:-apps}"
   local curdate="$(date +%Y-%m-%d-%H-%M-%S)"
   local filename="$myappname-$curdate.tar.gz"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/${SCRIPTS_PREFIX:-apps}/"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local}/backups/${SCRIPTS_PREFIX:-apps}/"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
-  __mkd "$backupdir" "$logdir"
-  if [ -e "$myappdir" ] && [ ! -d $myappdir/.git ]; then
-    echo -e "#################################" >>"$logdir/$myappname.log"
+  mkdir -p "$backupdir" "$logdir"
+  if [ -d "$myappdir" ] && [ "$myappdir" != "$downloaddir" ] && [ ! -f "$APPDIR/.installed" ]; then
+    echo -e " #################################" >>"$logdir/$myappname.log"
     echo -e "# Started on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "# Backing up $myappdir" >>"$logdir/$myappname.log"
-    echo -e "#################################\n" >>"$logdir/$myappname.log"
-    tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>&1
-    echo -e "\n#################################" >>"$logdir/$myappname.log"
+    echo -e "#################################" >>"$logdir/$myappname.log"
+    tar cfzv "$backupdir/$filename" "$myappdir" >>"$logdir/$myappname.log" 2>>"$logdir/$myappname.log"
+    echo -e "#################################" >>"$logdir/$myappname.log"
     echo -e "# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
-    echo -e "#################################\n\n" >>"$logdir/$myappname.log"
-    [ -f "$APPDIR/.installed" ] || rm -Rf "$myappdir"
+    echo -e "#################################" >>"$logdir/$myappname.log"
+    [ -f "$APPDIR/.installed" ] || rm_rf "$myappdir"
   fi
-  if [ "$count" -gt "3" ]; then __rm_rf $rmpre4vbackup; fi
+  if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
 }
 ###################### menu functions ######################
 __run_menu_start() { clear && __running "$1" && __start eval "$@" && return 0 || clear && echo -e "\n\n\n\n" && printf_red "$1 is already running" && sleep 5 && return 1; }
