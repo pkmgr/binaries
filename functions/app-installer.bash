@@ -1184,7 +1184,9 @@ os_support() {
 
 supported_os() {
   for OSes in "$@"; do
-    if_os $OSes || printf_exit 1 1 "Your os is not supported"
+    local app=${APPNAME:-$PROG}
+    if_os $OSes || printf_exit 1 1 "$app does not support your OS"
+    printf_newline
   done
 }
 
