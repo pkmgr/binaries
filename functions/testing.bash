@@ -667,6 +667,8 @@ __netcat_kill_server() {
     ${prints} "${succ}" || ${printf} "${fail}"
   sleep 2
 }
+#Sets the title
+__title_info() { echo -n "$USER@$HOSTNAME:$APPNAME"; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }
