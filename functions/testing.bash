@@ -300,6 +300,11 @@ printf_read_question_nt() {
   read -er -n $lines $readopts $reply #|| printf "\n"
 }
 
+printf_read_error() {
+  export "$1"
+  printf_newline
+}
+
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
   read -t 10 -ers -n 1 "${1:-REPLY}" || printf "\n"
