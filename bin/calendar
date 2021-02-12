@@ -34,7 +34,7 @@ __options "$@"
 
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 [ "$1" = "--help " ] && printf_exit "A calendar written in bash"
-
+[[ "$1" = -y ]] && __cmd_exists cal && cal -y | printf_readline && exit || true
 CAL_CONFIG="$HOME/.config/local/calendar.local"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
