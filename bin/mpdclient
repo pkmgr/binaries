@@ -41,7 +41,7 @@ __check_app mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
 MPDSERVER="${MPDSERVER:-localhost}"
-NOTIFY="on"
+notify-daemon ask && NOTIFY="on" || NOTIFY="off"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __devnull() { "$@" >/dev/null 2>&1 && printf_green "Command sent successfully" || printf_red "Failed to send command"; }

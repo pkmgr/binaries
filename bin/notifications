@@ -38,15 +38,19 @@ NOTIFY_CLIENT="${NOTIFY_CLIENT:-no}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(uname -s)" = "Darwin" ]; then
+  [[ "$1" = *ask ]] && exit 0
   __notify_send() { osascript -e "display notification \"${2}\" with title \"$1\"" || return; }
 elif [ "$(uname -s)" = "Linux" ]; then
   DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u ${USER})/bus"
   XUSERS=($(who | grep -E "\(:[0-9](\.[0-9])*\)" | awk '{print $1$5}' | sort -u | grep $USER))
   if __cmd_exists notify-send; then
+    [[ "$1" = *ask ]] && exit 0
     __notify_send() { notify-send --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$@"; }
   elif __cmd_exists notify-send.sh; then
+    [[ "$1" = *ask ]] && exit 0
     __notify_send() { notify-send.sh --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$@"; }
   else
+    [[ "$1" = *ask ]] && exit 1
     printf_exit 1 1 "There is no notify app installed: Install notify-send, dunst, deadd"
   fi
   NAME=(${XUSER/(/ })
