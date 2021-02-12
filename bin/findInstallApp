@@ -47,7 +47,7 @@ run_dfmgr_findInstallApp() {
   declare -a LISTARRAY="$*"
   printf_green "Trying to find $* via dfmgr"
   for pkg in ${LISTARRAY[*]}; do
-    __md_exists "$pkg" || __devnull dfmgr install "$pkg" && return 0 || return 1
+    __cmd_exists "$pkg" || __devnull dfmgr install "$pkg" && return 0 || return 1
   done
   return $?
 }
@@ -69,7 +69,7 @@ run_npm_findInstallApp() {
   declare -a LISTARRAY="$*"
   printf_green "Trying to find $* via npm"
   for pkg in ${LISTARRAY[*]}; do
-    __cmd_exists "$pkg" || __devnull sudo npm i -g "$1" && return 0 || return 1
+    __cmd_exists "$pkg" || __devnull sudo pkmgr npm install "$1" && return 0 || return 1
   done
   return $?
 }
