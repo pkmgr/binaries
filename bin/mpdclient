@@ -55,7 +55,7 @@ get_next() { cat "$TEMPDIR/mpdclient_next" 2>/dev/null; }
 get_curr() { cat "$TEMPDIR/mpdclient_curr" 2>/dev/null; }
 next() { echo -en "Next: $(get_next || echo Nothing is in the queue)\n"; }
 playtime() { echo -en "Time: $(__mpc status | grep -Fi '[' | cut -d' ' -f5,6)\n"; }
-volume() { echo -en "Volume: $(__mpc status | grep -i volume | awk '{print $2}')\n"; }
+volume() { echo -en "Volume: $(__mpc status | grep -i volume | tr ':' ' ' | awk '{print $2}')\n"; }
 stats() { echo -e "$(volume)  |  $(playtime)"; }
 db_play() { echo -e "Total: $(__mpc stats | tail -n1 | sed 's#DB Play Time: ##g')"; }
 db_songs() { echo -e "Songs: $(__mpc stats | grep Songs | awk '{print $2}')"; }
