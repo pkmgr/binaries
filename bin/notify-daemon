@@ -384,6 +384,12 @@ config)
   __config
   ;;
 
+ask)
+  shift 1
+  [ -n "$PROCID" ] && return 0 || return 1
+  exit
+  ;;
+
 enable)
   shift 1
   __startup
