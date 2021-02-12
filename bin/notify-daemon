@@ -386,7 +386,7 @@ config)
 
 ask)
   shift 1
-  [ -n "$PROCID" ] && return 0 || return 1
+  [ -n "$PROCID" ] && exit 0 || exit 1
   exit
   ;;
 
