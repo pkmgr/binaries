@@ -338,7 +338,7 @@ script_run() {
     script_run_if_is_url "$1"
     /tmp/pkmgr-script.sh
   fi
-  rm_rf "/tmp/pkmgr-script.sh"
+  __rm_rf "/tmp/pkmgr-script.sh"
 }
 
 #---------------------------------------------------------------------------------------
@@ -358,7 +358,7 @@ __schedule() {
   remove)
     shift 1
     printf_green "Removing pkmgr schedule"
-    rm_rf "$file" ||
+    __rm_rf "$file" ||
       printf_error "Failed to remove $file"
     ;;
   add)
@@ -382,7 +382,7 @@ __schedule() {
         echo $MAILMESS | mail -r "$mailadmin" -s "pkmgr failed" "$mailadmin"
       fi
     fi
-    [ ! -f "$loggerfile.tmp" ] || sudo cat "$loggerfile.tmp" sudo | tee -a "$loggerfile" && rm_rf "$loggerfile.tmp"
+    [ ! -f "$loggerfile.tmp" ] || sudo cat "$loggerfile.tmp" sudo | tee -a "$loggerfile" && __rm_rf "$loggerfile.tmp"
     ;;
   *)
     [ -f "$file" ] && pkmgr cron remove || pkmgr cron add
@@ -475,7 +475,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f /tmp/pkmgr-curl.txt ]; then
-  rm_rf /tmp/pkmgr-curl.txt
+  __rm_rf /tmp/pkmgr-curl.txt
 fi
 
 #---------------------------------------------------------------------------------------
@@ -528,6 +528,7 @@ ask)
 install | -i)
   shift 1
   [ "$1" = "--help" ] && printf_help "Install a package"
+  __am_i_online_err || exit 1
   $pkgmgrbinins "${@}" && exit 0 || exit 1
   set --
   ;;
@@ -540,8 +541,9 @@ remove | -r)
   ;;
 
 list)
-  [ "$1" = "--help" ] && printf_help "Install package via a list: pkmgr list ./listToInstall"
   shift 1
+  [ "$1" = "--help" ] && printf_help "Install package via a list: pkmgr list ./listToInstall"
+  __am_i_online_err || exit  1
   PCKLIST="$(cat "$@" | grep -Ev '^$|^#' | sort -u | tr '\n' ' ' && echo)"
   declare -a LISTARRAY=$PCKLIST
   for pkg in ${LISTARRAY[*]}; do
@@ -552,6 +554,7 @@ list)
 curl)
   shift 1
   [ "$1" = "--help" ] && printf_help "pkmgr curl arch min or pkmgr curl fullURLtoList"
+  __am_i_online_err || exit 1
   curl_run "$@"
   set --
   PCKLIST="$(cat /tmp/pkmgr-curl.txt | grep -Ev '^$|^#' | sort -u | tr '\n' ' ' && echo)"
@@ -565,6 +568,7 @@ curl)
 dotfiles)
   shift 1
   [ "$1" = "--help" ] && printf_help "pkmgr dotfiles git"
+  __am_i_online_err || exit 1
   dotfiles_run "$@"
   PCKLIST="$(cat /tmp/pkmgr-curl.txt | grep -Ev '^$|^#' | sort -u | tr '\n' ' ' && echo)"
   declare -a LISTARRAY=$PCKLIST
@@ -577,6 +581,7 @@ dotfiles)
 script)
   shift 1
   [ "$1" = "--help" ] && printf_help "pkmgr script ./myScript or fullURLtoScript"
+  __am_i_online_err || exit 1
   script_run "$@"
   set --
   ;;
@@ -584,6 +589,7 @@ script)
 upgrade | update | -u)
   shift 1
   [ "$1" = "--help" ] && printf_help "Update your system"
+  __am_i_online_err || exit 1
   if [ -f "$(command -v systemmgr)" ]; then
     systemmgr install installer
   fi
@@ -605,6 +611,7 @@ clean | -c)
 init | -in)
   shift 1
   [ "$1" = "--help" ] && printf_help "Initialize the system by making the cache and updating"
+  __am_i_online_err || exit 1
   execute "$pkginit" "Initializing System"
   ;;
 
@@ -626,6 +633,7 @@ search | -s)
 required)
   shift 1
   [ "$1" = "--help" ] && printf_help "Install required packages"
+  __am_i_online_err || exit 1
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
     execute "$pkgmgrbininssil $pkg" "Installing $pkg" || exit 1
@@ -635,6 +643,7 @@ required)
 silent-install)
   shift 1
   [ "$1" = "--help" ] && printf_help "Silently install packages"
+  __am_i_online_err || exit 1
   declare -a LISTARRAY="$*"
   for pkg in ${LISTARRAY[*]}; do
     __devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
@@ -653,7 +662,8 @@ silent-remove)
 silent-upgrade | silent-update)
   shift 1
   [ "$1" = "--help" ] && printf_help "Silently upgrade your system"
-  if [ -f "$(command -v dotfiles)" ]; then
+  __am_i_online_err || exit 1
+  if [ -f "$(command -v systemmgr)" ]; then
     __devnull systemmgr install installer
   fi
   __devnull $pkgmgrbinupdsil && exit 0 || exit 1
@@ -665,6 +675,7 @@ cpan | perl)
   install)
     shift 1
     [ "$1" = "--help" ] && printf_help "install perl modules via cpan"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       cpan_run "$pkg"
@@ -682,6 +693,7 @@ cpan | perl)
 
   *)
     [ "$1" = "--help" ] && printf_help "install perl modules via cpan"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       cpan_run "$pkg"
@@ -696,6 +708,7 @@ pip | python)
   install)
     shift 1
     [ "$1" = "--help" ] && printf_help "Install python modules via pip"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       pip_run "$pkg"
@@ -711,6 +724,7 @@ pip | python)
     ;;
   *)
     [ "$1" = "--help" ] && printf_help "Install python modules via pip"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       pip_run "$pkg"
@@ -725,6 +739,7 @@ gem | ruby)
   install)
     shift 1
     [ "$1" = "--help" ] && printf_help "Install ruby modules via rubygems"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       gem_run "$pkg"
@@ -742,6 +757,7 @@ gem | ruby)
 
   *)
     [ "$1" = "--help" ] && printf_help "Install ruby modules via rubygems"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       gem_run "$pkg"
@@ -756,6 +772,7 @@ npm | node)
   install)
     shift 1
     [ "$1" = "--help" ] && printf_help "Install node package via npm"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       npm_run "$pkg"
@@ -773,6 +790,7 @@ npm | node)
 
   *)
     [ "$1" = "--help" ] && printf_help "Install node package via npm"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       npm_run "$pkg"
@@ -787,6 +805,7 @@ silent)
   install)
     shift 1
     [ "$1" = "--help" ] && printf_help "Silently install packages"
+    __am_i_online_err || exit 1
     declare -a LISTARRAY="$*"
     for pkg in ${LISTARRAY[*]}; do
       __devnull $pkgmgrbininssil "$pkg" && exit 0 || exit 1
@@ -805,6 +824,7 @@ silent)
   upgrade | update)
     shift 1
     [ "$1" = "--help" ] && printf_help "Silently upgrade your system"
+    __am_i_online_err || exit 1
     if [ -f "$(command -v systemmgr)" ]; then
       __devnull systemmgr install installer
     fi
@@ -813,6 +833,7 @@ silent)
 
   *)
     [ "$1" = "--help" ] && printf_help "Silently install packages | defaults to a silent update"
+    __am_i_online_err || exit 1
     if [ -z "$1" ]; then
       __devnull $pkgmgrbinupdsil && exit 0 || exit 1
     else
@@ -845,5 +866,5 @@ version)
 esac
 
 #---------------------------------------------------------------------------------------
-
+exit $?
 # end
