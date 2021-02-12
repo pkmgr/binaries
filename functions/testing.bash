@@ -684,9 +684,9 @@ __hostname() { __devnull2 hostname -s "${1:-$HOSTNAME}"; }
 #domainname ""
 __domainname() { hostname -d "${1:-$HOSTNAME}" 2>/dev/null || hostname -f "${1:-$HOSTNAME}" 2>/dev/null; }
 #hostname2ip "hostname"
-__hostname2ip() { getent ahostsv4 "$1" | cut -d' ' -f1 | head -n1; }
-#ip2hostname
-__ip2hostname() { getent hosts "$1" | awk '{print $2}' | head -n1; }
+__hostname2ip() { nslookup "$1" | grep Address: | awk '{print $2}' | grep -vE '#|:'; }
+#ip2hostname "ipaddr"
+__ip2hostname() { nslookup "$1" | grep Name: | awk '{print $2}' | head -n1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
 #count_files "dir"
