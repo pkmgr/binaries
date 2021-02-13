@@ -196,7 +196,7 @@ case "$1" in
   generate_readme "$template"
   ;;
 
-all)
+*all)
   shift 1
   generate_readme "$template"
   ;;

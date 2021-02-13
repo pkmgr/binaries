@@ -83,7 +83,7 @@ EOF
 __tmux() { tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $1" &>/dev/null; }
 __open() {
   filepath="$(__get_full_file "$1")"
-  filename="$scratchdir/${1//$scratchdir/$filename}"
+  filename="$scratchdir/${1//$scratchdir}"
   run_tmux "$filename"
 }
 scratchpad() {
@@ -92,15 +92,13 @@ scratchpad() {
       if [ -d "$scratchdir/.git" ]; then gitcommit scratchpad; else git init . &>/dev/null && gitcommit scratchpad; fi ||
       exit $?
   }
+
   run_tmux() {
-    if [ -f "$1" ]; then
-      local filename="$1"
-    else
-      local title="${1:-Scratchpad for $title}"
-      local filename="${2:-$filename}"
-    fi
+    local filename="${1:-$filename}"
+    local filename="$scratchdir/${filename//$scratchdir}"
     if [ ! -f "$filename" ]; then
-      echo -e "$title\n\n" >"$filename"
+      local title="${2:-Scratchpad for $title}"
+      printf "%s\n\n" "$title" >"$filename"
     fi
     __tmux "$filename"
   }
@@ -111,7 +109,7 @@ scratchpad() {
     [ $# -eq 0 ] && printf_help 'Usage: '$APPNAME' new "ProjectName" "FileName" "ext"  |  '$APPNAME' new "server" "parts" "txt"'
     local new_title="ScratchPad for $1: Created on $(date +"%B") $(date +"%d"), $year at $hour"
     __mkd "$scratchdir/$1"
-    run_tmux "$new_title" "$scratchdir/$1/$2.${3:-md}"
+    run_tmux "$scratchdir/$1/$2.${3:-md}" "$new_title"
     ;;
 
   *list | *-l)
