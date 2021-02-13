@@ -251,14 +251,14 @@ __server() {
     $netcat -l -p $_PORT >"$_TMPFILE"
     cat "$_TMPFILE" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || _notifications "Failed to commit the note"
     message="$(<"$_TMPFILE")"
-    [ -z "$message" ] || echo "New note: $message" >>"$NOTES_LOG_FILE"
-    [ -z "$message" ] || _notifications "New note" "$message\nPosted to: ${NOTES_PATH}"
     if [ -f "$_KILL" ]; then
       rm -Rf "$_KILL"
       echo "Notes server is shutting down" >>"$NOTES_LOG_FILE"
       _notifications "Notes Server" "Notes server is shutting down"
-      break
+      break && exit $?
     fi
+    [ -z "$message" ] || echo "New note: $message" >>"$NOTES_LOG_FILE"
+    [ -z "$message" ] || _notifications "New note" "$message\nPosted to: ${NOTES_PATH}"
   done
 }
 
@@ -360,8 +360,9 @@ case "$1" in
   if [ "$2" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
   if [ "$2" = "--status" ]; then
     shift 1
-    if netstatg "$NOTES_SERVER_PORT"; then
-      netstatg "$NOTES_SERVER_PORT" 2>/dev/null | printf_readline
+    if netstatg "$NOTES_SERVER_PORT" &>/dev/null; then
+      printf_green "The server is up and running on $NOTES_SERVER_PORT"
+      _notifications "NoteServer" "The server is up and running on $NOTES_SERVER_PORT"
     else printf_exit 1 1 "$ICON_ERROR The notes server is not running"; fi
     exit $?
   fi
