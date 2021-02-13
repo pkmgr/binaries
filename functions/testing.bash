@@ -614,7 +614,23 @@ __getphpver() {
   fi
   echo $PHPVER
 }
-
+###################### macos fixes#################
+case "$(uname -s)" in
+Darwin)
+  [ -f "$(command -v gdate 2>/dev/null)" ] && date='gdate ' || date="$(command -v date)"
+  [ -f "$(command -v greadlink 2>/dev/null)" ] && readlink='greadlink ' || readlink="$(command -v readlink)"
+  [ -f "$(command -v gbasename 2>/dev/null)" ] && basename='gbasename ' || basename="$(command -v basename)"
+  [ -f "$(command -v gdircolors 2>/dev/null)" ] && dircolors='gdircolors ' || dircolors="$(command -v dircolors)"
+  [ -f "$(command -v gls 2>/dev/null)" ] && ls='gls --color=auto 2>/dev/null' || ls="$(command -v ls)"
+  [ -f "$(command -v grealpath 2>/dev/null)" ] && realpath='gbasgrealpathename ' || realpath="$(command -v realpath)"
+  ls() { $ls "$@"; }
+  date() { $date "$@"; }
+  readlink() { $readlink "$@"; }
+  basename() { $basename "$@"; }
+  dircolors() { $dircolors "$@"; }
+  realpath() { $realpath "$@"; }
+  ;;
+esac
 ###################### tools ######################
 __get_status_pid() { ps -aux 2>/dev/null | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
 #basedir "file"
