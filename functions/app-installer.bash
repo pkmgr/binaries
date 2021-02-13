@@ -1296,7 +1296,7 @@ user_installdirs() {
     COMPDIR="$HOME/.local/share/bash-completion/completions"
     THEMEDIR="$SHARE/themes"
     ICONDIR="$SHARE/icons"
-    FONTDIR="$SHARE/fonts"
+    if [[ $(uname -s) =~ Darwin ]]; then FONTDIR="/Library/Fonts"; else FONTDIR="$SHARE/fonts"; fi
     FONTCONF="$SYSCONF/fontconfig/conf.d"
     CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
@@ -1319,7 +1319,7 @@ user_installdirs() {
     COMPDIR="$HOME/.local/share/bash-completion/completions"
     THEMEDIR="$SHARE/themes"
     ICONDIR="$SHARE/icons"
-    FONTDIR="$SHARE/fonts"
+    if [[ $(uname -s) =~ Darwin ]]; then FONTDIR="$HOME/Library/Fonts"; else FONTDIR="$SHARE/fonts"; fi
     FONTCONF="$SYSCONF/fontconfig/conf.d"
     CASJAYSDEVSHARE="$SHARE/CasjaysDev"
     CASJAYSDEVSAPPDIR="$CASJAYSDEVSHARE/apps"
@@ -1353,7 +1353,7 @@ system_installdirs() {
     COMPDIR="/etc/bash_completion.d"
     THEMEDIR="/usr/local/share/themes"
     ICONDIR="/usr/local/share/icons"
-    FONTDIR="/usr/local/share/fonts"
+    if [[ $(uname -s) =~ Darwin ]]; then FONTDIR="/Library/Fonts"; else FONTDIR="/usr/local/share/fonts"; fi
     FONTCONF="/usr/local/share/fontconfig/conf.d"
     CASJAYSDEVSHARE="/usr/local/share/CasjaysDev"
     CASJAYSDEVSAPPDIR="/usr/local/share/CasjaysDev/apps"
@@ -1376,7 +1376,7 @@ system_installdirs() {
     COMPDIR="$HOME/.local/share/bash-completion/completions"
     THEMEDIR="$HOME/.local/share/themes"
     ICONDIR="$HOME/.local/share/icons"
-    FONTDIR="$HOME/.local/share/fonts"
+    if [[ $(uname -s) =~ Darwin ]]; then FONTDIR="$HOME/Library/Fonts"; else FONTDIR="$HOME/.local/share/fonts"; fi
     FONTCONF="$HOME/.local/share/fontconfig/conf.d"
     CASJAYSDEVSHARE="$HOME/.local/share/CasjaysDev"
     CASJAYSDEVSAPPDIR="$HOME/.local/share/CasjaysDev/apps"
