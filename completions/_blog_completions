@@ -15,9 +15,10 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _blog() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+  local blogDir="${BLOG_DIR:-$HOME/.local/share/blog}"
   local cur prev words cword split
-  local BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blog}"
-  ARRAY="new page post edit config -c --help"
+  local ARRAY="new page post edit config -c --help"
+  local CONFS="$(find $HOME/.config/blog -type f -iname '*' 2>/dev/null | sed 's#'$HOME/.config/blog/'##g' || return)"
   _init_completion || return
 
   list_all() {
@@ -42,7 +43,7 @@ _blog() {
     case $special in
     edit)
       k=0
-      i="$BLOG_DIR/_{posts,pages}/*"
+      i="$blogDir/_{posts,pages}/*"
       for j in $(compgen -f "$i/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$i/}
@@ -56,7 +57,7 @@ _blog() {
 
   case $prev in
   -c)
-    COMPREPLY=($(compgen -W '$(cd ~/.config/blog && find -iname '*' || return 1)' -- "$cur"))
+    COMPREPLY=($(compgen -W '$CONFS' -- "$cur"))
     return
     ;;
   *)

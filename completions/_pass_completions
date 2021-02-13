@@ -15,8 +15,8 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _pass_complete_entries() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-  local prefix="${PASSWORD_STORE_DIR:-$HOME/.password-store/}"
-  prefix="${prefix%/}/"
+  local prefix="${PASSWORD_STORE_DIR:-$HOME/.local/share/pass-store}"
+  local prefix="${prefix%/}/"
   local suffix=".gpg"
   local autoexpand=${1:-0}
 

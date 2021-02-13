@@ -15,11 +15,11 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _logr() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+  local logdir=${LOG_DIR:-$HOME/.local/log}
   local cur prev words cword
   local cur_word="${COMP_WORDS[COMP_CWORD]}"
-  local logdir=${LOG_DIR:-$HOME/.local/log}
   local ARRAY="--help --list --open --clean --show --noerr --err --silent "
-  local OPEN="$(find "$logdir" -type f)"
+  local OPEN="$(find "$logdir" -type f 2>/dev/null || return)"
   _init_completion || return
 
   case $prev in

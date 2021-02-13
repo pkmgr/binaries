@@ -15,11 +15,11 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _scratchpad() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+  local scratchDir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/scratchpad/array)"
-  local OPEN="$(find $scratchdir/*/* -type f | sed 's#'$scratchdir/'##g')"
+  local OPEN="$(find $scratchDir/*/* -type f 2>/dev/null | sed 's#'$scratchDir/'##g' || return)"
 
   _init_completion || return
 
