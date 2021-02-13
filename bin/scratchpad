@@ -88,8 +88,12 @@ __open() {
 }
 scratchpad() {
   run_git() {
-    cd "$scratchdir" &&
-      if [ -d "$scratchdir/.git" ]; then gitcommit scratchpad; else git init . &>/dev/null && gitcommit scratchpad; fi ||
+      if [ -d "$scratchdir/.git" ]; then
+        gitcommit "$scratchdir" scratchpad
+      else
+        git -C "$scratchdir" init &>/dev/null && \
+          gitcommit "$scratchdir" scratchpad
+      fi
       exit $?
   }
 
@@ -98,7 +102,7 @@ scratchpad() {
     local filename="$scratchdir/${filename//$scratchdir}"
     if [ ! -f "$filename" ]; then
       local title="${2:-Scratchpad for $title}"
-      printf "%s\n\n" "$title" >"$filename"
+      printf "%s\n\n" "$title  " >"$filename"
     fi
     __tmux "$filename"
   }
@@ -109,7 +113,7 @@ scratchpad() {
     [ $# -eq 0 ] && printf_help 'Usage: '$APPNAME' new "ProjectName" "FileName" "ext"  |  '$APPNAME' new "server" "parts" "txt"'
     local new_title="ScratchPad for $1: Created on $(date +"%B") $(date +"%d"), $year at $hour"
     __mkd "$scratchdir/$1"
-    run_tmux "$scratchdir/$1/$2.${3:-md}" "$new_title"
+    run_tmux "$scratchdir/$1/${2:-default}.${3:-md}" "$new_title"
     ;;
 
   *list | *-l)
