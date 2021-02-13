@@ -95,6 +95,8 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
 fi
 
+_notifications() { [ "$NOTES_NOTIFY" = "yes" ] && notifications "$@"; }
+
 # Generate config file
 gen_config() {
   __mkd "$HOME/.config/notes"
@@ -242,19 +244,19 @@ __server() {
   __mkd "$NOTES_TMPDIR"
   __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
-  [ "$NOTES_NOTIFY" = "yes" ] && notifications "Notes Server" "Launching server on port $_PORT"
+  _notifications "Notes Server" "Launching server on port $_PORT"
   echo "Starting notes server on port $_PORT" >"$NOTES_LOG_FILE"
   while :; do
     rm -Rf "$_TMPFILE"
     $netcat -l -p $_PORT >"$_TMPFILE"
-    cat "$_TMPFILE" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE"
+    cat "$_TMPFILE" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || _notifications "Failed to commit the note"
     message="$(<"$_TMPFILE")"
     [ -z "$message" ] || echo "New note: $message" >>"$NOTES_LOG_FILE"
-    [ -z "$message" ] || [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "$message\nPosted to: ${NOTES_PATH}"
+    [ -z "$message" ] || _notifications "New note" "$message\nPosted to: ${NOTES_PATH}"
     if [ -f "$_KILL" ]; then
       rm -Rf "$_KILL"
       echo "Notes server is shutting down" >>"$NOTES_LOG_FILE"
-      [ "$NOTES_NOTIFY" = "yes" ] && notifications "Notes Server" "Notes server is shutting down"
+      _notifications "Notes Server" "Notes server is shutting down"
       break
     fi
   done
@@ -274,7 +276,7 @@ __run_service() {
   while :; do
     rm -Rf "$_PATH"
     $netcat -l -p "$_PORT" >"$_PATH"
-    cat "$_PATH" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE"
+    cat "$_PATH" >>"${NOTES_PATH}" 2>>"$NOTES_LOG_FILE" || echo "Failed to commit the note"
     echo "New note: $(cat $_PATH) in ${NOTES_PATH}"
     rm -Rf "$_PATH"
   done
@@ -295,7 +297,7 @@ __client() {
   printf "%s\n" "$*" >"${_PATH}" 2>>$NOTES_TMPDIR/notes_client
   cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client || __failed
   if [ "$NOTES_NOTIFY" = "yes" ]; then
-    [ $? = 0 ] && notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" || notifications "NotesCLI" "Sending of note failed"
+    [ $? = 0 ] && _notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" || _notifications "NotesCLI" "Sending of note failed"
   fi
   __local && __sync_tmp "$NOTES_PATH" "$_PATH"
   rm -Rf "$_PATH"
@@ -313,7 +315,7 @@ __run_sync() {
   shift $#
   if __find_mtime "${NOTES_PATH}" "1"; then
     __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
-    [ $? = 0 ] && [ "$NOTES_NOTIFY" = "yes" ] && notifications "New note" "Posted to: ${NOTES_PATH}"
+    [ $? = 0 ] && _notifications "New note" "Posted to: ${NOTES_PATH}"
   fi
 }
 
