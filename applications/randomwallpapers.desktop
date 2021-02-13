@@ -9,7 +9,7 @@ Comment=Change the wallpaper.
 Icon=wallpaper
 Exec=myterminal -e 'randomwallpaper '--term'
 Path=~
-Terminal=true
+Terminal=false
 Actions=Actions=Status;Stop;
 Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;
 Keywords=wallpaper;my;
