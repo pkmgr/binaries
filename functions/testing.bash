@@ -726,7 +726,7 @@ __cp_rf() { if [ -e "$1" ]; then __devnull cp -Rf "$1" "$2" || return 0; fi; }
 #rm_rf "file"
 __rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@" || return 0; fi; }
 #ln_rm "file"
-__ln_rm() { if [ -e "$1" ]; then __devnull find -L $1 -mindepth 1 -maxdepth 1 -type l -delete; fi; }
+__ln_rm() { if [ -e "$1" ]; then __devnull find -L $1 -mindepth 1 -maxdepth 1 -type l -exec rm -f {} \;; fi; }
 __broken_symlinks() { __devnull find -L "$@" -type l -exec rm -f {} \;; }
 #ln_sf "file"
 __ln_sf() {
