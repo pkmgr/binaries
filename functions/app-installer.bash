@@ -1628,25 +1628,18 @@ installer_noupdate() {
 __install_fonts() {
   if [ -d "$INSTDIR/fontconfig" ]; then
     local fontconfdir="$FONTCONF"
-    local fontconf="$(ls $INSTDIR/fontconfig 2>/dev/null | wc -l)"
-    if [ "$fontconf" != "0" ]; then
-      fcFiles="$(ls $INSTDIR/fontconfig)"
-      for fc in $fcFiles; do
-        ln_sf "$INSTDIR/fontconfig/$fc" "$fontconfdir/$fc"
-      done
-    fi
+    ln_sf "$INSTDIR/fontconfig"/* "$fontconfdir/"
+    cmd_exists fc-cache && fc-cache -f "$FONTCONF"
   fi
-
   if [ -d "$HOME/Library/Fonts" ]; then
     local fontdir="$HOME/Library/Fonts"
   else
     local fontdir="$FONTDIR"
   fi
   if [ -d "$INSTDIR/fonts" ]; then
-    ln_sf "$INSTDIR/fonts" "$fontdir/$APPNAME"
-    cmd_exists fc-cache && fc-cache -f "$FONTCONF"
+    [ -d "$fontdir/$APPNAME" ] && rm_rf "$fontdir/$APPNAME"
+    ln_sf "$INSTDIR/fonts"/* "$fontdir/"
     cmd_exists fc-cache && fc-cache -f "$FONTDIR"
-    return 0
   fi
 }
 
