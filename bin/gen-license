@@ -60,6 +60,7 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 licenseDir="${licenseDir:-$HOME/.config/gen-license/files}"
+licenseDirCustom="${licenseDirCustom:-$HOME/.config/gen-license/custom}"
 licenseURL="${licenseURL:-$WHICH_LICENSE_URL}"
 licenseFile="${licenseFile:-$WHICH_LICENSE_DEF}"
 whichLicense="$(echo "$1" | tr [A-Z] [a-z])"
@@ -73,17 +74,19 @@ __file_failed() {
   printf_exit 1 1 "from: $1"
 }
 create_local_file() {
+  [ -f "$1" ] || __file_failed "$1"
   cat "$1" >"$licDir/LICENSE.md" 2>/dev/null
-  if [ -f "$licDir/LICENSE.md" ]; then
+  if [ -f "$licDir/LICENSE.md" ] && [ -s "$licDir/LICENSE.md" ]; then
     printf_green "Your LICENSE file has been created"
   else
     __file_failed "$1"
   fi
 }
 get_remote_file() {
-  __curl "$1" >"$licDir/LICENSE.md" 2>/dev/null
-  if [ -f "$licDir/LICENSE.md" ]; then
-    printf_green "Your LICENSE file has been created"
+  local name="$(__basename "$1")"
+  __curl "$1" >"$licenseDirCustom/$name" 2>/dev/null
+  if [ -f "$licDir/LICENSE.md" ] && [ -s "$licDir/LICENSE.md" ]; then
+    create_local_file "$licenseDirCustom/$name"
   else
     __file_failed "$1"
   fi
@@ -97,12 +100,15 @@ else
 fi
 
 gen_config() {
-  cat <<EOF
+  printf_green "Generating the config file $HOME/.config/gen-license/settings"
+  cat <<EOF >"$HOME/.config/gen-license/settings"
 # Settings for $APPNAME
 # Default license
 licenseFile="${licenseFile:-$WHICH_LICENSE_DEF}"
 # Default directory
 licenseDir="$licenseDir"
+# Default custom directory
+licenseDirCustom="${licenseDirCustom:-$HOME/.config/gen-license/custom}"
 # Default URL
 licenseURL="$WHICH_LICENSE_URL"
 # Default name
@@ -111,6 +117,18 @@ gitconfig_user="$gitconfig_user"
 gitconfig_email="$gitconfig_email"
 
 EOF
+  if [ -d "${CASJAYSDEVDIR}/templates/licenses" ] && [ "$(__count_files "$licenseDir" "2")" -eq 0 ]; then
+    printf_green "Installing the license files"
+    if __am_i_online; then
+      __git_clone "$licenseURL" "$licenseDir/files"
+    else
+      if [ -d "${CASJAYSDEVDIR}/templates/licenses" ]; then
+        __cp_rf "${CASJAYSDEVDIR}/templates/licenses/." "$HOME/.config/gen-license/files/"
+      else
+        printf_exit 1 1 "Can not get license files"
+      fi
+    fi
+  fi
 }
 
 create_new_wtfpl() {
@@ -126,9 +144,13 @@ create_new_wtfpl() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# Init
+if [ ! -f "$HOME/.config/gen-license/settings" ] && [ ! -d "$HOME/.config/gen-license/settings" ]; then
+  config
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main
 case "$whichLicense" in
-
 list)
   shift 1
   if [ "$(__count_files "$licenseDir/files")" -eq 0 ]; then
@@ -140,25 +162,13 @@ list)
 
 config)
   shift 1
-  printf_green "Generating the config file $HOME/.config/gen-license/settings"
-  gen_config >"$HOME/.config/gen-license/settings"
-  if [ -d "${CASJAYSDEVDIR}/templates/license" ] && [ "$(__count_files "$licenseDir" "2")" -eq 0 ]; then
-    printf_green "Installing the license files"
-    if __am_i_online; then
-      __git_clone "$licenseURL" "$licenseDir/files"
-    else
-      if [ -d "${CASJAYSDEVDIR}/templates/licenses" ]; then
-        __cp_rf "${CASJAYSDEVDIR}/templates/licenses/." "$HOME/.config/gen-license/files/"
-      else
-        printf_exit 1 1 "Can not get license files"
-      fi
-    fi
-  fi
+  gen_config
   ;;
 
 download)
   shift 1
   printf_green "Cloning the repo to $licenseDir/files"
+  [ -d "$licenseDir/files" ] && __mv_f "$licenseDir/files" "$licenseDir/files.old"
   __git_clone "$licenseURL " "$licenseDir/files"
   ;;
 
@@ -211,10 +221,16 @@ apache)
   get_lic "$licenseURL/apache-v2.0.md"
   ;;
 
+bsd2)
+  shift 1
+  printf_green "Using the BSD license for $licDir"
+  get_lic "$licenseURL/bsd-2.md"
+  ;;
+
 bsd3)
   shift 1
   printf_green "Using the BSD license for $licDir"
-  get_lic "$licenseURL/gnu-fdl-v1.3.md"
+  get_lic "$licenseURL/bsd-3.md"
   ;;
 
 custom)
@@ -229,7 +245,11 @@ custom)
 
 *)
   shift
-  printf_green "Using the default license for $licDir"
+  if [ ! -f "$licDir/$whichLicense" ]; then
+    printf_red "File doesn't exist: Using the default license"
+  else
+    printf_green "Using the default license for $licDir"
+  fi
   if [ -f "$licenseFile" ]; then
     create_local_file "$licenseFile"
   else
