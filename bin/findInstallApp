@@ -36,11 +36,11 @@ run_pkmgr_findInstallApp() {
   declare -a LISTARRAY="$*"
   printf_green "Trying to find $* via pkmgr"
   for pkg in ${LISTARRAY[*]}; do
-    __cmd_exists "$pkg" || __devnull pkmgr silent-install "$pkg" && return 0 || return 1
+    __cmd_exists "$pkg" || __devnull2 pkmgr install "$pkg" && return 0 || return 1
   done
   return $?
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_dfmgr_findInstallApp() {
   __cmd_exists dfmgr || return 1
   local pkg LISTARRAY
@@ -51,7 +51,7 @@ run_dfmgr_findInstallApp() {
   done
   return $?
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_systemmgr_findInstallApp() {
   __cmd_exists systemmgr || return 1
   local pkg LISTARRAY
@@ -62,7 +62,7 @@ run_systemmgr_findInstallApp() {
   done
   return $?
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_npm_findInstallApp() {
   cmd_exists npm || return 1
   local pkg LISTARRAY
@@ -73,15 +73,15 @@ run_npm_findInstallApp() {
   done
   return $?
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
-  run_pkmgr_findInstallApp "$@" ||
-    run_dfmgr_findInstallApp "$@" 2>/dev/null ||
+  [ $# = 0 ] && return 0 ||
+    run_pkmgr_findInstallApp "$@" ||
+    run_dfmgr_findInstallApp "$@" ||
     run_systemmgr_findInstallApp "$@" ||
-    run_npm_findInstallApp "$@" 2>/dev/null ||
-    exit $?
+    run_npm_findInstallApp "$@" ||
+    return $?
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

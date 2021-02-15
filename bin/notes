@@ -57,10 +57,9 @@ NOTES_PATH="$NOTES_DIRECTORY/$NOTES_FOLDER/$NOTES_FILE"
 NOTES_SERVER_PATH="$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$NOTES_FILE"
 NOTES_PREV_FILE="$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$NOTES_PREV_MONTH"
 NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import settings
 [ -f "$HOME/.config/notes/config" ] && . "$HOME/.config/notes/config"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Tmux config
 if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
@@ -94,9 +93,9 @@ setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _notifications() { [ "$NOTES_NOTIFY" = "yes" ] && notifications "$@"; }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate config file
 gen_config() {
   __mkd "$HOME/.config/notes"
@@ -115,7 +114,7 @@ NOTES_SERVER_PATH="${NOTES_SERVER_DIRECTORY}/${NOTES_FOLDER}/${NOTES_FILE}"
 NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
 ' >"$HOME/.config/notes/config"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # SystemD service file
 systemd_service() {
   if [ -f "$HOME/.config/autostart/notes-server.desktop" ]; then
@@ -158,7 +157,7 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 ' | sudo tee "$1" &>/dev/null
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable user autostart
 __server_enable() {
   if __system_service_exists notes_server.service; then
@@ -187,7 +186,6 @@ EOF
   [ $? = 0 ] && printf_green "notes server has been installed for $USER" ||
     printf_error 1 1 "$ICON_WARN Failed to install the notes server for $USER"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Netcat fix
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
@@ -195,7 +193,6 @@ __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not
 __nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE" || return 1; }
 __local() { if [ "$NOTES_SERVER_NAME" = "$(hostname -f)" ] || [ "$NOTES_SERVER_NAME" = "localhost" ]; then return 1; else return 0; fi; }
 __notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${1:-$NOTES_PATH}" &>/dev/null || return 1; }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __sync_tmp() {
   local _NOTESP="${1:-$NOTES_PATH}"
@@ -204,7 +201,7 @@ __sync_tmp() {
   if [ -n "$_TPATH" ]; then cat "$_NOTESP" "$_TPATH" >"$NOTES_TMPDIR/notes_cli.tmp" && __mv_f "$NOTES_TMPDIR/notes_cli.tmp" "$_NOTESP"; fi
   [ -f "$NOTES_DIRECTORY/all.txt" ] && __sync_all && echo synced >>"$NOTES_LOG_FILE"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __sync_all() {
   local exitCode=0
   local _NOTESP=${1:-$NOTES_PATH}
@@ -232,7 +229,6 @@ __sync_all() {
   if [ "$show" = "true" ]; then [ "$exitCode" = 0 ] && printf_green "Sync completed" || printf_error 1 "Sync failed"; fi
   return "$exitCode"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Server function for user autostart
 __server() {
@@ -261,7 +257,6 @@ __server() {
     [ -z "$message" ] || _notifications "New note" "$message\nPosted to: ${NOTES_PATH}"
   done
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Server function for SystemD
 __run_service() {
@@ -281,7 +276,6 @@ __run_service() {
     rm -Rf "$_PATH"
   done
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Client function
 __client() {
@@ -303,22 +297,22 @@ __client() {
   rm -Rf "$_PATH"
   return "$?"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import previous month notes
 __import() {
   [ -f "$NOTES_PREV_FILE" ] && cat "$NOTES_PREV_FILE" | sed '/^\#/d;/^$/d' >>"${NOTES_PATH}" || return 1
   printf_green "Notes have been imported"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # sync to all.txt
 __run_sync() {
   shift $#
   if __find_mtime "${NOTES_PATH}" "1"; then
     __sync_all "$NOTES_PATH" "$NOTES_DIRECTORY/all.txt" 2>/dev/null
-    [ $? = 0 ] && _notifications "New note" "Posted to: ${NOTES_PATH}"
+    [ $? = 0 ] && _notifications "NotesCLI" "Notes have been synced to all.txt"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # list all notes
 __list_all() {
   printf_custom "6" "all.txt"
@@ -342,7 +336,6 @@ if [ ! -f "$NOTES_PATH" ]; then
     __import && sleep 3
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Manual import
 case $1 in
@@ -352,7 +345,6 @@ case $1 in
   exit $?
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$1" in
@@ -554,21 +546,32 @@ search)
 
 -)
   shift 1
-  echo "Type your note, hit control-d when done"
-  printf "%s\n" "$(</dev/stdin)" >>"${NOTES_PATH}"
+  if [ ${#} -eq 0 ]; then
+    if [ -p "/dev/stdin" ]; then
+      message="$(</dev/stdin)"
+      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+    else
+      echo "Type your note, hit control-d when done"
+      message="$(</dev/stdin)"
+      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+    fi
+  else
+      message="$*"
+      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+  fi
   ;;
 
 *)
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
-      (
-        cat -
-      ) >>"${NOTES_PATH}"
+      message="$(</dev/stdin)"
+      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
     else
       __notes
     fi
   else
-    printf "%s\n" "${*}" >>"${NOTES_PATH}"
+      message="$*"
+      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
   fi
   __run_sync
   ;;
