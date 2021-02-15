@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="${APPNAME:-app-installer}"
-FUNCFILE="app-installer.bash"
+APPNAME="${APPNAME:-testing}"
+FUNCFILE="testing.bash"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
@@ -17,8 +17,8 @@ HOME="${USER_HOME:-${HOME}}"
 # @ReadME        : README.md
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Tuesday, Feb 09, 2021 17:17 EST
-# @File          : app-installer.bash
-# @Description   : Installer functions for apps
+# @File          : testing.bash
+# @Description   : Functions for apps
 # @TODO          : Refactor code - It is a mess
 # @Other         :
 # @Resource      :
@@ -707,9 +707,9 @@ __hostname() { __devnull2 hostname -s "${1:-$HOSTNAME}"; }
 #domainname ""
 __domainname() { hostname -d "${1:-$HOSTNAME}" 2>/dev/null || hostname -f "${1:-$HOSTNAME}" 2>/dev/null; }
 #hostname2ip "hostname"
-__hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1 || nslookup "$1" 2>/dev/null | grep Address: | awk '{print $2}' | grep -vE '#|:' | grep ^ || return 1; }
+__hostname2ip() { getent ahosts "$1" | grep -v ':*:*:' | cut -d' ' -f1 | head -n1 || nslookup "$1" 2>/dev/null | grep -v '#|:*:*:' | grep Address: | awk '{print $2}' | grep ^ || return 1; }
 #ip2hostname "ipaddr"
-__ip2hostname() { nslookup "$1" 2>/dev/null | grep Name: | awk '{print $2}' | head -n1 | grep ^ || return 1; }
+__ip2hostname() { nslookup "$1" 2>/dev/null | grep -v ':*:*:' | grep Name: | awk '{print $2}' | head -n1 | grep ^ || return 1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
 #count_files "dir"

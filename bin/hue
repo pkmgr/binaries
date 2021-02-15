@@ -2,7 +2,6 @@
 
 APPNAME="$(basename $0)"
 SCRIPTDIR="$(dirname "${BASH_SOURCE[0]}")"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version     : 010920210727-git
 # @Author      : Jason
@@ -15,21 +14,16 @@ SCRIPTDIR="$(dirname "${BASH_SOURCE[0]}")"
 # @Help        : http://hkionline.net/posts/using-phillips-hue-from-the-command-line
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/functions/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 user_install
 __options "$@"
@@ -45,25 +39,27 @@ main() {
   local hue_group="${HUE_GROUP:-0}"
   local api_url="${HUE_HUB_API:-http://$hue_device/api/$hue_api_key/groups/$hue_group}"
   touch "$state"
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ ! -z "$hue_api_key" ] || printf_exit "Please set your hue api key"
   [ ! -z "$hue_device" ] || printf_exit "Please enter the hostname of your hue hub"
   [ ! -z "$hue_device" ] || printf_exit "Please enter the the command you want to send to your hue"
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # functions
+  __getstate() { [ -f "$state" ] && cat "$state" || echo; }
   __curlcmd() { curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@"; }
-  return_ok() { __curlcmd -X PUT "$api_url/action" -d '{"'$1'": '$2'}' | grep -q success && printf_green "Telling $hue_device_name to $3"; }
-  _return_error() { printf_error "Failed to send the command: ${1}" && printf_newline "\n" && return 1; }
-
-  _curlapi() { return_ok "$1" "$2" "$3" || _return_error "$4"; }
-  getstate() { cat "$state"; }
+  __curlapi() { __return_ok "$1" "$2" "$3" || __return_error "$4"; }
+  __return_ok() { __curlcmd -X PUT "$api_url/action" -d '{"'$1'": '$2'}' | grep -q success && printf_green "Telling $hue_device_name to $3"; }
+  __return_error() {
+    printf_error "Failed to send the command ${1} to:"
+    printf_error "$api_url"
+    printf_newline "\n"
+    return 1
+}
   hue_on() {
-    _curlapi "on" "true" "turn on the lights" "on" && echo on >"$state"
+    __curlapi "on" "true" "turn on the lights" "on" && echo on >"$state"
   }
   hue_off() {
-    _curlapi "on" "false" "turn off the lights" "off" && echo off >"$state"
+    __curlapi "on" "false" "turn off the lights" "off" && echo off >"$state"
 
   }
   hue_toggle() {
@@ -94,9 +90,9 @@ main() {
   state)
     case "$2" in
 
-    text) echo -e "$(getstate)" ;;
+    text) echo -e "$(__getstate)" ;;
 
-    json | *) echo -e '{"status":"'$(getstate)'"}' ;;
+    json | *) echo -e '{"status":"'$(__getstate)'"}' ;;
     esac
 
     ;;
@@ -106,7 +102,7 @@ main() {
     opts="${1:-0}"
     shift
     [ "$opts" -gt "255" ] && printf_exit "Enter a number between 0 and 255"
-    hue_on >/dev/null && _curlapi "bri" "$opts" "set the brightness to $opts" '{"bri": '"$opts"'}'
+    hue_on >/dev/null && __curlapi "bri" "$opts" "set the brightness to $opts" '{"bri": '"$opts"'}'
     ;;
 
   sat | s)
@@ -114,14 +110,14 @@ main() {
     opts="${1:-0}"
     shift
     [ "$opts" -gt "255" ] && printf_exit "Enter a number between 0 and 255"
-    hue_on >/dev/null && _curlapi "sat" "$opts" "set the saturation to $opts" '{"sat": '"$opts"'}'
+    hue_on >/dev/null && __curlapi "sat" "$opts" "set the saturation to $opts" '{"sat": '"$opts"'}'
     ;;
 
   hue | h)
     shift 1
     opts="${1:-0}"
     shift
-    hue_on >/dev/null && _curlapi "hue" "$opts" "set the hue to $opts" '{"hue": '"$opts"'}'
+    hue_on >/dev/null && __curlapi "hue" "$opts" "set the hue to $opts" '{"hue": '"$opts"'}'
     ;;
 
   effect | e)
@@ -129,7 +125,7 @@ main() {
     opts="${1:-0}"
     shift
     #curl -LSsq -X PUT "$api_url/action" -d '{"effect": "'$1'"}'
-    hue_on >/dev/null && _curlapi "hue" "$opts" "set the effect to $opts" '{"effect": "'$opts'"}'
+    hue_on >/dev/null && __curlapi "hue" "$opts" "set the effect to $opts" '{"effect": "'$opts'"}'
     ;;
 
   info)
@@ -142,11 +138,9 @@ main() {
     ;;
   esac
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #execute
 main "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
