@@ -116,12 +116,12 @@ EOF
 create_new_wtfpl() {
   if grep -q 'What The Fuck Public License' "$licDir/LICENSE.md"; then
     if grep -q 'CURYEAR AuthorName' "$licDir/LICENSE.md"; then
-      [ -f "$licDir/LICENSE.md" ] && sed -i "s# CURYEAR # $(date +'%Y') #g" "$licDir/LICENSE.md"
-      [ -f "$licDir/LICENSE.md" ] && sed -i "s#AuthorName#${gitconfig_user}#g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && __sed -i "s# CURYEAR # $(date +'%Y') #g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && __sed -i "s#AuthorName#${gitconfig_user}#g" "$licDir/LICENSE.md"
     else
-      [ -f "$licDir/LICENSE.md" ] && sed -i "s# 2004 # $(date +'%Y') #g" "$licDir/LICENSE.md"
-      [ -f "$licDir/LICENSE.md" ] && sed -i "s#Sam Hocevar#${gitconfig_user}#g" "$licDir/LICENSE.md"
-      [ -f "$licDir/LICENSE.md" ] && sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && __sed -i "s# 2004 # $(date +'%Y') #g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && __sed -i "s#Sam Hocevar#${gitconfig_user}#g" "$licDir/LICENSE.md"
+      [ -f "$licDir/LICENSE.md" ] && __sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "$licDir/LICENSE.md"
     fi
   fi
 }

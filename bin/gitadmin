@@ -72,7 +72,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a README.md file if one doesn't exist
 create_new_readme_template() {
-  if [ -f "$(command -v gen-readme)" ]; then
+  if [ -f "$(command -v gen-readme)" ] && [[ "$(__count_files "${readmeDir:-$HOME/.config/gen-readme/files}" "2")" -ne 0 ]]; then
     gen-readme &>/dev/null
   else
     local author="$(__git_globaluser)"
@@ -80,22 +80,22 @@ create_new_readme_template() {
     local BaseDir="${GitBaseDir##*/}"
     [ -f "$CASJAYSDEVDIR/templates/readmes/projects/default.md" ] &&
       cat "$CASJAYSDEVDIR/templates/readmes/projects/default.md" >"${REPODIR}/README.md"
-    [ -f ${REPODIR}/README.md ] && sed -i "s#ProjectName#${BaseDir}#g" "${REPODIR}/README.md"
-    [ -f ${REPODIR}/README.md ] && sed -i "s#AuthorName#${author}#g" "${REPODIR}/README.md"
+    [ -f ${REPODIR}/README.md ] && __sed -i "s#ProjectName#${BaseDir}#g" "${REPODIR}/README.md"
+    [ -f ${REPODIR}/README.md ] && __sed -i "s#AuthorName#${author}#g" "${REPODIR}/README.md"
   fi
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a WTFPL license if a LICENSE.md file doesn't exist
 create_new_wtfpl() {
-  if [ -f "$(command -v gen-license)" ]; then
+  if [ -f "$(command -v gen-license)" ] && [[ "$(__count_files "${licenseDir:-$HOME/.config/gen-license/files}" "2")" -ne 0 ]]; then
     gen-license default &>/dev/null
   else
     local author="$(__git_globaluser)"
     local year="$(date +'%Y')"
     [ -f "$WTFLICENSE" ] && cat "$WTFLICENSE" >"${REPODIR}/LICENSE.md"
-    [ -f ${REPODIR}/LICENSE.md ] && sed -i "s#CURYEAR#${year}#g" "${REPODIR}/LICENSE.md"
-    [ -f ${REPODIR}/LICENSE.md ] && sed -i "s#AuthorName#${author}#g" "${REPODIR}/LICENSE.md"
+    [ -f ${REPODIR}/LICENSE.md ] && __sed -i "s#CURYEAR#${year}#g" "${REPODIR}/LICENSE.md"
+    [ -f ${REPODIR}/LICENSE.md ] && __sed -i "s#AuthorName#${author}#g" "${REPODIR}/LICENSE.md"
   fi
 }
 
@@ -271,7 +271,7 @@ make_newsite() {
 # Gets the organizations from the user
 git_all_orgs() {
   ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=owner"
-  for org in "$GITHUB_USERNAME" "$(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
+  for org in "$GITHUB_USERNAME" "$(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
     gitadmin --clone "$org"
   done
 }
@@ -314,7 +314,7 @@ ghgist() {
   local CONTENT="$(printf "%s\r" "{\"description\": \"$DESCR\",\"public\": true,\"files\": {\"$TITLE\": {\"content\": \"$3\"}}}" | tee >/tmp/gist_url-data.txt)"
   printf_green "Creating $TITLE - $DESCR"
   curl -X POST -LSsi -H "Content-Type: application/json" -H "Authorization: token $TOKEN" --data @/tmp/gist_url-data.txt https://api.github.com/gists |
-    grep -w "html_url" | grep "gist" | awk '{print $2}' | sed 's/\,//' >"/tmp/gist_url" 2>&1 && SUCCES="$(cat /tmp/gist_url)" &&
+    grep -w "html_url" | grep "gist" | awk '{print $2}' | __sed 's/\,//' >"/tmp/gist_url" 2>&1 && SUCCES="$(cat /tmp/gist_url)" &&
     __devnull rm -Rf "/tmp/gist_url" "/tmp/gist_url-data.txt"
   getexitcode "$SUCCES" "$ERROR"
   return $EXIT
@@ -612,7 +612,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -629,7 +629,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -646,7 +646,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   for i in $(cat $TMPFILE); do
@@ -684,7 +684,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -700,7 +700,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -739,7 +739,7 @@ github) # github repo
     if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin github init RepoName"; fi
     if [[ "$1" = "--help" ]]; then printf_exit "Create a new github project\n\t\tUsage: gitadmin github init RepoName"; fi
     do_not_add_a_url "$1"
-    homerepo="$(echo "$HOME/Projects/github/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    homerepo="$(echo "$HOME/Projects/github/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     mkdir -p "$HOME/Projects/github/$1"
     __cd_into "$homerepo"
     repos_init $REPODIR
@@ -751,7 +751,7 @@ github) # github repo
     if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin github clone username/projectname"; fi
     if [ "$1" = "--help" ]; then printf_exit "Clone a github project\n\t\tUsage: gitadmin github clone username/projectname"; fi
     do_not_add_a_url "$1"
-    homerepo="$(echo "$HOME/Projects/github/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    homerepo="$(echo "$HOME/Projects/github/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     if [ -d "$homerepo" ]; then
       printf_green "The repo already exists so attempting update"
       git -C "$homerepo" pull -q
@@ -781,7 +781,7 @@ gitlab)
     if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin gitlab init RepoName"; fi
     if [[ "$1" = "--help" ]]; then printf_exit "Create a new gitlab project\n\t\tUsage: gitadmin gitlab init RepoName"; fi
     do_not_add_a_url "$1"
-    homerepo="$(echo "$HOME/Projects/gitlab/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    homerepo="$(echo "$HOME/Projects/gitlab/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     mkdir -p "$HOME/Projects/gitlab/$1"
     __cd_into "$homerepo"
     repos_init $REPODIR
@@ -793,7 +793,7 @@ gitlab)
     if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin gitlab clone username/projectname"; fi
     if [ "$1" = "--help" ]; then printf_exit "Clone a gitlab project\n\t\tUsage: gitadmin gitlab clone username/projectname"; fi
     do_not_add_a_url "$1"
-    homerepo="$(echo "$HOME/Projects/gitlab/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    homerepo="$(echo "$HOME/Projects/gitlab/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     if [ -d "$homerepo" ]; then
       printf_green "The repo already exists so attempting update"
       git -C "$homerepo" pull -q
@@ -825,7 +825,7 @@ private)
     if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin private init RepoName"; fi
     if [[ "$1" = "--help" ]]; then printf_exit "Create a new private project\n\t\tUsage: gitadmin private init RepoName"; fi
     do_not_add_a_url "$1"
-    homerepo="$(echo "$HOME/Projects/private/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    homerepo="$(echo "$HOME/Projects/private/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     mkdir -p "$HOME/Projects/private/$1"
     __cd_into "$homerepo"
     repos_init $REPODIR
@@ -837,7 +837,7 @@ private)
     if [ "$#" -ne 1 ]; then printf_exit "Usage: gitadmin private clone username/projectname"; fi
     if [ "$1" = "--help" ]; then printf_exit "Clone a private project\n\t\tUsage: gitadmin private clone username/projectname"; fi
     do_not_add_a_url "$1"
-    homerepo="$(echo "$HOME/Projects/private/$1" | sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
+    homerepo="$(echo "$HOME/Projects/private/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     if [ -d "$homerepo" ]; then
       printf_green "The repo already exists so attempting update"
       git -C "$homerepo" pull -q
@@ -896,7 +896,7 @@ stow)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | sed 's/\",//' | sed 's/\.[^.]*$//' >"$TMPFILE"
+  curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//' >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
