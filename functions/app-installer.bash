@@ -294,7 +294,7 @@ __curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$
 
 die() { echo -e "$1" exit ${2:9999}; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
-running() { pidof "$1" >/dev/null 2>&1 && return 1 || return 0; }
+running() { ps ux | grep "$1" | grep -vq 'grep ' &>/dev/null && return 1 || return 0; }
 hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1 || nslookup "$1" 2>/dev/null | grep Address: | awk '{print $2}' | grep -vE '#|:' | grep ^ || return 1; }
 set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
 getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
