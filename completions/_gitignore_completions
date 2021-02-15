@@ -21,15 +21,11 @@ _gitignore() {
 
   _init_completion || return
 
-  case $prev in
-  help | h | --h*)
+  if [[ $cur == -* ]]; then
+    COMPREPLY=($(compgen -W '--help --version' -- "$cur"))
     return
-    ;;
-  *)
-    COMPREPLY=($(compgen -W 'dirignore ${ARRAY}' -- "$cur"))
-    return
-    ;;
-  esac
+  fi
+  COMPREPLY=($(compgen -W 'dirignore ${ARRAY}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
