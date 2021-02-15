@@ -707,7 +707,7 @@ __hostname() { __devnull2 hostname -s "${1:-$HOSTNAME}"; }
 #domainname ""
 __domainname() { hostname -d "${1:-$HOSTNAME}" 2>/dev/null || hostname -f "${1:-$HOSTNAME}" 2>/dev/null; }
 #hostname2ip "hostname"
-__hostname2ip() { nslookup "$1" 2>/dev/null | grep Address: | awk '{print $2}' | grep -vE '#|:' | grep ^ || return 1; }
+__hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1 || nslookup "$1" 2>/dev/null | grep Address: | awk '{print $2}' | grep -vE '#|:' | grep ^ || return 1; }
 #ip2hostname "ipaddr"
 __ip2hostname() { nslookup "$1" 2>/dev/null | grep Name: | awk '{print $2}' | head -n1 | grep ^ || return 1; }
 #timeout "time" "command"
