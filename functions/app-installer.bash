@@ -293,7 +293,7 @@ ask_question() {
 __curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
 
 __start() {
-  sleep .2 && "$@" 2>/dev/null &
+  sleep .2 && "$@" &>/dev/null &
   disown
 }
 
