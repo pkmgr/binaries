@@ -1,42 +1,65 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename "$0")"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="gitignore"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : gitignore
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : generate a .gitignore file
-#
+#set opts
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
+##@Version       : 021420212105-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : gitignore --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Feb 14, 2021 21:05 EST
+# @File          : gitignore
+# @Description   : Generate a .gitignore file
+# @TODO          : Make this work locally
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
+__check_app git
+__check_app curl
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 GITIGNOREURL="${GITIGNOREURL:-https://www.toptal.com/developers/gitignore/api}"
 IGNORELIST="$(echo "$@" | tr ' ' ',')"
-
+GITDIR="$(git rev-parse --show-toplevel 2>/dev/null || return)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -n "$1" ] || __help
+[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || printf_exit 2 0 "This is not a git repo"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+set_gitignoredir() {
+  if [[ $* =~ dirignore ]]; then
+    shift 1
+    if ! cat "$GITDIR/.gitignore" 2>/dev/null | grep -Fvq 'ignoredirmessage'; then
+      printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore"
+      #printf_green "Added ignoredirmessage to your .gitignore"
+    fi
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 fetch_ignore() {
   gi_args=()
   for arg; do
@@ -48,46 +71,52 @@ fetch_ignore() {
     fi
   done
   IFS=,
-  curl -LSs "${curl_args[@]}" "$GITIGNOREURL/${gi_args[*]}"
+  __curl "${curl_args[@]}" "$GITIGNOREURL/${gi_args[*]}"
   echo ""
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ignore_overwrite() {
-  if [ "$1" = "--automated" ]; then
+  if [[ $* = "--automated" ]]; then
     shift 1
     overwrite=Y
   fi
-  if [ -f .gitignore ] && [ -z "$overwrite" ]; then
-    printf_question "Should I overwrite your git ignore? [y/n]"
-    read -r -n 1 -s overwrite && echo
-    if [[ $overwrite == "n" || $overwrite == "N" ]]; then
+  if [ -f "$GITDIR/.gitignore" ] && [ -z "$overwrite" ]; then
+    printf_read_question "2" "Should I overwrite your git ignore? [y/n]" "1" "overwrite" "-s"
+    if printf_answer_yes "$overwrite"; then
+      __rm_rf "$GITDIR/.gitignore"
+    else
       printf_red "User aborted, not overwriting your .gitignore"
       exit 1
     fi
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+create_gitignore() {
+  fetch_ignore "$@" >>"$GITDIR/.gitignore"
+  printf_green "Added $IGNORELIST to your .gitignore"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-check_app git
-check_app curl
-
-[ -n "$1" ] || __help
-[ "$1" = "--help" ] && __help
-[ "$1" = "--list" ] && cat "${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array"
-
-echo $*
-
-if [ "$1" = "--console" ]; then
+case $* in
+--help)
+  __help
+  exit
+  ;;
+--list)
+  cat "${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array" | printf_columns
+  exit
+  ;;
+--console)
   shift 1
   printf_green "$(fetch_ignore "$@")"
   exit
-else
+  ;;
+*)
   ignore_overwrite "$@"
-  fetch_ignore "$@" >.gitignore
-  printf_green "Added $IGNORELIST to your .gitignore"
-fi
-
+  set_gitignoredir "$@"
+  [ $# -ne 0 ] && create_gitignore "$@" || exit
+  ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

@@ -25,10 +25,11 @@ _gitignore() {
   help | h | --h*)
     return
     ;;
-
+  *)
+    COMPREPLY=($(compgen -W 'dirignore ${ARRAY}' -- "$cur"))
+    return
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
