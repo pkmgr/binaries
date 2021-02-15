@@ -292,6 +292,11 @@ ask_question() {
 ##################################################################################################
 __curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
 
+__start() {
+  sleep .2 && "$@" 2>/dev/null &
+  disown
+}
+
 die() { echo -e "$1" exit ${2:9999}; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
 running() { ps ux | grep "$1" | grep -vq 'grep ' &>/dev/null && return 1 || return 0; }
