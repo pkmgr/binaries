@@ -55,12 +55,11 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-readme/settings" ] && . "$HOME/.config/gen-readme/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-readmeDefault="${readmeDefault:-default.md}"
 readmeDir="${readmeDir:-$HOME/.config/gen-readme/files}"
+readmeDefault="${readmeDefault:-default.md}"
 gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
 gitconfig_email="${gitconfig_email:-$(__git_globalemail)}"
 __mkd "$readmeDir"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __file_failed() { printf_exit "Failed to get the readme file: $readmeFile"; }
 create_local_file() {
@@ -71,7 +70,7 @@ create_local_file() {
     __file_failed "$1"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_remote_file() {
   __curl "$1" >"$curDir/README.md" 2>/dev/null
   if [ -f "$curDir/README.md" ]; then
@@ -80,14 +79,13 @@ get_remote_file() {
     __file_failed "$1"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 generate_readme() {
   local readmeFile="${1:-$readmeDefault}"
   local whichreadme="$(__strip_ext $readmeFile || exit 1)"
   local author="$gitconfig_user"
   local curDir="$(dirname $curDir/README.md)"
   local BaseDir="${curDir##*/}"
-
   if [ -f "$readmeDir/$readmeFile" ]; then
     printf_green "Using the $whichreadme README for $curDir"
     create_local_file "$readmeDir/$readmeFile"
@@ -98,7 +96,7 @@ generate_readme() {
     printf_exit 1 1 "$readmeDir/$readmeFile does not exist"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gen_config() {
   cat <<EOF
 # Settings for $APPNAME
@@ -106,9 +104,36 @@ readmeDir="$readmeDir"
 readmeDefault="$readmeDefault"
 gitconfig_user="$gitconfig_user"
 gitconfig_email="$gitconfig_email"
-
 EOF
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Find the readme
+__find_readme() {
+  arg1=${1// /\/}
+  arg2=${2// /\/}
+  arg2=${2// /\/}
+  if [ -f "$(__find $readmeDir/$arg1/$arg2/${arg3:-default})" ]; then
+    template="$(__find $readmeDir/$arg1/$arg2/${arg3:-default})"
+    dest="${4:-$curDir/README.md}"
+    shift 2
+  elif [ -f "$(__find $readmeDir/$arg1/${arg2:-default})" ]; then
+    template="$(__find $readmeDir/$arg1/${arg2:-default})"
+    dest="${3:-$curDir/README.md}"
+    shift 2
+  elif [ -f "$(__find $readmeDir/${arg1:-default})" ]; then
+    template="$(__find $readmeDir/${arg1:-default})"
+    dest="${2:-$curDir/README.md}"
+    shift 1
+  elif [ -f "$(__find $readmeDir/$readmeDefault)" ]; then
+    printf_green "Using the default template: $(__find $readmeDir/$readmeDefault)"
+    template="$(__find $readmeDir/$readmeDefault)"
+    dest="${1:-$curDir/README.md}"
+  else
+    printf_exit 1 1 "Can not find any readmes matching $1 ${2:-$readmeDefault}"
+  fi
+  template="${template//$readmeDir\//}"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __findcmd() {
   find "$readmeDir" -type f ${1} -not -path "${readmeDir}/*/.git/*" 2>/dev/null | sed 's#'$readmeDir/'##g' | sort -u
 }
@@ -123,32 +148,6 @@ if [ "$(__count_files $readmeDir)" -eq 0 ]; then
     printf_exit "1" "1" "No readme files exist"
   fi
 fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Find the readme
-arg1=${1// /\/}
-arg2=${2// /\/}
-arg2=${2// /\/}
-if [ -f "$readmeDir/$arg1/$arg2/${arg3:-default}" ]; then
-  template="$readmeDir/$arg1/$arg2/${arg3:-default}"
-  dest="${4:-$curDir/README.md}"
-  shift 2
-elif [ -f "$readmeDir/$arg1/${arg2:-default}" ]; then
-  template="$readmeDir/$arg1/${arg2:-default}"
-  dest="${3:-$curDir/README.md}"
-  shift 2
-elif [ -f "$readmeDir/${arg1:-default}" ]; then
-  template="$readmeDir/${arg1:-default}"
-  dest="${2:-$curDir/README.md}"
-  shift 1
-elif [ -f "$readmeDir/default" ]; then
-  printf_green "Using the default template: bash"
-  template="$readmeDir/default"
-  dest="${1:-$curDir/README.md}"
-else
-  printf_exit 1 1 "Can not find any readmes matching $1 ${2:-$template}"
-fi
-template="${template//$readmeDir\//}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
@@ -184,6 +183,7 @@ case "$1" in
 
 *custom)
   shift 1
+  __find_readme "$@"
   if [ -f "$readmeFile" ]; then
     generate_readme "$readmeFile"
   else
@@ -193,18 +193,20 @@ case "$1" in
 
 -*)
   shift 1
+  __find_readme "$@"
   generate_readme "$template"
   ;;
 
 *all)
   shift 1
+  __find_readme "$@"
   generate_readme "$template"
   ;;
 
 *)
+  __find_readme "$@"
   generate_readme "$template"
   ;;
-
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
