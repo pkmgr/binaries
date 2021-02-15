@@ -24,7 +24,7 @@ _mybrowser() {
   case $prev in
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
-    return 0
+    #return 0
     ;;
   esac
 } &&
