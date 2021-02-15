@@ -16,7 +16,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Created       : Wednesday, Feb 10, 2021 02:00 EST
 # @File          : install.sh
 # @Description   : My custom scripts
-# @TODO          :
+# @TODO          : MacOS fixes
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
