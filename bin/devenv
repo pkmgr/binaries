@@ -47,8 +47,10 @@ __run_static_site() {
 __run_new_site() {
   local sitedir
   printf_green "Enter the full path for your new project!"
-  printf_read_question "3" "Enter location for your new site - enter . for current: " "120" "sitedir"
-  [ -n "$sitedir" ] && [ -d "$sitedir" ] && cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"
+  printf_read_question "3" "Enter location for your new site - enter . for current:" "120" "sitedir"
+  [ -n "$sitedir" ] || printf_exit "Something went wrong"
+  [ -d "$sitedir" ] || __mkd "$sitedir"
+  cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_jekyll() {
@@ -255,83 +257,70 @@ fi
 case "$1" in
 static)
   shift 1
-  __run_new_site
-  __run_static_site "$@"
+  __run_new_site && __run_static_site "$@"
   ;;
 jekyll)
   shift 1
-  __run_new_site
-  __run_jekyll "$@"
+  __run_new_site && __run_jekyll "$@"
   ;;
 
 hugo)
   shift 1
-  __run_new_site
-  __run_hugo "$@"
+  __run_new_site && __run_hugo "$@"
   ;;
 
 ruby)
   shift 1
-  __run_new_site
-  __run_ruby "$@"
+  __run_new_site && __run_ruby "$@"
   ;;
 
 python)
   shift 1
-  __run_new_site
-  __run_python "$@"
+  __run_new_site && __run_python "$@"
   ;;
 
 perl)
   shift 1
-  __run_new_site
-  __run_perl "$@"
+  __run_new_site && __run_perl "$@"
   ;;
 
 php)
   shift 1
-  __run_new_site
-  __run_php "$@"
+  __run_new_site && __run_php "$@"
   ;;
 
 node)
   shift 1
-  __run_new_site
-  __run_node "$@"
+  __run_new_site && __run_node "$@"
   ;;
 
 vue)
   shift 1
-  __run_new_site
-  __run_vuecli "$@"
+  __run_new_site && __run_vuecli "$@"
   ;;
 
 react)
   shift 1
-  __run_new_site
-  __run_reactcli "$@"
+  __run_new_site && __run_reactcli "$@"
   ;;
 
 express)
   shift 1
-  __run_new_site
-  __run_expresscli "$@"
+  __run_new_site && __run_expresscli "$@"
   ;;
 
 create-project)
   shift 1
-  __run_new_site
-  __run_create-project "$@"
+  __run_new_site &&  __run_create-project "$@"
   ;;
 
 mevn)
   shift 1
-  __run_new_site
-  __run_mevn "$@"
+  __run_new_site && __run_mevn "$@"
   ;;
 gen-shellrc)
   shift 1
-  __gen_shellcheck
+  __run_new_site && __gen_shellcheck
   ;;
 *)
   shift --
