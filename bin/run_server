@@ -32,6 +32,8 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__test_server() { netstatg $1 | grep -qi python && return 0 || return 1; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 open_url() {
   if __cmd_exists "xdg-open"; then
     xdg-open "$1"
@@ -39,7 +41,6 @@ open_url() {
     open "$1"
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
   declare -r MAX_NUMBER_OF_TRIES=10
@@ -50,7 +51,7 @@ main() {
   printf_yellow "Access from the network: http://$myip:$port"
   printf_red "control-c to exit"
   while [ $i -lt $MAX_NUMBER_OF_TRIES ]; do
-    if [ "$(lsof -i -nP | grep "$port" | grep -i "python")" != "" ]; then
+    if [ "$(__test_server $port)" != "" ]; then
       open_url "http://$myip:${port}/"
       break
     fi
@@ -62,13 +63,9 @@ main() {
     __devnull python2 -m http.server --cgi --bind "$myip" "${port}" ||
     __devnull python -m SimpleHTTPServer "${port}" ||
     printf_exit 1 1 "Failed to start the server"
-
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
-
 # end

@@ -18,8 +18,8 @@ _config() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  local ARRAY="$(<$CASJAYSDEVDIR/scripts/helpers/config/array)"
-  local LIST="$(<$CASJAYSDEVDIR/scripts/helpers/config/list)"
+  local ARRAY="$(<$CASJAYSDEVDIR/helpers/config/array)"
+  local LIST="$(<$CASJAYSDEVDIR/helpers/config/list)"
   _init_completion || return
 
   case $prev in

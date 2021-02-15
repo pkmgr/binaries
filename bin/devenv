@@ -38,15 +38,18 @@ if_sample() {
   if [ -f config.example.js ] || [ -f config.js ]; then cp -Rf config.example.js config.js; fi
   if [ -f .config.json.sample ] || [ -f .config.json ]; then cp -Rf .config.json.sample .config.json; fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__run_static_site() {
+  run_server ${1:-20000}
+  exit
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_new_site() {
+  local sitedir
   printf_green "Enter the full path for your new project!"
   printf_read_question "3" "Enter location for your new site - enter . for current: " "120" "sitedir"
-  [ ! -z "$sitedir" ] || cd "$sitedir" || exit 1
-
+  [ -n "$sitedir" ] && [ -d "$sitedir" ] && cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_jekyll() {
   local appname=jekyll
@@ -60,7 +63,6 @@ __run_jekyll() {
   fi
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_hugo() {
   local appname=hugo
@@ -74,7 +76,6 @@ __run_hugo() {
   fi
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_ruby() {
   local appname=ruby
@@ -88,7 +89,6 @@ __run_ruby() {
   fi
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_python() {
   local appname=python
@@ -102,7 +102,6 @@ __run_python() {
   fi
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_perl() {
   local appname=perl
@@ -116,7 +115,6 @@ __run_perl() {
   fi
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_php() {
   local appname=php
@@ -130,7 +128,6 @@ __run_php() {
   fi
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_node() {
   local appname=node || appname=node || appname=npm
@@ -146,7 +143,6 @@ __run_node() {
   npm init
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_vuecli() {
   local appname=vue
@@ -162,7 +158,6 @@ __run_vuecli() {
   "$appname" create
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_reactcli() {
   local appname=create-react-app
@@ -178,7 +173,6 @@ __run_reactcli() {
   $appname
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_expresscli() {
   local appname=express-generator
@@ -194,7 +188,6 @@ __run_expresscli() {
   $appname
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_create-project() {
   local appname=create-project
@@ -210,7 +203,6 @@ __run_create-project() {
   "$appname"
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_mevn() {
   local appname=mevn
@@ -226,12 +218,14 @@ __run_mevn() {
   git clone -q https://github.com/icebob/vue-express-mongo-boilerplate ./
   exit 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_shellcheck() {
-  __cp_rf "SCRIPTSFUNCTDIR/templates/shellcheckrc" ./shellcheckrc
+  printf_green "Generating .shellcheckrc"
+  __cp_rf "$CASJAYSDEVDIR/templates/shellcheckrc" ./.shellcheckrc
+  [ -f "./shellcheckrc" ] && \
+    printf_green ".shellcheckrc has been generated" || \
+    printf_exit 1 1 "Failed to create .shellcheckrc"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "--start" ]; then
   shift 1
@@ -239,6 +233,7 @@ if [ "$1" = "--start" ]; then
 
   case "$START" in
   jekyll)
+    __cmd_exists jekyll || printf_exit 1 1 "jekyll can't be found"
     if [ -f ./_config.yml ]; then
       if __cmd_exists watchy; then
         watchy -w _config.yml -- jekyll serve --host=0.0.0.0
@@ -258,6 +253,11 @@ if [ "$1" = "--start" ]; then
 fi
 
 case "$1" in
+static)
+  shift 1
+  __run_new_site
+  __run_static_site "$@"
+  ;;
 jekyll)
   shift 1
   __run_new_site
@@ -339,8 +339,6 @@ gen-shellrc)
   ;;
 esac
 
-set --
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
