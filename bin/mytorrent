@@ -17,7 +17,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Monday, Feb 15, 2021 14:02 EST
 # @File          : mytorrent
-# @Description   : Opne torrent client
+# @Description   : Open torrent client
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -83,8 +83,8 @@ __create_link() {
 if [ "$MYTORRENT" != "config" ]; then
   if [ -n "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
     export TORRENT="transmission-remote-gtk"
-  elif [ -n "$(command -v transmission-remote-cli 2>/dev/null)" ]; then
-    export TORRENT="transmission-remote-cli"
+  elif [ -n "$(command -v transmission-remote 2>/dev/null)" ]; then
+    export TORRENT="transmission-remote"
   elif [ -n "$(command -v transmission-gtk 2>/dev/null)" ]; then
     export TORRENT="transmission-gtk"
   elif [ -n "$(command -v transmission-qt 2>/dev/null)" ]; then
@@ -115,7 +115,17 @@ if [ -z "$TORRENT" ]; then
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
   printf_exit 1 1 "No bittorrent clients are installed"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $TORRENT in
+  transmission-remote*)
+    shift 1
+    transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
+    if [ -z "$transmission_daemon" ] && [ -z "$TORRENT_SERVER" ]; then
+      transmission-daemon & disown && [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && \
+        notifications "MyTorrent" "Transmission server has been started"
+    fi
+    ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
@@ -129,19 +139,20 @@ case $1 in
   ;;
 
 *)
+  #if ps -aux | grep $TORRENT | grep -v 'grep '; then
+
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
-  if [ "$TORRENT" = "transmission-remote-cli" ]; then
-    myterminal -e "$TORRENT $*" 2>/dev/null
+  if [ "$TORRENT" = "transmission-remote" ]; then
+    exec myterminal -e bash -c "$TORRENT $@;bash" 2>/dev/null
   else
     if [ -f "$HOME/.local/bin/mytorrent" ]; then
-      exec ~/.local/bin/mytorrent "$@" 2>/dev/null &
+      exec ~/.local/bin/mytorrent "$@" 2>/dev/null & disown
     else
-      exec $TORRENT "$@" 2>/dev/null &
+      exec $TORRENT "$@" 2>/dev/null & disown
     fi
   fi
   ;;
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # end
