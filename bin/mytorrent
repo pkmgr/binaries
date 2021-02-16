@@ -41,10 +41,10 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-MYTERMINAL_NOTIFICATIONS="no"
 [ -f "$HOME/.config/mytorrent/settings" ] && . "$HOME/.config/mytorrent/settings"
 MYTORRENT_NOTIFICATIONS="${MYTORRENT_NOTIFICATIONS:-yes}"
-
+MYTERMINAL_NOTIFICATIONS="no"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/mytorrent"
@@ -59,11 +59,11 @@ MYTORRENT_NOTIFICATIONS="'$MYTORRENT_NOTIFICATIONS'"
   fi
   exit
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_link() {
   case "$1" in
   *)
-    if [ ! -z "$2" ]; then
+    if [ -n "$2" ]; then
       shift 1
       if cmd_exists "$1"; then
         printf_green "Linking $HOME/.local/bin/mytorrent to $1"
@@ -78,7 +78,6 @@ __create_link() {
     ;;
   esac
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$MYTORRENT" != "config" ]; then
   if [ -n "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
@@ -109,7 +108,6 @@ if [ "$MYTORRENT" != "config" ]; then
     export TORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$TORRENT" ]; then
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
@@ -140,7 +138,6 @@ case $1 in
 
 *)
   #if ps -aux | grep $TORRENT | grep -v 'grep '; then
-
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
   if [ "$TORRENT" = "transmission-remote" ]; then
     exec myterminal -e bash -c "$TORRENT $@;bash" 2>/dev/null
@@ -153,6 +150,6 @@ case $1 in
   fi
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
 # end
