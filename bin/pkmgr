@@ -96,7 +96,7 @@ Linux)                                                                          
     pkgmgrbindel="$pkgmgrbin -R "                                                                                                 #
     pkgmgrbinsea="$pkgmgrbin -Ss"                                                                                                 #
     pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"                                                                      #
-    pkgmgrbincle="$pkgmgrbin -Scc "                                                                                               #
+    pkgmgrbincle="$pkgmgrbin -Scc --noconfirm "                                                                                   #
     pkgmgrbincac="$pkgmgrbin -Syy "                                                                                               #
     pkgmgrexport() { pacman -Qqe | grep -v "$(pacman -Qqm)" && echo '###' && pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; } #
   elif [ -f "$(command -v pamac)" ]; then                                                                                         #
@@ -202,7 +202,7 @@ if [ -f "$(command -v yay)" ]; then                                             
   --enable-aur)                                                                         #
     shift 1                                                                             #
     dotfilesrepo="$REPODF/pacman"                                                       #
-    pkgmgrbin="sudo -u -HE $USER /usr/bin/yay "                                         #
+    pkgmgrbin="sudo -HE -u $USER /usr/bin/yay "                                         #
     pkgmgrbinins="$pkgmgrbin -S --cleanafter --overwrite='*' "                          #
     pkgmgrbininssil="$pkgmgrbin -Sy --needed --noconfirm --cleanafter --overwrite='*' " #
     pkgmgrbinremsil="$pkgmgrbin -Ry --noconfirm --needed --noconfirm"                   #
@@ -211,7 +211,7 @@ if [ -f "$(command -v yay)" ]; then                                             
     pkgmgrbindel="$pkgmgrbin -R "                                                       #
     pkgmgrbinsea="$pkgmgrbin -Ss "                                                      #
     pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"                            #
-    pkgmgrbincle="$pkgmgrbin -Scc "                                                     #
+    pkgmgrbincle="$pkgmgrbin -Scc --noconfirm"                                          #
     pkgmgrbincac="$pkgmgrbin -Syy "                                                     #
     pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }               #
     ;;                                                                                  #
