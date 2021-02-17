@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="pkmgr"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : pkmgr
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Manage system packages
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 021620211856-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : pkmgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Feb 16, 2021 18:56 EST
+# @File          : pkmgr
+# @Description   : Manage system packages
+# @TODO          : Refactor code
+# @Other         : Add BSD support
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -25,28 +32,29 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$(dirname "${BASH_SOURCE[0]}")"/detectostype ]; then
-  source "$(dirname "${BASH_SOURCE[0]}")"/detectostype
-elif [ -f /usr/local/bin/detectostype ]; then
-  source /usr/local/bin/detectostype
 else
-  curl -LSs https://github.com/dfmgr/installer/raw/master/bin/detectostype >/tmp/detectostype
-  source /tmp/detectostype
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 pkmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+if [ -f "$(dirname "${BASH_SOURCE[0]}")"/detectostype ]; then
+  . "$(dirname "${BASH_SOURCE[0]}")"/detectostype
+elif [ -f "$CASJAYSDEVDIR/bin/detectostype" ]; then
+  . "$CASJAYSDEVDIR/bin/detectostype"
+else
+  echo -e "Can not load the OS detection file:\n$CASJAYSDEVDIR/bin/detectostype" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __rm_rf() { sudo rm -Rf "$@"; }
 __cp_rf() { sudo cp -Rf "$@"; }
 __curl() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
 __curl_sudo() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
-__not_installed() { echo -ne $RED"Not Installed"$NC; }
+__not_installed() { echo -ne "${RED}Not Installed${NC}"; }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -289,7 +297,7 @@ npm_remove() {
 #---------------------------------------------------------------------------------------
 
 curl_run() {
-  [ -z $1 ] && printf_red "Usage: pkmgr curl OS filename or pkmgr curl fullurltolist " && exit
+  [ -z $1 ] && printf_exit 1 0 "Usage: pkmgr curl OS filename or pkmgr curl fullurltolist "
   local os="$(echo $OS | tr '[:upper:]' '[:lower:]')"
   local distro="$(echo $DISTRO | tr '[:upper:]' '[:lower:]')"
   local distroid="$(echo $DISTROID | tr '[:upper:]' '[:lower:]')"
@@ -308,7 +316,7 @@ curl_run() {
 #---------------------------------------------------------------------------------------
 
 script_run_if_is_url() {
-  [ -z $1 ] && printf_red "Usage: pkmgr script filename or url " && exit
+  [ -z $1 ] && printf_exit 1 0 "Usage: pkmgr script filename or url "
   if [[ $1 =~ https?://.* ]] || [[ $1 =~ ftp?://.* ]]; then
     __urlverify "$1"
     __curl "$1" -o /tmp/pkmgr-script.sh
@@ -407,7 +415,8 @@ __aliases() {
   alias dnf='sudo $APPNAME '
   alias yum='sudo $APPNAME '
   alias pacman='sudo $APPNAME '
-  alias brew='sudo -u $USER $APPNAME '
+  alias brew='sudo $APPNAME '
+  alias yay='sudo $APPNAME '
   "
 }
 
@@ -450,9 +459,10 @@ exportpkg() {
   [[ "$(uname -s)" =~ Darwin* ]] && DISTRO=MacOS
   [[ "$(uname -s)" =~ ^MING*|WIN*|MSYS* ]] && DISTRO=Windows
   local pkgdir="$HOME/.local/tmp/${DISTRO:-}"
-  local pkglist="$pkgdir/$(hostname -s)"
+  local pkglist="$pkgdir/$(hostname -s).list"
   mkdir -p "$pkgdir"
-  printf_green "Exporting package list to $pkglist"
+  printf_green "Exporting package list to:"
+  printf_green "$pkglist"
   pkgmgrexport >"$pkglist"
 }
 
@@ -481,7 +491,6 @@ fi
 #---------------------------------------------------------------------------------------
 
 case "$1" in
-
 help | --*)
   __help
   ;;
