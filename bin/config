@@ -32,9 +32,9 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
-LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
-HELP="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/help)"
+ARRAY="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/array)"
+LIST="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/list)"
+HELP="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config/help)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [[ $EUID -eq 0 ]]; then
   printf_head "You are running as root as such this will allow full system access"
@@ -124,12 +124,12 @@ EOF
 }
 
 git_init() {
-  if [ ! -f .gitignore ]; then
-    echo "$gitdir" >.gitignore
-    echo "*/.git/*" >.gitignore
+  if [ ! -f $HOME/.gitignore ]; then
+    echo "$gitdir" >$HOME/.gitignore
+    echo "*/.git/*" >$HOME/.gitignore
   else
-    grep -q "$gitdir" ~/.gitignore 2>/dev/null || echo "$gitdir" >>.gitignore
-    grep -q '/.git/' ~/.gitignore 2>/dev/null || echo "*/.git/*" >>.gitignore
+    grep -q "$gitdir" $HOME/.gitignore 2>/dev/null || echo "$gitdir" >>$HOME/.gitignore
+    grep -q '/.git/' $HOME/.gitignore 2>/dev/null || echo "*/.git/*" >>$HOME/.gitignore
   fi
   printf_read_question "4" "Do you already have a dotfiles repo: [y/N]" "1" "choice" "-s"
   if printf_answer_yes "$choice"; then
@@ -154,8 +154,8 @@ git_init() {
     printf_read_question "4" "Enter email address:" "120" "email"
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
-    _stow config --local include.path "$gitdir/gitconfig.local"
-    _stow add -f ~/.gitignore
+    _stow config --local include.path "$gitdir/config.local"
+    _stow add -f $HOME/.gitignore
     _stow commit -q -m "'🏠🐜❗ Added .gitignore 🏠🐜❗'"
   fi
   exit "$?"
@@ -189,7 +189,7 @@ l)
     printf_exit "See config help for commands"
     __help
   fi
-  requiresudo true
+  __requiresudo true
   gitdir="/root/.local/dotfiles/system/$(hostname -s)"
   ;;
 

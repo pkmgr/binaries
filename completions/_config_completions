@@ -71,5 +71,5 @@ _config() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _config -o default config &&
-  complete -F _git -o default config
+  complete -F _config -o default config
+  #complete -F _git -o default config
