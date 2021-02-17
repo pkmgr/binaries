@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="check-for-updates"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : check-for-updates
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : check for package updates
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 021620212049-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : check-for-updates --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Feb 16, 2021 20:49 EST
+# @File          : check-for-updates
+# @Description   : Check for package updates
+# @TODO          : Add brew/choco support
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,26 +37,27 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
-__am_i_online_err
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -e "/usr/local/bin/dmenupass" ]; then
+if [ -f "/usr/local/bin/dmenupass" ]; then
   SUDO_ASKPASS="/usr/local/bin/dmenupass}"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 updatemess="You have updates available \nWould you like to update now?"
 xmessageopts="-nearmouse -timeout 10 -geometry 500x200 -center"
-
+notifications="${UPDATE_NOTIFY:-yes}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -d "$HOME/.local/tmp" ] || mkdir -p "$HOME/.local/tmp"
-[ ! -f "$HOME/.local/tmp/update_check" ] || rm -Rf "$HOME/.local/tmp/update_check"
-
-# run
+[ -d "${TMPDIR:-$HOME/.local/tmp}" ] || __mkd "${TMPDIR:-$HOME/.local/tmp}"
+[ -f "${TMPDIR:-$HOME/.local/tmp}/update_check" ] || __rm_rf "${TMPDIR:-$HOME/.local/tmp}/update_check"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if ! __am_i_online; then
+  echo "0"
+  echo "$updates" >"$HOME/.local/tmp/update_check"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Arch update check
 if [ -f /usr/bin/pacman ]; then
   if ! updates_arch=$(pacman -Qu 2>/dev/null | wc -l); then
@@ -61,25 +70,24 @@ if [ -f /usr/bin/pacman ]; then
     fi
   fi
   updates=$(("$updates_arch" + "$updates_aur"))
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Debian/Ubuntu update check
 elif [ -f /usr/bin/apt ]; then
   if ! updates=$(sudo apt-get update >/dev/null && apt-get --just-print upgrade | grep "Inst " | wc -l); then
     updates=0
   fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Fedora/RedHat/CentOS
 elif [ -f /usr/bin/dnf ]; then
   if ! updates=$(sudo dnf check-update -q | grep -v Security | wc -l); then
     updates=0
   fi
-
 elif [ -f /usr/bin/yum ]; then
   if ! updates=$(sudo yum check-update -q | grep -v Security | wc -l); then
     updates=0
   fi
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$updates" -gt 0 ]; then
   echo " $updates"
 else
@@ -87,10 +95,8 @@ else
   rm -Rf "$HOME/.local/tmp/update_check"
   exit 0
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-#if [ ! -f $HOME/.cache/update_nag ] && [ ! -z $DISPLAY ]; then
+#if [ ! -f "$HOME/.cache/update_nag" ] && [ -n "$DISPLAY" ]; then
 #DISPLAY=$DISPLAY xmessage -buttons Yes:0,No:1 -default Yes $xmessageopts --title "You have updates" "$updatemess" && \
 #sleep 20 && #pkmgr silent update && \
 #DISPLAY=$DISPLAY xmessage -buttons OK:0 -default Ok $xmessageopts --title "Done updating" "Update completed successfully" && \
@@ -98,22 +104,17 @@ fi
 #DISPLAY=$DISPLAY xmessage -buttons Yes:0,No:1 -default Yes $xmessageopts --title "message" "Show this again?" && \
 #sleep 20 ; ret=$? ; if [ "$ret" -ne 0 ]; then touch $HOME/.cache/update_nag ; fi
 #fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [[ "$1" =~ "notify" ]]; then
+echo "$updates" >"$HOME/.local/tmp/update_check"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [[ "$1" =~ notify ]] || [ "$UPDATE_NOTIFY" = "yes" ]; then
   if [ "$updates" -gt 0 ]; then
     if [ -f /usr/local/bin/notifications ]; then
       if [ ! -f "$HOME/.local/tmp/update_check" ]; then
-        echo "$updates" >"$HOME/.local/tmp/update_check"
         /usr/local/bin/notifications "System Updates:" "You have $updates update[s] avaliable"
       fi
     fi
   fi
-else
-  echo "$updates" >"$HOME/.local/tmp/update_check"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # end
