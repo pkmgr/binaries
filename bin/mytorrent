@@ -117,6 +117,7 @@ fi
 case $TORRENT in
   transmission-remote*)
     shift 1
+    [ "$TORRENT" = "transmission-remote" ] && TORRENT="myterminal -e bash -c "$TORRENT $*;bash""
     transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
     if [ -z "$transmission_daemon" ] && [ -z "$TORRENT_SERVER" ]; then
       transmission-daemon & disown && [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && \
@@ -137,15 +138,19 @@ case $1 in
   ;;
 
 *)
-  #if ps -aux | grep $TORRENT | grep -v 'grep '; then
-  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
-  if [ "$TORRENT" = "transmission-remote" ]; then
-    exec myterminal -e bash -c "$TORRENT $@;bash" 2>/dev/null
+  if [[ "$1" =~ .*.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
+    __cmd_exists transadd && transadd "$*" || exec "$TORRENT" -a "$*"
+    exit
+  fi
+  if [ $# -ne ]; then
+    exec $TORRENT "$*"
+    exit
   else
+    [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
     if [ -f "$HOME/.local/bin/mytorrent" ]; then
-      exec ~/.local/bin/mytorrent "$@" 2>/dev/null & disown
+      exec ~/.local/bin/mytorrent "$*" 2>/dev/null & disown
     else
-      exec $TORRENT "$@" 2>/dev/null & disown
+      exec $TORRENT "$*" 2>/dev/null & disown
     fi
   fi
   ;;
