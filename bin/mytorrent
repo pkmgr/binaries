@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-
+set -Ex
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 021520211402-git
 # @Author        : Jason Hempstead
@@ -79,30 +79,41 @@ __create_link() {
   esac
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__launch() {
+  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
+  if [ -f "$HOME/.local/bin/mytorrent" ]; then
+    ~/.local/bin/mytorrent "$*" 2>/dev/null &
+    disown
+  else
+    $TORRENT "$*" 2>/dev/null &
+    disown
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$MYTORRENT" != "config" ]; then
-  if [ -n "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
+  if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
     export TORRENT="transmission-remote-gtk"
-  elif [ -n "$(command -v transmission-remote 2>/dev/null)" ]; then
+  elif [ -f "$(command -v transmission-remote 2>/dev/null)" ]; then
     export TORRENT="transmission-remote"
-  elif [ -n "$(command -v transmission-gtk 2>/dev/null)" ]; then
+  elif [ -f "$(command -v transmission-gtk 2>/dev/null)" ]; then
     export TORRENT="transmission-gtk"
-  elif [ -n "$(command -v transmission-qt 2>/dev/null)" ]; then
+  elif [ -f "$(command -v transmission-qt 2>/dev/null)" ]; then
     export TORRENT="transmission-qt"
-  elif [ -n "$(command -v deluge 2>/dev/null)" ]; then
+  elif [ -f "$(command -v deluge 2>/dev/null)" ]; then
     export TORRENT="deluge"
-  elif [ -n "$(command -v vuze 2>/dev/null)" ]; then
+  elif [ -f "$(command -v vuze 2>/dev/null)" ]; then
     export TORRENT="vuze"
-  elif [ -n "$(command -v qbittorrent)" ]; then
+  elif [ -f "$(command -v qbittorrent)" ]; then
     export TORRENT="qbittorrent"
-  elif [ -n "$(command -v ktorrent 2>/dev/null)" ]; then
+  elif [ -f "$(command -v ktorrent 2>/dev/null)" ]; then
     export TORRENT="ktorrent"
-  elif [ -n "$(command -v ctorrent 2>/dev/null)" ]; then
+  elif [ -f "$(command -v ctorrent 2>/dev/null)" ]; then
     export TORRENT="ctorrent"
-  elif [ -n "$(command -v unworkable 2>/dev/null)" ]; then
+  elif [ -f "$(command -v unworkable 2>/dev/null)" ]; then
     export TORRENT="unworkable"
-  elif [ -n "$(command -v rtorrent 2>/dev/null)" ]; then
+  elif [ -f "$(command -v rtorrent 2>/dev/null)" ]; then
     export TORRENT="rtorrent"
-  elif [ -n "$(command -v bitstormlite 2>/dev/null)" ]; then
+  elif [ -f "$(command -v bitstormlite 2>/dev/null)" ]; then
     export TORRENT="bitstormlite"
   elif [ -f "/Applications/Transmission.app/Contents/MacOS/Transmission" ]; then
     export TORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
@@ -115,15 +126,15 @@ if [ -z "$TORRENT" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $TORRENT in
-  transmission-remote*)
-    shift 1
-    [ "$TORRENT" = "transmission-remote" ] && TORRENT="myterminal -e bash -c "$TORRENT $*;bash""
-    transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
-    if [ -z "$transmission_daemon" ] && [ -z "$TORRENT_SERVER" ]; then
-      transmission-daemon & disown && [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && \
-        notifications "MyTorrent" "Transmission server has been started"
-    fi
-    ;;
+transmission-remote*)
+  shift 1
+  transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
+  if [ -z "$transmission_daemon" ] && [ -z "$TORRENT_SERVER" ]; then
+    transmission-daemon &>/dev/null &
+    disown
+    [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Transmission server has been started"
+  fi
+  ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
@@ -139,19 +150,14 @@ case $1 in
 
 *)
   if [[ "$1" =~ .*.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
-    __cmd_exists transadd && transadd "$*" || exec "$TORRENT" -a "$*"
+    __cmd_exists transadd && transadd "$*" || "$TORRENT" -a "$*"
     exit
   fi
-  if [ $# -ne ]; then
-    exec $TORRENT "$*"
-    exit
+  if [ $# -ne 0 ]; then
+    ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch && sleep 10
+    $TORRENT "$*"
   else
-    [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
-    if [ -f "$HOME/.local/bin/mytorrent" ]; then
-      exec ~/.local/bin/mytorrent "$*" 2>/dev/null & disown
-    else
-      exec $TORRENT "$*" 2>/dev/null & disown
-    fi
+    __launch "$*"
   fi
   ;;
 esac
