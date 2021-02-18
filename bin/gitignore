@@ -111,6 +111,9 @@ case $* in
   printf_green "$(fetch_ignore "$@")"
   exit
   ;;
+*dirignore)
+  set_gitignoredir "$@"
+  ;;
 *)
   ignore_overwrite "$@"
   set_gitignoredir "$@"
