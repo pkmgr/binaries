@@ -36,7 +36,9 @@ if [ ! -z "$2" ]; then
   MYUSER="$2"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if can_i_sudo; then
+[ $# = 0 ] && __help
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ $# -ne 0 ] && can_i_sudo; then
   devnull sudo chmod 750 /etc/sudoers.d
   case "$1" in
   remove)
@@ -96,11 +98,6 @@ if can_i_sudo; then
       echo "Defaults    insults" | sudo tee "/etc/sudoers.d/insults" &>/dev/null
       sudo chown -f root:root "/etc/sudoers.d/insults"
     fi
-    ;;
-
-  *)
-    shift 0
-    __help
     ;;
 
   esac
