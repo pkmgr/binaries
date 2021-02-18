@@ -14,13 +14,10 @@ USER="${SUDO_USER:-${USER}}"
 # @Description : add and remove users from sudo
 #
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Set functions
-
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
@@ -33,22 +30,15 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 MYUSER="${SUDO_USER:-$(whoami)}"
-
 if [ ! -z "$2" ]; then
   MYUSER=""
   MYUSER="$2"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if can_i_sudo; then
-
   devnull sudo chmod 750 /etc/sudoers.d
-
   case "$1" in
-
   remove)
     shift 1
     printf_green "New password prompt"
@@ -86,7 +76,7 @@ if can_i_sudo; then
     else
       devnull sudo usermod -aG wheel "$MYUSER"
     fi
-    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER"
+    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" &>/dev/null
     devnull sudo chown -f root:root "/etc/sudoers.d/$1"
     devnull sudo chmod -f 440 "/etc/sudoers.d/$1"
     ;;
@@ -94,7 +84,7 @@ if can_i_sudo; then
   nopass)
     shift 1
     printf_green "Adding $MYUSER to sudoers"
-    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER"
+    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" &>/dev/null
     devnull sudo chown -f root:root "/etc/sudoers.d/$MYUSER"
     devnull sudo chmod -f 440 "/etc/sudoers.d/$MYUSER"
     ;;
@@ -103,7 +93,7 @@ if can_i_sudo; then
     shift 1
     printf_green "Adding insults"
     if devnull2 sudo bash -c '[ ! -f "/etc/sudoers.d/insults" ]'; then
-      echo "Defaults    insults" | sudo tee "/etc/sudoers.d/insults" >/dev/null 2>&1
+      echo "Defaults    insults" | sudo tee "/etc/sudoers.d/insults" &>/dev/null
       sudo chown -f root:root "/etc/sudoers.d/insults"
     fi
     ;;
