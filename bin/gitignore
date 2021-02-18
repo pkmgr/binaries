@@ -53,7 +53,7 @@ GITDIR="$(git rev-parse --show-toplevel 2>/dev/null)"
 set_gitignoredir() {
   if [[ $* =~ dirignore ]]; then
     shift 1
-    if ! cat "$GITDIR/.gitignore" 2>/dev/null | grep -Fvq 'ignoredirmessage'; then
+    if grep -Fvq 'ignoredirmessage' "$GITDIR/.gitignore" 2>/dev/null; then
       printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore"
       #printf_green "Added ignoredirmessage to your .gitignore"
     fi
@@ -112,7 +112,8 @@ case $* in
   exit
   ;;
 *dirignore)
-  set_gitignoredir "$@"
+  shift 1
+  set_gitignoredir "dirignore"
   ;;
 *)
   ignore_overwrite "$@"
