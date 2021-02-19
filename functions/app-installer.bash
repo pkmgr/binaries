@@ -1990,7 +1990,7 @@ systemmgr_install() {
   CONF="${SYSCONF:-/usr/local/etc}"
   SHARE="${SYSSHARE:-/usr/local/share}"
   APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
-  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
