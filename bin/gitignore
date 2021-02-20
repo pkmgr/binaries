@@ -56,11 +56,12 @@ set_gitignoredir() {
     shift 1
     if [ -f "$GITDIR/.gitignore" ]; then
       if ! grep -qF 'ignoredirmessage' "$GITDIR/.gitignore" 2>/dev/null; then
-        mv -f "$GITDIR/.gitignore.tmp"
-        printf "# Disable reminder in prompt\nignoredirmessage\n\n" >"$GITDIR/.gitignore"
-        cat "$GITDIR/.gitignore.tmp" >> "$GITDIR/.gitignore"
-        rm -Rf "$GITDIR/.gitignore.tmp"
-        #printf_green "Added ignoredirmessage to your .gitignore"
+        mv -f "$GITDIR/.gitignore" "$GITDIR/.gitignore.tmp" &&
+          printf "# Disable reminder in prompt\nignoredirmessage\n\n" >"$GITDIR/.gitignore" &&
+          cat "$GITDIR/.gitignore.tmp" >> "$GITDIR/.gitignore" &&
+          rm -Rf "$GITDIR/.gitignore.tmp" &&
+          printf_green "Added ignoredirmessage to your .gitignore" ||
+          printf_error "Failed to add ignoredirmessage to gitignore"
     fi
   else
     printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore"
