@@ -23,7 +23,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+CASJAYSDEVDIR="/usr/local/share/CasjaysDev/scripts"
 
 # Versioning Info - __required_version "VersionNumber"
 localVersion="${localVersion:-020920211703-git}"

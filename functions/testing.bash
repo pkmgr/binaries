@@ -24,7 +24,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main scripts location
-CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+CASJAYSDEVDIR="$/usr/local/share/CasjaysDev/scripts"
 
 # Fail if git, curl, wget are not installed
 for check in git curl wget; do
