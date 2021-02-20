@@ -39,9 +39,9 @@ KILL_PATH="${TMPDIR:-/tmp}/notify-daemon.kill"
 SERVER_PATH="${TMPDIR:-/tmp}/notify-daemon/server"
 LOG_FILE="$SERVER_PATH.log"
 PROCID=
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/notify-daemon/settings" ] && . "$HOME/.config/notify-daemon/settings"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config file"
   if [ ! -f "$HOME/.config/notify-daemon/settings" ]; then
@@ -66,10 +66,11 @@ EOF
   [ -f "$HOME/.config/notify-daemon/settings" ] && printf_green "config saved to $HOME/.config/notify-daemon/settings" ||
     printf_error "Failed to save the configuration"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || exit 1)"
 __netcat_test() { __cmd_exists $netcat || notifications "Daemon" "The program netcat is not installed"; }
 __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
+__getstatus() { ps -ux | grep "$PROCID" | grep -qv 'grep ' && return 0 || return 1; }
 
 __kill_server() {
   __netcat_kill "$NOTIFYD_PORT" >/dev/null 2>&1 &&
@@ -84,20 +85,25 @@ __running() {
   pidof "$NOTIFYD" >/dev/null 2>&1 || printf_error "Not running"
 
 }
-__getstatus() { pidof "$PROCID" >/dev/null 2>&1 && return 0 || return 1; }
 
 __kill() {
-  notifications "Daemon" "Stopping the daemon"
-  printf_info "Daemon Stopping the daemon"
+  notifications "Daemon" "Stopping the notify-daemon"
+  printf_info "Daemon Stopping the notifiy-daemon"
   local pid="$(pidof "$PROCID")"
   kill -s KILL "$pid" >/dev/null 2>&1
   sleep 3
   local pid="$(pidof "$PROCID" &>/dev/null)"
 }
 __start() {
-  sleep 1
-  eval "$@" >/dev/null 2>&1 && sleep 3 &
-  [ $? = 0 ] && notifications "Daemon" "$PROCID has been started as the notify daemon" || return 1
+  __getstatus && return
+  sleep 3
+  exec "$*" &>/dev/null &
+  if [ $? = 0 ]; then
+    notifications "Daemon" "$PROCID has been started as the notify daemon"
+    return 0
+  else
+    return 1
+  fi
 }
 
 __restart() {
@@ -304,7 +310,7 @@ __deadd_notifyd() {
 __custom_notifyd() {
   if [ -f "$HOME/.config/notify-daemon/notifyd" ]; then
     source "$HOME/.config/notify-daemon/notifyd"
-    [ -n "$PROCID" ] && [ -n "$NOTIFYD" ] || false
+    [ -n "$PROCID" ] && [ -n "$NOTIFYD" ] && return 0 || return 1
   else
     return 1
   fi
@@ -312,7 +318,7 @@ __custom_notifyd() {
 
 _start_notifyd() {
   __custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
-  _run() { __start "$NOTIFYD" && sleep 5 && return 0; }
+  _run() { __start "$NOTIFYD" && return 0 || return 1; }
   if [ -z "$PROCID" ] && [ -z "$NOTIFYD" ]; then
     printf_red "Failed to find a notify daemon"
     printf_exit 1 1 "Please install: xfce4-notifyd, dunst, deadd or custom: see settings file for custom"
@@ -320,7 +326,6 @@ _start_notifyd() {
     if ! __getstatus "$PROCID"; then
       printf_green "Attempting to start"
       while :; do _run && __getstatus "$PROCID" && break || sleep 3; done
-    #notifications "Daemon" "Started"
     fi
     __getstatus "$PROCID" && printf_green "$PROCID has been started" &&
       notifications "Daemon" "$PROCID has been Started" ||
@@ -440,7 +445,7 @@ status)
 
 *)
   _start_notifyd
-  __getstatus "$PROCID" || _start_notifyd "$NOTIFYD"
+  if ! __getstatus "$PROCID"; then _start_notifyd "$NOTIFYD"; fi
   ;;
 esac
 
