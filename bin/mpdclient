@@ -35,18 +35,14 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __check_app mpc
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
 MPDSERVER="${MPDSERVER:-localhost}"
 notify-daemon ask && NOTIFY="on" || NOTIFY="off"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __devnull() { "$@" >/dev/null 2>&1 && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
 __devnull2() { "$@" 2>/dev/null && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
-
 __server_failed() { printf_red "$ICON_ERROR Failed to connect to mpdserver @ $MPDSERVER" && sleep 3 && return 1; }
 __mpc() { mpc -h "$MPDSERVER" "$@" || return 1; }
 is_up() { __mpc &>/dev/null && return 0 || __server_failed; }
@@ -72,9 +68,8 @@ mpc_status() {
     elif __mpc status | grep -iq paused >/dev/null 2>&1; then
       echo -n "Paused: "
     else
-      echo -n ""
+      echo -n "Unknown "
     fi
-
   }
 
   display() {
@@ -131,11 +126,9 @@ client() {
   fi
 
   if __cmd_exists ncmpcpp; then
-    if __cmd_exists ncmpcpp; then
       ncmpcpp -q -h $CONNECT_TO
-    elif __cmd_exists mpc; then
+  elif __cmd_exists mpc; then
       mpc -q -h $CONNECT_TO
-    fi
   else
     printf_newline "\n\n"
     printf_counter "1" "5" "ncmpcpp is not installed"
