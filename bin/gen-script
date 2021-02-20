@@ -161,13 +161,14 @@ EOF
 
 __copy_templates() {
   if [ -d "$HOME/.config/gen-script/files/.git" ]; then
-    printf_green "Copying the files from:"
-    printf_green "$CASJAYSDEVDIR/templates/scripts to $HOME/.config/gen-script/files"
-    __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
-  else
     git -C "$HOME/.config/gen-script/files" pull -q
+  else
+     printf_green "Copying the files from:"
+     printf_green "$CASJAYSDEVDIR/templates/scripts to $HOME/.config/gen-script/files"
+     __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
   fi
-  [ $? -eq 0 ] && [ -d "$HOME/.config/gen-script/files" ] && printf_green "Install has succeeded" || printf_red "Install of the files failed"
+  [ $? -eq 0 ] && [ -d "$HOME/.config/gen-script/files" ] && \
+    printf_green "Install has succeeded" || printf_red "Install of the files failed"
 }
 
 __makefile() {
