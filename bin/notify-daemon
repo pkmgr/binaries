@@ -38,7 +38,6 @@ KILL_PATH="${TMPDIR:-/tmp}/notify-daemon.kill"
 SERVER_PATH="${TMPDIR:-/tmp}/notify-daemon/server"
 LOG_FILE="$SERVER_PATH.log"
 PROCID=
-set -Ex
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/notify-daemon/settings" ] && . "$HOME/.config/notify-daemon/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -94,9 +93,10 @@ __kill() {
   sleep 3
   local pid="$(pidof "$PROCID" &>/dev/null)"
 }
+
 __start() {
-  _runprog() { $* | grep -qv 'Another notification daemon' && return 0 || return 1; }
-    _runprog &>/dev/null &
+  #_runprog() { "$*" | grep -qv 'Another notification daemon' && return 0; }
+  exec "$*" &>/dev/null &
   if [ "$?" = 0 ]; then
     notifications "Daemon" "$PROCID has been started as the notify daemon"
     exitCode=0
@@ -216,10 +216,125 @@ __server_disable() {
   __client "Daemon" "Disabling server"
 }
 
-__term() {
+__xfce4_notifyd() {
+  if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
+    NOTIFYD="/usr/lib/xfce4/notifyd/xfce4-notifyd"
+    PROCID="xfce4-notifyd"
+    return 0
+  elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
+    NOTIFYD="/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd"
+    PROCID="xfce4-notifyd"
+    return 0
+  else
+    return 1
+  fi
+}
+
+__dunst_notifyd() {
+  if __cmd_exists dunst; then
+    NOTIFYD="dunst"
+    PROCID="dunst"
+    return 0
+  else
+    return 1
+  fi
+}
+
+__deadd_notifyd() {
+  if __cmd_exists deadd-notification-center; then
+    NOTIFYD="deadd-notification-center"
+    PROCID="deadd-notification-center"
+    return 0
+  else
+    return 1
+  fi
+}
+
+__custom_notifyd() {
+  if [ -f "$HOME/.config/notify-daemon/notifyd" ]; then
+    source "$HOME/.config/notify-daemon/notifyd"
+    [ -n "$PROCID" ] && [ -n "$NOTIFYD" ] && return 0 || return 1
+  else
+    return 1
+  fi
+}
+
+_start_notifyd() {
+  _run() { __start "$NOTIFYD" && return 0 || return 1; }
+  if [ -z "$PROCID" ] && [ -z "$NOTIFYD" ]; then
+    printf_red "Failed to find a notify daemon"
+    printf_exit 1 1 "Please install: xfce4-notifyd, dunst, deadd or custom: see settings file for custom"
+  else
+    if ! __getstatus "$PROCID"; then
+      printf_green "Attempting to start"
+      #_run && exitCode=0 || exitCode=1
+      while true; do _run && __getstatus "$PROCID" && exitCode=0 && break || exitCode=1; done
+    fi
+    if [ "$exitCode" = 0 ]; then
+      printf_green "$PROCID has been started"
+      notifications "Daemon" "$PROCID has been Started"
+    else
+      printf_exit "Failed to start ${PROCID:-$NOTIFYD}"
+    fi
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case "$1" in
+#### begin server
+*server)
+  case $2 in
+  *stop | *kill)
+    printf_green "Attempting to stop the server"
+    shift 2
+    touch "$KILL_PATH"
+    __kill_server
+    #__netcat_pids "$NOTIFYD_PORT"
+    exit $?
+    ;;
+  *restart)
+    printf_green "Attempting to restart the server"
+    shift 2
+    touch "$KILL_PATH"
+    __kill_server
+    sleep 5
+    __server "$@"
+    exit $?
+    ;;
+  *enable)
+    shift 2
+    __server_enable
+    exit $?
+    ;;
+  *disable)
+    shift 2
+    __server_disable
+    exit $?
+    ;;
+  *status)
+    shift 2
+    PID="$(__netcat_pids "$NOTIFYD_PORT")"
+    printf_green "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
+    notifications "Daemon" "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
+    exit
+    ;;
+  start | *-start)
+    shift 2
+    __server "$@"
+    ;;
+  *)
+    __server "$@"
+    ;;
+  esac
+  ;;
+#### end server
+*term)
+  shift 1
+  declare main
   while :; do
     # show menu
-    local status="$(__getstatus && echo -n "Running $PROCID" || echo -e "Not Running")"
+    status="$(__getstatus && echo -n "Running $PROCID" || echo -e "Not Running")"
     clear
     shift
     printf_newline "\n\n\n\n"
@@ -272,125 +387,7 @@ __term() {
     printf_counter "5" "3" "Re-loading menu in"
   done
   clear
-}
-
-__xfce4_notifyd() {
-  if pidof xfce4-notifyd; then PROCID="xfce4-notifyd" && return; fi
-  if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
-    NOTIFYD="/usr/lib/xfce4/notifyd/xfce4-notifyd"
-    PROCID="xfce4-notifyd"
-    return 0
-  elif [ -f /usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd ]; then
-    NOTIFYD="/usr/lib/x86_64-linux-gnu/xfce4/notifyd/xfce4-notifyd"
-    PROCID="xfce4-notifyd"
-    return 0
-  else
-    return 1
-  fi
-}
-
-__dunst_notifyd() {
-  if pidof dunst; then PROCID="dunst" && return; fi
-  if __cmd_exists dunst; then
-    NOTIFYD="dunst"
-    PROCID="dunst"
-    return 0
-  else
-    return 1
-  fi
-}
-
-__deadd_notifyd() {
-  if pidof deadd-notification-center; then PROCID="deadd-notification-center" && return; fi
-  if __cmd_exists deadd-notification-center; then
-    NOTIFYD="deadd-notification-center"
-    PROCID="deadd-notification-center"
-    return 0
-  else
-    return 1
-  fi
-}
-
-__custom_notifyd() {
-  if [ -f "$HOME/.config/notify-daemon/notifyd" ]; then
-    source "$HOME/.config/notify-daemon/notifyd"
-    [ -n "$PROCID" ] && [ -n "$NOTIFYD" ] && return 0 || return 1
-  else
-    return 1
-  fi
-}
-
-_start_notifyd() {
-  __custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
-  _run() { __start "$NOTIFYD" && return 0 || return 1; }
-  if [ -z "$PROCID" ] && [ -z "$NOTIFYD" ]; then
-    printf_red "Failed to find a notify daemon"
-    printf_exit 1 1 "Please install: xfce4-notifyd, dunst, deadd or custom: see settings file for custom"
-  else
-    if ! __getstatus "$PROCID"; then
-      printf_green "Attempting to start"
-      #_run && exitCode=0 || exitCode=1
-      while true; do _run && __getstatus "$PROCID" && exitCode=0 && break || exitCode=1; done
-    fi
-    if [ "$exitCode" = 0 ]; then
-      printf_green "$PROCID has been started"
-      notifications "Daemon" "$PROCID has been Started"
-    else
-      printf_exit "Failed to start ${PROCID:-$NOTIFYD}"
-    fi
-  fi
-}
-__custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-case "$1" in
-####
-*server)
-  case $2 in
-  *stop | *kill)
-    printf_green "Attempting to stop the server"
-    shift 2
-    touch "$KILL_PATH"
-    __kill_server
-    #__netcat_pids "$NOTIFYD_PORT"
-    exit $?
-    ;;
-  *restart)
-    printf_green "Attempting to restart the server"
-    shift 2
-    touch "$KILL_PATH"
-    __kill_server
-    sleep 5
-    __server "$@"
-    exit $?
-    ;;
-  *enable)
-    shift 2
-    __server_enable
-    exit $?
-    ;;
-  *disable)
-    shift 2
-    __server_disable
-    exit $?
-    ;;
-  *status)
-    shift 2
-    PID="$(__netcat_pids "$NOTIFYD_PORT")"
-    printf_green "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
-    notifications "Daemon" "The server appears to be running on $NOTIFYD_PORT with PID: $PID"
-    exit
-    ;;
-  start | *-start)
-    shift 2
-    __server "$@"
-    ;;
-  *)
-    __server "$@"
-    ;;
-  esac
   ;;
-####
 
 config)
   shift 1
@@ -416,6 +413,7 @@ disable)
     printf_error "Failed to disable notify daemon"
   exit $?
   ;;
+
 restart)
   shift 1
   __restart "$NOTIFYD"
@@ -429,11 +427,6 @@ stop)
 status)
   shift 1
   __running "$NOTIFYD"
-  ;;
-
-*term)
-  shift 1
-  __term
   ;;
 
 *client)
