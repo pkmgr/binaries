@@ -149,6 +149,7 @@ run_postinst() {
   ln_sf "$INSTDIR" "$SYSSHARE/CasjaysDev/installer"
   mkd /etc/casjaysdev/messages/motd
   mkd /etc/casjaysdev/messages/issue
+  mkd /etc/casjaysdev/messages/legal
   if [ -f "$INSTDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/legal/000.txt ]; then
     cp_rf "$INSTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
   fi
