@@ -12,7 +12,7 @@ USER="${SUDO_USER:-${USER}}"
 # @Created       : Tuesday, Feb 02, 2021 12:40 EST
 # @File          : notify-daemon
 # @Description   : Start the notification daemon
-# @TODO          :
+# @TODO          : Clean code
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -37,7 +37,24 @@ NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 KILL_PATH="${TMPDIR:-/tmp}/notify-daemon.kill"
 SERVER_PATH="${TMPDIR:-/tmp}/notify-daemon/server"
 LOG_FILE="$SERVER_PATH.log"
-PROCID=
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if pidof xfce4-notifyd &>/dev/null; then
+  NOTIFYD=xfce4-notifyd
+  PROCID=xfce4-notifyd
+  true
+elif pidof dunst &>/dev/null; then
+  NOTIFYD=dunst
+  PROCID=dunst
+  true
+elif pidof deadd-notification-center &>/dev/null; then
+  NOTIFYD=deadd-notification-center
+  PROCID=deadd-notification-center
+  true
+else
+  NOTIFYD=
+  PROCID=
+  false
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/notify-daemon/settings" ] && . "$HOME/.config/notify-daemon/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -76,13 +93,13 @@ __kill_server() {
     printf_blue "Server has been stopped" || printf_red "Failed to stop"
   sleep 2
 }
+
 __running() {
   pidof "$PROCID" >/dev/null 2>&1 &&
     printf_green "${PROCID:-$NOTIFYD} is currently the notify daemon" &&
     notifications "Daemon" "${PROCID:-$NOTIFYD} is currently the notify daemon" ||
     notifications "Daemon" "notifiy-daemon is not running PROC should be ${PROCID:-$NOTIFYD}"
   pidof "$NOTIFYD" >/dev/null 2>&1 || printf_error "Not running"
-
 }
 
 __kill() {
@@ -92,10 +109,13 @@ __kill() {
   kill -s KILL "$pid" >/dev/null 2>&1
   sleep 3
   local pid="$(pidof "$PROCID" &>/dev/null)"
+  if [ -n $pid ]; then
+    notifications "Daemon" "Failed to stop $PROCID"
+    printf_red "Failed to stop $PROCID"
+  fi
 }
 
 __start() {
-  #_runprog() { "$*" | grep -qv 'Another notification daemon' && return 0; }
   exec "$*" &>/dev/null &
   if [ "$?" = 0 ]; then
     notifications "Daemon" "$PROCID has been started as the notify daemon"
@@ -217,7 +237,11 @@ __server_disable() {
 }
 
 __xfce4_notifyd() {
-  if [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
+  if [ -n $PROCID ]; then
+    NOTIFYD="$PROCID"
+    PROCID="$PROCID"
+    return 0
+  elif [ -f /usr/lib/xfce4/notifyd/xfce4-notifyd ]; then
     NOTIFYD="/usr/lib/xfce4/notifyd/xfce4-notifyd"
     PROCID="xfce4-notifyd"
     return 0
@@ -231,7 +255,11 @@ __xfce4_notifyd() {
 }
 
 __dunst_notifyd() {
-  if __cmd_exists dunst; then
+  if [ -n $PROCID ]; then
+    NOTIFYD="$PROCID"
+    PROCID="$PROCID"
+    return 0
+  elif __cmd_exists dunst; then
     NOTIFYD="dunst"
     PROCID="dunst"
     return 0
@@ -241,7 +269,11 @@ __dunst_notifyd() {
 }
 
 __deadd_notifyd() {
-  if __cmd_exists deadd-notification-center; then
+  if [ -n $PROCID ]; then
+    NOTIFYD="$PROCID"
+    PROCID="$PROCID"
+    return 0
+  elif __cmd_exists deadd-notification-center; then
     NOTIFYD="deadd-notification-center"
     PROCID="deadd-notification-center"
     return 0
@@ -267,9 +299,10 @@ _start_notifyd() {
   else
     if ! __getstatus "$PROCID"; then
       printf_green "Attempting to start"
-      #_run && exitCode=0 || exitCode=1
-      while true; do _run && __getstatus "$PROCID" && exitCode=0 && break || exitCode=1; done
+      #_run && return 0 || return 1
+      while true; do _run && __getstatus "$PROCID" && break || return 1; done
     fi
+    exitCode=$?
     if [ "$exitCode" = 0 ]; then
       printf_green "$PROCID has been started"
       notifications "Daemon" "$PROCID has been Started"
@@ -279,7 +312,7 @@ _start_notifyd() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
+#__custom_notifyd || __xfce4_notifyd || __dunst_notifyd || __deadd_notifyd
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 #### begin server
@@ -446,7 +479,7 @@ status)
 
 *)
   _start_notifyd
-  #if ! __getstatus "$PROCID"; then _start_notifyd "$NOTIFYD"; fi
+  if ! __getstatus "$PROCID"; then _start_notifyd "$NOTIFYD"; fi
   ;;
 esac
 
