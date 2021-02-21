@@ -99,9 +99,11 @@ notify() {
 notify_toggle() {
   if [ "$NOTIFY" = "on" ]; then
     export NOTIFY="off"
+    export NOTIFYS="on"
     __cmd_exists notifications && notifications "MPD Client" "Notications have been disabled"
   elif [ "$NOTIFY" = "off" ]; then
     export NOTIFY="on"
+    export NOTIFYS="off"
     __cmd_exists notifications && notifications "MPD Client" "Notications have been enabled"
   fi
   #printf_blue "prevSong:$prevSong\n\t\tcurrSong:$currSong\n\t\tnotification:$NOTIFY"
@@ -111,8 +113,14 @@ notify_toggle() {
 
 volume_toggle() {
   if __mpc volume | grep volume: | grep -Fq ' 0%'; then
+    if [ -f "$TEMPDIR/volume" ]; then
+      restore="$(<"$TEMPDIR/volume")"
+      __mpc volume $restore
+    else
     __mpc volume 100
+    fi
   else
+    volume > "$TEMPDIR/volume"
     __mpc volume 0
   fi
   return 0
@@ -153,7 +161,7 @@ while :; do
   is_up || break
   mpc_status | printf_readline "6"
   printf_newline
-  printf_green "1. turn notifications on/off"
+  printf_green "1. turn notifications ${NOTIFYS:-off}"
   printf_green "/. mute/unmute volume"
   printf_green "+. volume up +5"
   printf_green "-. volume down -5"
