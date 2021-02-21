@@ -114,13 +114,13 @@ notify_toggle() {
 volume_toggle() {
   if __mpc volume | grep volume: | grep -Fq ' 0%'; then
     if [ -f "$TEMPDIR/volume" ]; then
-      restore="$(<"$TEMPDIR/volume")"
-      __mpc volume $restore
+      restore="$(cat "$TEMPDIR/volume" | sed 's#%##g')"
+      __mpc volume "$restore"
     else
     __mpc volume 100
     fi
   else
-    volume > "$TEMPDIR/volume"
+    volume | awk '{print $2}' | sed 's#%##g' > "$TEMPDIR/volume"
     __mpc volume 0
   fi
   return 0
