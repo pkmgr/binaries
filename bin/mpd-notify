@@ -58,7 +58,7 @@ else
 fi
 #printf_debug "Old:$oldPid" "Cur:$curPid" "Pid:$myPid"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-log() { echo "$1" >>"$logFile"; }
+log() { echo "$*" >>"$logFile"; }
 __mpc() { mpc -h "$MPDSERVER" -p "$MPDSERVER_PORT" "$@"; }
 __mpc_status() { __mpc status && return 0 || return 1; }
 __getpid() {
@@ -306,7 +306,5 @@ restart)
   printf_exit "Error: usage $APPNAME { start | stop | restart | status }"
   ;;
 esac
-
 exit 0
-
 # end
