@@ -45,20 +45,29 @@ logFile="$daemonDir/$daemonName.log"
 runInterval=1
 logMaxSize="100"
 myPid="$(echo $$)"
+curPid="$(ps -ux | grep -v "$myPid" | grep 'mpd-notify run' | grep -v ' grep ' | awk '{print $2}' | head -n 1)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$daemonDir/mpd-notify.cfg" ]; then
-  . "$daemonDir/mpd-notify.cfg"
-fi
+[ -f "$daemonDir/mpd-notify.cfg" ] && . "$daemonDir/mpd-notify.cfg"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$pidFile" ]; then
+if [ -f "$pidFile" ] && [ -z "$curPid"  ]; then
   oldPid="$(<"$pidFile")"
-  newPid="$(ps -ux | grep mpd-notify | grep -v 'grep ' | awk '{print $2}')"
-  [ "$oldPid" = "$newPid" ] || __rm_rf "$pidFile"
+elif [ -n "$curPid" ]; then
+  oldPid="$curPid"
+else
+  oldPid=""
 fi
+#printf_debug "Old:$oldPid" "Cur:$curPid" "Pid:$myPid"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 log() { echo "$1" >>"$logFile"; }
 __mpc() { mpc -h "$MPDSERVER" -p "$MPDSERVER_PORT" "$@" && return 0 || return 1; }
-__getpid() { ps -ux | grep mpd-notify | grep -qv 'grep ' && return 0 || return 1; }
+__getpid() {
+  if [ -n "$curPid" ]; then
+   echo 0
+   return 0
+  else
+    return 1
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 getFile() {
   file="$(__mpc -f %file% | head -n 1)"
@@ -73,13 +82,11 @@ getArtAlb() {
 scrapeDiscogs() {
   artAlb=$(getArtAlb)
   log "$(python3 "$daemonDir""/cogsCover.py" "$artAlb" "$DISCOGSKEY" "$DISCOGSSECRET")"
-  # cogsCover downloads to ${TMP:-/tmp}/image....
   __cp_rf ${TMP:-/tmp}/image.jpg "$coverPath" >/dev/null 2>&1
   __rm_rf ${TMP:-/tmp}/image.jpg >/dev/null 2>&1
 }
 
 notifyStatus() {
-  # Compare old and new status.
   if $STATUSNOTIF; then
     if [[ $curStatus != "$newStatus" ]]; then
       if [[ $newStatus -eq 0 ]]; then
@@ -190,14 +197,14 @@ setupDaemon() {
 }
 
 startDaemon() {
-  setupDaemon
-  if checkDaemon; then
+  if [ "$(ps -ux | grep 'mpd-notify run' | grep -v ' grep ' | wc -l)" -gt 2 ]; then
+    printf_exit "2" "1" "ERROR: $daemonName is already running."
+  else
     printf_green " *Starting $daemonName."
+    setupDaemon
     echo "$myPid" >"$pidFile"
     log '*** '$(date +"%Y-%m-%d")": Starting up $daemonName."
     loop
-  else
-    printf_exit "2" "1" "ERROR: $daemonName is already running."
   fi
 }
 
@@ -205,18 +212,18 @@ stopDaemon() {
   if checkDaemon; then
     echo "Stopping $daemonName"
     log '*** '$(date +"%Y-%m-%d")": $daemonName stopped."
-    if [[ -n "$(cat $pidFile)" ]]; then
-      __kill "$(cat "$pidFile")"
-    fi
+    for pid in $oldPid $(ps -ux | grep 'mpd-notify run' | grep -v ' grep ' | awk '{print $2}'); do
+      kill -s 15 "$pid" &>/dev/null
+    done
+      __rm_rf "$pidFile"
   else
     printf_exit "1" "1" "ERROR: $daemonName is not running."
   fi
 }
 
 statusDaemon() {
-  # Check if running
   if checkDaemon; then
-    printf_exit "2" "0" "$daemonName is running."
+    printf_exit "2" "0" "$daemonName is running: $curPid."
   else
     printf_exit "1" "1" "$daemonName is not running."
   fi
@@ -224,16 +231,17 @@ statusDaemon() {
 
 restartDaemon() {
   if checkDaemon; then
+    stopDaemon
+    startDaemon &
+    disown
+  else
     printf_red "$daemonName isn't running."
     startDaemon
   fi
-  stopDaemon
-  startDaemon &
-  disown
 }
 
 checkDaemon() {
-  if __getpid; then
+  if [[ "$(__getpid)" = 0 ]]; then
     return 0
   else
     return 1
@@ -274,13 +282,11 @@ loop() {
 ##################
 #    ArgParse    #
 ##################
-
 case "$1" in
-"")
-  startDaemon &
-  disown
-  ;;
 start)
+  $APPNAME run
+  ;;
+run)
   startDaemon &
   disown
   ;;
@@ -294,7 +300,7 @@ restart)
   restartDaemon
   ;;
 *)
-  printf_exit "Error: usage $0 { start | stop | restart | status }"
+  printf_exit "Error: usage $APPNAME { start | stop | restart | status }"
   ;;
 esac
 
