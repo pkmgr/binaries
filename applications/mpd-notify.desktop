@@ -1,0 +1,16 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.1
+Type=Application
+Name=MPD Notify
+GenericName=MPDNotify
+Comment=Get MPD Notifications.
+Icon=org.gnome.Rhythmbox
+Exec=mpd-notify start
+Path=~
+Terminal=false
+Actions=
+Categories=Audio;Player;System;GTK;X-XFCE;GNOME;
+Keywords=mpd;music;player;my;
+StartupNotify=true
