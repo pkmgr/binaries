@@ -167,7 +167,7 @@ notifySong() {
     if $NOTIFYSONG; then
       notifications "MPD" "$newTitleArtist"
     fi
-    log "*** Now playing: $newTitleArtist from $MPDSERVER:$MPDSERVER_PORT"
+    log "*** $(date +"%Y-%m-%d %H:%M") - Now playing: $newTitleArtist from $MPDSERVER:$MPDSERVER_PORT"
   fi
 }
 
@@ -208,7 +208,7 @@ startDaemon() {
     printf_green " *Starting $daemonName."
     setupDaemon
     echo "$myPid" >"$pidFile"
-    log '*** '$(date +"%Y-%m-%d")": Starting up $daemonName."
+    log '*** '$(date +"%Y-%m-%d %H:%M")": Starting up $daemonName."
     log '*** '"connected to $MPDSERVER"
     notifications "MPD" "Connected to $MPDSERVER\n$(__mpc status)"
     loop
@@ -218,7 +218,7 @@ startDaemon() {
 stopDaemon() {
   if checkDaemon; then
     echo "Stopping $daemonName"
-    log '*** '$(date +"%Y-%m-%d")": $daemonName stopped."
+    log '*** '$(date +"%Y-%m-%d %H:%M")": $daemonName stopped."
     for pid in $oldPid $(ps -ux | grep 'mpd-notify run' | grep -v ' grep ' | awk '{print $2}'); do
       kill -s 15 "$pid" &>/dev/null
     done
