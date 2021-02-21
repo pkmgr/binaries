@@ -293,7 +293,7 @@ loop() {
 ##################
 case "$1" in
 start)
-  $APPNAME run
+  bash -c "$APPNAME run"
   ;;
 run)
   startDaemon &
