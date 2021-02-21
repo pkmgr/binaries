@@ -82,9 +82,12 @@ getArtAlb() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 scrapeDiscogs() {
   artAlb=$(getArtAlb)
-  log "$(python3 "$daemonDir""/cogsCover.py" "$artAlb" "$DISCOGSKEY" "$DISCOGSSECRET")"
-  __cp_rf ${TMP:-/tmp}/image.jpg "$coverPath" >/dev/null 2>&1
-  __rm_rf ${TMP:-/tmp}/image.jpg >/dev/null 2>&1
+  getArt="$(python3 "$daemonDir""/cogsCover.py" "$artAlb" "$DISCOGSKEY" "$DISCOGSSECRET")"
+  if [ -n "$getArt" ]; then
+    log "$getArt"
+    __cp_rf ${TMP:-/tmp}/image.jpg "$coverPath" >/dev/null 2>&1
+    __rm_rf ${TMP:-/tmp}/image.jpg >/dev/null 2>&1
+  fi
 }
 
 notifyStatus() {
