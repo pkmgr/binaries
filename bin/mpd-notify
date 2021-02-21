@@ -222,7 +222,8 @@ stopDaemon() {
     for pid in $oldPid $(ps -ux | grep 'mpd-notify run' | grep -v ' grep ' | awk '{print $2}'); do
       kill -s 15 "$pid" &>/dev/null
     done
-      __rm_rf "$pidFile"
+    __rm_rf "$pidFile"
+    notifications "MPD" "Stopping notifications"
   else
     printf_exit "1" "1" "ERROR: $daemonName is not running."
   fi
