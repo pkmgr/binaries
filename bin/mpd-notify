@@ -210,7 +210,7 @@ startDaemon() {
     echo "$myPid" >"$pidFile"
     log '*** '$(date +"%Y-%m-%d")": Starting up $daemonName."
     log '*** '"connected to $MPDSERVER"
-    statusDaemon
+    notifications "MPD" "Connected to $MPDSERVER\n$(__mpc status)"
     loop
   fi
 }
@@ -293,11 +293,11 @@ loop() {
 ##################
 case "$1" in
 start)
-  bash -c "$APPNAME run"
+  exec $APPNAME run
   ;;
 run)
   startDaemon &
-  disown
+  #disown
   ;;
 stop)
   stopDaemon
