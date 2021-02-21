@@ -167,6 +167,7 @@ notifySong() {
     if $NOTIFYSONG; then
       notifications "MPD" "$newTitleArtist"
     fi
+    log "Now playing: $newTitleArtist"
   fi
 }
 
