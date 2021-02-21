@@ -167,7 +167,7 @@ notifySong() {
     if $NOTIFYSONG; then
       notifications "MPD" "$newTitleArtist"
     fi
-    log "Now playing: $newTitleArtist"
+    log "*** Now playing: $newTitleArtist from $MPDSERVER:$MPDSERVER_PORT"
   fi
 }
 
@@ -229,7 +229,7 @@ stopDaemon() {
 
 statusDaemon() {
   if checkDaemon; then
-    notifications "MPD" "$(__mpc status)"
+    notifications "MPD" "Connected to $MPDSERVER\n$(__mpc status)"
     printf_exit "2" "0" "$daemonName is running: $curPid."
   else
     printf_exit "1" "1" "$daemonName is not running."
