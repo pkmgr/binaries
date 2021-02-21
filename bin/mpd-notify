@@ -59,7 +59,8 @@ fi
 #printf_debug "Old:$oldPid" "Cur:$curPid" "Pid:$myPid"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 log() { echo "$1" >>"$logFile"; }
-__mpc() { mpc -h "$MPDSERVER" -p "$MPDSERVER_PORT" "$@" && return 0 || return 1; }
+__mpc() { mpc -h "$MPDSERVER" -p "$MPDSERVER_PORT" "$@"; }
+__mpc_status() { __mpc status && return 0 || return 1; }
 __getpid() {
   if [ -n "$curPid" ]; then
    echo 0
@@ -183,7 +184,7 @@ setupDaemon() {
       touch "$logFile"
     fi
   fi
-  __devnull __mpc
+  __devnull __mpc_status
   if [[ $? -ne 0 ]]; then
     printf_info "MPD not running. Attempting to start..."
     [ -n "$MPDSERVER" ] && true || __start mpd
@@ -204,6 +205,7 @@ startDaemon() {
     setupDaemon
     echo "$myPid" >"$pidFile"
     log '*** '$(date +"%Y-%m-%d")": Starting up $daemonName."
+    log '*** '"connected to $MPDSERVER"
     loop
   fi
 }
@@ -223,6 +225,7 @@ stopDaemon() {
 
 statusDaemon() {
   if checkDaemon; then
+    notifications "MPD" "$(__mpc status)"
     printf_exit "2" "0" "$daemonName is running: $curPid."
   else
     printf_exit "1" "1" "$daemonName is not running."
