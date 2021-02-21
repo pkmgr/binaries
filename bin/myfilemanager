@@ -131,7 +131,12 @@ if [ -z "$FILEMANAGER" ]; then
   [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "No filemanagers are installed"
   printf_exit 1 1 "No filemanagers are installed"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $FILEMANAGER in
+  lf | vifm | ranger | se | cfiles)
+    FILEMANAGER="myterminal -e $FILEMANAGER"
+  ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)

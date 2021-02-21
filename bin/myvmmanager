@@ -105,7 +105,12 @@ if [ -z "$VMMANAGER" ]; then
   printf_pause 1 "Press any key to exit this window"
   exit
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $MYVMMANAGER in
+  docker | kubectl)
+    MYVMMANAGER="myterminal -e $MYVMMANAGER"
+    ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
@@ -121,13 +126,9 @@ case $1 in
 *)
   [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "Attempting to launch $VMMANAGER"
   if [ -f "$HOME/.local/bin/myvmmanager" ]; then
-    ~/.local/bin/myvmmanager "$@" 2>/dev/null
+    exec ~/.local/bin/myvmmanager "$@" 2>/dev/null
   else
-    if [ "$VMMANAGER" = docker ] || [ "$VMMANAGER" = kubectl ]; then
-      run_in_term $VMMANAGER "$@" 2>/dev/null
-    else
-      $MYVMMANAGER "$@" 2>/dev/null
-    fi
+    exec $MYVMMANAGER "$@" 2>/dev/null
   fi
   ;;
 esac

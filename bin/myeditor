@@ -113,6 +113,12 @@ if [ -z "$EDITOR" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $EDITOR in
+nano | vim)
+   EDITOR="myterminal -e $EDITOR"
+  ;;
+esac
+
 case $1 in
 *config)
   shift 1

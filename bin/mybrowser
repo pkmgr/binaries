@@ -142,7 +142,12 @@ if [ -z "$BROWSER" ]; then
   [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "No Browsers are installed"
   printf_exit 1 1 "No Browsers are installed"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $BROWSER in
+  links | lynx)
+    BROWSER="myterminal -e $BROWSER"
+  ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)

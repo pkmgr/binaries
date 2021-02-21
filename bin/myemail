@@ -90,9 +90,9 @@ if [ "$MYEMAIL" != "config" ]; then
   elif [ -n "$(command -v geary 2>/dev/null)" ]; then
     export EMAIL="geary"
   elif [ -n "$(command -v neomutt 2>/dev/null)" ]; then
-    export EMAIL="myterminal -e neomutt"
+    export EMAIL="neomutt"
   elif [ -n "$(command -v mutt 2>/dev/null)" ]; then
-    export EMAIL="myterminal -e mutt"
+    export EMAIL="mutt"
   elif [ -n "$(command -v kmail 2>/dev/null)" ]; then
     export EMAIL="kmail"
   elif [ -n "$(command -v emacs 2>/dev/null)" ]; then
@@ -111,7 +111,12 @@ if [ -z "$EMAIL" ]; then
   [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "No email clients are installed"
   printf_exit 1 1 "No email clients are installed"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $EMAIL in
+  emacs | mutt | neomutt)
+    EMAIL="myterminal -e $EMAIL"
+    ;;
+esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
