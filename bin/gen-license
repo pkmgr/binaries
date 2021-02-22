@@ -146,7 +146,7 @@ create_new_wtfpl() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Init
 if [ ! -f "$HOME/.config/gen-license/settings" ] && [ ! -d "$HOME/.config/gen-license/settings" ]; then
-  config
+  gen_config
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main
