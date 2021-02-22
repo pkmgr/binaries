@@ -97,6 +97,7 @@ __header_opts() {
   while :; do
     case "$1" in
     -h | --help)
+      shift
       __gen_header_help
       ;;
     -f | --funct*)
@@ -126,7 +127,6 @@ __header_opts() {
       shift
       type="$1"
       ;;
-
     --)
       shift
       break
@@ -186,7 +186,7 @@ __makefile() {
 __edit_header() {
   local GEN_SCRIPTS_NEWFILE="$1"
   local GEN_SCRIPTS_NEWFILEDIR="$(__basedir $GEN_SCRIPTS_NEWFILE)"
-  __vars "$1"
+  __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
   sed -i 's#REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#REPLACE_COPYRIGHT#'"$GEN_SCRIPTS_COPYRIGHT"'#g' "$GEN_SCRIPTS_NEWFILE"
@@ -296,23 +296,23 @@ __find_file() {
   arg3=${3// /\/}
   if [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/${arg3:-default}" ]; then
     template="$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/${arg3:-default}"
-    dest="$4"
+    [[ "$4" = -* ]] && dest="newScript" || dest="$4"
     shift 3
   elif [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/${arg2:-default}" ]; then
     template="$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/${arg2:-default}"
-    dest="$3"
+    [[ "$3" = -* ]] && dest="newScript" || dest="$3"
     shift 2
   elif [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/${arg1:-default}" ]; then
     template="$GEN_SCRIPTS_TEMPLATE_DIR/${arg1:-default}"
-    dest="$2"
+    [[ "$2" = -* ]] && dest="newScript" || dest="$2"
     shift 1
   else
     printf_green "Using the default template: bash"
     template="$GEN_SCRIPTS_TEMPLATE_DIR/shell/bash"
-    dest="$1"
+    [[ "$1" = -* ]] && dest="newScript" || dest="$1"
   fi
-  __vars "$dest"
-  __header_opts "$@"
+  dest="$dest"
+  __header_opts "$*"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script" || __mkd "$HOME/.config/gen-script"
@@ -366,6 +366,11 @@ case "$1" in
   esac
   ;;
 
+*all) ## Bash Completion
+  shift 1
+  __find_file "$@"
+  ;;
+
 *) ## Allows drop in without need to update this
   __find_file "$@"
   ;;
@@ -374,7 +379,7 @@ shift
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sanity check
-[ -f "$template" ] || printf_exit "The template file doesn't exist: $template"
+[ -f "$template" ] || printf_exit 1 1 "The template file doesn't exist: $template"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # file and folder setup
 filename="$(__basename ${dest:-newScript} 2>/dev/null || echo .)"
@@ -382,15 +387,15 @@ destfolder="$(__basedir $GEN_SCRIPTS_CURRENT_DIR/$filename 2>/dev/null)"
 # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate the file
 if [ "$filename" = "newScript" ]; then
-  printf_read_question "3" "What should we name this ?" "120" "tmpfilename" || tmpfilename="$filename"
-  tmpfilename="$tmpfilename"
+  printf_read_question "3" "What should we name this ?" "120" "tmpfilename"
+  tmpfilename="${tmpfilename:-$filename}"
 else
   tmpfilename="$filename"
 fi
 filename=${tmpfilename// /_}
 if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
   printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
-  printf_answer_yes "$YN" || exit 1
+  printf_answer_yes "$YN" || printf_exit 1 1 "Refusing to overwrite existing file!"
 fi
 printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $destfolder/$filename"
 __makefile "${template:?}" "$destfolder/$filename" || printf_exit 1 1 "Failed to create $destfolder/$filename"
@@ -400,3 +405,4 @@ printf_newline ""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
+

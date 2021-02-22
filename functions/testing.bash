@@ -285,7 +285,7 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -er -n $lines $readopts $reply #|| printf "\n"
+  read -t 20 -er -n $lines $readopts $reply || echo ""
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -297,7 +297,7 @@ printf_read_question_nt() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -er -n $lines $readopts $reply #|| printf "\n"
+  read -er -n $lines $readopts $reply || echo ""
 }
 
 printf_read_error() {
@@ -307,7 +307,7 @@ printf_read_error() {
 
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -ers -n 1 "${1:-REPLY}" || printf "\n"
+  read -t 10 -ers -n 1 "${1:-REPLY}" || echo ""
   #history -s "$1"
 }
 
