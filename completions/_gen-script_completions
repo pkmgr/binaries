@@ -32,30 +32,40 @@ _gen-script() {
 
   case $prev in
     all)
+      shift 1
       COMPREPLY=($(compgen -W '$ALL' -- "$cur"))
       return
     ;;
 
   installers)
+    shift 1
     COMPREPLY=($(compgen -W '$INSTALLERS' -- "$cur"))
     return 0
     ;;
 
   shell)
+    shift 1
     COMPREPLY=($(compgen -W '$SHELL' -- "$cur"))
     return 0
     ;;
 
   os)
+    shift 1
     COMPREPLY=($(compgen -W '$OS' -- "$cur"))
+    return 0
+    ;;
+
+  header)
+    shift 1
+    COMPREPLY=($(compgen -W '--help -t -d -c -o -r -f -i' -- "$cur"))
     return 0
     ;;
 
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     return 0
-    ;;
-  esac
+   ;;
+esac
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
