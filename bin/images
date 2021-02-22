@@ -94,6 +94,7 @@ while :; do
   *) shift ;;
 
   esac
+  clear
   printf_newline "\n\n"
   printf_counter "5" "3" "Re-loading menu in"
 done

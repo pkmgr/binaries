@@ -26,7 +26,7 @@ shopt -s extglob
 
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -37,15 +37,15 @@ elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 post_to_social() {
   local PMESS=
-  printf_custom_question "5" "What would you like to post\n\t\t"
+  printf_custom_question "5" "What would you like to post?"
   read PMESS
-  devnull post2social "$PMESS"
+  __devnull post2social "$PMESS"
   printf_green "Posting: $PMESS"
   sleep 5
 }
@@ -55,6 +55,7 @@ post_to_social() {
 while true; do
   # show menu
   clear
+  printf_newline "\n\n\n\n"
   printf_head "Social Media Menu"
   printf_green "0. open a new window"
   printf_green "a. launch twitter "
@@ -70,26 +71,28 @@ while true; do
 
   # take action
   case $main in
-  0) devnull myterminal -e "$APPNAME" &;;
+  0)
+    __devnull myterminal -e "$APPNAME" &
+    ;;
   a)
     shift 1
     clear
-    rainbowstream -iot
+    __cmd_exists rainbowstream && rainbowstream -iot || printf_red "rainbowstream is not installed"
     ;;
   b)
     shift 1
     clear
-    tootstream
+    __cmd_exists tootstream && tootstream || printf_red "tootstream is not installed"
     ;;
   c)
     shift 1
     clear
-    irssi
+    __cmd_exists irssi && irssi || printf_red "irssi is not installed"
     ;;
   d)
     shift 1
     clear
-    finch
+    __cmd_exists finch && finch || printf_red "finch is not installed"
     ;;
   x)
     shift 1
@@ -103,9 +106,12 @@ while true; do
     ;;
   z) break ;;
   *) shift;;
-  esac
+esac
+clear
+printf_newline "\n\n"
+printf_counter "5" "3" "Re-loading menu in"
 done
+clear
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # end
