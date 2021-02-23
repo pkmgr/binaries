@@ -21,8 +21,11 @@ _myshell() {
 
   _init_completion || return
   case $prev in
+  --add)
+    COMPREPLY=($(compgen -c -- "${cur}"))
+    ;;
   *)
-    COMPREPLY=($(compgen -W '--help ${ARRAY}' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help --add ${ARRAY}' -- "$cur"))
     return
     ;;
   esac

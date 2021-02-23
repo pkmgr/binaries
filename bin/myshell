@@ -62,6 +62,25 @@ __failure() {
   printf_exit "Failed to change the shell to $newshell"
 }
 
+__add() {
+  __requiresudo true
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/bin:/sbin:/usr/games"
+  if [ $# = 0 ]; then
+    for f in bash fish zsh tmux screen byobu; do
+      if __cmd_exists "$f" && ! grep -q "$f" /etc/shells; then
+        echo "$(command -v $f)" | sudo tee -a /etc/shells &>/dev/null
+      fi
+    done
+  else
+    if __cmd_exists "$1"; then
+      if ! grep -q "$1" /etc/shells; then
+      echo "$(command -v $1)" | sudo tee -a /etc/shells &>/dev/null || printf_red "Something went wrong"
+    else
+      printf_exit "Shell already exists in /etc/shells"
+      fi
+    fi
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
@@ -76,6 +95,11 @@ case "$1" in
   printf_custom "2" "Available shells:"
   __list_shells
   exit
+  ;;
+
+*add)
+  shift 1
+  __add "$@"
   ;;
 
 *)
