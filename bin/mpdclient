@@ -37,9 +37,9 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __check_app mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
-MPDSERVER="${MPDSERVER:-localhost}"
+mpc -h localhost | grep -iq playing && MPDSERVER="localhost" || MPDSERVER="${MPDSERVER:-localhost}"
 notify-daemon ask && NOTIFY="on" || NOTIFY="off"
+TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [[ "$1" = *term ]]; then exec myterminal -e mpdclient & exit; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
