@@ -95,7 +95,7 @@ __add() {
   local tmpshell="/tmp/shells"
   __requiresudo true
   if [ $# = 0 ]; then
-    for f in bash fish zsh tmux screen byobu; do
+    for f in bash fish zsh; do
       cmd="$(command -v $f)"
       if [ -f "$cmd" ]; then
         if ! grep -q "$f" /etc/shells; then
