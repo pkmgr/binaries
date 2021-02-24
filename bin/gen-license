@@ -13,7 +13,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL.md
-# @ReadME        : gen-license --help.md
+# @ReadME        : gen-license --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Sunday, Feb 07, 2021 13:53 EST
 # @File          : gen-license
@@ -188,9 +188,17 @@ case "$whichLicense" in
 
 *download)
   shift 1
-  printf_green "Cloning the repo to $licenseDir/files"
-  [ -d "$licenseDir/files" ] && __mv_f "$licenseDir/files" "$licenseDir/files.old"
-  __git_clone "$licenseURL " "$licenseDir/files"
+  tmpfolder="/tmp/licenses.$$"
+  printf_green "Cloning the repo to $tmpfolder"
+  __git_clone "$licenseURL" "$tmpfolder"
+  printf_green "Copying files to $licenseDirCustom"
+  __cp_rf "$tmpfolder/files/." "$licenseDirCustom/"
+  __rm_rf "$tmpfolder"
+  if [ -d "$licenseDirCustom" ] && [ "$(__count_files "$licenseDirCustom" "2")" -ne 0 ]; then
+    printf_green "Done cloning and copying the files"
+  else
+    printf_red "Failed to setup custom license files"
+  fi
   ;;
 
 wtfpl)

@@ -23,16 +23,20 @@ _gen-license() {
   local custom="$(find $licenseDir/ -type f -not -path "$licenseDir/.git/*" | sed 's#'$licenseDir/'##g' | sort -u || return)"
 
   _init_completion || return
+
 case $prev in
 custom)
   COMPREPLY=($(compgen -W '$custom' -- "$cur"))
-  ;;
--*)
-  COMPREPLY=($(compgen -W '$options' -- "$cur"))
+  return
   ;;
 *)
-  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
-  return
+  if [[ "$cur" == -* ]]; then
+    COMPREPLY=($(compgen -W '$options' -- "$cur"))
+    return
+  else
+    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return
+  fi
   ;;
 esac
 } &&
