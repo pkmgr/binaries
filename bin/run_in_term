@@ -29,7 +29,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-run_in_term() {
+main() {
   if [ -n "$1" ]; then
     local CMD="$1" && shift 1
     local ARG="$*" && shift $#
@@ -40,12 +40,12 @@ run_in_term() {
     fi
   else
     printf_newline "\n\n\n"
-    printf_read_question "2" "What command would you like to run?" "120" "CMD"
+    printf_read_question "2" "What command would you like to run?" "120" "CMD" "-e"
     printf_red "Type exit or ctrl + c to exit"
     printf_cyan "Usage: Enter the commands for $CMD"
     printf_cyan "To show this message again type: _help_"
     while :; do
-      printf_read_question "5" "What would you like to pass to $CMD?" "120" "__ANSWER"
+      printf_read_question "5" "What would you like to pass to $CMD?" "120" "__ANSWER" "-e"
       if [ "$__ANSWER" = exit ] || [ "$__ANSWER" = quit ] || [ "$__ANSWER" = !q ]; then clear && break; fi
       if [ "$__ANSWER" = _help_ ]; then
         clear
@@ -60,6 +60,6 @@ run_in_term() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-run_in_term "$@"
+main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
