@@ -857,8 +857,8 @@ fi
 git_clone() {
   if __am_i_online; then
     local repo="$1"
-    [ ! -z "$2" ] && local myappdir="$2" || local myappdir="$APPDIR"
-    [ ! -d "$myappdir" ] || rm_rf "$myappdir"
+    [ -n "$2" ] && local myappdir="$2" || local myappdir="$INSTDIR"
+    [ -d "$myappdir" ] && rm_rf "$myappdir"
     devnull git clone --depth=1 -q --recursive "$@"
   fi
 }
@@ -867,16 +867,15 @@ git_clone() {
 
 git_update() {
   if __am_i_online; then
-    cd "$APPDIR" || exit 1
     local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-    devnull git reset --hard &&
-      devnull git pull --recurse-submodules -fq &&
-      devnull git submodule update --init --recursive -q &&
-      devnull git reset --hard -q
-    if [ "$?" -ne "0" ]; then
-      cd "$HOME" || exit 1
-      git_clone "$repo" "$APPDIR"
-    fi
+    devnull git -C "$INSTDIR" reset --hard &&
+      devnull git -C "$INSTDIR" pull --recurse-submodules -fq &&
+      devnull git -C "$INSTDIR" submodule update --init --recursive -q &&
+      devnull git -C "$INSTDIR" reset --hard -q && true || false
+        if [ "$?" -ne "0" ]; then
+          rm_rf "$INSTDIR"
+          git_clone "$repo" "$INSTDIR"
+        fi
   fi
 }
 
