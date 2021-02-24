@@ -181,12 +181,12 @@ printf_console() {
 
 printf_pause() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
-  local msg="$*"
+  local msg="${*:-Press any key to continue}"
   printf_color "\t\t$msg\n" "$color"
   read -s -n 1
 }
 
-print_wait() { printf_pause; }
+print_wait() { printf_pause "$*"; }
 
 #printf_error "color" "exitcode" "message"
 printf_error() {

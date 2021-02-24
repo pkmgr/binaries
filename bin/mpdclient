@@ -47,6 +47,7 @@ __devnull() { "$@" >/dev/null 2>&1 && printf_green "Command sent successfully" |
 __devnull2() { "$@" 2>/dev/null && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
 __server_failed() { printf_red "$ICON_ERROR Failed to connect to mpdserver @ $MPDSERVER" && sleep 3 && return 1; }
 __mpc() { mpc -h "$MPDSERVER" "$@" || return 1; }
+__mpd_status() { ps -ux | grep -q "mpd" && return 0 || return 1; }
 is_up() { __mpc &>/dev/null && return 0 || __server_failed; }
 get_prev() { cat "$TEMPDIR/mpdclient_prev" 2>/dev/null; }
 get_next() { cat "$TEMPDIR/mpdclient_next" 2>/dev/null; }
@@ -74,6 +75,7 @@ mpc_status() {
     fi
   }
 
+updating_db() { __mpc status | grep -qi updating && echo -e "Database is being updated"; }
   display() {
     status
     if __mpc status | head -n 1 | grep -iqv volume; then
@@ -83,7 +85,7 @@ mpc_status() {
     fi
   }
 
-  notify && display && next && return 0 || return 1
+  notify && display && next && updating_db && return 0 || return 1
 }
 
 notify() {
@@ -163,6 +165,8 @@ while :; do
   mpc_status | printf_readline "6"
   printf_newline
   printf_green "1. turn notifications ${NOTIFYS:-off}"
+  printf_green "2. Start mpd server"
+  printf_green "3. change mpd server"
   printf_green "/. ${volume:-mute} volume"
   printf_green "+. volume up +5"
   printf_green "-. volume down -5"
@@ -181,10 +185,39 @@ while :; do
   printf_newline
   printf_read_question "6" "Enter your choice  : " "1" "main" "-s"
   printf_newline
+  clear
+  printf_newline "\n\n\n"
   case "$main" in
   1)
     shift 1
     notify_toggle
+    ;;
+  2)
+    shift 1
+    if __cmd_exists mpd; then
+      __mpd_status || mpd &>/dev/null &
+    else
+      printf_error "mpd is not installed"
+    fi
+    if __mpd_status; then
+      printf_green "mpd is running"
+    else
+      printf_error "Failed to start mpd"
+    fi
+    ;;
+  3)
+    OLDMPDSERVER="$MPDSERVER"
+    printf_read_question "6" "Enter new hostname:" "120" "NEWMPDSERVER"
+    __mpc() { mpc -h "$NEWMPDSERVER" "$@" || return 1; }
+    if is_up &>/dev/null; then
+      MPDSERVER="$NEWMPDSERVER"
+      printf_green "Successfully changed hostname to $MPDSERVER"
+    else
+      __mpc() { mpc -h "$OLDMPDSERVER" "$@" || return 1; }
+      printf_red "Failed to change hostname to $NEWMPDSERVER"
+      printf_red "Resetting back to $OLDMPDSERVER"
+      MPDSERVER="$OLDMPDSERVER"
+    fi
     ;;
   /)
     shift 1
@@ -242,8 +275,6 @@ while :; do
   y)
     shift 1
     printf_read_question "6" "Enter command to send : " "120" "opts"
-    clear
-    printf_newline "\n\n\n"
     printf_custom "26" "Results for $opts"
     __mpc "$opts" 2>/dev/null | printf_readline "3"
     printf_read_question "6" "Press enter to continue " "120"
@@ -255,7 +286,7 @@ while :; do
     ;;
   *) shift ;;
   esac
-  printf_counter "5" "1" "Re-loading menu in"
+  printf_counter "5" "3" "Re-loading menu in"
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
