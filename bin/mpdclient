@@ -205,7 +205,7 @@ __mkd "$TEMPDIR"
 while :; do
   clear
   shift 1
-  printf_newline "\n\n\n\n"
+  printf_newline "\n\n\n"
   is_up || break
   __mpd_status
   mpc_status | printf_readline "6"
@@ -230,9 +230,7 @@ while :; do
   printf_green "z. quit"
   printf_newline
   printf_read_question "6" "Enter your choice  : " "1" "main" "-s"
-  printf_newline
-  clear
-  printf_newline "\n\n\n"
+  clear && printf_newline "\n\n\n"
   case "$main" in
   1)
     shift 1
@@ -241,7 +239,7 @@ while :; do
   2)
     OLDMPDSERVER="$MPDSERVER"
     printf_read_question "6" "Enter new hostname:" "120" "NEWMPDSERVER"
-    if [ "$MPDSERVER" = "localhost" ] || [ "$MPDSERVER" = "$(hostname -s)" ] || [ "$MPDSERVER" = "$(hostname -f)" ]; then
+    if [ "$NEWMPDSERVER" = "localhost" ] || [ "$NEWMPDSERVER" = "$(hostname -s)" ] || [ "$NEWMPDSERVER" = "$(hostname -f)" ]; then
       if __cmd_exists mpd; then
         if is_up_mpd; then
           MPDSTATUS=stop
