@@ -37,12 +37,13 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __check_app mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SYSHOSTNAME="$(hostname -s)"
 SYSMPDSERVER="$MPDSERVER"
 MPDSTATUS="start"
 TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
 notify-daemon ask && NOTIFY="on" || NOTIFY="off"
-if mpc -h localhost | grep -iq playing; then
-  MPDSERVER="localhost"
+if mpc -h "$SYSHOSTNAME" | grep -iq playing; then
+  MPDSERVER="$SYSHOSTNAME"
 else
   MPDSERVER="${MPDSERVER:-localhost}"
 fi
