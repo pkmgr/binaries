@@ -15,13 +15,26 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _gen-license() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+  local licenseDir="${GEN_LICENSE_DIR:-$HOME/.config/gen-license/custom}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
+  local options="--help --version --config --list --download --custom"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/gen-license/array)"
+  local custom="$(find $licenseDir/ -type f -not -path "$licenseDir/.git/*" | sed 's#'$licenseDir/'##g' | sort -u || return)"
 
   _init_completion || return
-
+case $prev in
+custom)
+  COMPREPLY=($(compgen -W '$custom' -- "$cur"))
+  ;;
+-*)
+  COMPREPLY=($(compgen -W '$options' -- "$cur"))
+  ;;
+*)
   COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+  return
+  ;;
+esac
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

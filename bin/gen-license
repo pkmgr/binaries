@@ -92,14 +92,16 @@ get_remote_file() {
     __file_failed "$1"
   fi
 }
-
+###
 if [ -d "$licenseDir" ] && [ "$(__count_files "$licenseDir")" -ne 0 ]; then
   licenseURL="$licenseDir"
   get_lic() { create_local_file "$1"; }
+elif [ -d "$CASJAYSDEVDIR/templates/licenses" ]; then
+  licenseURL="$CASJAYSDEVDIR/templates/licenses"
 else
   get_lic() { get_remote_file "$1"; }
 fi
-
+###
 gen_config() {
   printf_green "Generating the config file"
   printf_green "$HOME/.config/gen-license/settings"
@@ -164,7 +166,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main
 case "$whichLicense" in
-list)
+*list)
   shift 1
   if [ "$(__count_files "$licenseDir/files")" -eq 0 ]; then
     cat "${CASJAYSDEVDIR}/helpers/gen-license/array" | printf_readline "2"
@@ -174,7 +176,7 @@ list)
   fi
   ;;
 
-config)
+*config)
   shift 1
   if [ "$DefLicenseFile" = "config" ] || [ "$licenseFile" = "config" ]; then
     license="$WHICH_LICENSE_DEF"
@@ -184,7 +186,7 @@ config)
   gen_config
   ;;
 
-download)
+*download)
   shift 1
   printf_green "Cloning the repo to $licenseDir/files"
   [ -d "$licenseDir/files" ] && __mv_f "$licenseDir/files" "$licenseDir/files.old"
@@ -200,31 +202,31 @@ wtfpl)
 gpl1)
   shift 1
   printf_green "Using the GPL V1 license for $licDir"
-  get_lic "$licenseURL/gnu-gpl-v1.0.md"
+  get_lic "$licenseURL/gpl1.md"
   ;;
 
 gpl2)
   shift 1
   printf_green "Using the GPL V2 license for $licDir"
-  get_lic "$licenseURL/gnu-gpl-v2.0.md"
+  get_lic "$licenseURL/gpl2.md"
   ;;
 
 gpl3)
   shift 1
   printf_green "Using the GPL V3 license for $licDir"
-  get_lic "$licenseURL/gnu-gpl-v3.0.md"
+  get_lic "$licenseURL/gpl3.md"
   ;;
 
 agpl)
   shift 1
   printf_green "Using the AGPL license for $licDir"
-  get_lic "$licenseURL/gnu-agpl-v3.0.md"
+  get_lic "$licenseURL/agpl.md"
   ;;
 
 fdl)
   shift 1
   printf_green "Using the FDL license for $licDir"
-  get_lic "$licenseURL/gnu-fdl-v1.3.md"
+  get_lic "$licenseURL/fdl.md"
   ;;
 
 mit)
@@ -236,22 +238,22 @@ mit)
 apache)
   shift 1
   printf_green "Using the Apache license for $licDir"
-  get_lic "$licenseURL/apache-v2.0.md"
+  get_lic "$licenseURL/apache.md"
   ;;
 
 bsd2)
   shift 1
   printf_green "Using the BSD license for $licDir"
-  get_lic "$licenseURL/bsd-2.md"
+  get_lic "$licenseURL/bsd2.md"
   ;;
 
 bsd3)
   shift 1
   printf_green "Using the BSD license for $licDir"
-  get_lic "$licenseURL/bsd-3.md"
+  get_lic "$licenseURL/bsd3.md"
   ;;
 
-custom)
+*custom)
   shift 1
   printf_green "Using the custom license for $licDir"
   if [ -f "$1" ]; then
