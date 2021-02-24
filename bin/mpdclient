@@ -157,6 +157,16 @@ client() {
   fi
 }
 
+__repeat_toggle() {
+  if __mpc status | grep -q 'repeat:.on'; then
+    REPEAT=true
+    REPEATS=off
+  else
+    REPEAT=false
+    REPEATS=on
+  fi
+}
+
 __mpd_status() {
   if __local_sysname "$MPDSERVER"; then
     if is_up_mpd; then
@@ -208,21 +218,24 @@ while :; do
   shift 1
   printf_newline "\n\n\n"
   is_up || break
+  __repeat_toggle
   __mpd_status
   mpc_status | printf_readline "6"
   printf_newline
   printf_green "1. turn notifications ${NOTIFYS:-off}"
   printf_green "2. change mpd server"
   printf_green "3. ${MPDSTATUS} mpd server"
+  printf_green "0. MPD Status"
   printf_green "/. ${volume:-mute} volume"
   printf_green "+. volume up +5"
   printf_green "-. volume down -5"
   printf_green "]. volume up +1"
   printf_green "[. volume down -1"
-  printf_green "a. toggle"
+  printf_green "a. play/pause"
   printf_green "b. consume"
-  printf_green "n. next"
-  printf_green "p. prev"
+  printf_green "l. repeat ${REPEATS:-off}"
+  printf_green "n. next song"
+  printf_green "p. prev song "
   printf_green "r. play"
   printf_green "s. stop"
   printf_green "u. update database"
@@ -272,6 +285,10 @@ while :; do
     shift 1
     __mpd_toggle
     ;;
+  0)
+    __mpc status | printf_readline
+    printf_pause
+    ;;
   /)
     shift 1
     __devnull volume_toggle
@@ -300,6 +317,10 @@ while :; do
   b)
     shift 1
     __devnull __mpc consume
+    ;;
+  l)
+    shift 1
+    __devnull __mpc repeat
     ;;
   n)
     shift 1
