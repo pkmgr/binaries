@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-Copyright © `<year>` `<copyright holders>`
+Copyright © `<REPLACE_YEAR>` `<REPLACE_AUTHOR>`
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

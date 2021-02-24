@@ -1,6 +1,8 @@
 Mozilla Public License Version 2.0
 ==================================
 
+Copyright (c) <REPLACE_YEAR>  <REPLACE_AUTHOR>
+
 ### 1. Definitions
 
 **1.1. “Contributor”**  

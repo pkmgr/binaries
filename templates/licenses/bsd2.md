@@ -1,7 +1,7 @@
 Simplified BSD License
 ======================
 
-_Copyright © `<YEAR>`, `<OWNER>`_  
+_Copyright © `<REPLACE_YEAR>`, `<REPLACE_AUTHOR>`_  
 _All rights reserved._
 
 Redistribution and use in source and binary forms, with or without

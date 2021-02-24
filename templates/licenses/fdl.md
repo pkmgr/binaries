@@ -2,7 +2,7 @@ GNU Free Documentation License
 ==============================
 
 _Version 1.3, 3 November 2008_  
-_Copyright © 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc. &lt;<http://fsf.org/>&gt;_
+_Copyright © REPLACE_YEAR REPLACE_AUTHOR._
 
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
@@ -426,7 +426,7 @@ To use this License in a document you have written, include a copy of
 the License in the document and put the following copyright and
 license notices just after the title page:
 
-    Copyright (c)  <YEAR>  <YOUR NAME>.
+    Copyright (c)  <REPLACE_YEAR>  <REPLACE_AUTHOR>.
     Permission is granted to copy, distribute and/or modify this document
     under the terms of the GNU Free Documentation License, Version 1.3
     or any later version published by the Free Software Foundation;
