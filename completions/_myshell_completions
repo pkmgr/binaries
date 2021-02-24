@@ -21,11 +21,16 @@ _myshell() {
 
   _init_completion || return
   case $prev in
-  --add)
+  *add)
     COMPREPLY=($(compgen -c -- "${cur}"))
+    return
+    ;;
+  *del)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    return
     ;;
   *)
-    COMPREPLY=($(compgen -W '--help --add ${ARRAY}' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help --version --add --del --list ${ARRAY}' -- "$cur"))
     return
     ;;
   esac

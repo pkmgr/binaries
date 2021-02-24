@@ -285,7 +285,8 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -er -n $lines $readopts $reply || echo ""
+  read -t 20 -r $readopts -n $lines $reply
+  echo ""
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -297,7 +298,8 @@ printf_read_question_nt() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -er -n $lines $readopts $reply || echo ""
+  read -r $readopts -n $lines $reply
+  echo ""
 }
 
 printf_read_error() {
@@ -653,11 +655,16 @@ __countwd() { cat "$@" | wc -l | __rmcomments; }
 __getuser() { if [ -n "${1:-$USER}" ]; then cut -d: -f1 /etc/passwd | grep "${1:-$USER}" | cut -d: -f1 /etc/passwd | grep "${1:-$USER}" ${2:-}; fi; }
 #getuser_shell "shellname"
 __getuser_shell() {
-  local SHELL=${1:-$SHELL} && shift 1
+  local PATH="/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/games"
+  local CURSHELL=${1:-$(grep "$USER" /etc/passwd | tr ':' '\n' | tail -n1)} && shift 1
   local USER=${1:-$USER} && shift 1
-  grep "$USER" /etc/passwd | cut -d: -f7 | grep -q "$SHELL" && return 0 || return 1
+  grep "$USER" /etc/passwd | cut -d: -f7 | grep -q "${CURSHELL:-$SHELL}" && return 0 || return 1
 }
-__getuser_cur_shell() { grep "$USER" /etc/passwd | tr ':' '\n' | grep bin; }
+__getuser_cur_shell() {
+  local PATH="/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/games"
+  local CURSHELL="$(grep "$USER" /etc/passwd | tr ':' '\n' | tail -n1)"
+  grep "$USER" /etc/passwd | tr ':' '\n' | grep "${CURSHELL:-$SHELL}"
+}
 ###################### Apps ######################
 #vim "file"
 vim="$(command -v /usr/local/bin/vim || command -v vim)"
