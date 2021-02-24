@@ -155,9 +155,16 @@ case "$1" in
   __del "$@"
   ;;
 
+*set)
+  shift 1
+  myshell "$*"
+  exit $?
+  ;;
+
 *)
   PATH="/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/games"
-  [ -n "$1" ] && shell="$(command -v $1)" && __vars "$shell" && __passwd
+  [ -n "$1" ] && shell="$(command -v $1)"
+  [ -n "$shell" ] && __vars "$shell"
   case "$(uname -s)" in
   Linux)
     if [ -z "$1" ]; then
@@ -169,6 +176,7 @@ case "$1" in
       printf_custom "The old and new shell are both $newshellname"
     else
       if [ -f "$newshell" ]; then
+        __passwd
         echo -n "$(echo $password | chsh -s "$newshell" "$USER" &>/dev/null)" &&
         __getuser_shell "$newshell" && __success || __failure
       else
@@ -184,6 +192,7 @@ case "$1" in
       printf_exit 4 0 "run myshell shellname | myshell fish"
     fi
     if [ -f "$newshell" ]; then
+      __passwd
       echo -n "$(echo $password | chsh -u "$USER" -s "$newshell" | printf_readline "3" | grep -vq "chsh")" && __success || __failure
     else
       printf_red "Invalid shell"

@@ -29,8 +29,12 @@ _myshell() {
     COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
     return
     ;;
+  *set)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    return
+    ;;
   *)
-    COMPREPLY=($(compgen -W '--help --version --add --del --list ${ARRAY}' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help --version --add --del --list --set' -- "$cur"))
     return
     ;;
   esac
