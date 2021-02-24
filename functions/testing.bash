@@ -634,7 +634,9 @@ Darwin)
   ;;
 esac
 ###################### tools ######################
-__get_status_pid() { ps -aux 2>/dev/null | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
+__ps() { proc="$(basename "$1")"; ps -aux | grep -F " $proc" 2>/dev/null; }
+__get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
+__get_pid_of() { __ps "$1" | grep -v 'grep ' | head -n1 | awk '{print $2}' | grep '^' || return 1; }
 #basedir "file"
 __basedir() { dirname "${1:-.}"; }
 #__basename "file"
