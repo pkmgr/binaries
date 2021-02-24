@@ -5,7 +5,7 @@ APPDIR="$(dirname $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 012920210959-git
+##@Version     : 022420211808-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : randomwallpaper

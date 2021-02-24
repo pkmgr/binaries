@@ -4,7 +4,7 @@ APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
+##@Version     : 022420211808-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : encrypt

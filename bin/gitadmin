@@ -6,10 +6,10 @@ USER="${SUDO_USER:-${USER}}"
 shopt -s extglob
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
+##@Version     : 022420211808-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
-# @File        : install
+# @File        : gitadmin
 # @Created     : Wed, Aug 05, 2020, 02:00 EST
 # @License     : WTFPL
 # @Copyright   : Copyright (c) CasjaysDev
@@ -213,7 +213,7 @@ run_git_setup() {
   else
     printf_read_question "3" "Should I add a remote repo? [y/n] " "1" "remote" "-s"
     if printf_answer_yes "$remote"; then
-      printf_read_question "3" "Enter remote repo: " "120" "repo"
+      printf_read_question "3" "Enter remote repo: " "120" "repo" "-e"
       run_git_init "$REPODIR"
     else
       printf_info "You have decided not to add a remote repository"

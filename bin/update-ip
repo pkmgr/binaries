@@ -6,7 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 PATH="/usr/games:$PATH"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
+##@Version     : 022420211808-git
 # @Author      : Jason
 # @Contact     : jason@casjaysdev.com
 # @File        : update-ip

@@ -4,7 +4,7 @@ APPNAME="mpdclient"
 USER="${SUDO_USER:-${USER}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 012920210415-git
+##@Version     : 022420211808-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : mpdclient

@@ -3,7 +3,7 @@
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 020220211240-git
+##@Version       : 022420211808-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL

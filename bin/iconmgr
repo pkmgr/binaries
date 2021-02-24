@@ -5,7 +5,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 010920210727-git
+##@Version     : 022420211808-git
 # @Author      : Jason
 # @Contact     : casjaysdev@casjay.net
 # @File        : iconmgr
