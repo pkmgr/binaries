@@ -2,7 +2,7 @@ GNU Affero General Public License
 =================================
 
 _Version 3, 19 November 2007_
-_Copyright © REPLACE_YEAR REPLACE_AUTHOR._
+_Copyright © 2007 Free Software Foundation, Inc. &lt;<http://fsf.org/>&gt;_
 
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
@@ -620,7 +620,7 @@ state the exclusion of warranty; and each file should have at least
 the “copyright” line and a pointer to where the full notice is found.
 
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Copyright (C) <REPLACE_YEAR>  <REPLACE_AUTHOR>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by

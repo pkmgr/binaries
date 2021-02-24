@@ -2,7 +2,8 @@ GNU General Public License
 ==========================
 
 _Version 2, June 1991_  
-_Copyright © <REPLACE_YEAR>  <REPLACE_AUTHOR>._
+_Copyright © 1989, 1991 Free Software Foundation, Inc.,_  
+_51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA_
 
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
@@ -308,7 +309,7 @@ Also add information on how to contact you by electronic and paper mail.
 If the program is interactive, make it output a short notice like this
 when it starts in an interactive mode:
 
-    Gnomovision version 69, Copyright (C) <REPLACE_YEAR>  <REPLACE_AUTHOR>
+    Gnomovision version 69, Copyright (C) REPLACE_YEAR REPLACE_AUTHOR
     Gnomovision comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `show c' for details.
