@@ -157,13 +157,13 @@ client() {
 }
 
 __mpd_status() {
-  if [ "$MPDSERVER" = "localhost" ] || [ "$MPDSERVER" = "$(hostname -s)" ] || [ "$MPDSERVER" = "$(hostname -f)" ]; then
+  if __local_sysname "$MPDSERVER"; then
     if is_up_mpd; then
       MPDSTATUS=stop
-      printf_green "local mpd server is running"
+      printf_green "local mpd server is running with pid: $(__get_pid_of mpd)"
     else
       MPDSTATUS=start
-      printf_red "local mpd server is stopped"
+      #printf_red "local mpd server is stopped"
     fi
   fi
   export MPDSTATUS
@@ -239,7 +239,9 @@ while :; do
   2)
     OLDMPDSERVER="$MPDSERVER"
     printf_read_question "6" "Enter new hostname:" "120" "NEWMPDSERVER"
-    if [ "$NEWMPDSERVER" = "localhost" ] || [ "$NEWMPDSERVER" = "$(hostname -s)" ] || [ "$NEWMPDSERVER" = "$(hostname -f)" ]; then
+    [ -n "$NEWMPDSERVER" ] || NEWMPDSERVER="$OLDMPDSERVER"
+    [ "$NEWMPDSERVER" = "local" ] && NEWMPDSERVER="$(hostname -s)"
+    if __local_sysname "$NEWMPDSERVER"; then
       if __cmd_exists mpd; then
         if is_up_mpd; then
           MPDSTATUS=stop

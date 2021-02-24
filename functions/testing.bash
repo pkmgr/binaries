@@ -286,7 +286,7 @@ printf_read_question() {
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
   read -t 20 -r $readopts -n $lines $reply
-  echo ""
+  #echo ""
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -299,7 +299,7 @@ printf_read_question_nt() {
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
   read -r $readopts -n $lines $reply
-  echo ""
+  #echo ""
 }
 
 printf_read_error() {
@@ -412,7 +412,13 @@ __counter() {
     ((temp_cnt--))
   done
 }
-
+__local_sysname() {
+  if [ "$1" = "localhost" ] || [ "$1" = "$(hostname -s)" ] || [ "$1" = "$(hostname -f)" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
 ###################### MyCurDir ######################
 #mycurrdir "$*" | returns $MyCurDir
 __mycurrdir() {
