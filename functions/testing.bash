@@ -1097,10 +1097,8 @@ __custom_menus() {
 
 #open_file_menus
 __open_file_menus() {
-  local prog="$1"
-  shift 1
-  local args="$*"
-  shift
+  local prog="$1" && shift 1
+  local args="$*" && shift $#
   if __cmd_exists "$prog"; then
     local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)
     if [ -f "$file" ] || [ -d "$file" ]; then
@@ -1118,24 +1116,24 @@ __run_command() {
   local arg="$*" && shift $#
   clear
   if __cmd_exists $cmd; then
-    $cmd "${arg:-}" 2>/dev/null
+    $cmd ${arg:-} 2>/dev/null
   else
     printf_newline "\n\n\n"
-    printf_pause 1 "$cmd doesn't exist"
+    printf_pause 1 "Sorry but $cmd doesn't seem to exist"
   fi
-  clear
 }
 #run_prog_menus - graphical apps
 __run_prog_menus() {
-  local prog="$1"
-  shift 1
-  local args="$*"
-  shift
+  local prog="$1" && shift 1
+  local args="$*" && shift $#
+  clear
+  printf_newline "\n\n\n"
   if __cmd_exists "$prog"; then
-    __run_menu_start "$prog" "$args"
+    __run_menu_start "$prog" "$args" && printf_counter "5" "3" "Launching $prog"
   else
     __attemp_install_menus "$prog" && __run_menu_start "$prog" "$args"
   fi
+  clear
 }
 
 __edit_menu() {
@@ -1144,9 +1142,9 @@ __edit_menu() {
   [ -d "$1" ] && local dir="$1" && shift 1 || local dir="${WDIR:-$HOME}"
   if __cmd_exists dialog; then
     [ -n "$file" ] || file=$(dialog --title "Play a file" --stdout --title "Please choose a file to edit" --fselect "$dir/" 20 80 || __return 1)
-    [ ! -f "$file" ] || __editor "$file" && __return 0 || __return 1 "Can not open file" "$file does not exists"
+    [ -f "$file" ] && __editor "$file" && __return 0 || __return 1 "Can not open file" "$file does not exists"
   else
-    [ ! -f "$file" ] || __editor "$file" && __return 0 || __return 1 "Can not open file" "$file does not exists"
+    [ -f "$file" ] && __editor "$file" && __return 0 || __return 1 "Can not open file" "$file does not exists"
   fi
   __returnexitcode $?
 }

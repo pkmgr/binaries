@@ -57,17 +57,17 @@ fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-license/settings" ] && . "$HOME/.config/gen-license/settings"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 licenseDir="${licenseDir:-$HOME/.config/gen-license/files}"
 licenseDirCustom="${licenseDirCustom:-$HOME/.config/gen-license/custom}"
 licenseURL="${licenseURL:-$WHICH_LICENSE_URL}"
-licenseFile="${licenseFile:-$WHICH_LICENSE_DEF}"
-whichLicense="$(echo "$1" | tr [A-Z] [a-z])"
+file="${1:-$DefLicenseFile}"
+licenseFile="$(basename ${file:-$WHICH_LICENSE_DEF})"
+whichLicense="$(echo "${1:-$licenseFile}" | tr [A-Z] [a-z])"
 gitconfig_user="${gitconfig_user:-$(__git_globaluser)}"
 gitconfig_email="${gitconfig_email:-$(__git_globalemail)}"
 __mkd "$licenseDir"
-
+__mkd "$licenseDirCustom"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __file_failed() {
   printf_error "Failed to get the license file"
@@ -77,6 +77,7 @@ create_local_file() {
   [ -f "$1" ] || __file_failed "$1"
   cat "$1" >"$licDir/LICENSE.md" 2>/dev/null
   if [ -f "$licDir/LICENSE.md" ] && [ -s "$licDir/LICENSE.md" ]; then
+    _modify_license_file
     printf_green "Your LICENSE file has been created"
   else
     __file_failed "$1"
@@ -100,13 +101,14 @@ else
 fi
 
 gen_config() {
-  printf_green "Generating the config file $HOME/.config/gen-license/settings"
+  printf_green "Generating the config file"
+  printf_green "$HOME/.config/gen-license/settings"
   cat <<EOF >"$HOME/.config/gen-license/settings"
 # Settings for $APPNAME
-# Default license
-licenseFile="${licenseFile:-$WHICH_LICENSE_DEF}"
 # Default directory
 licenseDir="$licenseDir"
+# Default license
+DefLicenseFile="$license"
 # Default custom directory
 licenseDirCustom="${licenseDirCustom:-$HOME/.config/gen-license/custom}"
 # Default URL
@@ -129,11 +131,19 @@ EOF
       fi
     fi
   fi
+  if [ -f "$HOME/.config/gen-license/settings" ] && [ "$(__count_files "$licenseDir" "2")" -ne 0 ]; then
+    printf_green "Initializing has finished"
+  else
+    if [ -f "$HOME/.config/gen-license/settings" ] && [ "$(__count_files "$licenseDir" "2")" -eq 0 ]; then
+      printf_green "Configuration has been generated, however, I"
+      printf_red "could not copy the license files to ~/.config/gen-license/files"
+    fi
+  fi
 }
 
-create_new_wtfpl() {
-  if grep -q 'What The Fuck Public License' "$licDir/LICENSE.md"; then
-    if grep -q 'CURYEAR AuthorName' "$licDir/LICENSE.md"; then
+_modify_license_file() {
+  if grep -iq 'What The Fuck Public License' "$licDir/LICENSE.md" || grep -iq 'DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE' "$licDir/LICENSE.md"; then
+    if grep -iq 'CURYEAR AuthorName' "$licDir/LICENSE.md"; then
       [ -f "$licDir/LICENSE.md" ] && __sed -i "s# CURYEAR # $(date +'%Y') #g" "$licDir/LICENSE.md"
       [ -f "$licDir/LICENSE.md" ] && __sed -i "s#AuthorName#${gitconfig_user}#g" "$licDir/LICENSE.md"
     else
@@ -145,8 +155,8 @@ create_new_wtfpl() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Init
-if [ ! -f "$HOME/.config/gen-license/settings" ] && [ ! -d "$HOME/.config/gen-license/settings" ]; then
-  gen_config
+if [ ! -f "$HOME/.config/gen-license/settings" ] && [ ! -d "$HOME/.config/gen-license/files" ]; then
+  if [ "$#" = 0 ]; then gen_config; fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main
@@ -157,11 +167,17 @@ list)
     cat "${CASJAYSDEVDIR}/helpers/gen-license/array" | printf_readline "2"
   else
     __find "$licenseDir/files" | printf_readline "2"
+    [ "$(__count_files "$licenseDir/custom")" -eq 0 ] || __find "$licenseDir/custom" | printf_readline "2"
   fi
   ;;
 
 config)
   shift 1
+  if [ "$DefLicenseFile" = "config" ] || [ "$licenseFile" = "config" ]; then
+    license="$WHICH_LICENSE_DEF"
+  else
+    license="$DefLicenseFile"
+  fi
   gen_config
   ;;
 
@@ -176,7 +192,6 @@ wtfpl)
   shift 1
   printf_green "Using the WTFPL license for $licDir"
   get_lic "$licenseURL/wtfpl.md"
-  create_new_wtfpl
   ;;
 
 gpl1)
@@ -245,17 +260,28 @@ custom)
 
 *)
   shift
-  if [ ! -f "$licDir/$whichLicense" ]; then
-    printf_red "File doesn't exist: Using the default license"
-  else
-    printf_green "Using the default license for $licDir"
-  fi
-  if [ -f "$licenseFile" ]; then
+  if [ "$licenseFile" = "$DefLicenseFile" ] || [ $# = 0 ]; then
+    printf_green "Using Default license for $licDir"
+    if [ -f "$DefLicenseFile" ]; then
+      create_local_file "$DefLicenseFile"
+    elif [ -f "$licenseDir/$DefLicenseFile" ]; then
+      create_local_file "$licenseDir/$DefLicenseFile"
+    fi
+  elif [ -f "$licenseFile" ]; then
+    printf_green "Using $licenseFile for $licDir"
     create_local_file "$licenseFile"
+  elif [ -f "$licenseDir/$licenseFile" ]; then
+    printf_green "Using $LicenseDir/$licenseFile for $licDir"
+    create_local_file "$licenseDir/$licenseFile"
+  elif [ -f "$licenseDirCustom/$licenseFile" ]; then
+    printf_green "Using $licenseDirCustom/$licenseFile for $licDir"
+    create_local_file "$licenseDirCustom/$licenseFile"
+  elif [ -f "$licenseDir/$whichLicense" ]; then
+    printf_red "$licenseDir/$whichLicense"
+    printf_red " doesn't exist: Using the default license"
   else
     get_remote_file "$licenseFile"
   fi
-  create_new_wtfpl
   ;;
 
 esac

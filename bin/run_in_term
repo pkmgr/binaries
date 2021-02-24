@@ -34,7 +34,7 @@ main() {
     local CMD="$1" && shift 1
     local ARG="$*" && shift $#
     if __cmd_exists $CMD; then
-      $CMD "${ARG:-}"
+      $CMD ${ARG:-}
     else
       printf_exit "1" "1" "$CMD does not exist"
     fi
