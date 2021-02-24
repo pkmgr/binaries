@@ -43,10 +43,10 @@ open_url() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
-  declare -r MAX_NUMBER_OF_TRIES=10
   local i=0
   local port="${1:-8000}"
   local myip=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')
+  local MAX_NUMBER_OF_TRIES=10
 
   printf_yellow "Access from the network: http://$myip:$port"
   printf_red "control-c to exit"

@@ -29,36 +29,38 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+[ $# = 0 ] && printf_exit 1 1 "No command given"
 main() {
-  APP="$(basename $1)"
-  [[ -z "$APP" ]] && printf_help "No command given"
-  [[ "$APP" = /* ]] && printf_help "Absolute paths not supported"
-
+  APP="$(basename $1)" && shift 1
+  ARG="$*" && shift $#
+  [[ "$APP" = /* ]] && printf_exit 1 4 "Absolute paths not supported"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   year="$(date +'%Y')"
   date="$(date +'%m%d')"
   time="$(date +'%H%M')"
   logdir="${LOGDIR:-$HOME/.local/log}/run/$year"
   logname="$APP-$date"
-  command="$* >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &>/dev/null &"
+  command="$APP $ARG >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &>/dev/null &"
   mkdir -p "$logdir"
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
   if [ -f "$(command -v $APP 2>/dev/null)" ]; then
-    eval "$command" && sleep 2 && EXIT=0 || EXIT=1
+    eval "$command" && sleep 5 && EXIT=0 || EXIT=1
     if [ "$EXIT" -eq 0 ]; then
       printf_success "$APP started successfully"
     else
       printf_exit "$APP has failed: Check $logdir/$logname.err for details"
     fi
   else
-    printf_exit "The application $APP does not exist"
+    printf_error 1 1 "The application $APP does not exist"
+    printf_read_question "4" "would you like to try to install $APP?" "1" "YN" "-s"
+    if printf_answer_yes "$YN"; then
+      pkmgr install silent $APP && printf_green "$APP has been installed" || printf_exit 1 1 "Failed to install $APP"
+    else
+      exit 1
+    fi
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

@@ -29,20 +29,23 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 run_in_term() {
-  local CMD="$1"
-  shift 1
-  if [ $# -gt 0 ]; then
-    exec $CMD "$*"
-    exit $?
+  if [ -n "$1" ]; then
+    local CMD="$1" && shift 1
+    local ARG="$*" && shift $#
+    if __cmd_exists $CMD; then
+      $CMD "${ARG:-}"
+    else
+      printf_exit "1" "1" "$CMD does not exist"
+    fi
   else
-    echo -e "\n\n\n"
+    printf_newline "\n\n\n"
+    printf_read_question "2" "What command would you like to run?" "120" "CMD"
     printf_red "Type exit or ctrl + c to exit"
     printf_cyan "Usage: Enter the commands for $CMD"
     printf_cyan "To show this message again type: _help_"
     while :; do
-      printf_read_question "5" "What would you like to pass to $CMD?" "__ANSWER" "120"
+      printf_read_question "5" "What would you like to pass to $CMD?" "120" "__ANSWER"
       if [ "$__ANSWER" = exit ] || [ "$__ANSWER" = quit ] || [ "$__ANSWER" = !q ]; then clear && break; fi
       if [ "$__ANSWER" = _help_ ]; then
         clear
@@ -50,15 +53,13 @@ run_in_term() {
         continue
       fi
       clear
-      echo -e "\n\n\n"
-      $CMD "$__ANSWER" 2>/dev/null | printf_readline
-      echo -e "\n"
+      printf_newline "\n\n\n"
+      $CMD "$__ANSWER" 2>/dev/null
+      printf_newline "\n"
     done
   fi
 }
-
-run_in_term "$*"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+run_in_term "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

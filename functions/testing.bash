@@ -184,6 +184,7 @@ printf_pause() {
   local msg="${*:-Press any key to continue}"
   printf_color "\t\t$msg " "$color"
   read -r -n 1 -s
+  echo ""
 }
 
 print_wait() { printf_pause "$*"; }
@@ -314,8 +315,24 @@ printf_answer() {
 }
 
 #printf_answer_yes "var" "response"
-printf_answer_yes() { [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1; }
-printf_answer_no() { [[ "${1:-$REPLY}" =~ ${2:-^[Nn]$} ]] && return 0 || return 1; }
+printf_answer_yes() {
+  if [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]]; then
+    echo ""
+    return 0
+  else
+    echo ""
+    return 1
+  fi
+}
+printf_answer_no() {
+  if [[ "${1:-$REPLY}" =~ ${2:-^[Nn]$} ]]; then
+    echo ""
+    return 0
+   else
+     echo ""
+     return 1
+  fi
+}
 
 printf_return() { return "${1:-1}"; }
 
@@ -1097,7 +1114,15 @@ __open_file_menus() {
 }
 #run_command "full command" - terminal apps
 __run_command() {
-  "$@" 2>/dev/null
+  local cmd="$1" && shift 1
+  local arg="$*" && shift $#
+  clear
+  if __cmd_exists $cmd; then
+    $cmd "${arg:-}" 2>/dev/null
+  else
+    printf_newline "\n\n\n"
+    printf_pause 1 "$cmd doesn't exist"
+  fi
   clear
 }
 #run_prog_menus - graphical apps
