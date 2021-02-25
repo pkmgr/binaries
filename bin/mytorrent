@@ -81,7 +81,7 @@ __create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __launch() {
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
-  local args="$*"
+  local args="$@"
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
     exec ~/.local/bin/mytorrent ${args:-} 2>/dev/null &
     disown
@@ -149,7 +149,10 @@ case $1 in
   ;;
 *)
   ARGS="$@"
-  if [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
+  if [ $# -eq 0 ] && [[ "$TORRENT" =~ transmission ]] && [[ "$TORRENT" != transmission-cli ]]; then
+    __launch -m
+    exit $?
+  elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
     [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Adding $ARGS"
     __cmd_exists transadd && transadd "$ARGS" | grep -q "success" || "$TORRENT" -a "$ARGS"
     exit $?
