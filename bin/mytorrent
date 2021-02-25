@@ -81,11 +81,12 @@ __create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __launch() {
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
+  local args="$*"
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
-    ~/.local/bin/mytorrent "$*" 2>/dev/null &
+    exec ~/.local/bin/mytorrent ${args:-} 2>/dev/null &
     disown
   else
-    $TORRENT "$*" 2>/dev/null &
+    exec $TORRENT ${args:-} 2>/dev/null &
     disown
   fi
 }
@@ -149,15 +150,13 @@ case $1 in
   ;;
 
 *)
-  if [[ "$1" =~ .*.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
-    __cmd_exists transadd && transadd "$*" || "$TORRENT" -a "$*"
-    exit
-  fi
-  if [ $# -ne 0 ]; then
-    ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch && sleep 10
-    $TORRENT "$*"
+  if [[ "$1" =~ .torrent ]] && [[ "$TORRENT" =~ transmission* ]]; then
+    __cmd_exists transadd && transadd "$@" || "$TORRENT" -a "$@"
+    exit $?
+  elif [ $# -ne 0 ]; then
+    ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch "$@" && sleep 10 || $TORRENT "$@"
   else
-    __launch "$*"
+    __launch "$@"
   fi
   ;;
 esac
