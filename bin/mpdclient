@@ -91,7 +91,6 @@ updating_db() { __mpc status | grep -qi updating && echo -e "Database is being u
       echo -e "MPD Server is stopped"
     fi
   }
-
   notify && display && next && updating_db && return 0 || return 1
 }
 
@@ -206,6 +205,20 @@ __mpd_toggle() {
     return 1
   fi
 }
+__play_toggle() {
+if __mpc status | grep -iq playing >/dev/null 2>&1; then
+  PLAYT=pause
+else
+  PLAYT=play
+fi
+}
+__consume_toggle() {
+  if __mpc status | grep -q 'consume:.on'; then
+    TOGGLEC=off
+  else
+    TOGGLEC=on
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mkd "$TEMPDIR"
 [ -f "$TEMPDIR/mpdclient_prev" ] || echo "" >"$TEMPDIR/mpdclient_prev"
@@ -218,8 +231,10 @@ while :; do
   shift 1
   printf_newline "\n\n\n"
   is_up || break
-  __repeat_toggle
   __mpd_status
+  __repeat_toggle
+  __play_toggle
+  __consume_toggle
   mpc_status | printf_readline "6"
   printf_newline
   printf_green "1. turn notifications ${NOTIFYS:-off}"
@@ -231,11 +246,11 @@ while :; do
   printf_green "-. volume down -5"
   printf_green "]. volume up +1"
   printf_green "[. volume down -1"
-  printf_green "a. play/pause"
-  printf_green "b. consume"
-  printf_green "l. repeat ${REPEATS:-off}"
-  printf_green "n. next song"
-  printf_green "p. prev song "
+  printf_green "a. toggle: ${PLAYT:-play}"
+  printf_green "b. turn consume ${TOGGLEC:-on}"
+  printf_green "l. turn repeat ${REPEATS:-off}"
+  printf_green "n. play next song"
+  printf_green "p. play prev song"
   printf_green "r. play"
   printf_green "s. stop"
   printf_green "u. update database"
