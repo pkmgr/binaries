@@ -42,7 +42,7 @@ SYSMPDSERVER="$MPDSERVER"
 MPDSTATUS="start"
 TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
 notify-daemon ask && NOTIFY="on" || NOTIFY="off"
-if mpc -h "$SYSHOSTNAME" | grep -iq playing; then
+if mpc -h "$SYSHOSTNAME" 2>/dev/null | grep -iq playing; then
   MPDSERVER="$SYSHOSTNAME"
 else
   MPDSERVER="${MPDSERVER:-localhost}"
@@ -50,10 +50,16 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [[ "$1" = *term ]]; then exec myterminal -e mpdclient & exit; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__devnull() { "$@" >/dev/null 2>&1 && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
-__devnull2() { "$@" 2>/dev/null && printf_green "Command sent successfully" || printf_red "Failed to send command"; }
+__devnull() { "$@" &>/dev/null && \
+  printf_green "${cmd:-Command} sent successfully" || \
+  printf_red "Failed to send ${cmd:-command}"
+}
+__devnull2() { "$@" 2>/dev/null && \
+  printf_green "${cmd:-Command} sent successfully" || \
+  printf_red "Failed to send ${cmd:-command}"
+}
 __server_failed() { printf_red "$ICON_ERROR Failed to connect to mpdserver @ $MPDSERVER" && sleep 3 && return 1; }
-__mpc() { mpc -h "$MPDSERVER" "$@" || return 1; }
+__mpc() { mpc -h "$MPDSERVER" "$@" 2>/dev/null || return 1; }
 is_up() { __mpc &>/dev/null && return 0 || __server_failed; }
 is_up_mpd() { __get_status_pid "mpd" && return 0 || return 1; }
 get_prev() { cat "$TEMPDIR/mpdclient_prev" 2>/dev/null; }
@@ -66,6 +72,7 @@ stats() { echo -e "$(volume)  |  $(playtime)"; }
 db_play() { echo -e "Total: $(__mpc stats | tail -n1 | sed 's#DB Play Time: ##g')"; }
 db_songs() { echo -e "Songs: $(__mpc stats | grep Songs | awk '{print $2}')"; }
 db_uptime() { echo -e "Uptime: $(__mpc stats | grep Uptime | sed 's#Uptime:       ###g')"; }
+
 mpc_status() {
   status() {
     echo "MPD @ $MPDSERVER: $(db_uptime)"
@@ -103,6 +110,7 @@ notify() {
   fi
   prevSong="$(get_curr >"$TEMPDIR/mpdclient_prev" 2>/dev/null)"
 }
+
 notify_toggle() {
   if [ "$NOTIFY" = "on" ]; then
     export NOTIFY="off"
@@ -143,7 +151,6 @@ client() {
   else
     CONNECT_TO="localhost"
   fi
-
   if __cmd_exists ncmpcpp; then
       ncmpcpp -q -h $CONNECT_TO
   elif __cmd_exists mpc; then
@@ -178,6 +185,7 @@ __mpd_status() {
   fi
   export MPDSTATUS
 }
+
 __mpd_toggle() {
   if __cmd_exists mpd; then
     local pid="$(__get_pid_of mpd)"
@@ -205,6 +213,7 @@ __mpd_toggle() {
     return 1
   fi
 }
+
 __play_toggle() {
 if __mpc status | grep -iq playing >/dev/null 2>&1; then
   PLAYT=pause
@@ -212,6 +221,7 @@ else
   PLAYT=play
 fi
 }
+
 __consume_toggle() {
   if __mpc status | grep -q 'consume:.on'; then
     TOGGLEC=off
@@ -240,7 +250,7 @@ while :; do
   printf_green "1. turn notifications ${NOTIFYS:-off}"
   printf_green "2. change mpd server"
   printf_green "3. ${MPDSTATUS} mpd server"
-  printf_green "0. MPD Status"
+  printf_green "0. get MPD status"
   printf_green "/. ${volume:-mute} volume"
   printf_green "+. volume up +5"
   printf_green "-. volume down -5"
@@ -255,7 +265,7 @@ while :; do
   printf_green "s. stop"
   printf_green "u. update database"
   printf_green "x. launch ncmpcpp"
-  printf_green "y. send command to mpd"
+  printf_green "y. send custom command to mpd"
   printf_green "z. quit"
   printf_newline
   printf_read_question "6" "Enter your choice  : " "1" "main" "-s"
@@ -267,7 +277,7 @@ while :; do
     ;;
   2)
     OLDMPDSERVER="$MPDSERVER"
-    printf_read_question "6" "Enter new hostname:" "120" "NEWMPDSERVER"
+    printf_read_question "6" "Enter new hostname:" "120" "NEWMPDSERVER" "-e"
     [ -n "$NEWMPDSERVER" ] || NEWMPDSERVER="$OLDMPDSERVER"
     [ "$NEWMPDSERVER" = "local" ] && NEWMPDSERVER="$(hostname -s)"
     if __local_sysname "$NEWMPDSERVER"; then
@@ -306,55 +316,68 @@ while :; do
     ;;
   /)
     shift 1
+    cmd="toggle volume"
     __devnull volume_toggle
     ;;
   +)
     shift 1
+    cmd="volume +5"
     __devnull __mpc volume +5
     ;;
   -)
     shift 1
+    cmd="volume -5"
     __devnull __mpc volume -5
     ;;
   ])
     shift 1
+    cmd="volume +1"
     __devnull __mpc volume +1
     ;;
 
   [)
     shift 1
+    cmd="volume -1"
     __devnull __mpc volume -1
     ;;
   a)
     shift 1
+    cmd="send $PLAYT"
     __devnull __mpc toggle
     ;;
   b)
     shift 1
+    cmd="set consume to $TOGGLEC"
     __devnull __mpc consume
     ;;
   l)
     shift 1
+    cmd="set repeat to $REPEATS"
     __devnull __mpc repeat
     ;;
   n)
     shift 1
+    cmd="play next"
     __devnull __mpc next
     ;;
   p)
     shift 1
+    cmd="play previous"
     __devnull __mpc prev
     ;;
   r)
     shift 1
+    cmd="play"
     __devnull __mpc play
     ;;
   s)
     shift 1
+    cmd="stop"
     __devnull __mpc stop
     ;;
   u)
     shift 1
+    cmd="update"
     __devnull __mpc update
     ;;
   x)
@@ -363,10 +386,14 @@ while :; do
     ;;
   y)
     shift 1
-    printf_read_question "6" "Enter command to send : " "120" "opts"
-    printf_custom "26" "Results for $opts"
-    __mpc "$opts" 2>/dev/null | printf_readline "3"
-    printf_read_question "6" "Press enter to continue " "120"
+    printf_read_question "6" "Enter command to send : " "120" "opts" "-e"
+    if [ -n "$opts" ]; then
+      printf_custom "26" "Results for $opts"
+      __mpc "$opts" 2>/dev/null | printf_readline "3"
+      printf_read_question "6" "Press enter to continue " "120"
+    else
+      clear
+    fi
     ;;
   $'\E' | $'\e' | z)
     shift 1
