@@ -59,7 +59,7 @@ topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$topdir/version.txt"
 repo="$(__git_remote_fetch $MYCURRDIR)"
-
+basedir="$(basename $gitdir)"
 [ -n "$repo" ] || repo="localdir"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Functions
@@ -337,7 +337,7 @@ esac
 shift
 
 if __git_porcelain "$gitdir"; then
-  printf_red "There are no changes to commit in ${gitdir//$PWD/.}"
+  printf_red "There are no changes to commit in ${basedir}"
   exit
 else
   printf_newline
