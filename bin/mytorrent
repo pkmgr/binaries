@@ -128,7 +128,6 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $TORRENT in
 transmission-remote*)
-  shift 1
   transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
   if [ -z "$transmission_daemon" ] && [ -z "$TORRENT_SERVER" ]; then
     transmission-daemon &>/dev/null &
@@ -148,15 +147,16 @@ case $1 in
   shift 1
   __create_link "$@"
   ;;
-
 *)
-  if [[ "$1" =~ .torrent ]] && [[ "$TORRENT" =~ transmission* ]]; then
-    __cmd_exists transadd && transadd "$@" || "$TORRENT" -a "$@"
+  ARGS="$@"
+  if [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
+    [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Adding $ARGS"
+    __cmd_exists transadd && transadd "$ARGS" | grep -q "success" || "$TORRENT" -a "$ARGS"
     exit $?
   elif [ $# -ne 0 ]; then
-    ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch "$@" && sleep 10 || $TORRENT "$@"
+    ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch "$ARGS" && sleep 10 || $TORRENT "$ARGS"
   else
-    __launch "$@"
+    __launch "$ARGS"
   fi
   ;;
 esac
