@@ -148,12 +148,13 @@ case $OPTIONS in
 
 *search)
   trap 'bluetoothctl scan off &>/dev/null' QUIT
-  printf_green "Press Control-C to cancel"
+  printf_green "Press control-C to cancel search"
   if [ ${#ARGS} -eq 0 ]; then
-    timeout 20 bluetoothctl scan on
+    printf_green "Searching please wait....."
+    bluetoothctl scan on
   elif [ ${#ARGS} -ne 0 ]; then
     printf_green "Searching for $ARGS"
-    timeout 20 bluetoothctl scan on | grep -Fi "$ARGS"
+      bluetoothctl scan on | grep -i "$ARGS"
   fi
   bluetoothctl scan off &>/dev/null
   exit 0
