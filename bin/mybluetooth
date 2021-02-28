@@ -45,40 +45,42 @@ __options "$@"
 cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set options
+DEFAULT_DEVICE="0C:FC:83:99:BC:9A"
 OPTIONS="$1" && shift 1
 ARGS="$@"
 
 # Import existing config
 MYTERMINAL_NOTIFICATIONS="no"
-if [ -f "$HOME/.config/mybluetooth/${1:-main}" ]; then
+if [ -f "$HOME/.config/mybluetooth/${1:-main}.conf" ]; then
   printf_read_question "6" "I found a settings file for $1: Should I use that?" "1" YN "-s" ||
     printf_read_error "YN="y""
   if printf_answer_yes "$YN"; then
-    . "$HOME/.config/mybluetooth/${1}"
+    . "$HOME/.config/mybluetooth/${1}.conf"
   fi
 fi
 
 # Set device
 if [ -z "$MY_BT_DEVICE" ]; then
-  MY_BT_DEVICE="$1" && shift 1 && echo "$1" | grep -q ':'
-else
-  MY_BT_DEVICE="${MY_BT_DEVICE:-0C:FC:83:99:BC:9A}"
+  echo "$1" | grep -q ':' && MY_BT_DEVICE="$1" && shift 1 || MY_BT_DEVICE="${MY_BT_DEVICE:-$DEFAULT_DEVICE}"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __ok_msg() { printf_green "$1" && return 0; }
 __fail_msg() { printf_exit "1" "1" "$ICON_ERROR $1"; }
 
 __config() {
+  if [ "$ARGS" = "--help" ]; then
+    printf_exit 3 0 "Usage: mybluetooth config device name | IE: mybluetooth config ADDRESS speaker"
+  fi
   local appname="${1:-settings}"
   printf_green "Generating the config file for ${1:-main}"
   __mkd "$HOME/.config/mybluetooth"
   echo '# Settings for mybluetooth - '${1:-main}'
 CONFIGNAME="'${1:-main}'"
 MY_BT_DEVICE="'${MY_BT_DEVICE}'"
-' >"$HOME/.config/mybluetooth/$appname"
-  if [ -f "$HOME/.config/mybluetooth/$appname" ]; then
+' >"$HOME/.config/mybluetooth/$appname.conf"
+  if [ -f "$HOME/.config/mybluetooth/$appname.conf" ]; then
     printf_green "File has been saved to"
-    printf_green "$HOME/.config/mybluetooth/$appname"
+    printf_green "$HOME/.config/mybluetooth/$appname.conf"
   else
     printf_error "Failed to generate the file"
     return 1
@@ -90,10 +92,21 @@ MY_BT_DEVICE="'${MY_BT_DEVICE}'"
 # Main application
 case $OPTIONS in
 *config)
-  [ "$1" = "--help" ] && printf_exit 3 0 "Usage: mybluetooth config name | IE: mybluetooth config speaker"
-  __config "$@"
+  if echo $MY_BT_DEVICE | grep -q ":" 2>/dev/null; then
+    if [ $# = 0 ]; then
+      MY_BT_DEVICE="$DEFAULT_DEVICE"
+      __config "settings"
+    elif [ "$MY_BT_DEVICE" != "$DEFAULT_DEVICE" ]; then
+      __config "$@"
+    else
+      __config --help
+    fi
+  else
+    __config --help
+  fi
   exit $?
   ;;
+
 *on | -*connect)
   bluetoothctl connect "$MY_BT_DEVICE" | grep -iq "Connection successful" >/dev/null 2>&1 &&
     __ok_msg "Connected" || __fail_msg "Connection failed"
