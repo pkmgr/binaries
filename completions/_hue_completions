@@ -17,7 +17,7 @@ _hue() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local ARRAY="--help play stop pause toggle state info brightness hue sat"
+  local ARRAY="--help on off toggle state info brightness hue sat"
 
   _init_completion || return
 
