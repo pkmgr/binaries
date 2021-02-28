@@ -46,6 +46,7 @@ cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set options
 OPTIONS="$1" && shift 1
+ARGS="$@"
 
 # Import existing config
 MYTERMINAL_NOTIFICATIONS="no"
@@ -58,10 +59,11 @@ if [ -f "$HOME/.config/mybluetooth/${1:-main}" ]; then
 fi
 
 # Set device
-[ -z "$MY_BT_DEVICE" ] &&
-  MY_BT_DEVICE="$1" && shift 1 && echo "$1" | grep -q ':' ||
+if [ -z "$MY_BT_DEVICE" ]; then
+  MY_BT_DEVICE="$1" && shift 1 && echo "$1" | grep -q ':'
+else
   MY_BT_DEVICE="${MY_BT_DEVICE:-0C:FC:83:99:BC:9A}"
-
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __ok_msg() { printf_green "$1" && return 0; }
 __fail_msg() { printf_exit "1" "1" "$ICON_ERROR $1"; }
@@ -87,28 +89,24 @@ MY_BT_DEVICE="'${MY_BT_DEVICE}'"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case $OPTIONS in
-config)
-  shift 1
+*config)
   [ "$1" = "--help" ] && printf_exit 3 0 "Usage: mybluetooth config name | IE: mybluetooth config speaker"
   __config "$@"
   exit $?
   ;;
 *on | -*connect)
-  shift 1
   bluetoothctl connect "$MY_BT_DEVICE" | grep -iq "Connection successful" >/dev/null 2>&1 &&
     __ok_msg "Connected" || __fail_msg "Connection failed"
   exit $?
   ;;
 
 *off | *-disconnect)
-  shift 1
   bluetoothctl disconnect "$MY_BT_DEVICE" | grep -iq "Successful disconnected" >/dev/null 2>&1 &&
     __ok_msg "Disconnected" || __fail_msg "Disconnection failed"
   exit $?
   ;;
 
 *discover)
-  shift 1
   case $1 in
   *on)
     shift 1
@@ -126,8 +124,7 @@ config)
   esac
   ;;
 
-add | pair)
-  shift 1
+*add | pair)
   printf_yellow "Scanning for device"
   timeout 20 bluetoothctl scan on &>/dev/null
   bluetoothctl pair "$MY_BT_DEVICE" &>/dev/null &&
@@ -138,27 +135,28 @@ add | pair)
   ;;
 
 *status)
-  shift 1
   printf_green "Bluetooth status"
   bluetoothctl info "$MY_BT_DEVICE" | printf_readline "4"
   exit $?
   ;;
 
-remove | unpair)
-  shift 1
+*remove | unpair)
   bluetoothctl remove "$MY_BT_DEVICE" | grep -q 'been removed' &&
     printf_green "$MY_BT_DEVICE has been removed"
   exit $?
   ;;
 
-search)
-  shift 1
+*search)
+  trap 'bluetoothctl scan off &>/dev/null' QUIT
   printf_green "Press Control-C to cancel"
-  if [ $# = 0 ]; then
-    bluetoothctl scan on | printf_readline
-  else
-    bluetoothctl scan on | grep -i "$1" | printf_readline
+  if [ ${#ARGS} -eq 0 ]; then
+    bluetoothctl scan on
+  elif [ ${#ARGS} -ne 0 ]; then
+    printf_green "Searching for $ARGS"
+    bluetoothctl scan on | grep -i "$ARGS"
   fi
+  bluetoothctl scan off &>/dev/null
+  exit 0
   ;;
 
 *)
