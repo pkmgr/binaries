@@ -47,16 +47,13 @@ cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
 # Set options
 DEFAULT_DEVICE="0C:FC:83:99:BC:9A"
 OPTIONS="$1" && shift 1
+CONFIG="$1"
 ARGS="$@"
 
 # Import existing config
 MYTERMINAL_NOTIFICATIONS="no"
-if [ -f "$HOME/.config/mybluetooth/${1:-main}.conf" ]; then
-  printf_read_question "6" "I found a settings file for $1: Should I use that?" "1" YN "-s" ||
-    printf_read_error "YN="y""
-  if printf_answer_yes "$YN"; then
-    . "$HOME/.config/mybluetooth/${1}.conf"
-  fi
+if [ -f "$HOME/.config/mybluetooth/${CONFIG:-main}.conf" ]; then
+  . "$HOME/.config/mybluetooth/$CONFIG.conf"
 fi
 
 # Set device
