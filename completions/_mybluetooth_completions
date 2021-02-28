@@ -4,16 +4,16 @@
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @ReadME        : mybrowser --help
+# @ReadME        : mybluetooth --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Friday, Feb 05, 2021 11:22 EST
-# @File          : mybrowser
-# @Description   : autocomplete for mybrowser
+# @File          : mybluetooth
+# @Description   : autocomplete for mybluetooth
 # @TODO          :
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_mybrowser() {
+_mybluetooth() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
@@ -38,4 +38,4 @@ _mybrowser() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _mybrowser -o default mybrowser
+  complete -F _mybluetooth -o default mybluetooth
