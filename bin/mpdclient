@@ -59,7 +59,7 @@ __devnull2() { "$@" 2>/dev/null && \
   printf_green "${cmd:-Command} sent successfully" || \
   printf_red "Failed to send ${cmd:-command}"
 }
-__server_failed() { printf_red "$ICON_ERROR Failed to connect to mpdserver @ $MPDSERVER" && sleep 3 && return 1; }
+__server_failed() { printf_red "$ICON_ERROR Failed to connect to the server @ $MPDSERVER" && sleep 3 && return 1; }
 __mpc() { mpc -h "$MPDSERVER" "$@" 2>/dev/null || return 1; }
 is_up() { __mpc &>/dev/null && return 0 || __server_failed; }
 is_up_mpd() { __get_status_pid "mpd" && return 0 || return 1; }
@@ -285,6 +285,7 @@ while :; do
     [ -n "$NEWMPDSERVER" ] || NEWMPDSERVER="$OLDMPDSERVER"
     [ "$NEWMPDSERVER" = "local" ] && NEWMPDSERVER="$(hostname -s)"
     [ "$NEWMPDSERVER" = "reset" ] && NEWMPDSERVER="$ORIG_MPDSERVER"
+    sleep 3
     if __local_sysname "$NEWMPDSERVER"; then
       if __cmd_exists mpd; then
         if is_up_mpd; then
