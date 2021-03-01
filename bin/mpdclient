@@ -154,12 +154,10 @@ client() {
   fi
   if __cmd_exists ncmpcpp; then
       ncmpcpp -q -h $CONNECT_TO
-  elif __cmd_exists mpc; then
-      mpc -q -h $CONNECT_TO
   else
+    clear
     printf_newline "\n\n"
     printf_counter "1" "5" "ncmpcpp is not installed"
-    clear
     return 1
   fi
 }
