@@ -278,7 +278,7 @@ while :; do
     ;;
   2)
     OLDMPDSERVER="$MPDSERVER"
-    printf_yellow "Reset for MPDSERVER or local for localhost"
+    printf_yellow "Reset for $ORIG_MPDSERVER or local for localhost"
     printf_read_question "6" "Enter new hostname:" "120" "NEWMPDSERVER" "-e"
     [ -n "$NEWMPDSERVER" ] || NEWMPDSERVER="$OLDMPDSERVER"
     [ "$NEWMPDSERVER" = "local" ] && NEWMPDSERVER="$(hostname -s)"
