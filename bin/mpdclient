@@ -147,7 +147,11 @@ volume_toggle() {
 client() {
   clear
   if [ -n "$MPDSERVER" ]; then
-    GETMPDSERVER="$(__hostname2ip "$MPDSERVER" || return 1)"
+    if ping -c 1 "$MPDSERVER" &>/dev/null; then
+      GETMPDSERVER="$MPDSERVER"
+    elif __hostname2ip "$MPDSERVER" &>/dev/null; then
+      GETMPDSERVER="$(__hostname2ip "$MPDSERVER")"
+    fi
     CONNECT_TO="$GETMPDSERVER"
   else
     CONNECT_TO="localhost"
@@ -156,7 +160,7 @@ client() {
       ncmpcpp -q -h $CONNECT_TO
   else
     clear
-    printf_newline "\n\n"
+    printf_newline "\n\n\n\n"
     printf_counter "1" "5" "ncmpcpp is not installed"
     return 1
   fi
