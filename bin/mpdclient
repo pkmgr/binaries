@@ -387,6 +387,7 @@ while :; do
     ;;
   x)
     shift 1
+    cmd="ncmpcpp"
     __devnull2 client
     ;;
   y)
