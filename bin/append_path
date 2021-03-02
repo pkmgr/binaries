@@ -41,8 +41,6 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ ! "$1" = "--help" ] || printf_help "Usage: append_path path    |    appends directory to path"
-
 case ":$PATH:" in
 *:"$1":*) ;;
 
@@ -50,5 +48,6 @@ case ":$PATH:" in
   PATH="${PATH:+$PATH:}$1"
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# end
