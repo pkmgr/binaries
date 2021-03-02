@@ -33,7 +33,6 @@ systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 twoscreen() {
-
   mirror=$(printf "no\\nyes" | dmenu -i -p "Mirror displays?")
   # Mirror displays using native resolution of external display and a scaled
   # version for the internal display
@@ -90,5 +89,5 @@ chosen=$(printf "%s\\nmulti-monitor\\nmanual selection" "$screens" | dmenu -i -p
   *) xrandr --output "$chosen" --auto --scale 1.0x1.0 $(echo "$allposs" | grep -v "$chosen" | awk '{print "--output", $1, "--off"}' | tr '\n' ' ') ;;
   esac
 
-setbg
-remaps
+#setbg
+#remaps
