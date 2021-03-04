@@ -1380,7 +1380,7 @@ __am_i_online() {
   }
   __test_http() {
     local site="$1"
-    curl --disable -LSIsk --max-time 1 http://$site 2>/dev/null | grep -E "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    curl -q -LSsik --max-time 1 http://$site 2>/dev/null | grep -E "HTTP/[0123456789]" | grep -E "200" -n1 -q
     local httpExit=$?
     return_code $httpExit
   }
