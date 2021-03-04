@@ -47,11 +47,15 @@ dmenu_emojis() {
     xdotool key --clearmodifiers ctrl+shift+v
   else
     echo "$chosen" | tr -d '\n' | xclip -selection clipboard
-    notify-send "'$chosen' copied to clipboard." &
+    notifications "Emojify" "'$chosen' copied to clipboard." &
     xdotool key --clearmodifiers ctrl+shift+v
   fi
 }
 
+update_list() {
+  emojify -l | awk '{print $2}' 2>/dev/null | tr '\n' ' ' | sed 's#-  emojify emojis: ##g'
+  printf_newline "\n"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 case "$1" in
@@ -60,13 +64,18 @@ update | -update | --update)
   curl -LSs https://raw.githubusercontent.com/mrowa44/emojify/master/emojify -o "$HOME/.local/bin/emojify" 2>/dev/null && chmod +x "$HOME/.local/bin/emojify"
   [ $? -eq 0 ] && printf_green "Update Successful" || printf_red "Update Failed"
   if (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; then
-    sudo mv -f "$HOME/.local/bin/emojify" /usr/local/bin/emojify
+    sudo mv -f "$HOME/.local/bin/emojify" /usr/local/bin/emojify &&
+      update_list > "$CASJAYSDEVDIR/helpers/emojis/list"
     [ $? -eq 0 ] && printf_green "System Update Successful" || printf_red "System Update Failed"
   fi
   ;;
 
 dmenu)
-  __cmd_exists dmenu && dmenu_emojis "$@" || printf_exit "dmenu doesn't seem to be installed"
+  if __cmd_exists dmenu; then
+    dmenu_emojis "$@"
+  else
+    printf_exit "dmenu doesn't seem to be installed"
+  fi
   ;;
 
 search | -s* | --s*)
@@ -78,17 +87,22 @@ search | -s* | --s*)
 
 print | -p* | --p* | -e* | --e* | echo | text)
   shift 1
-  args="$@"
-  var="$(printf_green $args)"
-  emojify "$var"
-  unset var
+  if [ $# -eq 0 ]; then
+    if [ -p "/dev/stdin" ]; then
+      message="$(</dev/stdin)"
+    else
+      __help
+    fi
+  else
+    message="$*"
+  fi
+  emojify "$message" | printf_readline 2
+  unset message
   ;;
 
 list | -l* | --l*)
-  var="($(emojify -l | awk '{print $2}' 2>/dev/null | sed 's# ##g' | tr '\n' ' '))"
-  echo -e ""
-  echo -e $var | sed 's#(- emojify emojis: ##g'
   printf_red "List of available emojis - Just copy and use"
+  cat "$CASJAYSDEVDIR/helpers/emojis/list"
   unset var
   ;;
 

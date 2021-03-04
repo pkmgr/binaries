@@ -2916,7 +2916,9 @@ if [[ -n $1 ]]; then
     ;;
 
   '-l' | '--list')
-    help list
+    for key in "${!emojis[@]}"; do
+      echo -e "$key ${emojis[$key]}"
+    done
     ;;
 
   '-v' | '--version')
