@@ -46,8 +46,13 @@ __options "$@"
 [ "$1" = "" ] && __help
 
 for p in $@; do
-  pid="$(__get_pid_of $p)"
-  [ -n "$p" ] && printf_green "The pid for $p is: $pid" || printf_red "no pid found for $p"
+  pid="$(__ps $p | awk '{print $11,$2}' | grep -Fv "$PROG" | grep -v "$$" | grep '^' || exit)"
+  if [ "$p" != "" ]; then
+    printf_green "Found the following pids for $p:"
+    echo "$pid" | printf_readline
+  else
+    printf_red "no pid found for $p"
+  fi
 done
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
