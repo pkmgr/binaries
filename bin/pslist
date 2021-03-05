@@ -42,19 +42,26 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # list processes
-
 [ "$1" = "" ] && __help
 
 for p in $@; do
-  pid="$(__ps $p | awk '{print $11,$2}' | grep -Fv "$PROG" | grep -v "$$" | grep '^' || exit)"
-  if [ "$p" != "" ]; then
-    printf_green "Found the following pids for $p:"
-    echo "$pid" | printf_readline
+  if __cmd_exists pidof; then
+    pid="$(pidof $p)"
+    if [ -n "$pid" ]; then
+      printf_green "The pid of $p is: $pid"
+    else
+      printf_red "There is no pid for $p"
+    fi
   else
-    printf_red "no pid found for $p"
+    pid="$(__ps | grep $p | awk '{print $11,$2}' | grep -Fv "$PROG" | grep -v "$$" | grep '^' || exit)"
+    if [ -n "$pid" ]; then
+      printf_green "Found the following pids for $p:"
+      echo "$pid" | printf_readline
+    else
+      printf_red "There is no pid for $p"
+    fi
   fi
 done
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
