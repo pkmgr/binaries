@@ -32,8 +32,8 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ -z "$1" ] && __help
+__am_i_online_err || exit 1
+[ -n "$1" ] || __help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __check_app dict
