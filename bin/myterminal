@@ -115,14 +115,9 @@ if [ -z "$TERMINAL" ]; then
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "No terminal emulators are installed"
   printf_exit 1 1 "No terminal emulators are installed"
 fi
+TERMINAL_NAME="$(basename "$TERMINAL" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$1" = -e ] && shift 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $TERMINAL in
-*)
-  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TERMINAL"
-  ;;
-esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
@@ -140,7 +135,7 @@ case $1 in
   _CMD="$1" && shift 1
   _ARG="$*" && shift $#
   if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
-  [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "$NOTIFY_MESSAGE"
+  [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
     exec ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
   else

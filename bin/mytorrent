@@ -80,7 +80,7 @@ __create_link() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __launch() {
-  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "$NOTIFY_MESSAGE"
+  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT_NAME"
   local args="$@"
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
     __exec ~/.local/bin/mytorrent ${args:-}
@@ -123,6 +123,7 @@ if [ -z "$TORRENT" ]; then
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
   printf_exit 1 1 "No bittorrent clients are installed"
 fi
+TORRENT_NAME="$(basename "$TORRENT" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $TORRENT in
 transmission-remote*)
@@ -137,11 +138,7 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $TORRENT in
 transmission-remote)
-  NOTIFY_MESSAGE="Attempting to launch $TORRENT"
   TORRENT="myterminal -e 'bash -c transmission-remote;bash'"
-  ;;
-*)
-  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TORRENT"
   ;;
 esac
 

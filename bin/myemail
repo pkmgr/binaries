@@ -105,20 +105,16 @@ if [ "$MYEMAIL" != "config" ]; then
     export EMAIL="sylpheed"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$EMAIL" ]; then
   [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "No email clients are installed"
   printf_exit 1 1 "No email clients are installed"
 fi
+EMAIL_NAME="$(basename "$EMAIL" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $EMAIL in
   emacs | mutt | neomutt)
-    NOTIFY_MESSAGE="Attempting to launch $EMAIL"
     EMAIL="myterminal -e $EMAIL"
-    ;;
-  *)
-    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $EMAIL"
     ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -134,7 +130,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "$NOTIFY_MESSAGE"
+  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL_NAME"
   if [ -f "$HOME/.local/bin/myemail" ]; then
     __exec ~/.local/bin/myemail "$@"
   else

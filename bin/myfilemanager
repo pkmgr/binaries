@@ -125,20 +125,16 @@ if [ "$MYFILEMANAGER" != "config" ]; then
     export FILEMANAGER="open"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$FILEMANAGER" ]; then
   [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "No filemanagers are installed"
   printf_exit 1 1 "No filemanagers are installed"
 fi
+FILEMANAGER_NAME="$(basename "$FILEMANAGER" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $FILEMANAGER in
 lf | vifm | ranger | se | cfiles)
-  NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
   FILEMANAGER="myterminal -e $FILEMANAGER"
-  ;;
-*)
-  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -154,7 +150,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "$NOTIFY_MESSAGE"
+  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER_NAME"
   if [ -f "$HOME/.local/bin/myfilemanager" ]; then
     __exec ~/.local/bin/myfilemanager "$@"
   else

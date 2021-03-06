@@ -110,14 +110,11 @@ if [ -z "$EDITOR" ]; then
   [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "No editors are installed"
   printf_exit 1 1 "No editors are installed"
 fi
+EDITOR_NAME="$(basename "$EDITOR" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $EDITOR in
 nano | vim)
-  NOTIFY_MESSAGE="Attempting to launch $EDITOR"
   EDITOR="myterminal -e $EDITOR"
-  ;;
-*)
-  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $EDITOR"
   ;;
 esac
 
@@ -133,7 +130,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "$NOTIFY_MESSAGE"
+  [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "Attempting to launch $EDITOR_NAME"
   if [ -f "$HOME/.local/bin/myeditor" ]; then
     __exec ~/.local/bin/myeditor "$@"
   else
