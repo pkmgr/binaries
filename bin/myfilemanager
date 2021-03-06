@@ -134,7 +134,11 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $FILEMANAGER in
   lf | vifm | ranger | se | cfiles)
+    NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
     FILEMANAGER="myterminal -e $FILEMANAGER"
+  ;;
+  *)
+    NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -150,7 +154,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER"
+  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "$NOTIFY_MESSAGE"
   if [ -f "$HOME/.local/bin/myfilemanager" ]; then
     __exec ~/.local/bin/myfilemanager "$@"
   else

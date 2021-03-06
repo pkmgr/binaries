@@ -145,7 +145,11 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $BROWSER in
   links | lynx)
+    NOTIFY_MESSAGE="Attempting to launch $BROWSER"
     BROWSER="myterminal -e $BROWSER"
+  ;;
+  *)
+    NOTIFY_MESSAGE="Attempting to launch $BROWSER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -161,7 +165,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "Attempting to launch $BROWSER"
+  [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "$NOTIFY_MESSAGE"
   if [ -f "$HOME/.local/bin/mybrowser" ]; then
     __exec "$HOME/.local/bin/mybrowser" "$@"
   else

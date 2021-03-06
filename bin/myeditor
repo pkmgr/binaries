@@ -105,17 +105,19 @@ if [ "$MYEDITOR" != "config" ]; then
     export EDITOR="nano"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$EDITOR" ]; then
   [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "No editors are installed"
   printf_exit 1 1 "No editors are installed"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $EDITOR in
 nano | vim)
-   EDITOR="myterminal -e $EDITOR"
+  NOTIFY_MESSAGE="Attempting to launch $EDITOR"
+  EDITOR="myterminal -e $EDITOR"
+  ;;
+*)
+  NOTIFY_MESSAGE="Attempting to launch $EDITOR"
   ;;
 esac
 
@@ -131,7 +133,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "Attempting to launch $EDITOR"
+  [ "$MYEDITOR_NOTIFICATIONS" = "yes" ] && notifications "MyEditor" "$NOTIFY_MESSAGE"
   if [ -f "$HOME/.local/bin/myeditor" ]; then
     __exec ~/.local/bin/myeditor "$@"
   else

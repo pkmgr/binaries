@@ -50,7 +50,7 @@ __config() {
   __mkd "$HOME/.config/myemail"
   echo -e '# Settings for myemail
 MYEMAIL="config"
-EMAIL="$EMAIL"
+EMAIL="'$EMAIL'"
 MYEMAIL_NOTIFICATIONS="'$MYEMAIL_NOTIFICATIONS'"
   ' >"$HOME/.config/myemail/settings"
   if [ -f "$HOME/.config/myemail/settings" ]; then
@@ -114,7 +114,11 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $EMAIL in
   emacs | mutt | neomutt)
+    NOTIFY_MESSAGE="Attempting to launch $EMAIL"
     EMAIL="myterminal -e $EMAIL"
+    ;;
+  *)
+    NOTIFY_MESSAGE="Attempting to launch $EMAIL"
     ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,7 +134,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL"
+  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "$NOTIFY_MESSAGE"
   if [ -f "$HOME/.local/bin/myemail" ]; then
     __exec ~/.local/bin/myemail "$@"
   else

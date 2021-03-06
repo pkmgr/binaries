@@ -108,7 +108,11 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $MYVMMANAGER in
   docker | kubectl)
+    NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
     MYVMMANAGER="myterminal -e $MYVMMANAGER"
+    ;;
+  *)
+    NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
     ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -124,7 +128,7 @@ case $1 in
   ;;
 
 *)
-  [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "Attempting to launch $VMMANAGER"
+  [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "$NOTIFY_MESSAGE"
   if [ -f "$HOME/.local/bin/myvmmanager" ]; then
     __exec ~/.local/bin/myvmmanager "$@"
   else
