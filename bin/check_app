@@ -7,18 +7,18 @@ HOME="${USER_HOME:-${HOME}}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : REPLACE_VERSION
-# @Author        : REPLACE_AUTHOR
-# @Contact       : REPLACE_EMAIL
-# @License       : REPLACE_LICENSE
-# @ReadME        : REPLACE_README
-# @Copyright     : REPLACE_COPYRIGHT
-# @Created       : REPLACE_DATE
-# @File          : REPLACE_FILENAME
-# @Description   : REPLACE_DESC
-# @TODO          : REPLACE_TODO
-# @Other         : REPLACE_OTHER
-# @Resource      : REPLACE_RES
+##@Version       : 030620210023-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : README.md
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 06, 2021 00:48 EST
+# @File          : check_app
+# @Description   : check for app and install if missing
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -40,7 +40,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__check_app bash || exit 1  # graphical prompt
+__check_app bash            # graphical prompt
 __cmd_exists bash || exit 1 # exit 1 if not found
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -53,13 +53,26 @@ __cmd_exists bash || exit 1 # exit 1 if not found
 # Set additional variables
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# bring in user config
-if [ -f "$HOME/.config/REPLACE_FILENAME/settings" ]; then
-  . "$HOME/.config/REPLACE_FILENAME/settings"
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-
+main() {
+  local MISSING choice
+  local ARGS="$*"
+  for cmd in $ARGS; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
+  if [ -n "$MISSING" ]; then
+    printf_red "The following apps are missing: $MISSING"
+    printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
+    if printf_answer_yes "$choice"; then
+      for miss in $MISSING; do
+        __execute "pkmgr silent-install $miss" "Installing $miss" || return 1
+      done
+    else
+      exit $?
+    fi
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute main function
+main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end

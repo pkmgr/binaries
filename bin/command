@@ -1,28 +1,26 @@
 #!/usr/bin/env sh
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
-VERSION="REPLACE_VERSION"
 USER="$USER"
 HOME="$HOME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : REPLACE_VERSION
-# @Author        : REPLACE_AUTHOR
-# @Contact       : REPLACE_EMAIL
-# @License       : REPLACE_LICENSE
-# @ReadME        : REPLACE_README
-# @Copyright     : REPLACE_COPYRIGHT
-# @Created       : REPLACE_DATE
-# @File          : REPLACE_FILENAME
-# @Description   : REPLACE_DESC
-# @TODO          : REPLACE_TODO
-# @Other         : REPLACE_OTHER
-# @Resource      : REPLACE_RES
+##@Version       : 030620210023-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : README.md
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 06, 2021 00:43 EST
+# @File          : command
+# @Description   :
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-check_app bash || exit 1  # graphical prompt
 cmd_exists bash || exit 1 # exit if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
@@ -30,31 +28,12 @@ cmd_exists bash || exit 1 # exit if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 printf_color() { printf "%b" "$(tput setaf "$1" 2>/dev/null)" "\t\t$2\n" "$(tput sgr0 2>/dev/null)"; }
-__help() { printf_color "4" "usage: REPLACE_FILENAME  |  REPLACE_FILENAME --help" && exit; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# bring in user config
-[ -f "$HOME/.config/REPLACE_FILENAME/settings" ] && . "$HOME/.config/REPLACE_FILENAME/settings"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-
-case "$1" in
---help)
-  shift 1
-  __help
-  ;;
---version)
-  shift 1
-  grep ^"# @" "$APPNAME"
-  grep ^"##@" "$APPNAME"
-  ;;
-*)
-  exec ""
-  ;;
-esac
+builtin "$(echo ${0##*/} | tr \[:upper:] \[:lower:])" ${1+"$@"}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?

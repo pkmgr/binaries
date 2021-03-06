@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="$(basename $0)"
+USER="$USER"
+HOME="$HOME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 030620210023-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : README.md
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 06, 2021 00:28 EST
+# @File          : type
+# @Description   : Display information about command type.
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for needed applications
+cmd_exists bash || exit 1 # exit if not found
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set variables
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main application
+builtin "$(echo ${0##*/} | tr \[:upper:] \[:lower:])" ${1+"$@"}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# end
