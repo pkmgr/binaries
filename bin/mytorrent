@@ -80,14 +80,12 @@ __create_link() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __launch() {
-  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
+  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "$NOTIFY_MESSAGE"
   local args="$@"
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
     __exec ~/.local/bin/mytorrent ${args:-}
-    disown
   else
     __exec $TORRENT ${args:-}
-    disown
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -136,6 +134,17 @@ transmission-remote*)
   fi
   ;;
 esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $TORRENT in
+  transmission-remote)
+    NOTIFY_MESSAGE="Attempting to launch $TORRENT"
+    TORRENT="myterminal -e 'bash -c transmission-remote;bash'"
+    ;;
+  *)
+    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TORRENT"
+    ;;
+esac
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)

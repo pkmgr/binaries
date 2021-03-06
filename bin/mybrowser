@@ -149,7 +149,7 @@ case $BROWSER in
     BROWSER="myterminal -e $BROWSER"
   ;;
   *)
-    NOTIFY_MESSAGE="Attempting to launch $BROWSER"
+    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $BROWSER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

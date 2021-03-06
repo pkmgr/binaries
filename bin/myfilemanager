@@ -138,7 +138,7 @@ case $FILEMANAGER in
     FILEMANAGER="myterminal -e $FILEMANAGER"
   ;;
   *)
-    NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
+    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

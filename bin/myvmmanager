@@ -112,7 +112,7 @@ case $MYVMMANAGER in
     MYVMMANAGER="myterminal -e $MYVMMANAGER"
     ;;
   *)
-    NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
+    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
     ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

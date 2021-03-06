@@ -118,7 +118,7 @@ case $EMAIL in
     EMAIL="myterminal -e $EMAIL"
     ;;
   *)
-    NOTIFY_MESSAGE="Attempting to launch $EMAIL"
+    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $EMAIL"
     ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

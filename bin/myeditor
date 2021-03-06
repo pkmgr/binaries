@@ -117,7 +117,7 @@ nano | vim)
   EDITOR="myterminal -e $EDITOR"
   ;;
 *)
-  NOTIFY_MESSAGE="Attempting to launch $EDITOR"
+  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $EDITOR"
   ;;
 esac
 
