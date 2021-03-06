@@ -17,8 +17,10 @@ _trash() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local prefix=trash
+  local trashdir="${TRASH_DIR:-$HOME/.local/share/Trash/files}"
+  local trashlist="$(find $trashdir/*)"
+  local LIST="${trashlist//$trashdir\/}"
   local ARRAY="--help list restore remove empty"
-  local LIST="$(list ${TRASH_DIR:-$HOME/.local/share/Trash/files/})"
 
   local cur prev words cword split
   _init_completion -s || return

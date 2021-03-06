@@ -32,10 +32,10 @@ __options "$@"
 while getopts ":*" opt; do
   case $opt in
   *) # Doesn't support options so remove them
+    shift
     ;;
   esac
 done
-shift $(($OPTIND - 1))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #fileext="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)"
@@ -51,8 +51,9 @@ filename_restore() { grep Path "$TrashDir/info/$(basename $1).trashinfo" 2>/dev/
 test_filedir() { for fd in "$@"; do [ -e "$fd" ] && EXIT=0 || __refuse; done; }
 
 get_name() {
-  dirname="$(dirname "$(echo $PWD/$1)" 2>/dev/null || return 1)"
-  files=$(basename "$1")
+  dirname="$(dirname "$1" 2>/dev/null || return 1)"
+  filename="$(basename $1 2>/dev/null || return 1)"
+  files="$1"
   while [ "$files" ]; do
     file=${files%%;*}
     if [ "$files" = "$file" ]; then
@@ -60,7 +61,7 @@ get_name() {
     else
       files="${files#*;}"
     fi
-    echo "$dirname/$file"
+    echo "$dirname/$filename"
   done
 }
 
