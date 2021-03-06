@@ -57,15 +57,15 @@ __cmd_exists bash || exit 1 # exit 1 if not found
 main() {
   local missing_apps
   if [ -n "$DISPLAY" ]; then
-    for f in $@; do
+    for f in "$@"; do
       __cmd_exists "$f" || missing_apps+="$f "
     done
     __attemp_install_menus "$missing_apps"
   else
-    for f in $@; do
+    for f in "$@"; do
       __cmd_exists "$f" || missing_apps+="$f "
-   done
-   __check_app "$missing_apps"
+    done
+    __check_app "$missing_apps"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
