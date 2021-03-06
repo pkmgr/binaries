@@ -76,6 +76,7 @@ unset TMPPATH
 WHOAMI="${USER}"
 SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m\n")"
 
+###################### builtins ######################
 command() {
   [ "$1" = "-v" ] && shift 1
   type -P "$1"
