@@ -131,7 +131,7 @@ case $1 in
   __create_link "$@"
   ;;
 
-*) if [ -z "$DISPLAY" ]; then eval "$*"; exit $?; fi
+*) if [ -z "$DISPLAY" ] || [ -n "$SSH_TTY" ]; then eval "$*"; exit $?; fi
   _OPT=$#
   _CMD="$1" && shift 1
   _ARG="$*" && shift $#
