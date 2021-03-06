@@ -123,7 +123,7 @@ trash-restore() {
   done
 }
 trash-list() {
-  if [ "$(ls "$TrashDir/files/" | wc -l)" = 0 ]; then
+  if [ "$(__count_files "$TrashDir/files/")" = 0 ]; then
     printf_green "There are no files in your Trash"
   else
     if [ $# = 0 ]; then
@@ -144,28 +144,36 @@ trash-empty() {
   __mkd "$TrashDir/files/" "$TrashDir/info"
   printf_yellow "Deleted $countfiles file[s] and $countfolders folder[s] from your system"
 }
+trash_no_files() {
+  if [ "$(__count_files "$TrashDir/files/")" = 0 ]; then
+    printf_green "There are no files in your Trash"
+    return 0
+  else
+    return 1
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main application
 __mkd "$TrashDir/files/" "$TrashDir/info/"
 case $1 in
 list | ls)
   shift 1
-  trash-list "$@" 2>/dev/null
+  trash_no_files || trash-list "$@" 2>/dev/null
   ;;
 
 restore | rs)
   shift 1
-  trash-restore "$@" #2>/dev/null
+  trash-restore "$@" 2>/dev/null
   ;;
 
 delete | rm)
   shift 1
-  trash-put "$@" #2>/dev/null
+  trash-put "$@" 2>/dev/null
   ;;
 
 empty)
   shift 1
-  trash-empty #2>/dev/null
+  trash_no_files || trash-empty 2>/dev/null
   ;;
 
 *)
