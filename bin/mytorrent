@@ -83,10 +83,10 @@ __launch() {
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT"
   local args="$@"
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
-    exec ~/.local/bin/mytorrent ${args:-} 2>/dev/null &
+    __exec ~/.local/bin/mytorrent ${args:-}
     disown
   else
-    exec $TORRENT ${args:-} 2>/dev/null &
+    __exec $TORRENT ${args:-}
     disown
   fi
 }

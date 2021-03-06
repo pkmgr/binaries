@@ -163,9 +163,9 @@ case $1 in
 *)
   [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "Attempting to launch $BROWSER"
   if [ -f "$HOME/.local/bin/mybrowser" ]; then
-    exec "$HOME/.local/bin/mybrowser" "$@" 2>/dev/null
+    __exec "$HOME/.local/bin/mybrowser" "$@"
   else
-    exec $BROWSER "$@" 2>/dev/null
+    __exec $BROWSER "$@"
   fi
   ;;
 esac

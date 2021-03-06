@@ -126,9 +126,9 @@ case $1 in
 *)
   [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "Attempting to launch $VMMANAGER"
   if [ -f "$HOME/.local/bin/myvmmanager" ]; then
-    exec ~/.local/bin/myvmmanager "$@" 2>/dev/null
+    __exec ~/.local/bin/myvmmanager "$@"
   else
-    exec $MYVMMANAGER "$@" 2>/dev/null
+    __exec $MYVMMANAGER "$@"
   fi
   ;;
 esac

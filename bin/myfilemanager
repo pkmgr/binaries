@@ -152,9 +152,9 @@ case $1 in
 *)
   [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER"
   if [ -f "$HOME/.local/bin/myfilemanager" ]; then
-    exec ~/.local/bin/myfilemanager "$@" 2>/dev/null
+    __exec ~/.local/bin/myfilemanager "$@"
   else
-    exec $FILEMANAGER "$@" 2>/dev/null
+    __exec $FILEMANAGER "$@"
   fi
   ;;
 esac

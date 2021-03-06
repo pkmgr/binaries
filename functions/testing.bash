@@ -2,9 +2,9 @@
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="${APPNAME:-testing}"
-FUNCFILE="testing.bash"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+FUNCFILE="testing.bash"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
@@ -120,6 +120,17 @@ __runapp() {
     bash -c "${@:-$(false)}" >>"$logdir/${APPNAME:-$1}.log" 2>>"$logdir/${APPNAME:-$1}.err"
   fi
 }
+
+__exec() {
+  local cmd="$1" && shift 1
+  local args="$*" && shift $#
+  if [ "$cmd" = "$TERMINAL" ]; then
+    eval "$cmd "$args"" 2>/dev/null
+  else
+    exec "$cmd" "$args" &>/dev/null &
+  fi
+}
+
 
 #macos fixes
 case "$(uname -s)" in
@@ -642,12 +653,12 @@ __getphpver() {
 ###################### macos fixes#################
 case "$(uname -s)" in
 Darwin)
-  [ -f "$(command -v gls 2>/dev/null)" ] && ls="$(command -v gls)" || ls="$(command -v ls)"
-  [ -f "$(command -v gdate 2>/dev/null)" ] && date="$(command -v gdate)" || date="$(command -v date)"
-  [ -f "$(command -v greadlink 2>/dev/null)" ] && readlink="$(command -v greadlink)" || readlink="$(command -v readlink)"
-  [ -f "$(command -v gbasename 2>/dev/null)" ] && basename="$(command -v gbasename)" || basename="$(command -v basename)"
-  [ -f "$(command -v gdircolors 2>/dev/null)" ] && dircolors="$(command -v gdircolors)" || dircolors="$(command -v dircolors)"
-  [ -f "$(command -v grealpath 2>/dev/null)" ] && realpath="$(command -v grealpath)" || realpath="$(command -v realpath)"
+  [ -f "$(command -v gls 2>/dev/null)" ] && ls="$(type -P gls)" || ls="$(type -P ls)"
+  [ -f "$(command -v gdate 2>/dev/null)" ] && date="$(type -P gdate)" || date="$(type -P date)"
+  [ -f "$(command -v greadlink 2>/dev/null)" ] && readlink="$(type -P greadlink)" || readlink="$(type -P readlink)"
+  [ -f "$(command -v gbasename 2>/dev/null)" ] && basename="$(type -P gbasename)" || basename="$(type -P basename)"
+  [ -f "$(command -v gdircolors 2>/dev/null)" ] && dircolors="$(type -P gdircolors)" || dircolors="$(type -P dircolors)"
+  [ -f "$(command -v grealpath 2>/dev/null)" ] && realpath="$(type -P grealpath)" || realpath="$(type -P realpath)"
   ls() { $ls "$@"; }
   date() { $date "$@"; }
   readlink() { $readlink "$@"; }

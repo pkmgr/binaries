@@ -129,14 +129,15 @@ case $1 in
   __create_link "$@"
   ;;
 
-*)
-  if [ $# -gt 0 ]; then opt="-e"; fi
+*) _OPT=$#; _CMD="$1" && shift 1; _ARG="$*" && shift $#
+  if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    exec ~/.local/bin/myterminal "$*" 2>/dev/null
+    exec ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
   else
-    exec $TERMINAL ${OPTIONS:-$opt} "$*" 2>/dev/null
+    exec $TERMINAL ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
   fi
+  disown
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
