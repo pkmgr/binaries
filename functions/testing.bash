@@ -673,6 +673,7 @@ Darwin)
   ;;
 esac
 ###################### tools ######################
+__setcursor() { echo -e -n "\x1b[\x35 q" "\e]12;cyan\a" 2>/dev/null; }
 __ps() {
   proc="$(basename "$1")"
   ps -aux | grep -F "$proc" 2>/dev/null
@@ -2365,8 +2366,8 @@ thememgr_req_version() { __required_version "$1"; }
 wallpapermgr_req_version() { __required_version "$1"; }
 
 ###################### export and call functions ######################
-export -f __cd_into
 __getpythonver
+__setcursor
 
 ###################### debugging tool ######################
 # __load_debug() {

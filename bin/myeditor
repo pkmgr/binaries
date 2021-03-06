@@ -124,6 +124,7 @@ nano | vim | nano | emacs)
   ;;
 code | vscode)
   EDITOR="$EDITOR -w"
+  ;;
 esac
 
 case $1 in
