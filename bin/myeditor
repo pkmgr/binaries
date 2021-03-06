@@ -83,13 +83,9 @@ __create_link() {
 [ "$EDITOR" = "myeditor" ] && unset EDITOR
 if [ "$MYEDITOR" != "config" ]; then
   if [ -f "$(command -v code 2>/dev/null)" ]; then
-    export EDITOR="code -w"
+    export EDITOR="code"
   elif [ -f "$(command -v vscode 2>/dev/null)" ]; then
     export EDITOR="vscode"
-  elif [ -f "$(command -v vim 2>/dev/null)" ]; then
-    export EDITOR="vim"
-  elif [ -f "$(command -v nvim 2>/dev/null)" ]; then
-    export EDITOR="nvim"
   elif [ -f "$(command -v geany 2>/dev/null)" ]; then
     export EDITOR="geany"
   elif [ -f "$(command -v gedit 2>/dev/null)" ]; then
@@ -102,8 +98,17 @@ if [ "$MYEDITOR" != "config" ]; then
     export EDITOR="emacs"
   elif [ -f "$(command -v mousepad 2>/dev/null)" ]; then
     export EDITOR="mousepad"
-  elif [ -f "$(command -v nano 2>/dev/null)" ]; then
-    export EDITOR="nano"
+  fi
+  if [ -z "$DISPLAY" ]; then
+    if [ -f "$(command -v vim 2>/dev/null)" ]; then
+      export EDITOR="vim"
+    elif [ -f "$(command -v nvim 2>/dev/null)" ]; then
+      export EDITOR="nvim"
+    elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
+      export EDITOR="emacs"
+    elif [ -f "$(command -v nano 2>/dev/null)" ]; then
+      export EDITOR="nano"
+    fi
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -114,9 +119,11 @@ fi
 EDITOR_NAME="$(basename "$EDITOR" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $EDITOR in
-nano | vim)
+nano | vim | nano | emacs)
   EDITOR="myterminal -e $EDITOR"
   ;;
+code | vscode)
+  EDITOR="$EDITOR -w"
 esac
 
 case $1 in
