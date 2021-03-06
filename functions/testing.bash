@@ -1106,7 +1106,7 @@ __attemp_install_menus() {
   local prog="$1"
   local dialog="$(command -v gdialog || command -v whiptail || command -v dialog || exit 1)"
   dialog() { "$dialog" "$@" 2>/dev/null; }
-  if (dialog --timeout 10 --trim --cr-wrap --colors --title "install $1" --yesno "$prog in not installed! \nshould I try to install it?" 15 40 || return 1); then
+  if (dialog --timeout 10 --trim --cr-wrap --colors --title "install $1" --yesno "$prog is not installed! \nshould I try to install it?" 15 40 || return 1); then
     sleep 2
     clear
     printf_custom "191" "\n\n\n\n\t\tattempting install of $prog\n\t\tThis could take a bit...\n\n\n"
