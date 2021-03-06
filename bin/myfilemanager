@@ -80,6 +80,7 @@ __create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$FILEMANAGER" = "myfilemanager" ] && unset FILEMANAGER
 if [ "$MYFILEMANAGER" != "config" ]; then
   if [ -z "$DESKTOP_SESSION" ]; then
     if [ -f "$(command -v lf 2>/dev/null)" ]; then

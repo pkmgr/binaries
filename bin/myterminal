@@ -83,6 +83,7 @@ __create_link() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Find the terminal app
+[ "$TERMINAL" = "myterminal" ] && unset TERMINAL
 if [ "$MYTERMINAL" != "config" ]; then
   if [ -f "$(command -v termite 2>/dev/null)" ]; then
     export TERMINAL="termite"

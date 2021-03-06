@@ -89,6 +89,7 @@ __launch() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$TORRENT" = "mytorrent" ] && unset TORRENT
 if [ "$MYTORRENT" != "config" ]; then
   if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
     export TORRENT="transmission-remote-gtk"

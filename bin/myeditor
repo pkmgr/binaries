@@ -80,6 +80,7 @@ __create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$EDITOR" = "myeditor" ] && unset EDITOR
 if [ "$MYEDITOR" != "config" ]; then
   if [ -f "$(command -v code 2>/dev/null)" ]; then
     export EDITOR="code -w"

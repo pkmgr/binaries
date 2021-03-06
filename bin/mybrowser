@@ -79,6 +79,7 @@ __create_link() {
   esac
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$BROWSER" = "mybrowser" ] && unset BROWSER
 if [ "$MYBROWSER" != "config" ]; then
   if [ -f "$(command -v garcon-url-handler 2>/dev/null)" ]; then
     export BROWSER="$(command -v garcon-url-handler 2>/dev/null) --url"

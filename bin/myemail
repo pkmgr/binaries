@@ -80,6 +80,7 @@ __create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$EMAIL" = "myemail" ] && unset EMAIL
 if [ "$MYEMAIL" != "config" ]; then
   if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
     export EMAIL="thunderbird"

@@ -83,6 +83,7 @@ __create_link() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ "$VMMANAGER" = "myvmmanager" ] && unset VMMANAGER
 if [ "$MYVMMANAGER" != "config" ]; then
   if [ -f "$(command -v VirtualBox 2>/dev/null)" ]; then
     export VMMANAGER="VirtualBox"
