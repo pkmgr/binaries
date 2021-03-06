@@ -93,7 +93,7 @@ if [ "$MYBROWSER" != "config" ]; then
     export BROWSER="$(command -v google-chrome 2>/dev/null)"
 
   elif [ -f "$(command -v opera 2>/dev/null)" ]; then
-    export BROWSER="(command -v opera 2>/dev/null)"
+    export BROWSER="$(command -v opera 2>/dev/null)"
 
   elif [ -f "$(command -v epiphany-browser 2>/dev/null)" ]; then
     export BROWSER="$(command -v epiphany-browser 2>/dev/null)"
