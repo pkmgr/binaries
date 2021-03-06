@@ -1088,20 +1088,29 @@ __backupapp() {
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
 }
 ###################### menu functions ######################
-dialog="$(command -v gdialog || command -v zenity || command -v dialog || exit 1)"
-dialog() { "$dialog" "$@"; }
-__run_menu_start() { clear && __running "$1" && __start eval "$@" && return 0 || clear && echo -e "\n\n\n\n" && printf_red "$1 is already running" && sleep 5 && return 1; }
+__run_menu_start() {
+  clear
+  if __running "$1"; then
+    __start "$@" && return 0 || return 1
+  else
+      echo -e "\n\n\n\n"
+      printf_red "$1 is already running"
+      sleep 5
+      return 1
+  fi
+}
 __run_menu_failed() { clear && echo -e "\n\n\n\n\n\n" && printf_red "${1:-An error has occured}" && sleep 3 && return 1; }
 #attemp_install_menus "programname"
 __attemp_install_menus() {
   local prog="$1"
-  if (dialog --timeout 10 --colors --title "install $1" --yesno "$prog in not installed! \nshould I try to install it?" 300 100 || return 1); then
+  local dialog="$(command -v gdialog || command -v whiptail || command -v dialog || exit 1)"
+  dialog() { "$dialog" "$@" 2>/dev/null; }
+  if (dialog --timeout 10 --trim --cr-wrap --colors --title "install $1" --yesno "$prog in not installed! \nshould I try to install it?" 15 40 || return 1); then
     sleep 2
     clear
     printf_custom "191" "\n\n\n\n\t\tattempting install of $prog\n\t\tThis could take a bit...\n\n\n"
     __devnull pkmgr silent "$1"
-    [ "$?" -ne 0 ] && dialog --timeout 10 --colors --title "failed" --msgbox "$1 failed to install" 300 100
-    clear
+    [ "$?" -ne 0 ] && dialog --timeout 10 --trim --cr-wrap --colors --title "failed" --msgbox "$1 failed to install" 10 41
   fi
 }
 
@@ -1122,7 +1131,7 @@ __open_file_menus() {
   local prog="$1" && shift 1
   local args="$*" && shift $#
   if __cmd_exists "$prog"; then
-    local file=$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)
+  local file="$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)"
     if [ -f "$file" ] || [ -d "$file" ]; then
       __run_menu_start "$prog" "$file" || __run_menu_failed
     else
