@@ -44,6 +44,10 @@ export WHOAMI="${SUDO_USER:-$USER}"
 export HOME="${USER_HOME:-$HOME}"
 export LOGDIR="${LOGDIR:-$HOME/.local/log}"
 
+command() {
+  [ "$1" = "-v" ] && shift 1
+  type -P "$1"
+}
 sudo_root() {
   local SUDOBIN="$(command -v sudo)"
   local SUDOARG="-HE"
@@ -76,7 +80,7 @@ devnull() { "$@" >/dev/null 2>&1; }
 devnull2() { "$@" >/dev/null 2>&1; }
 
 # fail if git is not installed
-if [ ! -f "$(command -v "git" 2>/dev/null)" ]; then
+if [ ! -f "$(type -P git 2>/dev/null)" ]; then
   echo -e "\t\t\033[0;31mAttempting to install git\033[0m"
   if cmd_exists brew; then
     brew install -f git >/dev/null 2>&1
@@ -88,7 +92,7 @@ if [ ! -f "$(command -v "git" 2>/dev/null)" ]; then
     yum install -yy -q git >/dev/null 2>&1
   elif cmd_exists choco; then
     choco install git -y >/dev/null 2>&1
-    if [ ! -f "$(command -v "git" &>/dev/null)" ]; then
+    if [ ! -f "$(type -P git 2>/dev/null)" ]; then
       echo -e "\t\t\033[0;31mGit was not installed\033[0m"
       exit 1
     fi
@@ -438,7 +442,11 @@ ln_sf() {
 }
 mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
 mkd() {
-  for d in "$@"; do [ -e "$d" ] || mkdir -p "$d"; done
+  local dir="$@"
+  for d in $dir; do
+    if [ -f "$d" ]; then rm_rf "$d"; fi
+    [ -d "$d" ] || mkdir -p "$d" &>/dev/null
+  done
   return 0
 }
 replace() { find "$1" -not -path "$1/.git/*" -type f -exec sed -i "s#$2#$3#g" {} \; >/dev/null 2>&1; }
