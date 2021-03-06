@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="trash"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : trash
-# @Created     : Thurs, Jan 21, 2021, 00:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Send files and folders to the trash can
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 030620210509-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : trash --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 06, 2021 05:09 EST
+# @File          : trash
+# @Description   : send files to trash
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,32 +32,32 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-user_installdirs
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Doesn't support options so lets remove them
 while getopts ":*" opt; do
   case $opt in
-  *) # Doesn't support options so remove them
-    shift
-    ;;
+  *) shift;;
   esac
 done
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#fileext="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)"
-
+# set variables
 TrashDir="${TRASH_DIR:-$HOME/.local/share/Trash}"
 RestoreDir="${RESTORE_DIR}"
-__mkd "$TrashDir/files/" "$TrashDir/info"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# set functions
 __refuse_home() { EXIT=1 && printf_error "Refusing to delete the home folder" && return 1; }
 __refuse() { EXIT=1 && printf_error "Refusing to delete non-existant file or folder" && return 1; }
 filename_trash() { get_name "$1" | sed 's#/#_-_#g' | sed 's#"##g'; }
 filename_restore() { grep Path "$TrashDir/info/$(basename $1).trashinfo" 2>/dev/null | sed 's#Path=##g' | sed 's#"##g' || return 1; }
 test_filedir() { for fd in "$@"; do [ -e "$fd" ] && EXIT=0 || __refuse; done; }
-
 get_name() {
   dirname="$(dirname "$1" 2>/dev/null || return 1)"
   filename="$(basename $1 2>/dev/null || return 1)"
@@ -64,9 +72,6 @@ get_name() {
     echo "$dirname/$filename"
   done
 }
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 create_trash_file() {
   cat <<EOF >"$TrashDir/info/$(filename_trash "$1")-$(basename "$1").trashinfo"
 [Trash Info]
@@ -74,7 +79,6 @@ Path=$(get_name "$1")
 DeletionDate="$(date +'%Y-%m-%d-T%H:%M:%S')"
 EOF
 }
-
 trash-put() {
   local EXIT=0
   local args="$*"
@@ -96,7 +100,6 @@ trash-put() {
   done
   return "$EXIT"
 }
-
 trash-restore() {
   for r in "$@"; do
     local file="$(basename $(echo $r))"
@@ -119,7 +122,6 @@ trash-restore() {
     fi
   done
 }
-
 trash-list() {
   if [ "$(ls "$TrashDir/files/" | wc -l)" = 0 ]; then
     printf_green "There are no files in your Trash"
@@ -134,7 +136,6 @@ trash-list() {
     fi
   fi
 }
-
 trash-empty() {
   countfiles="$(find "$TrashDir/files"/* -type f 2>/dev/null | wc -l)"
   countfolders="$(find "$TrashDir/files"/* -type d 2>/dev/null | wc -l)"
@@ -143,15 +144,10 @@ trash-empty() {
   __mkd "$TrashDir/files/" "$TrashDir/info"
   printf_yellow "Deleted $countfiles file[s] and $countfolders folder[s] from your system"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# execute function
-
+# main application
+__mkd "$TrashDir/files/" "$TrashDir/info/"
 case $1 in
---help | -h)
-  __help
-  ;;
-
 list | ls)
   shift 1
   trash-list "$@" 2>/dev/null
@@ -177,5 +173,6 @@ empty)
   trash-put "$@" 2>/dev/null
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# end

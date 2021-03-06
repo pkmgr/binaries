@@ -18,9 +18,9 @@ _trash() {
   local cur prev words cword
   local prefix=trash
   local trashdir="${TRASH_DIR:-$HOME/.local/share/Trash/files}"
-  local trashlist="$(find $trashdir/*)"
+  local trashlist="$(find -L $trashdir/* 2>/dev/null)"
   local LIST="${trashlist//$trashdir\/}"
-  local ARRAY="--help list restore remove empty"
+  local ARRAY="--help --version list restore remove empty"
 
   local cur prev words cword split
   _init_completion -s || return
