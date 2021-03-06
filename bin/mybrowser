@@ -80,37 +80,37 @@ __create_link() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$MYBROWSER" != "config" ]; then
-  if [ -n "$(command -v garcon-url-handler 2>/dev/null)" ]; then
+  if [ -f "$(command -v garcon-url-handler 2>/dev/null)" ]; then
     export BROWSER="$(command -v garcon-url-handler 2>/dev/null) --url"
 
-  elif [ -n "$(command -v firefox 2>/dev/null)" ]; then
+  elif [ -f "$(command -v firefox 2>/dev/null)" ]; then
     export BROWSER="$(command -v firefox 2>/dev/null)"
 
-  elif [ -n "$(command -v chromium 2>/dev/null)" ]; then
+  elif [ -f "$(command -v chromium 2>/dev/null)" ]; then
     export BROWSER="$(command -v chromium 2>/dev/null)"
 
-  elif [ -n "$(command -v google-chrome 2>/dev/null)" ]; then
+  elif [ -f "$(command -v google-chrome 2>/dev/null)" ]; then
     export BROWSER="$(command -v google-chrome 2>/dev/null)"
 
-  elif [ -n "$(command -v opera 2>/dev/null)" ]; then
+  elif [ -f "$(command -v opera 2>/dev/null)" ]; then
     export BROWSER="(command -v opera 2>/dev/null)"
 
-  elif [ -n "$(command -v epiphany-browser 2>/dev/null)" ]; then
+  elif [ -f "$(command -v epiphany-browser 2>/dev/null)" ]; then
     export BROWSER="$(command -v epiphany-browser 2>/dev/null)"
 
-  elif [ -n "$(command -v falkon 2>/dev/null)" ]; then
+  elif [ -f "$(command -v falkon 2>/dev/null)" ]; then
     export BROWSER="$(command -v falkon 2>/dev/null)"
 
-  elif [ -n "$(command -v midori 2>/dev/null)" ]; then
+  elif [ -f "$(command -v midori 2>/dev/null)" ]; then
     export BROWSER="$(command -v midori 2>/dev/null)"
 
-  elif [ -n "$(command -v netsurf 2>/dev/null)" ]; then
+  elif [ -f "$(command -v netsurf 2>/dev/null)" ]; then
     export BROWSER="$(command -v netsurf 2>/dev/null)"
 
-  elif [ -n "$(command -v surf 2>/dev/null)" ]; then
+  elif [ -f "$(command -v surf 2>/dev/null)" ]; then
     export BROWSER="$(command -v surf 2>/dev/null)"
 
-  elif [ -n "$(command -v arora 2>/dev/null)" ]; then
+  elif [ -f "$(command -v arora 2>/dev/null)" ]; then
     export BROWSER="$(command -v arora 2>/dev/null)"
 
   elif [ -f '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ]; then
@@ -122,10 +122,10 @@ if [ "$MYBROWSER" != "config" ]; then
   elif [ -f '/Applications/Opera.app/Contents/MacOS/Opera' ]; then
     export BROWSER='/Applications/Opera.app/Contents/MacOS/Opera'
 
-  elif [ -f '/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser' ]; then
-    export BROWSER='/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser'
+  elif [ -f '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser' ]; then
+    export BROWSER='/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
 
-  elif [ -f '/Applications/Tor\ Browser.app/Contents/MacOS/firefox' ]; then
+  elif [ -f '/Applications/Tor Browser.app/Contents/MacOS/firefox' ]; then
     export BROWSER='/Applications/Tor Browser.app/Contents/MacOS/firefox'
 
   elif [ -f "$(command -v lynx 2>/dev/null)" ]; then
@@ -144,12 +144,12 @@ if [ -z "$BROWSER" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $BROWSER in
-  links | lynx)
-    NOTIFY_MESSAGE="Attempting to launch $BROWSER"
-    BROWSER="myterminal -e $BROWSER"
+links | lynx)
+  NOTIFY_MESSAGE="Attempting to launch $BROWSER"
+  BROWSER="myterminal -e $BROWSER"
   ;;
-  *)
-    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $BROWSER"
+*)
+  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $BROWSER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -169,7 +169,7 @@ case $1 in
   if [ -f "$HOME/.local/bin/mybrowser" ]; then
     __exec "$HOME/.local/bin/mybrowser" "$@"
   else
-    __exec $BROWSER "$@"
+    __exec "$BROWSER" "$@"
   fi
   ;;
 esac

@@ -84,15 +84,15 @@ __create_link() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$MYVMMANAGER" != "config" ]; then
-  if [ -n "$(command -v VirtualBox 2>/dev/null)" ]; then
+  if [ -f "$(command -v VirtualBox 2>/dev/null)" ]; then
     export VMMANAGER="VirtualBox"
-  elif [ -n "$(command -v VMWare 2>/dev/null)" ]; then
+  elif [ -f "$(command -v VMWare 2>/dev/null)" ]; then
     export VMMANAGER="VMWare"
-  elif [ -n "$(command -v virt-manager 2>/dev/null)" ]; then
+  elif [ -f "$(command -v virt-manager 2>/dev/null)" ]; then
     export VMMANAGER="virt-manager"
-  elif [ -n "$(command -v kubectl 2>/dev/null)" ]; then
+  elif [ -f "$(command -v kubectl 2>/dev/null)" ]; then
     export VMMANAGER="kubectl"
-  elif [ -n "$(command -v docker 2>/dev/null)" ]; then
+  elif [ -f "$(command -v docker 2>/dev/null)" ]; then
     export VMMANAGER="docker"
   fi
 fi
@@ -107,13 +107,13 @@ if [ -z "$VMMANAGER" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $MYVMMANAGER in
-  docker | kubectl)
-    NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
-    MYVMMANAGER="myterminal -e $MYVMMANAGER"
-    ;;
-  *)
-    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
-    ;;
+docker | kubectl)
+  NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
+  MYVMMANAGER="myterminal -e $MYVMMANAGER"
+  ;;
+*)
+  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $VMMANAGER"
+  ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in

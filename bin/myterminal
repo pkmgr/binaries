@@ -84,25 +84,25 @@ __create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Find the terminal app
 if [ "$MYTERMINAL" != "config" ]; then
-  if [ -n "$(command -v termite 2>/dev/null)" ]; then
+  if [ -f "$(command -v termite 2>/dev/null)" ]; then
     export TERMINAL="termite"
-  elif [ -n "$(command -v xfce4-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v xfce4-terminal 2>/dev/null)" ]; then
     export TERMINAL="xfce4-terminal"
-  elif [ -n "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
     export TERMINAL="qterminal-terminal"
-  elif [ -n "$(command -v qterminal-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
     export TERMINAL="qterminal-terminal"
-  elif [ -n "$(command -v mate-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v mate-terminal 2>/dev/null)" ]; then
     export TERMINAL="mate-terminal"
-  elif [ -n "$(command -v i3-sensible-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v i3-sensible-terminal 2>/dev/null)" ]; then
     export TERMINAL="i3-sensible-terminal"
-  elif [ -n "$(command -v rofi-sensible-terminal 2>/dev/null)" ]; then
+  elif [ -f "$(command -v rofi-sensible-terminal 2>/dev/null)" ]; then
     export TERMINAL="rofi-sensible-terminal"
-  elif [ -n "$(command -v terminology 2>/dev/null)" ]; then
+  elif [ -f "$(command -v terminology 2>/dev/null)" ]; then
     export TERMINAL="terminology"
-  elif [ -n "$(command -v xterm 2>/dev/null)" ]; then
+  elif [ -f "$(command -v xterm 2>/dev/null)" ]; then
     export TERMINAL="xterm"
-  elif [ -n "$(command -v uxterm 2>/dev/null)" ]; then
+  elif [ -f "$(command -v uxterm 2>/dev/null)" ]; then
     export TERMINAL="uxterm"
   elif [ -f "/Applications/iTerm.app/Contents/MacOS/iTerm" ]; then
     export TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"
@@ -119,8 +119,8 @@ fi
 [ "$1" = -e ] && shift 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $TERMINAL in
-  *)
-    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TERMINAL"
+*)
+  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TERMINAL"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -135,7 +135,10 @@ case $1 in
   __create_link "$@"
   ;;
 
-*) _OPT=$#; _CMD="$1" && shift 1; _ARG="$*" && shift $#
+*)
+  _OPT=$#
+  _CMD="$1" && shift 1
+  _ARG="$*" && shift $#
   if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "$NOTIFY_MESSAGE"
   if [ -f "$HOME/.local/bin/myterminal" ]; then

@@ -82,41 +82,41 @@ __create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$MYFILEMANAGER" != "config" ]; then
   if [ -z "$DESKTOP_SESSION" ]; then
-    if [ -n "$(command -v lf 2>/dev/null)" ]; then
+    if [ -f "$(command -v lf 2>/dev/null)" ]; then
       export FILEMANAGER="lf"
-    elif [ -n "$(command -v vifm 2>/dev/null)" ]; then
+    elif [ -f "$(command -v vifm 2>/dev/null)" ]; then
       export FILEMANAGER="vifm"
-    elif [ -n "$(command -v ranger 2>/dev/null)" ]; then
+    elif [ -f "$(command -v ranger 2>/dev/null)" ]; then
       export FILEMANAGER="ranger"
-    elif [ -n "$(command -v se 2>/dev/null)" ]; then
+    elif [ -f "$(command -v se 2>/dev/null)" ]; then
       export FILEMANAGER="se"
-    elif [ -n "$(command -v cfiles 2>/dev/null)" ]; then
+    elif [ -f "$(command -v cfiles 2>/dev/null)" ]; then
       export FILEMANAGER="cfiles"
     fi
   else
-    if [ -n "$(command -v open 2>/dev/null)" ]; then
+    if [ -f "$(command -v open 2>/dev/null)" ]; then
       export FILEMANAGER="open"
-    elif [ -n "$(command -v dolphin 2>/dev/null)" ]; then
+    elif [ -f "$(command -v dolphin 2>/dev/null)" ]; then
       export FILEMANAGER="dolphin"
-    elif [ -n "$(command -v thunar 2>/dev/null)" ]; then
+    elif [ -f "$(command -v thunar 2>/dev/null)" ]; then
       export FILEMANAGER="thunar"
-    elif [ -n "$(command -v Thunar 2>/dev/null)" ]; then
+    elif [ -f "$(command -v Thunar 2>/dev/null)" ]; then
       export FILEMANAGER="Thunar"
-    elif [ -n "$(command -v konqueror 2>/dev/null)" ]; then
+    elif [ -f "$(command -v konqueror 2>/dev/null)" ]; then
       export FILEMANAGER="konqueror"
-    elif [ -n "$(command -v spacefm 2>/dev/null)" ]; then
+    elif [ -f "$(command -v spacefm 2>/dev/null)" ]; then
       export FILEMANAGER="spacefm"
-    elif [ -n "$(command -v nemo 2>/dev/null)" ]; then
+    elif [ -f "$(command -v nemo 2>/dev/null)" ]; then
       export FILEMANAGER="nemo"
-    elif [ -n "$(command -v pcmanfm 2>/dev/null)" ]; then
+    elif [ -f "$(command -v pcmanfm 2>/dev/null)" ]; then
       export FILEMANAGER="pcmanfm"
-    elif [ -n "$(command -v polo 2>/dev/null)" ]; then
+    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
       export FILEMANAGER="caja"
-    elif [ -n "$(command -v caja 2>/dev/null)" ]; then
+    elif [ -f "$(command -v caja 2>/dev/null)" ]; then
       export FILEMANAGER="nautilus"
-    elif [ -n "$(command -v nautilus 2>/dev/null)" ]; then
+    elif [ -f "$(command -v nautilus 2>/dev/null)" ]; then
       export FILEMANAGER="polo"
-    elif [ -n "$(command -v polo 2>/dev/null)" ]; then
+    elif [ -f "$(command -v polo 2>/dev/null)" ]; then
       export FILEMANAGER="polo"
     fi
   fi
@@ -133,12 +133,12 @@ if [ -z "$FILEMANAGER" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $FILEMANAGER in
-  lf | vifm | ranger | se | cfiles)
-    NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
-    FILEMANAGER="myterminal -e $FILEMANAGER"
+lf | vifm | ranger | se | cfiles)
+  NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
+  FILEMANAGER="myterminal -e $FILEMANAGER"
   ;;
-  *)
-    [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
+*)
+  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $FILEMANAGER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
