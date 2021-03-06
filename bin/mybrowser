@@ -124,7 +124,7 @@ if [ -z "$BROWSER" ]; then
   [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "No Browsers are installed"
   printf_exit 1 1 "No Browsers are installed"
 fi
-BROWSER_NAME="$(basenane "$BROWSER" 2>/dev/null)"
+BROWSER_NAME="$(basename "$BROWSER" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $BROWSER in
 links | lynx)
