@@ -55,19 +55,14 @@ __cmd_exists bash || exit 1 # exit 1 if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 main() {
-  local MISSING choice
-  local ARGS="$*"
-  for cmd in $ARGS; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
-  if [ -n "$MISSING" ]; then
-    printf_red "The following apps are missing: $MISSING"
-    printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
-    if printf_answer_yes "$choice"; then
-      for miss in $MISSING; do
-        __execute "pkmgr silent-install $miss" "Installing $miss" || return 1
-      done
-    else
-      exit $?
-    fi
+  if [ -n "$DISPLAY" ]; then
+    for f in $@; do
+      __cmd_exists "$f" || __attemp_install_menus "$f"
+    done
+  else
+    for f in $@; do
+      __cmd_exists "$f" || __check_app "$f"
+   done
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
