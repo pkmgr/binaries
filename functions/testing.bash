@@ -76,6 +76,11 @@ unset TMPPATH
 WHOAMI="${USER}"
 SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m\n")"
 
+command() {
+  [ "$1" = "-v" ] && shift 1
+  type -P "$1"
+}
+
 ###################### devnull/logging/error handling ######################
 # send all output to /dev/null
 __devnull() {
@@ -130,7 +135,6 @@ __exec() {
     exec "$cmd" "$args" &>/dev/null &
   fi
 }
-
 
 #macos fixes
 case "$(uname -s)" in
@@ -339,9 +343,9 @@ printf_answer_no() {
   if [[ "${1:-$REPLY}" =~ ${2:-^[Nn]$} ]]; then
     echo ""
     return 0
-   else
-     echo ""
-     return 1
+  else
+    echo ""
+    return 1
   fi
 }
 
@@ -668,7 +672,10 @@ Darwin)
   ;;
 esac
 ###################### tools ######################
-__ps() { proc="$(basename "$1")"; ps -aux | grep -F "$proc" 2>/dev/null; }
+__ps() {
+  proc="$(basename "$1")"
+  ps -aux | grep -F "$proc" 2>/dev/null
+}
 __get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
 __get_pid_of() { __ps "$1" | grep -v 'grep ' | head -n1 | awk '{print $2}' | grep '^' || return 1; }
 #basedir "file"
@@ -828,7 +835,7 @@ __curl_exit() { EXIT=0 && return 0 || EXIT=1 && return 1; }
 #curl_header "site" "code"
 __curl_header() { curl --disable -LSIsk --connect-timeout 3 --retry 0 --max-time 2 "$1" 2>/dev/null | grep -E "HTTP/[0123456789]" | grep "${2:-200}" -n1 -q; }
 #curl_download "url" "file"
-__curl_download() { curl --disable --create-dirs -LSsk --connect-timeout 3 --retry 0 "$1" -o "$2" 2>/dev/null ; }
+__curl_download() { curl --disable --create-dirs -LSsk --connect-timeout 3 --retry 0 "$1" -o "$2" 2>/dev/null; }
 #curl_version "url"
 __curl_version() { curl --disable -LSsk --connect-timeout 3 --retry 0 "${1:-$REPORAW/master/version.txt}" 2>/dev/null; }
 #curl_upload "file" "url"
@@ -1413,9 +1420,9 @@ fi
 __getlipaddr() {
   if __cmd_exists route || __cmd_exists ip; then
     if [[ "$OSTYPE" =~ ^darwin ]]; then
-      NETDEV="$(route get default 2>/dev/null| grep interface | awk '{print $2}')"
+      NETDEV="$(route get default 2>/dev/null | grep interface | awk '{print $2}')"
     else
-      NETDEV="$(ip route 2>/dev/null| grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
+      NETDEV="$(ip route 2>/dev/null | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//" | awk '{print $1}')"
     fi
     if __cmd_exists ifconfig; then
       CURRIP4="$(/sbin/ifconfig $NETDEV 2>/dev/null | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s/addr://g | head -n1)"
