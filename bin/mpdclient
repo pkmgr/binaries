@@ -177,15 +177,15 @@ __repeat_toggle() {
 }
 
 __mpd_status() {
-  if __local_sysname "$MPDSERVER"; then
+  #if __local_sysname "$MPDSERVER"; then
     if is_up_mpd; then
       MPDSTATUS=stop
-      printf_green "local mpd server is running with pid: $(__get_pid_of mpd)"
+      printf_yellow "local mpd server is running with pid: $(__get_pid_of mpd)"
     else
       MPDSTATUS=start
       #printf_red "local mpd server is stopped"
     fi
-  fi
+  #fi
   export MPDSTATUS
 }
 
@@ -238,18 +238,16 @@ __mkd "$TEMPDIR"
 [ -f "$TEMPDIR/mpdclient_curr" ] || echo "" >"$TEMPDIR/mpdclient_curr"
 [ -f "$TEMPDIR/mpdclient_next" ] || echo "" >"$TEMPDIR/mpdclient_next"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-is_up_mpd && MPDSTATUS="stop" || MPDSTATUS="start"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 while :; do
   clear
   shift 1
   printf_newline "\n\n\n"
   is_up || break
-  __mpd_status
   __repeat_toggle
   __play_toggle
   __consume_toggle
   mpc_status | printf_readline "6"
+  __mpd_status
   printf_newline
   printf_green "1. turn notifications ${NOTIFYS:-off}"
   printf_green "2. change mpd server"
