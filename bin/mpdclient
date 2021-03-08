@@ -180,7 +180,7 @@ __mpd_status() {
   #if __local_sysname "$MPDSERVER"; then
     if is_up_mpd; then
       MPDSTATUS=stop
-      printf_yellow "local mpd server is running with pid: $(__get_pid_of mpd)"
+      printf_blue "local mpd server is running with pid: $(__get_pid_of mpd)"
     else
       MPDSTATUS=start
       #printf_red "local mpd server is stopped"
@@ -246,8 +246,8 @@ while :; do
   __repeat_toggle
   __play_toggle
   __consume_toggle
-  mpc_status | printf_readline "6"
   __mpd_status
+  mpc_status | printf_readline "6"
   printf_newline
   printf_green "1. turn notifications ${NOTIFYS:-off}"
   printf_green "2. change mpd server"
