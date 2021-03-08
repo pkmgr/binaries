@@ -75,7 +75,6 @@ ROTATE_TIME="${ROTATE_TIME:-300}"
 KILL_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER.kill"
 RUN_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER"
 NOTIFICATIONS="${NOTIFICATIONS:-enabled}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -145,7 +144,7 @@ __kill() {
     return 0
   fi
   if __get_pid &>/dev/null; then
-    for f in $(get_pid); do
+    for f in $(__get_pid); do
       kill -9 $f &>/dev/null
     done && return 0 || return 1
   else
@@ -168,21 +167,26 @@ __background_job() {
 }
 
 __get_pid() {
-  ps -ux | grep 'randomwallpaper' | grep 'start' | grep -v ' grep ' | awk '{print $2}' | grep '^' || return 1
+  ps -ux  | grep 'randomwallpaper' | grep 'run' | grep -v ' grep ' | awk '{print $2}' | grep '^' && return 0 || return 1
+}
+
+__start() {
+    notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
+    __rm_rf "$KILL_FILE" "$RUN_FILE"
+    $PROG --bg --run "$@" &
+    disown
 }
 
 __getstatus() {
-  local GETTPID PSPID
-  if __get_pid &>/dev/null; then
-    GETTPID=$(__get_pid | head -n1)
-    PSPID="$(__get_pid)"
-  elif [ -f "$RUN_FILE" ]; then
-    GETTPID=$(cat "$RUN_FILE" | head -n1)
-    PSPID="$(ps -ux | grep -v grep | grep -q "$GETTPID" 2>/dev/null)"
+  GETTPID=$(__get_pid | head -n1 || cat "$RUN_FILE" | head -n1 || return 1)
+  PSPID="$(__get_pid | head -n1 || ps -ux | grep -v grep | grep "$GETTPID" 2>/dev/null || return 1)"
+  if [ -n "$GETTPID" ]; then
+    [ -f "$KILL_FILE" ] && START_STOP_MESG="Stop is pending" || export START_STOP_MESG="Stop randomwallpaper"
+    __get_status_pid "$GETTPID" && return 0 || return 1
   else
+    export START_STOP_MESG="Start randomwallpaper"
     return 1
   fi
-  __get_status_pid "$GETTPID" && return 0 || return 1
 }
 
 __term() {
@@ -197,9 +201,8 @@ __term() {
     __getstatus && printf_green "randomwallpapers is running" || printf_red "randomwallpapers is not running"
     printf_newline
     printf_green "c. change the wallpaper"
-    printf_green "k. Stop randomwallpaper"
     printf_green "r. Change the wallpaper every x minutes"
-    printf_green "s. Start randomwallpaper"
+    printf_green "s. ${START_STOP_MESG:-Start randomwallpaper}"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
     printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-se"
@@ -210,19 +213,29 @@ __term() {
     k)
       randomwallpaper --bg --kill
       printf_green "randomwallpaper will be shutdown at the next rotation"
+      __kill
       sleep 3
       ;;
     r)
-      printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-e"
-      counter=$(echo $((60 * $sleeptime)))
-      ROTATE_TIME="$counter"
-      randomwallpaper --bg --start &>/dev/null &
-      printf_green "Started randomwallpaper in the background"
-      printf_counter "5" "4" "exiting menu in"
-      break
+      if __getstatus; then
+        notifications "Randomwallpaper" "Already running: $GETTPID"
+      else
+        printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-e"
+        counter=$(echo $((60 * $sleeptime)))
+        ROTATE_TIME="$counter"
+        randomwallpaper --bg --start &>/dev/null &
+        printf_green "Started randomwallpaper in the background"
+        printf_counter "5" "4" "exiting menu in"
+        break
+      fi
       ;;
     s)
-      __getstatus || randomwallpaper --bg --start
+      if __getstatus; then
+         randomwallpaper --bg --kill
+         printf_green "randomwallpaper will be shutdown at the next rotation"
+      else
+        randomwallpaper --bg --start
+      fi
       ;;
     $'\E' | $'\e' | z | x | n)
       clear
@@ -279,9 +292,8 @@ case $1 in
   ;;
 *bg)
   shift 1
-  if [[ "$1" = *start ]]; then
-    __getstatus || __background_job "$@" &
-    disown
+  if [[ "$1" = *run ]]; then
+    __background_job "$@"
     exit
   fi
   if [[ "$1" = *new ]]; then
@@ -289,10 +301,8 @@ case $1 in
     exit
   fi
   if [[ "$1" = *status ]]; then
-    if [ -f "$RUN_FILE" ]; then
-      GETTPID=$(cat "$RUN_FILE" | head -n1)
-      PSPID="$(ps -ux | grep -v grep | grep -q "$GETTPID" 2>/dev/null)"
-      if __getstatus; then
+    if __getstatus; then
+      if [ -n "$GETTPID" ]; then
         notifications "RandomWallPapers" "randomwallpapers is running with PID: $GETTPID"
         printf_exit 2 0 "randomwallpapers is running with PID: $GETTPID"
       else
@@ -308,10 +318,7 @@ case $1 in
   if [[ "$1" = *stop ]] || [[ "$1" = *kill ]]; then
     printf_green "Killing background service" && touch "$KILL_FILE" && exit
   fi
-  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
-  __rm_rf "$KILL_FILE" "$RUN_FILE"
-  __getstatus || __background_job "$@" &
-  disown
+  __start "$@"
   ;;
 *)
   __randomwallpaper "$@" && __mesg_ok || __mesg_fail
