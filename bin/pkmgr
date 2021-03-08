@@ -18,7 +18,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Created       : Tuesday, Feb 16, 2021 18:56 EST
 # @File          : pkmgr
 # @Description   : Manage system packages
-# @TODO          : Refactor code
+# @TODO          : Refactor code/Add zenity support
 # @Other         : Add BSD support
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

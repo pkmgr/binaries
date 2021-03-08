@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="findInstallApp"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : findInstallApp
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Try to find and install the application
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 030820210253-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : findInstallApp --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Monday, Mar 08, 2021 02:53 EST
+# @File          : findInstallApp
+# @Description   : Try to find and install the application
+# @TODO          : Add zenity prompts
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,54 +32,71 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __requiresudo true
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__dfmgr() { __devnull dfmgr "$*" && exitCode=0 || exitCode=1; }
+__pkmgr() { __devnull pkmgr "$*" && exitCode=0 || exitCode=1; }
+__systemmgr() { __devnull sudo systemmgr "$*" && exitCode=0 || exitCode=1; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__message() {
+  local mgr="$1" && shift 1
+  local arg="$*" && shift $#
+  if [ -z "$DISPLAY" ]; then
+    printf_green "Trying to find $arg via $mgr"
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_pkmgr_findInstallApp() {
   __cmd_exists pkmgr || return 1
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
-  printf_green "Trying to find $* via pkmgr"
+  __message "pkmgr" "$LISTARRAY"
   for pkg in ${LISTARRAY[*]}; do
-    __cmd_exists "$pkg" || __devnull2 pkmgr install "$pkg" && return 0 || return 1
+    __cmd_exists "$pkg" || __pkmgr install "$pkg"
   done
-  return $?
+  return $exitCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_dfmgr_findInstallApp() {
   __cmd_exists dfmgr || return 1
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
-  printf_green "Trying to find $* via dfmgr"
+  __message "dfmgr" "$LISTARRAY"
   for pkg in ${LISTARRAY[*]}; do
-    __cmd_exists "$pkg" || __devnull dfmgr install "$pkg" && return 0 || return 1
+    __cmd_exists "$pkg" || __dfmgr install "$pkg"
   done
-  return $?
+  return $exitCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_systemmgr_findInstallApp() {
   __cmd_exists systemmgr || return 1
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
-  printf_green "Trying to find $* via systemmgr"
+  __message "systemmgr" "$LISTARRAY"
   for pkg in ${LISTARRAY[*]}; do
-    __cmd_exists "$pkg" || __devnull sudo systemmgr install "$pkg" && return 0 || return 1
+    __cmd_exists "$pkg" || __systemmgr install "$pkg"
   done
-  return $?
+  return $exitCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_npm_findInstallApp() {
   cmd_exists npm || return 1
   local pkg LISTARRAY
   declare -a LISTARRAY="$*"
-  printf_green "Trying to find $* via npm"
+  __message "npm" "$LISTARRAY"
   for pkg in ${LISTARRAY[*]}; do
-    __cmd_exists "$pkg" || __devnull sudo pkmgr npm install "$1" && return 0 || return 1
+    __cmd_exists "$pkg" || __pkmgr npm install "$pkg"
   done
-  return $?
+  return $exitCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
@@ -80,10 +105,31 @@ main() {
     run_dfmgr_findInstallApp "$@" ||
     run_systemmgr_findInstallApp "$@" ||
     run_npm_findInstallApp "$@" ||
-    return $?
+    export exitCode=$?
+  return=$exitCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
+if [ -n "$DISPLAY" ]; then
+  main "$@" &>/dev/null | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install $*"
+else
+  main "$@"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+if [ "$exitCode" = 0 ]; then
+  if [ -n "$DISPLAY" ]; then
+    zenity --timeout=10 --info --title="Install successfull" --text="Successfully installed $*"
+  else
+    printf_green "Successfully installed $*"
+  fi
+  exitCode=0
+else
+  if [ -n "$DISPLAY" ]; then
+    zenity --timeout=10 --error --title="Install unsuccessfull" --text="Failed to install $*"
+  else
+    printf_error "Failed to install $*"
+  fi
+  exitCode=1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $exitCode
 # end
