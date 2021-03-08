@@ -571,12 +571,13 @@ __python_exists() {
 #gem_exists "gemname"
 __gem_exists() {
   local package="$1"
-  if __cmd_exists "$package" || devnull gem query -i -n "$package"; then return 0; else return 1; fi
+  if __cmd_exists "$package" || __devnull gem query -i -n "$package"; then return 0; else return 1; fi
   set --
 }
 
 #check_app "app"
 __check_app() {
+  local choice ARGS MISSING
   local ARGS="$*"
   local MISSING=""
   for cmd in $ARGS; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
@@ -1094,24 +1095,32 @@ __run_menu_start() {
   if __running "$1"; then
     __start "$@" && return 0 || return 1
   else
-      echo -e "\n\n\n\n"
-      printf_red "$1 is already running"
-      sleep 5
-      return 1
+    echo -e "\n\n\n\n"
+    printf_red "$1 is already running"
+    sleep 5
+    return 1
   fi
 }
 __run_menu_failed() { clear && echo -e "\n\n\n\n\n\n" && printf_red "${1:-An error has occured}" && sleep 3 && return 1; }
 #attemp_install_menus "programname"
 __attemp_install_menus() {
-  local prog="$1"
-  local dialog="$(command -v gdialog || command -v whiptail || command -v dialog || exit 1)"
-  dialog() { "$dialog" "$@" 2>/dev/null; }
-  if (dialog --timeout 10 --trim --cr-wrap --colors --title "install $1" --yesno "$prog is not installed! \nshould I try to install it?" 15 40 || return 1); then
+  local prog="$*"
+  message() { zenity --timeout=10 --title="install $prog" --question --text="$prog is not installed! \nshould I try to install it?" || return 1; }
+  __pkmgr() { __devnull pkmgr silent "$prog" && pkmgr_exitCode=0 || pkmgr_exitCode=1; }
+  if message; then
     sleep 2
     clear
-    printf_custom "191" "\n\n\n\n\t\tattempting install of $prog\n\t\tThis could take a bit...\n\n\n"
-    __devnull pkmgr silent "$1"
-    [ "$?" -ne 0 ] && dialog --timeout 10 --trim --cr-wrap --colors --title "failed" --msgbox "$1 failed to install" 10 41
+    __pkmgr | zenity --progress --no-cancel --pulsate --text "Installing packages" --auto-close
+    if [ "$pkmgr_exitCode" = 0 ]; then
+      zenity --timeout=10 --text-info --title="Success" --text="Successfully installed $prog" 10 41
+      return 0
+    else
+      zenity --timeout=10 --error --title="failed" --text="$prog failed to install" 10 41
+      return 1
+    fi
+  else
+    zenity --timeout=10 --error --title="cancelled" --text="Installation of $prog has been cancelled" 10 41
+    return 1
   fi
 }
 
@@ -1132,7 +1141,7 @@ __open_file_menus() {
   local prog="$1" && shift 1
   local args="$*" && shift $#
   if __cmd_exists "$prog"; then
-  local file="$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)"
+    local file="$(dialog --title "Play a file" --stdout --title "Please choose a file or url to play" --fselect "$HOME/" 14 48 || return 1)"
     if [ -f "$file" ] || [ -d "$file" ]; then
       __run_menu_start "$prog" "$file" || __run_menu_failed
     else
@@ -1183,10 +1192,10 @@ __edit_menu() {
 ##################### editor functions ####################
 __editor() {
   local EDITOR="$EDITOR"
-  if [ -n "$EDITOR" ]; then
-    $EDITOR "$@"
-  elif __cmd_exists myeditor; then
+  if __cmd_exists myeditor; then
     myeditor "$@"
+  elif [ -n "$EDITOR" ]; then
+    $EDITOR "$@"
   elif __cmd_exists vim; then
     local vimoptions="$vimoptions"
     __vim ${vimoptions:-} "$@"
@@ -1257,7 +1266,7 @@ __requiresudo() {
   fi
 }
 
-user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
+user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
 ###################### spinner and execute function ######################
 __execute() {
   __set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }

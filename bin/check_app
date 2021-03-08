@@ -40,37 +40,30 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__check_app bash            # graphical prompt
 __cmd_exists bash || exit 1 # exit 1 if not found
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set variables
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set functions
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set additional variables
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 main() {
   local missing_apps
+  local apps="$*"
+  shift $#
   if [ -n "$DISPLAY" ]; then
-    for f in $@; do
+    for f in $apps; do
       __cmd_exists "$f" || missing_apps+="$f "
     done
-    [ -z "$missing_apps" ] || __attemp_install_menus "$missing_apps"
+    [ -z "$missing_apps" ] && return 0 || __attemp_install_menus "$missing_apps"
   else
-    for f in $@; do
+    for f in $apps; do
       __cmd_exists "$f" || missing_apps+="$f "
     done
-    [ -z "$missing_apps" ] || __check_app "$missing_apps"
+    [ -z "$missing_apps" ] && return 0 || __check_app "$missing_apps"
   fi
+  exitCode=$?
+  unset missing_apps apps
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute main function
 main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+exit $exitCode
 # end
