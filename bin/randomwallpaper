@@ -192,23 +192,27 @@ __term() {
     printf_newline
     __getstatus && printf_green "randomwallpapers is running" || printf_red "randomwallpapers is not running"
     printf_newline
-    printf_green "a. Stop randomwallpaper"
+    printf_green "c. change the wallpaper"
+    printf_green "k. Stop randomwallpaper"
+    printf_green "r. Change the wallpaper every x minutes"
     printf_green "s. Start randomwallpaper"
-    printf_green "b. Change the wallpaper every x minutes"
-    printf_green "y. change the wallpaper"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
     printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-se"
     case "$main" in
-    a)
+    c)
+      randomwallpaper
+      ;;
+    k)
       randomwallpaper --bg --kill
       printf_green "randomwallpaper will be shutdown at the next rotation"
       sleep 3
       ;;
-    b)
+    r)
       printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-e"
       counter=$(echo $((60 * $sleeptime)))
-      randomwallpaper --bg "$counter" &>/dev/null &
+      ROTATE_TIME="$counter"
+      randomwallpaper --bg --start &>/dev/null &
       printf_green "Started randomwallpaper in the background"
       printf_counter "5" "4" "exiting menu in"
       break
@@ -220,9 +224,7 @@ __term() {
       clear
       break
       ;;
-    *)
-      randomwallpaper
-      ;;
+    *) ;;
     esac
     printf_counter "5" "3" "Re-loading menu in"
   done
@@ -299,7 +301,7 @@ case $1 in
   fi
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
-  __getstatus || __background_job "${ROTATE_TIME}" "$@" &
+  __getstatus || __background_job "$@" &
   disown
   ;;
 *)
