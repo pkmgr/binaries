@@ -679,11 +679,7 @@ __ps() {
   local proc="$(__basename "$1")"
   local prog="${APPNAME:-$PROG}"
   [ -n "$proc" ] || return 1
-  if [ -n "$prog" ]; then
-    ps -aux | grep -v "${prog:-}" | grep -v 'grep ' | grep -E '?' | grep -w "$proc" 2>/dev/null
-  else
-    ps -aux | grep -v 'grep ' | grep -E '?' | grep -w "$proc" 2>/dev/null
-  fi
+  ps -aux | grep -v 'grep ' | grep -E '?' | grep -w "$proc" 2>/dev/null
 }
 __get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
 __get_pid_of() { __ps "$1" | head -n1 | awk '{print $2}' | grep '^' || return 1; }

@@ -149,8 +149,8 @@ __kill() {
 __background_job() {
   __getstatus
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
-  local PPID=$$
-  local PID=$!
+  local PPID="$(echo $$)"
+  local PID="$(echo $!)"
   echo -e "$PPID\n$PID" >"$RUN_FILE"
   [ -f "$HOME/.config/randomwallpaper/settings" ] &&
     . "$HOME/.config/randomwallpaper/settings"
@@ -183,11 +183,12 @@ __term() {
     __getstatus && printf_green "randomwallpapers is running" || printf_red "randomwallpapers is not running"
     printf_newline
     printf_green "a. Stop randomwallpaper"
+    printf_green "s. Start randomwallpaper"
     printf_green "b. Change the wallpaper every x minutes"
     printf_green "y. change the wallpaper"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
-    printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-s"
+    printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-se"
     case "$main" in
     a)
       randomwallpaper --bg --kill
@@ -195,12 +196,15 @@ __term() {
       sleep 3
       ;;
     b)
-      printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-s"
+      printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-e"
       counter=$(echo $((60 * $sleeptime)))
       randomwallpaper --bg "$counter" &>/dev/null &
       printf_green "Started randomwallpaper in the background"
       printf_counter "5" "4" "exiting menu in"
       break
+      ;;
+    s)
+      __getstatus || randomwallpaper --bg --start
       ;;
     $'\E' | $'\e' | z | x | n)
       clear
@@ -283,7 +287,7 @@ case $1 in
   if [[ "$1" = *stop ]] || [[ "$1" = *kill ]]; then
     printf_green "Killing background service" && touch "$KILL_FILE" && exit
   fi
-  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME"
+  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
   __background_job "${ROTATE_TIME}" "$@" &
   ;;
