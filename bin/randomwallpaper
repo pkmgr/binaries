@@ -139,10 +139,17 @@ __kill() {
   if [ -f "$KILL_FILE" ]; then
     notifications "Wallpaper Changer" "Background service is shutting down"
     __rm_rf "$KILL_FILE" "$RUN_FILE"
-    kill -9 "$PPID"
+    kill -9 "$PPID" &>/dev/null
     return 1
   else
     return 0
+  fi
+  if __get_pid &>/dev/null; then
+    for f in $(get_pid); do
+      kill -9 $f &>/dev/null
+    done && return 0 || return 1
+  else
+    return 1
   fi
 }
 
@@ -160,6 +167,10 @@ __background_job() {
   __background_job
 }
 
+__get_pid() {
+  ps -ux | grep 'randomwallpaper' | grep 'start' | grep -v ' grep ' | awk '{print $2}' | grep '^' || return 1
+}
+
 __getstatus() {
   if [ -f "$RUN_FILE" ]; then
     GETTPID=$(cat "$RUN_FILE" | head -n1)
@@ -168,7 +179,6 @@ __getstatus() {
   else
     return 1
   fi
-
 }
 
 __term() {
@@ -289,7 +299,8 @@ case $1 in
   fi
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
-  __background_job "${ROTATE_TIME}" "$@" &
+  __getstatus || __background_job "${ROTATE_TIME}" "$@" &
+  disown
   ;;
 *)
   __randomwallpaper "$@" && __mesg_ok || __mesg_fail

@@ -2376,7 +2376,6 @@ wallpapermgr_req_version() { __required_version "$1"; }
 
 ###################### export and call functions ######################
 __getpythonver
-__setcursor
 
 ###################### debugging tool ######################
 # __load_debug() {
