@@ -19,7 +19,7 @@ FUNCFILE="testing.bash"
 # @Created       : Tuesday, Feb 09, 2021 17:17 EST
 # @File          : testing.bash
 # @Description   : Functions for apps
-# @TODO          : Refactor code - It is a mess
+# @TODO          : Refactor code - It is a mess/change to zenity
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1105,31 +1105,29 @@ __run_menu_failed() { clear && echo -e "\n\n\n\n\n\n" && printf_red "${1:-An err
 #attemp_install_menus "programname"
 __attemp_install_menus() {
   local prog="$*"
-  message() { zenity --timeout=10 --title="install $prog" --question --text="$prog is not installed! \nshould I try to install it?" || return 1; }
+  message() {
+    zenity --height=200 --width=400 --timeout=10 --title="install $prog" --question --text="$prog is not installed! \nshould I try to install it?" || return 1
+}
   __pkmgr() { __devnull pkmgr silent "$prog" && pkmgr_exitCode=0 || pkmgr_exitCode=1; }
   if message; then
     sleep 2
     clear
-    __pkmgr | zenity --progress --no-cancel --pulsate --text "Installing packages" --auto-close
+    __pkmgr | zenity --height=200 --width=400 --progress --no-cancel --pulsate --text "Installing packages $prog" --auto-close
     if [ "$pkmgr_exitCode" = 0 ]; then
-      zenity --timeout=10 --text-info --title="Success" --text="Successfully installed $prog" 10 41
+      zenity --timeout=10 --height=200 --width=400 --text-info --title="Success" --text="Successfully installed $prog"
       return 0
     else
-      zenity --timeout=10 --error --title="failed" --text="$prog failed to install" 10 41
+      zenity --timeout=10 --height=200 --width=400 --error --title="failed" --text="$prog failed to install"
       return 1
     fi
   else
-    zenity --timeout=10 --error --title="cancelled" --text="Installation of $prog has been cancelled" 10 41
+    zenity --timeout=10 --height=200 --width=400 --error --title="cancelled" --text="Installation of $prog has been cancelled"
     return 1
   fi
 }
 
 __custom_menus() {
   local custom
-  # printf_custom_question "6" "Enter your custom program : "
-  # read custom
-  # printf_custom_question "6" "Enter any additional options [type file to choose] : "
-  # read opts
   printf_read_question "6" "Enter your custom program : " "120" "custom"
   printf_read_question "6" "Enter any additional options [type file to choose] : " "120" "opts"
   if [ "$opts" = "file" ]; then opts="$(__open_file_menus $custom)"; fi

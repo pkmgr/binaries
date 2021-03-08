@@ -110,7 +110,7 @@ main() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -n "$DISPLAY" ]; then
-  main "$@" &>/dev/null | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install $*"
+  main "$@" | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install $*" --height=200 --width=400
 else
   main "$@"
 fi
