@@ -221,11 +221,11 @@ __gen_header_help() {
   exit 0
 }
 __gen_header() {
+  __vars "$filename"
+  __header_opts "$@"
   printf_green "New header info for $filename"
   local GEN_SCRIPTS_DEFREADME="$filename --help"
   local GEN_SCRIPTS_NEWFILE="$filename"
-  __vars "$filename"
-  __header_opts "$@"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
 
