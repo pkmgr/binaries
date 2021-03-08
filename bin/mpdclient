@@ -238,7 +238,8 @@ __mkd "$TEMPDIR"
 [ -f "$TEMPDIR/mpdclient_curr" ] || echo "" >"$TEMPDIR/mpdclient_curr"
 [ -f "$TEMPDIR/mpdclient_next" ] || echo "" >"$TEMPDIR/mpdclient_next"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+is_up_mpd && MPDSTATUS="stop" || MPDSTATUS="start"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 while :; do
   clear
   shift 1
@@ -348,17 +349,17 @@ while :; do
     ;;
   a)
     shift 1
-    cmd="send $PLAYT"
+    cmd="$PLAYT"
     __devnull __mpc toggle
     ;;
   b)
     shift 1
-    cmd="set consume to $TOGGLEC"
+    cmd="consume to $TOGGLEC"
     __devnull __mpc consume
     ;;
   l)
     shift 1
-    cmd="set repeat to $REPEATS"
+    cmd="repeat to $REPEATS"
     __devnull __mpc repeat
     ;;
   n)

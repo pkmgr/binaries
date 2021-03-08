@@ -676,11 +676,17 @@ esac
 ###################### tools ######################
 __setcursor() { echo -e -n "\x1b[\x35 q" "\e]12;cyan\a" 2>/dev/null; }
 __ps() {
-  proc="$(basename "$1")"
-  ps -aux | grep -F "$proc" 2>/dev/null
+  local proc="$(__basename "$1")"
+  local prog="${APPNAME:-$PROG}"
+  [ -n "$proc" ] || return 1
+  if [ -n "$prog" ]; then
+    ps -aux | grep -v "${prog:-}" | grep -v 'grep ' | grep -E '?' | grep -wF "$proc" 2>/dev/null
+  else
+    ps -aux | grep -v 'grep ' | grep -E '?' | grep -wF "$proc" 2>/dev/null
+  fi
 }
 __get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
-__get_pid_of() { __ps "$1" | grep -v 'grep ' | head -n1 | awk '{print $2}' | grep '^' || return 1; }
+__get_pid_of() { __ps "$1" | head -n1 | awk '{print $2}' | grep '^' || return 1; }
 #basedir "file"
 __basedir() { dirname "${1:-.}"; }
 #__basename "file"
