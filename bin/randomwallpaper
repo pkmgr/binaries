@@ -105,7 +105,7 @@ Type=Application
 Name=Wallpaper Changer
 Icon=preferences-desktop-notification
 Comment=Random Wallpaper
-Exec=randomwallpaper --bg
+Exec=randomwallpaper --bg --start
 RunHook=0
 StartupNotify=false
 Terminal=false
@@ -172,13 +172,17 @@ __get_pid() {
 }
 
 __getstatus() {
-  if [ -f "$RUN_FILE" ]; then
+  local GETTPID PSPID
+  if __get_pid &>/dev/null; then
+    GETTPID=$(__get_pid | head -n1)
+    PSPID="$(__get_pid)"
+  elif [ -f "$RUN_FILE" ]; then
     GETTPID=$(cat "$RUN_FILE" | head -n1)
     PSPID="$(ps -ux | grep -v grep | grep -q "$GETTPID" 2>/dev/null)"
-    __get_status_pid "$GETTPID" && return 0 || return 1
   else
     return 1
   fi
+  __get_status_pid "$GETTPID" && return 0 || return 1
 }
 
 __term() {
@@ -275,6 +279,11 @@ case $1 in
   ;;
 *bg)
   shift 1
+  if [[ "$1" = *start ]]; then
+    __getstatus || __background_job "$@" &
+    disown
+    exit
+  fi
   if [[ "$1" = *new ]]; then
     randomwallpaper
     exit
