@@ -24,16 +24,21 @@ _scratchpad() {
   _init_completion || return
 
   case $prev in
+  remove)
+    COMPREPLY=($(compgen -W '$OPEN' -- "$cur"))
+    return
+    ;;
   open)
     COMPREPLY=($(compgen -W '$OPEN' -- "$cur"))
+    return
     ;;
-
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return
     ;;
   esac
 
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _scratchpad -o default scratchpad
+  complete -F _scratchpad scratchpad

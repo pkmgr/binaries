@@ -175,6 +175,12 @@ case "$1" in
   fi
   ;;
 
+*remove | *r)
+  shift 1
+  __filename "$*"
+  __rm_rf "$tododir/$filename"
+  ;;
+
 *open | *o)
   shift 1
   __filename "$*"

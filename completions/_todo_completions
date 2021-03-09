@@ -19,21 +19,30 @@ _todo() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/todo/array)"
-  local OPEN="$(find $tododir/*/*  -not -path "$tododir/.git/*" -type f 2>/dev/null | sed 's#'$tododir/'##g' || return)"
+  local ARCHIVE="$(find $tododir/*/* -not -path "$tododir/archive/*" -type f 2>/dev/null | sed 's#'$tododir/'##g')"
+  local OPEN="$(find $tododir/*/* -not -path "$tododir/.git/*" -type f 2>/dev/null | sed 's#'$tododir/'##g')"
 
   _init_completion || return
 
   case $prev in
+  archive)
+    COMPREPLY=($(compgen -W '$ARCHIVE' -- "$cur"))
+    return
+    ;;
+  remove)
+    COMPREPLY=($(compgen -W '$OPEN' -- "$cur"))
+    return
+    ;;
   open)
     COMPREPLY=($(compgen -W '$OPEN' -- "$cur"))
+    return
     ;;
-
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+    return
     ;;
   esac
-
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _todo -o default todo
+  complete -F _todo todo

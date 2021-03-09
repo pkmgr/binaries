@@ -315,8 +315,11 @@ __run_sync() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # list all notes
 __list_all() {
-  printf_custom "6" "all.txt"
-  find ${NOTES_DIRECTORY}/*/* -type f -iname "*.txt" -not -path "${NOTES_DIRECTORY}/archive/*" | sed 's#'$NOTES_DIRECTORY/'##g' | sort -u | printf_readline "6"
+  printf_green "All notes in $NOTES_DIRECTORY"
+  find ${NOTES_DIRECTORY}/*/* ${NOTES_DIRECTORY}/all.txt -type f -iname "*.txt" -not -path "${NOTES_DIRECTORY}/archive/*" | \
+    sed 's#'$NOTES_DIRECTORY/'##g' | \
+    __column | \
+    printf_read "6"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup
