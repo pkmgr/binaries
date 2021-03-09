@@ -87,14 +87,14 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Application functions
 __date() { date +"$1"; }
-__filename() { __basename "$1"; }
-__dirname() { __basedir "$1"; }
+__filename() { __basename "$1" 2>/dev/null; }
+__dirname() { __basedir "$1" 2>/dev/null; }
 
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f --long help,desc:,todo:,copy:,other:,res:,type:,funct*: -n "$APPNAME" -- "$@")
-  eval set -- "$t"
+  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f --long help,desc:,todo:,copy:,other:,res:,type:,funct*: -n "$APPNAME" -- "$@" 2>/dev/null)
+  eval set -- "$t" 2>/dev/null
   while :; do
     case "$1" in
     -h | --help)
@@ -314,8 +314,8 @@ __find_file() {
     template="$GEN_SCRIPTS_TEMPLATE_DIR/shell/bash"
     [[ "$1" = -* ]] && dest="newScript" || dest="$1"
   fi
-  dest="$dest"
-  __header_opts "$*"
+  dest="${dest:-newScript}"
+  __header_opts "$dest" "$@"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script" || __mkd "$HOME/.config/gen-script"
