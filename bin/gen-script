@@ -87,7 +87,8 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Application functions
 __date() { date +"$1"; }
-__filename() { basename "$1"; }
+__filename() { __basename "$1"; }
+__dirname() { __basedir "$1"; }
 
 # Set up options
 __header_opts() {
@@ -174,7 +175,9 @@ __copy_templates() {
 __makefile() {
   local temp="$1"
   local new="$2"
+  local newdir="$(__dirname "$new")"
   shift 2
+  __mkd "$newdir"
   __vars "$new"
   __cp_rf "$temp" "$new" || return 1
   __edit_header "$new" || return 1
@@ -185,7 +188,7 @@ __makefile() {
 
 __edit_header() {
   local GEN_SCRIPTS_NEWFILE="$1"
-  local GEN_SCRIPTS_NEWFILEDIR="$(__basedir $GEN_SCRIPTS_NEWFILE)"
+  local GEN_SCRIPTS_NEWFILEDIR="$(__basename $GEN_SCRIPTS_NEWFILE)"
   __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
   sed -i 's#REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
