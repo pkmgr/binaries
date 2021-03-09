@@ -543,8 +543,16 @@ case "$1" in
 
 search)
   shift 1
-  printf_green "Search results: "
-  cat "$NOTES_DIRECTORY/all.txt" "$NOTES_PREV_FILE" "$NOTES_PATH" | grep -i "$1" 2>/dev/null | printf_readline "7" || printf_red "No results found"
+  search_results="$(cat "$NOTES_DIRECTORY/all.txt" "$NOTES_PREV_FILE" "$NOTES_PATH" | grep -i "$1" 2>/dev/null)"
+  if [ -n "$search_results" ]; then
+    printf_green "Search results: "
+    echo "$search_results" | printf_readline "7";
+    exitCode=0
+  else
+    printf_red "No results found"
+    exitCode=1
+  fi
+  exit $exitCode
   ;;
 
 -)
