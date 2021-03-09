@@ -19,7 +19,7 @@ _scratchpad() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/scratchpad/array)"
-  local OPEN="$(find $scratchDir/*/* -type f 2>/dev/null | sed 's#'$scratchDir/'##g' || return)"
+  local OPEN="$(find $scratchDir/*/* -not -path "$scratchDir/.git/*" -type f 2>/dev/null | sed 's#'$scratchDir/'##g' || return)"
 
   _init_completion || return
 

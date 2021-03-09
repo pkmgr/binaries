@@ -48,12 +48,13 @@ year="$(date +"%Y")"
 day="$(date +"%d")"
 todoeditor="${TODO_EDITOR:-vim}"
 tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
-todoarchive="${TODO_ARCHIVE:-$year/$month/$day.md}"
+todoarchive="${TODO_ARCHIVE:-$tododir/archives/$year/$month}"
+todoarchivefile="$todoarchive/$day-$hour.md"
 todotitle="${TODO_TITLE:-Created on: $(date +"%B") $(date +"%d"), $year at $hour}"
 [ -f "$HOME/.config/todo/settings" ] && . "$HOME/.config/todo/settings"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
+  [ -d "$tododir" ] || __mkd "$tododir"
   if [ ! -f "$tododir/tmux.conf" ]; then
     cat <<EOF >"$tododir/tmux.conf"
 # Very basic tmux config
@@ -87,26 +88,33 @@ EOF
 }
 
 __config() {
+  printf_green "Creating $HOME/.config/todo/settings file"
   __mkd "$HOME/.config/todo"
-  cat <<EOF >$HOME/.config/todo/settings
-# Settings for todo
-TODO_DIR="$tododir"
+echo '# Settings for todo
+tododir='"$tododir"'
 # Title for new files
-TODO_TITLE="$todotitle"
+todotitle="Created on: $(date +"%B") $(date +"%d"), $year at $hour"
 # archive folder
-TODO_ARCHIVE="$todoarchive"
+todoarchive="$year/$month"
 # vim/nano/emacs
-TODO_EDITOR="$todoeditor"
+todoeditor='"$todoeditor"'
 # run git commit
 TODO_GIT="enabled"
-EOF
+' | tee $HOME/.config/todo/settings &>/dev/null
+[ -f "$HOME/.config/todo/settings" ] && printf_green "Settings file has been created" || printf_error "Failed to generate the config file"
+exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __filename() {
-  cleaninput=${*// /\/}
-  name="${cleaninput:-all}"
-  file="${name//$tododir/name}/index.md"
-  filename="${file//tododir/$file}"
+  if [ -n "$1" ]; then
+    cleaninput=${*// /\/}
+    name="${cleaninput:-all}"
+    file="${name//$tododir/$name}"
+  else
+    name="all"
+    file="$name/index.md"
+  fi
+  filename="${file//$tododir/$file}"
 }
 __run_tmux() {
   local name="$name"
@@ -115,15 +123,19 @@ __run_tmux() {
     local titleheader="TODO for $name: $todotitle"
     [ -d "$tododir/all" ] || __mkd "$tododir/all"
     [ -d "$tododir/$name" ] || __mkd "$tododir/$name"
+    if [ -d "$tododir/$filename" ]; then
+      filename="$filename/index.md"
+    else
+      filename="$filename"
+    fi
     printf "$titleheader\n\n" >"$tododir/$filename"
   fi
-  __tmux "$1"
+  __tmux "$tododir/$filename"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "$todoeditor $1" &>/dev/null; }
 __run_git() { if [ -d "$tododir/.git" ]; then gitcommit "$tododir" todo; else gitadmin "$tododir" setup; fi; }
-
+tmux_conf
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 *config)
@@ -138,8 +150,9 @@ case "$1" in
 
 *list | *l)
   shift 1
-  if [ "$(__count_files $tododir/*)" -ne 0 ]; then
-    __find "$tododir" -iname "*.md" | sed 's#'$tododir/'##g'
+  if [ -d "$tododir" ] && [ "$(__count_files "$tododir/*/*" "4")" -ne 0 ]; then
+    printf_green "Listing the files in $tododir"
+    __find -L "$tododir" -type f,l -iname "*.md" | sed 's#'$tododir/'##g' | __column | printf_read "3"
   else
     printf_exit "No todos exist in: $tododir"
   fi
@@ -148,7 +161,18 @@ case "$1" in
 *archive)
   shift 1
   __filename "$*"
-  mv -f "$tododir/$name" "$tododir/$todoarchive"
+  if [ ! -d "$todoarchive" ]; then
+    printf_green "Creating $todoarchive directory"
+    __mkd "$todoarchive"
+  fi
+  if [ -f "$tododir/$filename" ]; then
+    printf_green "Archiving $tododir/$filename to:"
+    printf_green "$todoarchivefile"
+    mv -f "$tododir/$filename" "$todoarchivefile" &>/dev/null
+  [ -f "$todoarchivefile" ] && printf_green "File has been archived" || printf_error "Failed to achive file"
+  else
+    printf_exit "$tododir/$filename doesn't exist"
+  fi
   ;;
 
 *open | *o)

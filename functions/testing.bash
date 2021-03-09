@@ -699,6 +699,7 @@ __get_full_file() { ls -A "$*" 2>/dev/null; }
 __rmcomments() { sed 's/[[:space:]]*#.*//;/^[[:space:]]*$/d'; }
 #countwd file
 __countwd() { cat "$@" | wc -l | __rmcomments; }
+__column() { [ -f "$(command -v column)" ] && column || tee; }
 #getuser "username" "grep options"
 __getuser() { if [ -n "${1:-$USER}" ]; then cut -d: -f1 /etc/passwd | grep "${1:-$USER}" | cut -d: -f1 /etc/passwd | grep "${1:-$USER}" ${2:-}; fi; }
 #getuser_shell "shellname"

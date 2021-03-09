@@ -19,7 +19,7 @@ _todo() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/todo/array)"
-  local OPEN="$(find $tododir/*/* -type f 2>/dev/null | sed 's#'$tododir/'##g' || return)"
+  local OPEN="$(find $tododir/*/*  -not -path "$tododir/.git/*" -type f 2>/dev/null | sed 's#'$tododir/'##g' || return)"
 
   _init_completion || return
 

@@ -1,37 +1,47 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="scratchpad"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : scratchpad
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Setup a console base scratchpad
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 030920210100-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : scratchpad --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Mar 09, 2021 01:00 EST
+# @File          : scratchpad
+# @Description   : Setup a console base scratchpad
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-unset TMUX
+TMUX=""
 scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
 hour="$(date +"%H:%M")"
 month="$(date +"%m")"
@@ -40,10 +50,9 @@ day="$(date +"%d")"
 folder="$year/$month"
 title="$(date +"%B") $(date +"%d"), $year created at $hour"
 filename="$folder/$day.md"
-
+editor="vim"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mkd "$scratchdir/$folder"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
   if [ ! -f "$scratchdir/tmux.conf" ]; then
@@ -78,9 +87,8 @@ set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__tmux() { tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "vim $1" &>/dev/null; }
+__tmux() { tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "$editor $1" &>/dev/null; }
 __open() {
   filepath="$(__get_full_file "$1")"
   filename="$scratchdir/${1//$scratchdir}"
@@ -96,7 +104,6 @@ scratchpad() {
       fi
       exit $?
   }
-
   run_tmux() {
     local filename="${1:-$filename}"
     local filename="$scratchdir/${filename//$scratchdir}"
@@ -106,7 +113,7 @@ scratchpad() {
     fi
     __tmux "$filename"
   }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   case "$1" in
   *new | *-n)
     shift 1
@@ -118,9 +125,9 @@ scratchpad() {
 
   *list | *-l)
     shift 1
-    if [ -d "$scratchdir/$folder" ] && [ "$(__count_files $scratchdir/*/*)" -ne 0 ]; then
-      printf_green "Listing the files in $scratchdir/$folder"
-      find $scratchdir/*/* -type f | sed 's#'$scratchdir/'##g' | printf_read "3"
+    if [ -d "$scratchdir" ] && [ "$(__count_files "$scratchdir/*/*" "4")" -ne 0 ]; then
+      printf_green "Listing the files in $scratchdir"
+      find -L $scratchdir/*/* -type f,l -iname "*" | sed 's#'$scratchdir/'##g' | __column | printf_read "3"
     else
       printf_exit "No scratchpads exist"
     fi
@@ -146,7 +153,6 @@ scratchpad() {
 
   esac
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
   tmux_conf
