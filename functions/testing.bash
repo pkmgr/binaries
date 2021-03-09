@@ -1110,7 +1110,7 @@ __attemp_install_menus() {
   local prog="$*"
   message() {
     zenity --height=200 --width=400 --timeout=10 --title="install $prog" --question --text="$prog is not installed! \nshould I try to install it?" || return 1
-}
+  }
   __pkmgr() { __devnull pkmgr silent "$prog" && pkmgr_exitCode=0 || pkmgr_exitCode=1; }
   if message; then
     sleep 2
@@ -1727,7 +1727,7 @@ devenvmgr_install() {
   APPDIR="$SHARE/$SCRIPTS_PREFIX"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   REPO="$DEVENVMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$DOCKERMGRREPO/raw"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
@@ -1749,7 +1749,7 @@ dfmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dfmgr"
   REPO="$DFMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$DOCKERMGRREPO/raw"
   APPDIR="$CONF"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1774,7 +1774,7 @@ dockermgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dockermgr"
   REPO="$DOCKERMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$DOCKERMGRREPO/raw"
   APPDIR="$SHARE"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   DATADIR="${APPDIR:-/srv/docker/$APPNAME}"
@@ -1800,7 +1800,7 @@ fontmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="fontmgr"
   REPO="$FONTMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$FONTMGRREPO/raw"
   APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1834,7 +1834,7 @@ iconmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="iconmgr"
   REPO="$ICONMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$ICONMGRREPO/raw"
   APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX"
   INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1869,7 +1869,7 @@ pkmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="pkmgr"
   REPO="$PKMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$PKMGRREPO/raw"
   APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1895,7 +1895,7 @@ systemmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="systemmgr"
   REPO="$SYSTEMMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$SYSTEMMGRREPO/raw"
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
   APPDIR="/usr/local/etc"
@@ -1921,7 +1921,7 @@ thememgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="thememgr"
   REPO="$THEMEMGRREPO"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPORAW="$THEMEMGRREPO/raw"
   APPDIR="${THEMEDIR:-$SYSSHARE/themes/$APPNAME}"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1956,8 +1956,8 @@ thememgr_install() {
 wallpapermgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="wallpapermgr"
-  REPO="${WALLPAPERMGRREPO}"
-  REPORAW="$REPO/$APPNAME/raw"
+  REPO="$WALLPAPERMGRREPO"
+  REPORAW="$WALLPAPERMGRREPO/raw"
   APPDIR="${WALLPAPERS:-$SHARE/wallpapers/$APPNAME}"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -2171,22 +2171,29 @@ run_install_init() {
   local exitCode
   local -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
+    local REPORAW="$REPO/$ins/raw"
     if user_is_root; then
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
         sudo bash -c "$INSTDIR/$ins/install.sh"
       else
-        __urlcheck "$REPO/$ins/raw/master/install.sh" &&
-          sudo bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" ||
-          printf_exit "Failed to initialize the installer"
+        if __urlcheck "$REPORAW/master/install.sh"; then
+          sudo bash -c "$(curl -LSs $REPORAW/master/install.sh)"
+        else
+          printf_error "Failed to initialize the installer from:"
+          printf_exit "$REPORAW/master/install.sh\n"
+        fi
       fi
       local exitCode+=$?
     else
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
         bash -c "$INSTDIR/$ins/install.sh"
       else
-        __urlcheck "$REPO/$ins/raw/master/install.sh" &&
-          bash -c "$(curl -LSs $REPO/$ins/raw/master/install.sh)" ||
-          printf_exit "Failed to initialize the installer\n\t\t$REPO/$ins/raw/master/install.sh"
+        if __urlcheck "$REPORAW/master/install.sh"; then
+          bash -c "$(curl -LSs $REPORAW/master/install.sh)"
+        else
+          printf_error "Failed to initialize the installer from:"
+          printf_exit "$REPORAW/master/install.sh\n"
+        fi
       fi
       local exitCode+=$?
     fi
