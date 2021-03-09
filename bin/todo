@@ -51,6 +51,7 @@ tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
 todoarchive="${TODO_ARCHIVE:-$tododir/archives/$year/$month}"
 todoarchivefile="$todoarchive/$day-$hour.md"
 todotitle="${TODO_TITLE:-Created on: $(date +"%B") $(date +"%d"), $year at $hour}"
+TODO_GIT="${TODO_GIT:-disabled}"
 [ -f "$HOME/.config/todo/settings" ] && . "$HOME/.config/todo/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
@@ -93,13 +94,13 @@ __config() {
 echo '# Settings for todo
 tododir='"$tododir"'
 # Title for new files
-todotitle="Created on: $(date +"%B") $(date +"%d"), $year at $hour"
+todotitle="Created on: $(date +"%B") $(date +"%d"), $year at $hour ##"
 # archive folder
-todoarchive="$year/$month"
+todoarchive="$tododir/archives/$year/$month"
 # vim/nano/emacs
 todoeditor='"$todoeditor"'
 # run git commit
-TODO_GIT="enabled"
+TODO_GIT='"$TODO_GIT"'
 ' | tee $HOME/.config/todo/settings &>/dev/null
 [ -f "$HOME/.config/todo/settings" ] && printf_green "Settings file has been created" || printf_error "Failed to generate the config file"
 exit $?
@@ -120,7 +121,7 @@ __run_tmux() {
   local name="$name"
   local filename="$filename"
   if [ ! -f "$tododir/$filename" ] || [ ! -s "$tododir/$filename" ]; then
-    local titleheader="TODO for $name: $todotitle"
+    local titleheader="TODO for $name: $todotitle  "
     [ -d "$tododir/all" ] || __mkd "$tododir/all"
     [ -d "$tododir/$name" ] || __mkd "$tododir/$name"
     if [ -d "$tododir/$filename" ]; then
@@ -128,11 +129,18 @@ __run_tmux() {
     else
       filename="$filename"
     fi
-    printf "$titleheader\n\n" >"$tododir/$filename"
+    printf "%s\n\n" "## $titleheader" >"$tododir/$filename"
   fi
   __tmux "$tododir/$filename"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__delete() {
+  if [ -f "$1" ]; then
+    __rm_rf "$1" && return 0 || return 1
+  else
+    MESG="The file $1 doesn't exist" && return 1
+  fi
+}
 __tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "$todoeditor $1" &>/dev/null; }
 __run_git() { if [ -d "$tododir/.git" ]; then gitcommit "$tododir" todo; else gitadmin "$tododir" setup; fi; }
 tmux_conf
@@ -152,7 +160,7 @@ case "$1" in
   shift 1
   if [ -d "$tododir" ] && [ "$(__count_files "$tododir/*/*" "4")" -ne 0 ]; then
     printf_green "Listing the files in $tododir"
-    __find -L "$tododir" -type f,l -iname "*.md" | sed 's#'$tododir/'##g' | __column | printf_read "3"
+    find -L "$tododir" -type f,l -iname "*.md" -o -iname "*.txt" | sed 's#'$tododir/'##g' | __column | printf_read "3"
   else
     printf_exit "No todos exist in: $tododir"
   fi
@@ -178,7 +186,17 @@ case "$1" in
 *remove | *r)
   shift 1
   __filename "$*"
-  __rm_rf "$tododir/$filename"
+  if __delete "$tododir/$filename"; then
+    printf_green "$tododir/$filename has been deleted"
+    exitCode=0
+  elif [ -n "$MESG" ]; then
+    printf_error "$MESG"
+    exitCode=1
+  else
+    printf_error "failed to delete $tododir/$filename"
+    exitCode=1
+  fi
+  exit $exitCode
   ;;
 
 *open | *o)
