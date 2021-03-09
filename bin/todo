@@ -91,7 +91,7 @@ EOF
 __config() {
   printf_green "Creating $HOME/.config/todo/settings file"
   __mkd "$HOME/.config/todo"
-echo '# Settings for todo
+  echo '# Settings for todo
 tododir='"$tododir"'
 # Title for new files
 todotitle="Created on: $(date +"%B") $(date +"%d"), $year at $hour ##"
@@ -102,8 +102,8 @@ todoeditor='"$todoeditor"'
 # run git commit
 TODO_GIT='"$TODO_GIT"'
 ' | tee $HOME/.config/todo/settings &>/dev/null
-[ -f "$HOME/.config/todo/settings" ] && printf_green "Settings file has been created" || printf_error "Failed to generate the config file"
-exit $?
+  [ -f "$HOME/.config/todo/settings" ] && printf_green "Settings file has been created" || printf_error "Failed to generate the config file"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __filename() {
@@ -135,7 +135,7 @@ __run_tmux() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __delete() {
-  if [ -f "$1" ]; then
+  if [ -f "$1" ] || [ -d "$1" ]; then
     __rm_rf "$1" && return 0 || return 1
   else
     MESG="The file $1 doesn't exist" && return 1
@@ -177,7 +177,7 @@ case "$1" in
     printf_green "Archiving $tododir/$filename to:"
     printf_green "$todoarchivefile"
     mv -f "$tododir/$filename" "$todoarchivefile" &>/dev/null
-  [ -f "$todoarchivefile" ] && printf_green "File has been archived" || printf_error "Failed to achive file"
+    [ -f "$todoarchivefile" ] && printf_green "File has been archived" || printf_error "Failed to achive file"
   else
     printf_exit "$tododir/$filename doesn't exist"
   fi
