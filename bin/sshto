@@ -1,40 +1,46 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="sshto"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version         : 022420211808-git
-# @Author          : Jason
-# @Contact         : casjaysdev@casjay.net
-# @File            : sshto
-# @Created         : Wed, Aug 15, 2020, 13:52 EST
-# @License         : MIT
-# @Copyright       : Copyright (c) CasjaysDev
-# @Description     : Menu driven ssh
-# @Source          : https://github.com/vaniacer/sshto
+#set opts
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
+##@Version       : 030920210041-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : sshto --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Mar 09, 2021 00:41 EST
+# @File          : sshto
+# @Description   : Menu driven ssh client
+# @TODO          :
+# @Other         :
+# @Resource      : https://github.com/vaniacer/sshto
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 REMOTE=8080                                               # Remote port for tunneling.
 LOCAL=18080                                               # Local  port for tunneling.
 DEST='~'                                                  # Destination folder on target server to download\upload files.
@@ -43,9 +49,9 @@ GUEST=${SSHTO_USER:-root}                                 # Alternative username
 KEY="${SSHTO_KEY:-$HOME/.ssh/id_rsa.pub}"                 # SSH key to use
 confile="${SSHTO_CONFIG:-$HOME/.config/sshto}/sshtorc"    # Set config File
 tmpfile="${SSHTO_TEMP:-/tmp}/sshtorc"                     # Set temp file
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$1" ] && RUN_CUSTOM="${*}" || RUN_CUSTOM="pkmgr update"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Add your commands to this list
 cmdlist_renew () { cmdlist=(
 	#Command#  #Description#
@@ -198,8 +204,7 @@ add_sshkey () { clear; ssh_yes "$SSH_OPT $target" > /dev/null; ssh-copy-id -i $K
 portunneling () { ssh $SSH_OPT $target -f -L 127.0.0.1:$LOCAL:127.0.0.1:$REMOTE sleep $TIME; }
 
 #------------------------{ Exit function }---------------------------------------------------------
-bye () { clear; [[ $(uname -s) == "Darwin" ]] && ls -G || ls --color=auto; exit 0; }; trap bye INT
-
+bye () { clear; exit 0; }; trap bye INT
 
 #------------------------------{ Dialog functions }------------------------------------------------
 #------------------------{ Copy selected file to server }------------------------------------------
@@ -356,3 +361,6 @@ list=( "${fullist[@]}" )
 
 #--{ Go baby, GO!) }--
 first_dialog; bye
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# end
