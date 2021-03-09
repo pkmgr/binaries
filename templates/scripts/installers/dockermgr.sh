@@ -60,24 +60,34 @@ dockermgr_req_version "$APPVERSION"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Call the dockermgr function
 dockermgr_install
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Script options IE: --help --version
+show_optvars "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# initialize the installer
 dockermgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup
-mkdir -p "$DATADIR"/{data,config}
-chmod -Rf 777 "$DATADIR"
-#
-if docker ps -a | grep "REPLACE_APPNAME" >/dev/null 2>&1; then
-  docker pull REPLACE_APPNAME && docker restart "REPLACE_APPNAME"
-else
-  docker run -d \
-    --name="REPLACE_APPNAME" \
-    --hostname "REPLACE_APPNAME" \
-    --restart=always \
-    --privileged \
-    -p 4040:80 \
-    -v "$DATADIR/data":/REPLACE_APPNAME/data \
-    REPLACE_APPNAME
-fi
+__dockermgr_main() {
+  mkdir -p "$DATADIR"/{data,config}
+  chmod -Rf 777 "$DATADIR"
+
+  if docker ps -a | grep "REPLACE_APPNAME" >/dev/null 2>&1; then
+    docker pull REPLACE_APPNAME && docker restart "REPLACE_APPNAME"
+  else
+    docker run -d \
+      --name="REPLACE_APPNAME" \
+      --hostname "REPLACE_APPNAME" \
+      --restart=always \
+      --privileged \
+      -p 4040:80 \
+      -v "$DATADIR/data":/REPLACE_APPNAME/data \
+      REPLACE_APPNAME
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute main function
+__dockermgr_main
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # create version file
 dockermgr_install_version
