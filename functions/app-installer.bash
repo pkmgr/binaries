@@ -880,10 +880,10 @@ git_update() {
       devnull git -C "$INSTDIR" pull --recurse-submodules -fq &&
       devnull git -C "$INSTDIR" submodule update --init --recursive -q &&
       devnull git -C "$INSTDIR" reset --hard -q && true || false
-        if [ "$?" -ne "0" ]; then
-          rm_rf "$INSTDIR"
-          git_clone "$repo" "$INSTDIR"
-        fi
+    if [ "$?" -ne "0" ]; then
+      rm_rf "$INSTDIR"
+      git_clone "$repo" "$INSTDIR"
+    fi
   fi
 }
 
@@ -2132,13 +2132,17 @@ run_install_init() {
   else
     printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
     printf_purple "$REPORAW/install.sh"
-    urlcheck "$REPORAW/master/install.sh" && sudo bash -c "$(__curl $REPORAW/master/install.sh)" ||
-      printf_exit "Failed to initialize the installer\n\t\t$REPO/$ins/raw/master/install.sh"
+    if urlcheck "$REPORAW/master/install.sh"; then
+      bash -c "$(__curl $REPORAW/master/install.sh)"
+    else
+      printf_error "Failed to initialize the installer from:"
+      printf_exit "$REPORAW/master/install.sh"
+    fi
   fi
   if [ -d "$APPDIR" ]; then
-    printf_green "Updating ${1:-configurations} in ${APPDIR//$HOME/'~'}"
+    printf_green "Updating ${1:-$APPNAME} in ${APPDIR//$HOME/'~'}"
   else
-    printf_green "Installing ${1:-configurations} to ${APPDIR//$HOME/'~'}"
+    printf_green "Installing ${1:-$APPNAME} to ${APPDIR//$HOME/'~'}"
   fi
   local exitCode=$?
   [ "$exitCode" -eq 0 ] || exit 10
