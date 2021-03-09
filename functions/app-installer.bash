@@ -1551,7 +1551,7 @@ show_optvars() {
   fi
 
   path_info() {
-    echo "$PATH" | tr ':' '' | sort -u
+    echo "$PATH" | tr ':' '\n' | sort -u
   }
 
   if [ "$1" = "--location" ]; then
@@ -1611,7 +1611,7 @@ show_optvars() {
     printf_info "REPORAW:                   $REPO/$APPNAME/raw"
     printf_info "Prefix:                    $SCRIPTS_PREFIX"
     for PATHS in $(path_info); do
-      printf_info "PATHS:                     $PATHS"
+      printf_info "PATH:                      $PATHS"
     done
     exit $?
   fi
