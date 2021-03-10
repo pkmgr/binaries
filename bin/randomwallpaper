@@ -134,59 +134,48 @@ __mesg_ok() { notifications "Wallpaper Changer" "Wallpaper has been changed to $
 __mesg_fail() { notifications "Wallpaper Changer" "Failed to change the wallpaper"; }
 
 __kill() {
-  __getstatus
-  if [ -f "$KILL_FILE" ]; then
-    notifications "Wallpaper Changer" "Background service is shutting down"
-    __rm_rf "$KILL_FILE" "$RUN_FILE"
-    kill -9 "$PPID" &>/dev/null
-    return 1
-  else
-    return 0
-  fi
+  __rm_rf "$KILL_FILE" "$RUN_FILE"
   if __get_pid &>/dev/null; then
+    notifications "Wallpaper Changer" "Background service is shutting down"
     for f in $(__get_pid); do
-      kill -9 $f &>/dev/null
-    done && return 0 || return 1
+      kill -15 "$f" &>/dev/null
+    done && exitCode=0 || exitCode=1
   else
-    return 1
+    notifications "Wallpaper Changer" "Background service is not running"
+    exitCode=1
   fi
+  return "$exitCode"
 }
 
 __background_job() {
-  __getstatus
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
-  local PPID="$(echo $$ 2>/dev/null)"
-  local PID="$(echo $! 2>/dev/null)"
-  echo -e "$PPID\n$PID" >"$RUN_FILE"
-  [ -f "$HOME/.config/randomwallpaper/settings" ] &&
-    . "$HOME/.config/randomwallpaper/settings"
-  randomwallpaper --bg -new
+  [ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
+  randomwallpaper --bg --new
   sleep ${ROTATE_TIME:-300}
-  __kill || exit 1
+  __kill || return 1
   __background_job
 }
 
-__get_pid() {
-  ps -ux  | grep 'randomwallpaper' | grep 'run' | grep -v ' grep ' | awk '{print $2}' | grep '^' && return 0 || return 1
-}
-
 __start() {
-  __getstatus && exit 1
+  __getstatus && return 1
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
-  sh -c "$PROG --bg --run "$@" & disown"
+  sh -c "$PROG --bg --run &>/dev/null &"
 }
 
+__get_pid() { ps -ux  | grep 'randomwallpaper' | grep 'run' | grep -v 'grep' | awk '{print $2}' | grep '^' || return 1; }
+
 __getstatus() {
-  GETTPID=$(__get_pid | head -n1 || cat "$RUN_FILE" | head -n1 || return 1)
-  PSPID="$(__get_pid | head -n1 || ps -ux | grep -v grep | grep "$GETTPID" 2>/dev/null || return 1)"
+  GETTPID=$(__get_pid || return 1)
+  PSPID="$(__get_pid | head -n1 || ps -ux | grep "$PROG" | grep -v 'grep' | grep "run" 2>/dev/null || return 1)"
   if [ -n "$GETTPID" ]; then
     [ -f "$KILL_FILE" ] && START_STOP_MESG="Stop is pending" || export START_STOP_MESG="Stop randomwallpaper"
-    __get_status_pid "$GETTPID" && return 0 || return 1
+    __get_status_pid "$GETTPID" && exitCode=0 || exitCode=1
   else
     export START_STOP_MESG="Start randomwallpaper"
-    return 1
+    exitCode=1
   fi
+  return $exitCode
 }
 
 __term() {
@@ -208,12 +197,10 @@ __term() {
     printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-se"
     case "$main" in
     c)
-      randomwallpaper
+      __randomwallpaper
       ;;
     k)
-      randomwallpaper --bg --kill
-      printf_green "randomwallpaper will be shutdown at the next rotation"
-      __kill
+      sh -c "randomwallpaper --bg --kill"
       sleep 3
       ;;
     r)
@@ -223,7 +210,7 @@ __term() {
         printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-e"
         counter=$(echo $((60 * $sleeptime)))
         ROTATE_TIME="$counter"
-        randomwallpaper --bg --start &>/dev/null &
+        randomwallpaper --bg --start
         printf_green "Started randomwallpaper in the background"
         printf_counter "5" "4" "exiting menu in"
         break
@@ -231,8 +218,7 @@ __term() {
       ;;
     s)
       if __getstatus; then
-         randomwallpaper --bg --kill
-         printf_green "randomwallpaper will be shutdown at the next rotation"
+        sh -c "randomwallpaper --bg --kill"
       else
         randomwallpaper --bg --start
       fi
@@ -250,6 +236,7 @@ __term() {
 
 __randomwallpaper() {
   local exitCode=0
+
   xfce_change_wp() {
     xfconf-query --channel xfce4-desktop --list | grep last-image | while read path; do
       xfconf-query --channel xfce4-desktop --property "$path" --set "$1"
@@ -268,6 +255,7 @@ __randomwallpaper() {
   else
     return 1
   fi
+  return $?
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -290,17 +278,30 @@ case $1 in
   shift 1
   __term "$@"
   ;;
-*bg)
+*bg) # background
   shift 1
-  if [[ "$1" = *run ]]; then
-    __background_job "$@"
-    exit
-  fi
-  if [[ "$1" = *new ]]; then
-    randomwallpaper
-    exit
-  fi
-  if [[ "$1" = *status ]]; then
+  case $1 in
+    *run)
+      shift $#
+      __background_job
+      exit
+    ;;
+  *new)
+      shift $#
+      __randomwallpaper
+      exit
+    ;;
+  *start)
+      shift $#
+      if __getstatus; then
+        exit 1
+      else
+        __start
+        exit $?
+      fi
+    ;;
+  *status)
+    shift $#
     if __getstatus; then
       if [ -n "$GETTPID" ]; then
         notifications "RandomWallPapers" "randomwallpapers is running with PID: $GETTPID"
@@ -314,12 +315,17 @@ case $1 in
       printf_exit 1 1 "randomwallpapers appears to be stop"
     fi
     exit $?
-  fi
-  if [[ "$1" = *stop ]] || [[ "$1" = *kill ]]; then
-    printf_green "Killing background service" && touch "$KILL_FILE" && exit
-  fi
+    ;;
+  *stop | *kill)
+    shift $#
+    printf_green "Killing background service" && touch "$KILL_FILE" && __kill
+    exit
+    ;;
+  *)
   __start "$@"
   ;;
+esac
+;;
 *)
   __randomwallpaper "$@" && __mesg_ok || __mesg_fail
   ;;
