@@ -85,7 +85,7 @@ scratchpad() {
     local filename="$scratchdir/${filename//$scratchdir}"
     if [ ! -f "$filename" ]; then
       local title="${2:-Scratchpad for $title}"
-      printf "%s\n\n" "$title  " >"$filename"
+      printf "%s\n\n" "## $title  " >"$filename"
     fi
     __tmux "$filename"
   }
