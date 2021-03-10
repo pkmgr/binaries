@@ -148,9 +148,10 @@ __kill() {
 }
 
 __background_job() {
+  __rm_rf "$RUN_FILE"
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
   [ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
-  randomwallpaper --bg --new
+  randomwallpaper --bg --new && touch "$RUN_FILE" || __rm_rf "$RUN_FILE"
   sleep ${ROTATE_TIME:-300}
   __kill || return 1
   __background_job
