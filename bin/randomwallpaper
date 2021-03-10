@@ -155,8 +155,8 @@ __kill() {
 __background_job() {
   __getstatus
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
-  local PPID="$(echo $$)"
-  local PID="$(echo $!)"
+  local PPID="$(echo $$ 2>/dev/null)"
+  local PID="$(echo $! 2>/dev/null)"
   echo -e "$PPID\n$PID" >"$RUN_FILE"
   [ -f "$HOME/.config/randomwallpaper/settings" ] &&
     . "$HOME/.config/randomwallpaper/settings"
@@ -171,10 +171,10 @@ __get_pid() {
 }
 
 __start() {
-    notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
-    __rm_rf "$KILL_FILE" "$RUN_FILE"
-    $PROG --bg --run "$@" &
-    disown
+  __getstatus && exit 1
+  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
+  __rm_rf "$KILL_FILE" "$RUN_FILE"
+  sh -c "$PROG --bg --run "$@" & disown"
 }
 
 __getstatus() {
