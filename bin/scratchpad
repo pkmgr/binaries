@@ -56,7 +56,9 @@ __mkd "$scratchdir/$folder"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
   if [ ! -f "$scratchdir/tmux.conf" ]; then
-    __mkd "$scratchdir"
+    if [ -f "$HOME/.config/tmux/tmux.conf" ]; then
+      __ln_sf "$HOME/.config/tmux/tmux.conf" "$scratchdir/tmux.conf"
+    else
     cat <<EOF >"$scratchdir/tmux.conf"
 # Very basic tmux config
 unbind C-b
@@ -85,6 +87,7 @@ setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244
 setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
+  fi
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

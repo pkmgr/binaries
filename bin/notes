@@ -61,9 +61,13 @@ NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
 # Import settings
 [ -f "$HOME/.config/notes/config" ] && . "$HOME/.config/notes/config"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__mkd "$NOTES_DIRECTORY"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Tmux config
 if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
-  __mkd "$NOTES_DIRECTORY"
+  if [ -f "$HOME/.config/tmux/tmux.conf" ]; then
+    __ln_sf "$HOME/.config/tmux/tmux.conf" "$NOTES_DIRECTORY/tmux.conf"
+  else
   cat <<EOF >"$NOTES_DIRECTORY/tmux.conf"
 # Very basic tmux config
 unbind C-b
@@ -92,6 +96,7 @@ setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244
 setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
+fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _notifications() { [ "$NOTES_NOTIFY" = "yes" ] && notifications "$@"; }

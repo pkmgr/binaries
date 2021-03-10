@@ -52,11 +52,16 @@ todoarchive="${TODO_ARCHIVE:-$tododir/archives/$year/$month}"
 todoarchivefile="$todoarchive/$day-$hour.md"
 todotitle="${TODO_TITLE:-Created on: $(date +"%B") $(date +"%d"), $year at $hour}"
 TODO_GIT="${TODO_GIT:-disabled}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/todo/settings" ] && . "$HOME/.config/todo/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__mkd "$tododir"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
-  [ -d "$tododir" ] || __mkd "$tododir"
   if [ ! -f "$tododir/tmux.conf" ]; then
+    if [ -f "$HOME/.config/tmux/tmux.conf" ]; then
+      __ln_sf "$HOME/.config/tmux/tmux.conf" "$tododir/tmux.conf"
+    else
     cat <<EOF >"$tododir/tmux.conf"
 # Very basic tmux config
 unbind C-b
@@ -85,6 +90,7 @@ setw -g window-status-format ' #I#[fg=colour237]:#[fg=colour250]#W#[fg=colour244
 setw -g window-status-bell-style 'fg=colour255 bg=colour1 bold'
 set -g message-style 'fg=colour232 bg=colour16 bold'
 EOF
+  fi
   fi
 }
 
