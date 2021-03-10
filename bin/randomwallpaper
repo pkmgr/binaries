@@ -289,8 +289,8 @@ case $1 in
     ;;
   *new)
       shift $#
-      __randomwallpaper
-      exit
+      __randomwallpaper  && __mesg_ok || __mesg_fail
+      exit $?
     ;;
   *start)
       shift $#
@@ -324,6 +324,7 @@ case $1 in
     ;;
   *)
   __start "$@"
+  exit $?
   ;;
 esac
 ;;
