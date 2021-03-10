@@ -893,6 +893,16 @@ __git_globalemail() {
   local email="$(git config --get user.email || echo "$USER"@"$(hostname -s)".local)"
   echo "$email"
 }
+__git() {
+  local exitCode=0
+  local args="$*" && shift $#
+  local tmpfile="${TMPDIR:-/tmp}/gitlog.$$.tmp"
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/bin:/sbin"
+  git $args &>"$tmpfile"
+  grep -vq "fatal:" "$tmpfile" && exitCode=0 || exitCode=1
+  __rm_rf "$tmpfile"
+  return ${exitCode:$?}
+}
 #git_clone "url" "dir"
 __git_clone() {
   [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
@@ -903,7 +913,7 @@ __git_clone() {
     __git_update "$dir" || return 1
   else
     [ -d "$dir" ] && __rm_rf "$dir"
-    git clone -q --recursive "$repo" "$dir" || return 1
+    __git clone -q --recursive "$repo" "$dir" || return 1
   fi
   if [ "$?" -ne "0" ]; then
     printf_error "Failed to clone the repo"
@@ -916,8 +926,8 @@ __git_update() {
   local gitrepo="$(dirname $dir/.git)"
   local reponame="${APPNAME:-$gitrepo}"
   git -C "$dir" reset --hard || return 1
-  git -C "$dir" pull --recurse-submodules -fq || return 1
-  git -C "$dir" submodule update --init --recursive -q || return 1
+  __git -C "$dir" pull --recurse-submodules -fq || return 1
+  __git -C "$dir" submodule update --init --recursive -q || return 1
   git -C "$dir" reset --hard -q || return 1
   if [ "$?" -ne "0" ]; then
     printf_error "Failed to update the repo"
@@ -955,8 +965,8 @@ __git_init() {
   else
     set --
     __mkd "$dir"
-    git -C "$dir" init -q &>/dev/null
-    git -C "$dir" add -A . &>/dev/null
+    __git -C "$dir" init -q &>/dev/null
+    __git -C "$dir" add -A . &>/dev/null
     if ! __git_porcelain "$dir"; then
       git -C "$dir" commit -q -m " 🏠🐜❗ Initial Commit 🏠🐜❗ " | printf_readline "2"
     else
