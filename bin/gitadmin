@@ -36,6 +36,7 @@ if [ -d "$1" ]; then
   shift 1
 elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
   gitdir="$2"
+  __mkd "$gitdir"
   shift 2
   [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
 else
@@ -200,7 +201,7 @@ run_git_setup() {
     git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
     printf_green "Success: $(__git_repobase "$REPODIR") has been initialized"
 
-  if [ ! -z "$PREVREPO" ]; then
+  if [ -n "$PREVREPO" ]; then
     printf_read_question "3" "Should I reuse the remote repo? [y/n] " "1" "reuse" "-s"
   else
     PREVREPO=""
@@ -271,7 +272,7 @@ make_newsite() {
 # Gets the organizations from the user
 git_all_orgs() {
   ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=owner"
-  for org in "$GITHUB_USERNAME" "$(curl -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
+  for org in "$GITHUB_USERNAME" "$(curl -q -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
     gitadmin --clone "$org"
   done
 }
@@ -313,10 +314,10 @@ ghgist() {
   local ERROR="Failed"
   local CONTENT="$(printf "%s\r" "{\"description\": \"$DESCR\",\"public\": true,\"files\": {\"$TITLE\": {\"content\": \"$3\"}}}" | tee >/tmp/gist_url-data.txt)"
   printf_green "Creating $TITLE - $DESCR"
-  curl -X POST -LSsi -H "Content-Type: application/json" -H "Authorization: token $TOKEN" --data @/tmp/gist_url-data.txt https://api.github.com/gists |
+  curl -q -X POST -LSsi -H "Content-Type: application/json" -H "Authorization: token $TOKEN" --data @/tmp/gist_url-data.txt https://api.github.com/gists |
     grep -w "html_url" | grep "gist" | awk '{print $2}' | __sed 's/\,//' >"/tmp/gist_url" 2>&1 && SUCCES="$(cat /tmp/gist_url)" &&
     __devnull rm -Rf "/tmp/gist_url" "/tmp/gist_url-data.txt"
-  getexitcode "$SUCCES" "$ERROR"
+  __getexitcode "$SUCCES" "$ERROR"
   return $EXIT
 }
 
@@ -330,18 +331,18 @@ ghdelete() {
   local ERROR="Deletion of $REPONAME failed"
   local SUCCES="Deletion of $REPONAME successfull"
   printf_green "Deleting $REPONAME for user $USERNAME\n"
-  __devnull curl -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
+  __devnull curl -q -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
   sleep 3
-  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
+  curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
   ghdelete-user
-  getexitcode "$SUCCES" "$ERROR"
+  __getexitcode "$SUCCES" "$ERROR"
   return $EXIT
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Reusable function for delete
 ghdelete-user() {
-  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
+  curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -356,11 +357,11 @@ ghcreate() {
   local ERROR="Creation of $REPONAME failed"
   local SUCCES="Creation of $REPONAME successfull"
   printf_green "Creating $REPONAME for user $USERNAME"
-  __devnull curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos" -d "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}"
+  __devnull curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos" -d "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}"
   sleep 1
-  curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" >/dev/null && true ||
+  curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" >/dev/null && true ||
     ghcreate-user
-  getexitcode "$SUCCES" "$ERROR"
+  __getexitcode "$SUCCES" "$ERROR"
   return "$EXIT"
 }
 
@@ -375,9 +376,9 @@ ghsinglerepo() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Reusable function for create
 ghcreate-user() {
-  __devnull2 curl -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
+  __devnull2 curl -q -H "Authorization: token $TOKEN" -H "Authorization: token $TOKEN" --data "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}" https://api.github.com/user/repos
   sleep 1
-  __devnull2 curl -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" && true
+  __devnull2 curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" && true
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -391,17 +392,17 @@ main() {
       printf_purple "Now running git pull $USERNAME/$i"
       if [ -f "$REPODIR/gitmasterconfig" ]; then cp -Rf "$REPODIR/gitmasterconfig" "$REPODIR/.git/config"; fi
       __devnull git -C "$PROJECT_DIR/$USERNAME/$i" pull --recurse-submodules -f -q
-      getexitcode "$SUCCES" "$ERROR"
+      __getexitcode "$SUCCES" "$ERROR"
     else
       ERROR="Git clone $USERNAME/$i failed"
       SUCCES="Git clone $USERNAME/$i completed"
       printf_purple "Now running git clone $USERNAME/$i"
       __devnull git -C "$PROJECT_DIR/$USERNAME/$i" clone --recurse-submodules -f -q "$REPO_URL/$i"
-      getexitcode "$SUCCES" "$ERROR"
+      __getexitcode "$SUCCES" "$ERROR"
     fi
   done
   rm -Rf "/tmp/github-casjaysdev-*"
-  exit "$EXIT"
+  exit "${EXIT:-$?}"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -409,21 +410,21 @@ main() {
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
   if [ -d "$REPODIR/.git" ]; then
-    printf_custom "4" "Pushing the repo in $PWD"
-    devnull2 git -C "$REPODIR" push -q
-    getexitcode "Push has completed"
+    printf_custom "4" "Pushing the repo in $PWD to $(__git_remote_origin "$REPODIR")"
+    __devnull2 git -C "$REPODIR" push -q
+    __getexitcode "Push has completed"
   else
     if [ -n "$1" ]; then
       projdir="$1"
-      REPODIRname="$(get_githost "$1")"
+      REPODIRname="$(__git_hostname "$1")"
       __git_username_repo "$1"
     else
       projdir="$PROJECT_BASE/$REPODIRname/$username/$userrepo"
     fi
     if [ -d "$projdir/.git" ]; then
-      printf_custom "4" "Pushing the repo in $projdir"
+      printf_custom "4" "Pushing the repo in $projdir to $(__git_remote_origin "$projdir")"
       __devnull git -C "$projdir" push -q
-      getexitcode "Push has completed"
+      __getexitcode "Push has completed"
     else
       return 1
     fi
@@ -436,9 +437,9 @@ git_push_single() {
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
   if [ -d "$REPODIR/.git" ]; then
-    printf_custom "4" "Pulling the repo in $PWD"
-    devnull2 git -C "$REPODIR" pull -q
-    getexitcode "Pulling has completed"
+    printf_custom "4" "Pulling the repo in $PWD from $(__git_remote_pull "$REPODIR")"
+    __devnull2 git -C "$REPODIR" pull -q
+    __getexitcode "Pulling has completed"
   else
     if [ -n "$1" ]; then
       projdir="$1"
@@ -448,9 +449,9 @@ git_pull_single() {
       projdir="$PROJECT_BASE/$REPODIRname/$username/$userrepo"
     fi
     if [ -d "$projdir/.git" ]; then
-      printf_custom "4" "Pulling the repo in $projdir"
+      printf_custom "4" "Pulling the repo in $projdir from $(__git_remote_pull "$projdir")"
       __devnull git -C "$projdir" pull -q
-      getexitcode "Pulling has completed"
+      __getexitcode "Pulling has completed"
     else
       return 1
     fi
@@ -462,17 +463,24 @@ git_pull_single() {
 # clone a single repo
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
-  REPODIRname="$(__git_hostname "$1")"
-  get_username_repo "$1"
-  projdir="${2:-$PROJECT_BASE/$REPODIRname/$username/$userrepo}"
-  if [ -d "$projdir/.git" ]; then
-    printf_custom "4" "Updating the repo in $projdir"
-    __devnull git -C "$projdir" pull -q
-    getexitcode "Updating has completed"
+  if [ -d "$1" ]; then
+    REPODIRname="local"
+    userrepo="$(__basename $1)"
+    username="$(basename "$(__basedir "$1")")"
   else
-    printf_custom "4" "Cloning the repo to $projdir"
-    __devnull git -C "$projdir" clone -q
-    getexitcode "Cloning has completed"
+    REPODIRname="$(__git_hostname "$1")"
+    __git_username_repo "$1"
+  fi
+  projdir="${2:-$PROJECT_BASE/$REPODIRname/$username/$userrepo}"
+  __mkd "$projdir"
+  if [ -d "$projdir/.git" ]; then
+    printf_custom "4" "Updating the repo in $projdir from $(__git_remote_origin "$projdir")"
+    __devnull git -C "$projdir" pull -q
+    __getexitcode "Updating has completed"
+  else
+    printf_custom "4" "Cloning the repo to $projdir from $1"
+    __devnull git clone -q "$1" "$projdir"
+    __getexitcode "Cloning has completed"
   fi
   exit "$?"
 }
@@ -482,13 +490,13 @@ git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
     while true; do
       for project in $(ls -d ~/Projects/*/*/*); do
-        printf_green "Updating $project $(__devnull git -C $project pull -q) $(getexitcode)"
+        printf_green "Updating $project $(__devnull git -C $project pull -q) $(__getexitcode)"
       done && clear
       printf_custom "3" "Sleeping for a minute $(sleep 60)"
     done
   else
     for project in $(ls -d ~/Projects/*/*/*); do
-      printf_green "Updating $project $(__devnull git -C $project pull -q) $(getexitcode)"
+      printf_green "Updating $project $(__devnull git -C $project pull -q) $(__getexitcode)"
     done
   fi
 }
@@ -612,7 +620,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -629,7 +637,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -646,7 +654,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   for i in $(cat $TMPFILE); do
@@ -658,13 +666,13 @@ clone)
         cp -Rf "$PROJECT_DIR/$USERNAME/$i/gitmasterconfig" "$PROJECT_DIR/$USERNAME/$i/.git/config"
       fi
       if (__devnull2 git -C "$PROJECT_DIR/$USERNAME/$i" status | grep -q "working tree clean"); then
-        getexitcode
+        __getexitcode
       else
         [ -f "$PROJECT_DIR/$USERNAME/$i/version.txt" ] && date +"%m%d%Y%H%M-git" >"$PROJECT_DIR/$USERNAME/$i/version.txt"
         __devnull git -C "$PROJECT_DIR/$USERNAME/$i" add . &&
           __devnull git -C "$PROJECT_DIR/$USERNAME/$i" commit -a -m " ❇🦈🏠❗ General Fixes ❗🏠🦈❇ " &&
           __devnull git -C "$PROJECT_DIR/$USERNAME/$i" push -q
-        getexitcode
+        __getexitcode
       fi
     fi
   done
@@ -684,7 +692,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -700,7 +708,7 @@ clone)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  echo "$(curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
+  echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -896,7 +904,7 @@ stow)
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
   fi
-  curl -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//' >"$TMPFILE"
+  curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//' >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
   main
@@ -909,5 +917,5 @@ esac
 rm -Rf "/tmp/github-casjaysdev-*"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $EXIT
+exit ${EXIT:-$?}
 # end

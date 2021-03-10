@@ -303,7 +303,6 @@ printf_read_question() {
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
   read -t 20 -r $readopts -n $lines $reply
-  #echo ""
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -316,7 +315,6 @@ printf_read_question_nt() {
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
   read -r $readopts -n $lines $reply
-  #echo ""
 }
 
 printf_read_error() {
@@ -420,7 +418,7 @@ printf_counter() {
   message="$*" && shift
   temp_cnt=${wait_time}
   while [[ ${temp_cnt} -gt 0 ]]; do
-    printf "%s\r" "$(printf_custom $color $message: ${temp_cnt})"
+    printf "\r%s" "$(printf_custom $color $message: ${temp_cnt})"
     sleep 1
     ((temp_cnt--))
   done
@@ -477,7 +475,7 @@ __cmd_exists() {
   local exitTmp
   local exitCode
   for cmd in $args; do
-    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(which --skip-alias --skip-functions "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
+    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
       local exitTmp=0
     else
       local exitTmp=1
@@ -995,6 +993,7 @@ __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%a
 __git_pull() { git -C "${1:-.}" pull -q 2>/dev/null && return 0 || return 1; }
 __git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null | grep -v fatal && return 0 || echo "${1:-$PWD}"; }
 __git_top_rel() { __devnull __git_top_dir "${1:-.}" && git -C "${1:-.}" rev-parse --show-cdup 2>/dev/null | sed 's#/$##g' | head -n1 || return 1; }
+__git_remote_pull() { git -C "${1:-.}" remote -v 2>/dev/null | grep push | head -n 1 | awk '{print $2}' 2>/dev/null; }
 __git_remote_fetch() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null && return 0 || return 1; }
 __git_remote_origin() { git -C "${1:-.}" remote show origin 2>/dev/null | grep Push | awk '{print $3}' && return 0 || return 1; }
 __git_porcelain_count() { [ -d "$(__git_top_dir ${1:-.})/.git" ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }

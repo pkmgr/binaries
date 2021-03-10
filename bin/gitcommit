@@ -57,8 +57,8 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
-versionfile="$topdir/version.txt"
-repo="$(__git_remote_fetch $MYCURRDIR)"
+versionfile="$gitdir/version.txt"
+repo="$(__git_remote_fetch $gitdir)"
 basedir="$(basename $gitdir)"
 [ -n "$repo" ] || repo="localdir"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
