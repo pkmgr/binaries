@@ -134,6 +134,7 @@ __mesg_ok() { notifications "Wallpaper Changer" "Wallpaper has been changed to $
 __mesg_fail() { notifications "Wallpaper Changer" "Failed to change the wallpaper"; }
 
 __kill() {
+  if [ -f "$KILL_FILE" ]; then
   __rm_rf "$KILL_FILE" "$RUN_FILE"
   if __get_pid &>/dev/null; then
     notifications "Wallpaper Changer" "Background service is shutting down"
@@ -145,6 +146,7 @@ __kill() {
     exitCode=1
   fi
   return "$exitCode"
+  fi
 }
 
 __background_job() {
