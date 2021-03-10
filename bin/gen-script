@@ -87,13 +87,13 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Application functions
 __date() { date +"$1"; }
-__filename() { __basename "$1" 2>/dev/null; }
-__dirname() { __basedir "$1" 2>/dev/null; }
+__filename() { basename "$1" 2>/dev/null; }
+__dirname() { if [ $(dirname "$1" 2>/dev/null) = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
 
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f --long help,desc:,todo:,copy:,other:,res:,type:,funct*: -n "$APPNAME" -- "$@" 2>/dev/null)
+  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f,n: --long help,desc:,todo:,copy:,other:,res:,type:,funct*:,name: -n "$APPNAME" -- "$@" 2>/dev/null)
   eval set -- "$t" 2>/dev/null
   while :; do
     case "$1" in
@@ -127,6 +127,10 @@ __header_opts() {
     -i | --type)
       shift
       type="$1"
+      ;;
+    -n | --name)
+      shift
+      GEN_FILENAME="$1"
       ;;
     --)
       shift
@@ -188,7 +192,9 @@ __makefile() {
 
 __edit_header() {
   local GEN_SCRIPTS_NEWFILE="$1"
-  local GEN_SCRIPTS_NEWFILEDIR="$(__basename $GEN_SCRIPTS_NEWFILE)"
+  local GEN_SCRIPTS_NEWFILE_FULL="$(__get_full_file "$1")"
+  local GEN_SCRIPTS_NEWFILEDIR="$(__dirname $GEN_SCRIPTS_NEWFILE_FULL)"
+  local GEN_SCRIPTS_NEWFILEDIR="${GEN_FILENAME:-$GEN_SCRIPTS_NEWFILEDIR}"
   __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
   sed -i 's#REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
@@ -219,6 +225,7 @@ __gen_header_help() {
   printf_blue "-r: Resources"
   printf_blue "-f: Include functions"
   printf_blue "-i: Install function to use - user_install"
+  printf_blue "-n: Define the script APPNAME"
   printf_yellow "Types: user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr"
   printf_yellow 'IE: gen-script header filename -d "My Descr" -c "My Copy" -t "My TODO" -o "OTHER" -r "RESOURCE" -i "system" -f'
   exit 0
@@ -385,7 +392,7 @@ shift
 [ -f "$template" ] || printf_exit 1 1 "The template file doesn't exist: $template"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # file and folder setup
-filename="$(__basename ${dest:-newScript} 2>/dev/null || echo .)"
+filename="$(__basename ${dest:-newScript} 2>/dev/null || echo $PWD/.)"
 destfolder="$(__basedir $dest 2>/dev/null)"
 # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate the file

@@ -684,9 +684,15 @@ __ps() {
 __get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
 __get_pid_of() { __ps "$1" | head -n1 | awk '{print $2}' | grep '^' || return 1; }
 #basedir "file"
-__basedir() { dirname "${1:-.}"; }
+__basedir() {
+  if [ $(dirname "$1" 2>/dev/null) = . ]; then
+    echo $PWD
+  else
+    dirname "$1" | sed 's#\../##g' 2>/dev/null
+  fi
+}
 #__basename "file"
-__basename() { basename "${1:-.}"; }
+__basename() { basename "${1:-.}" 2>/dev/null; }
 #to_lowercase "args"
 __to_lowercase() { echo "$@" | tr [A-Z] [a-z]; }
 #to_uppercase "args"
