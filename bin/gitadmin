@@ -75,18 +75,23 @@ __curl_api_header() { curl -q; }
 __git_pull() {
   local dir="$1" && shift 1
   local args="$*"
-  if [[ "$(git -C "$dir" pull $args -f -q)" != "fatal:" ]]; then return 0; else return 1; fi
+  if __am_i_online; then git -C "$dir" pull $args -f -q && return 0 || return 1; else return 1; fi
 }
 __git_push() {
   local dir="$1" && shift 1
   local args="$*"
-  if [[ "$(git -C "$dir" push $args -q)" != "fatal:" ]]; then return 0; else return 1; fi
+  if __am_i_online; then git -C "$dir" push $args -q && return 0 || return 1; else return 1; fi
 }
 __git_clone() {
   local url="$1" && shift 1
   local dir="$1" && shift 1
   local args="$*"
-  if [[ "$(git clone "$url" "$dir" -q $args)" != "fatal:" ]]; then return 0; else return 1; fi
+  local regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  if [[ "$string" =~ $regex ]]; then
+    if __am_i_online; then git clone "$url" "$dir" -q $args && return 0 || return 1; else return 1; fi
+  else
+    git clone "$url" "$dir" -q $args && return 0 || return 1
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a README.md file if one doesn't exist
@@ -95,7 +100,7 @@ create_new_readme_template() {
     gen-readme "$REPODIR" &>/dev/null
   else
     local author="$(__git_globaluser)"
-    local GitBaseDir="$(git -C "$REPODIR" rev-parse --show-toplevel 2>/dev/null || echo $gitdir)"
+    local GitBaseDir="$(__git_top_dir "$REPODIR")"
     local BaseDir="${GitBaseDir##*/}"
     [ -f "$CASJAYSDEVDIR/templates/readmes/projects/default.md" ] &&
       cat "$CASJAYSDEVDIR/templates/readmes/projects/default.md" >"${REPODIR}/README.md"
@@ -180,8 +185,8 @@ run_git_init() {
       printf_read_question "3" "This will overwrite the repo if it exists. Continue? [y/n]" "1" "confirm_repo" "-s"
       if printf_answer_yes "$confirm_repo"; then
         if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
-        __devnull git -C "${REPODIR}" push -q --set-upstream origin master -f &&
-          __devnull git -C "${REPODIR}" push -q -f &&
+        __devnull __git_push "$REPODIR" --set-upstream origin master &&
+          __devnull __git_push "$REPODIR" &&
           printf_green "Successfully pushed to $repo" || printf_red "Push to $repo has failed"
       else
         printf_info "Not pushing due to user canceling"
@@ -217,7 +222,8 @@ run_git_setup() {
   __devnull git -C "${REPODIR}" init . &&
     __devnull git -C "${REPODIR}" add . &&
     git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    printf_green "Success: $(__git_repobase "$REPODIR") has been initialized"
+    printf_green "Success: $(__git_repobase "$REPODIR") has been initialized" ||
+    printf_red "Failed to initialize $(__git_repobase "$REPODIR")"
 
   if [ -n "$PREVREPO" ]; then
     printf_read_question "3" "Should I reuse the remote repo? [y/n] " "1" "reuse" "-s"
@@ -486,13 +492,12 @@ git_pull_single() {
 # clone a single repo
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
-  SUCCESS_MSG() { echo "Cloning from $(__git_remote_origin "$projdir") has completed"; }
-  FAILED_MSG() { echo "Cloning from $(__git_remote_origin "$projdir") has failed"; }
   local PROJECT_DIR projectdir
   local giturl="$1"
+  local projdir="${2:-$projectdir}"
   __git_username_repo "$giturl"
-  projdir="${2:-$projectdir}"
-  #printf_debug "giturl:$giturl" "userrepo:$userrepo" "username:$username" "projdir:$projdir"
+  SUCCESS_MSG() { echo "Cloning from $giturl has completed"; }
+  FAILED_MSG() { echo "Cloning from $giturl has failed"; }
   if [ -d "$projdir/.git" ]; then
     printf_custom "4" "Updating the repo in $projdir"
     __devnull __git_pull "$projdir" && exitCode=0 || exitCode=1
