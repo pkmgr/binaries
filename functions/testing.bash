@@ -896,8 +896,8 @@ __git_globalemail() {
 #git_clone "url" "dir"
 __git_clone() {
   [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
-  __git_username_repo "$1"
   local repo="$1"
+  __git_username_repo "$repo"
   [ -n "$2" ] && local dir="$2" && shift 1 || local dir="${APPDIR:-.}"
   if [ -d "$dir/.git" ]; then
     __git_update "$dir" || return 1
@@ -974,7 +974,15 @@ __git_username_repo() {
   local url="$1"
   local re="^(https?|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)$"
   local githostname="$(__git_hostname $url 2>/dev/null)"
-  if [[ $url =~ $re ]]; then
+  if [ -d "$url" ]; then
+    protocol=
+    separator=
+    hostname=localhost
+    userrepo="$(basename "$url")"
+    username="$(basename "$(dirname "$url")")"
+    folder="local"
+    projectdir="${PROJECT_DIR:-$HOME/Projects}/$folder/$username-$userrepo"
+  elif [[ $url =~ $re ]]; then
     protocol=${BASH_REMATCH[1]}
     separator=${BASH_REMATCH[2]}
     hostname=${BASH_REMATCH[3]}
@@ -995,7 +1003,7 @@ __git_top_dir() { git -C "${1:-.}" rev-parse --show-toplevel 2>/dev/null | grep 
 __git_top_rel() { __devnull __git_top_dir "${1:-.}" && git -C "${1:-.}" rev-parse --show-cdup 2>/dev/null | sed 's#/$##g' | head -n1 || return 1; }
 __git_remote_pull() { git -C "${1:-.}" remote -v 2>/dev/null | grep push | head -n 1 | awk '{print $2}' 2>/dev/null; }
 __git_remote_fetch() { git -C "${1:-.}" remote -v 2>/dev/null | grep fetch | head -n 1 | awk '{print $2}' 2>/dev/null && return 0 || return 1; }
-__git_remote_origin() { git -C "${1:-.}" remote show origin 2>/dev/null | grep Push | awk '{print $3}' && return 0 || return 1; }
+__git_remote_origin() { __git_remote_pull "${1:-.}" && return 0 || return 1; }
 __git_porcelain_count() { [ -d "$(__git_top_dir ${1:-.})/.git" ] && [ "$(git -C "${1:-.}" status --porcelain 2>/dev/null | wc -l 2>/dev/null)" -eq "0" ] && return 0 || return 1; }
 __git_porcelain() { __git_porcelain_count "${1:-.}" && return 0 || return 1; }
 __git_repobase() { basename "$(__git_top_dir "${1:-$PWD}")"; }
@@ -1360,20 +1368,20 @@ __returnexitcode() {
   fi
 }
 
-#getexitcode "OK Message" "Error Message"
+#getexitcode "$?" "OK Message" "Error Message"
 __getexitcode() {
   local EXITCODE="$?"
   test -n "$1" && test -z "${1//[0-9]/}" && local EXITCODE="$1" && shift 1
-  if [ ! -z "$1" ]; then
+  if [ -n "$1" ]; then
     local PSUCCES="$1"
-  elif [ ! -z "$SUCCES" ]; then
+  elif [ -n "$SUCCES" ]; then
     local PSUCCES="$SUCCES"
   else
     local PSUCCES="Command successful"
   fi
-  if [ ! -z "$2" ]; then
+  if [ -n "$2" ]; then
     local PERROR="$2"
-  elif [ ! -z "$ERROR" ]; then
+  elif [ -n "$ERROR" ]; then
     local PERROR="$ERROR"
   else
     local PERROR="Last command failed to complete"
@@ -1381,7 +1389,7 @@ __getexitcode() {
   if [ "$EXITCODE" -eq 0 ]; then
     printf_cyan "$PSUCCES"
   else
-    printf_red "$PERROR"
+    printf_error "$PERROR"
   fi
   __returnexitcode "$EXITCODE"
   return "$EXITCODE"

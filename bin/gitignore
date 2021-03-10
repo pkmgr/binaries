@@ -43,12 +43,25 @@ __options "$@"
 __check_app git
 __check_app curl
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# I'm sure there is a better way to do this
+if [ -d "$1" ]; then
+  gitdir="$1"
+  shift 1
+elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  gitdir="$2"
+  __mkd "$gitdir"
+  shift 2
+  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
+else
+  gitdir="$PWD"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 GITIGNOREURL="${GITIGNOREURL:-https://www.toptal.com/developers/gitignore/api}"
 IGNORELIST="$(echo "$@" | tr ' ' ',')"
-GITDIR="$(git rev-parse --show-toplevel 2>/dev/null)"
+GITDIR="$(__git_top_dir "$gitdir" 2>/dev/null || echo "$gitdir")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$1" ] || __help
-[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || printf_exit 2 0 "This is not a git repo"
+#[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || printf_exit 2 0 "This is not a git repo"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 set_gitignoredir() {
   case $@ in
@@ -58,15 +71,15 @@ set_gitignoredir() {
       if ! grep -qF 'ignoredirmessage' "$GITDIR/.gitignore" 2>/dev/null; then
         mv -f "$GITDIR/.gitignore" "$GITDIR/.gitignore.tmp" &&
           printf "# Disable reminder in prompt\nignoredirmessage\n\n" >"$GITDIR/.gitignore" &&
-          cat "$GITDIR/.gitignore.tmp" >> "$GITDIR/.gitignore" &&
+          cat "$GITDIR/.gitignore.tmp" >>"$GITDIR/.gitignore" &&
           rm -Rf "$GITDIR/.gitignore.tmp" &&
           printf_green "Added ignoredirmessage to your .gitignore" ||
           printf_error "Failed to add ignoredirmessage to gitignore"
+      fi
+    else
+      printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore"
     fi
-  else
-    printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore"
-  fi
-  ;;
+    ;;
   esac
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

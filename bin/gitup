@@ -1,78 +1,69 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="gitup"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : gitup
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : automagically add commit and push current git repo
-#
+#set opts
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
+##@Version       : 031020210413-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : gitup --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Wednesday, Mar 10, 2021 04:13 EST
+# @File          : gitup
+# @Description   : automagically add commit and push current git repo
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-gitdir="$(echo $(git rev-parse --git-dir 2>/dev/null)/..)"
-oldpwd="$(pwd)"
-
+gitdir="${1:-.}"
+repo="$(__git_remote_pull "$gitdir")"
+gitdir="$(__git_top_dir "$gitdir")"
+oldpwd="$PWD"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ ! -d "$gitdir" ]; then
-  printf_exit "Not a git repo"
-  exit 1
-else
-  cd $gitdir
-fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ ! -d "$gitdir" ]; then
   printf_exit "This does not seem to be a git repo"
   exit 1
-else
-  cd $gitdir
 fi
-
-run_git_pull() {
-  git pull -q || printf_exit "Failed to pull"
-}
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_git_pull() { git -C "$gitdir" pull -q || printf_exit "Failed to pull from $repo"; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_warning "Commiting Changes and pushing to the repo"
 date +"%m%d%Y%H%M-git" >version.txt &&
   [ -f gitmasterconfig ] && [ -d .git ] &&
-  cp -f gitmasterconfig .git/config
-devnull git add . &&
-  [ ! -z "$1" ] &&
-  git commit -q -S "$1" "$2" ||
-  git commit -q -S -m " 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 " &&
+  __cp_rf gitmasterconfig .git/config
+__devnull git add . &&
+  [ -n "$1" ] &&
+  git -C "$gitdir" commit -q -S "$1" "$2" ||
+  git -C "$gitdir" commit -q -S -m " 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 " &&
   run_git_pull &&
-  devnull git push -q || devnull git push -q
-getexitcode "Successfully pushed to: $repo"
-cd $oldpwd
-
+  __devnull git -C "$gitdir" push -q || __devnull git -C "$gitdir" push -q || false
+__getexitcode $? "Successfully pushed to: $repo" "Failed to push to: $repo"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end

@@ -37,54 +37,42 @@ _gitadmin() {
 
   push)
     k=0
-    i="$HOME/Projects"
-    if [ "$(find $i/* -maxdepth 1 -type d 2>/dev/null | wc -l)" -ne 0 ]; then
-      for d in $(find $i//*/*/* -maxdepth 0 -type d 2>/dev/null); do
+    i="$HOME/Projects/"*
+    for d in $(ls -d $i/*); do
       for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j}
       done
     done
-    else
-      _filedir
-    fi
     return 0
     ;;
 
   pull)
     k=0
-    i="$HOME/Projects"
-    if [ "$(find $i/* -maxdepth 1 -type d 2>/dev/null | wc -l)" -ne 0 ]; then
-      for d in $(find $i//*/*/* -maxdepth 0 -type d 2>/dev/null); do
-        for j in $(compgen -f "$d/$cur"); do
+    i="$HOME/Projects/*"
+    for d in $i/*; do
+      for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j} "
         COMPREPLY[k++]=${j}
       done
     done
-  else
-    _filedir
-    fi
     return 0
     ;;
 
-  clone)
-    COMPREPLY=($(compgen -W '--bare --progress --quiet --recursive --recurse-submodules' -- "$cur"))
-    return 1
-    ;;
+  # clone)
+  #   COMPREPLY=($(compgen -W '--bare --progress --quiet --recurse-submodules --recursive --remote-submodules --verbose' -- "$cur"))
+  #   return 1
+  #   ;;
 
   --org)
     k=0
-    i="$HOME/Projects"
-    if [ "$(find $i/* -maxdepth 1 -type d 2>/dev/null | wc -l)" -ne 0 ]; then
-      for d in $(find $i//*/*/* -maxdepth 0 -type d 2>/dev/null); do
+    i="$HOME/Projects"/*
+    for d in $i/*; do
       for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$d/}
       done
     done
-  else
-    _filedir
-    fi
     return 0
     ;;
 
@@ -114,4 +102,4 @@ _gitadmin() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _gitadmin gitadmin
+  complete -F _gitadmin -o default gitadmin
