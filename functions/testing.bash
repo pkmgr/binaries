@@ -894,12 +894,13 @@ __git_globalemail() {
   echo "$email"
 }
 __git() {
+  local args="$*" && shift $#
   local exitCode=0
   local args="$*" && shift $#
   local tmpfile="${TMPDIR:-/tmp}/gitlog.$$.tmp"
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/bin:/sbin"
   git $args &>"$tmpfile"
-  grep -vq "fatal:" "$tmpfile" && exitCode=0 || exitCode=1
+  grep -Evqi "[rejectected]|error:|fatal:" "$tmpfile" && exitCode=0 || exitCode=1
   __rm_rf "$tmpfile"
   return ${exitCode:$?}
 }
