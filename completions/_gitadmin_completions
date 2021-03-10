@@ -38,8 +38,8 @@ _gitadmin() {
   push)
     k=0
     i="$HOME/Projects"
-    if [ $(ls -d $i/* 2>/dev/null | wc -l) -ne 0 ]; then
-    for d in $(ls -d $i/*); do
+    if [ "$(find $i/* -maxdepth 1 -type d 2>/dev/null | wc -l)" -ne 0 ]; then
+      for d in $(find $i//*/*/* -maxdepth 0 -type d 2>/dev/null); do
       for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j}
@@ -54,9 +54,9 @@ _gitadmin() {
   pull)
     k=0
     i="$HOME/Projects"
-    if [ $(ls -d $i/* 2>/dev/null | wc -l) -ne 0 ]; then
-    for d in $i/*; do
-      for j in $(compgen -f "$d/$cur"); do
+    if [ "$(find $i/* -maxdepth 1 -type d 2>/dev/null | wc -l)" -ne 0 ]; then
+      for d in $(find $i//*/*/* -maxdepth 0 -type d 2>/dev/null); do
+        for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j} "
         COMPREPLY[k++]=${j}
       done
@@ -75,8 +75,8 @@ _gitadmin() {
   --org)
     k=0
     i="$HOME/Projects"
-    if [ $(ls -d $i/* 2>/dev/null | wc -l) -ne 0 ]; then
-    for d in $i/*; do
+    if [ "$(find $i/* -maxdepth 1 -type d 2>/dev/null | wc -l)" -ne 0 ]; then
+      for d in $(find $i//*/*/* -maxdepth 0 -type d 2>/dev/null); do
       for j in $(compgen -f "$d/$cur"); do
         [ -d "$j" ] && j="${j}"
         COMPREPLY[k++]=${j#$d/}
