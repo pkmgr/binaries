@@ -75,19 +75,29 @@ __curl_api_header() { curl -q; }
 __git_pull() {
   local dir="$1" && shift 1
   local args="$*"
-  if __am_i_online; then git -C "$dir" pull $args -f -q && return 0 || return 1; else return 1; fi
+  local regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  if [[ "$(__git_remote_origin "$dir")" =~ $regex ]]; then
+    if __am_i_online; then git -C "$dir" pull $args -f -q && return 0 || return 1; else return 1; fi
+  else
+    git -C "$dir" pull $args -f -q && return 0 || return 1
+  fi
 }
 __git_push() {
   local dir="$1" && shift 1
   local args="$*"
-  if __am_i_online; then git -C "$dir" push $args -q && return 0 || return 1; else return 1; fi
+  local regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  if [[ "$(__git_remote_origin "$dir")" =~ $regex ]]; then
+    if __am_i_online; then git -C "$dir" push $args -q && return 0 || return 1; else return 1; fi
+  else
+    git -C "$dir" push $args -q && return 0 || return 1
+  fi
 }
 __git_clone() {
   local url="$1" && shift 1
   local dir="$1" && shift 1
   local args="$*"
   local regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
-  if [[ "$string" =~ $regex ]]; then
+  if [[ "$url" =~ $regex ]]; then
     if __am_i_online; then git clone "$url" "$dir" -q $args && return 0 || return 1; else return 1; fi
   else
     git clone "$url" "$dir" -q $args && return 0 || return 1
