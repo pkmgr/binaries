@@ -50,7 +50,7 @@ todoeditor="${TODO_EDITOR:-vim}"
 tododir="${TODO_DIR:-$HOME/.local/share/editors/todos}"
 todoarchive="${TODO_ARCHIVE:-$tododir/archives/$year/$month}"
 todoarchivefile="$todoarchive/$day-$hour.md"
-todotitle="${TODO_TITLE:-Created on: $(date +"%B") $(date +"%d"), $year at $hour}"
+todotitle="${TODO_TITLE:-Created on $(date +"%B") $(date +"%d"), $year at $hour}"
 TODO_GIT="${TODO_GIT:-disabled}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/todo/settings" ] && . "$HOME/.config/todo/settings"
@@ -73,7 +73,7 @@ __config() {
   echo '# Settings for todo
 tododir='"$tododir"'
 # Title for new files
-todotitle="Created on: $(date +"%B") $(date +"%d"), $year at $hour ##"
+todotitle="Created on $(date +"%B") $(date +"%d"), $year at $hour ##"
 # archive folder
 todoarchive="$tododir/archives/$year/$month"
 # vim/nano/emacs
