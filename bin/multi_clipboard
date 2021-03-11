@@ -1,69 +1,76 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="multi_clipboard"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : multi_clipboard
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Utility to keep multiple clipboards
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 031120210329-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : MIT
+# @ReadME        : multi_clipboard --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Thursday, Mar 11, 2021 03:29 EST
+# @File          : multi_clipboard
+# @Description   : Utility to keep multiple clipboards
+# @TODO          :
+# @Other         :
+# @Resource      : https://github.com/rcmdnk/multi_clipboard
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
-################################################################################
-# Multi Clipboard for GNU screen!
-# *** Utility to keep multiple clipboards ***
-# *** and manage screen's clipboard.      ***
-#
-# More information: https://github.com/rcmdnk/multi_clipboard
-################################################################################
-
-#The MIT License (MIT) {{{
-#
-#Copyright (c) 2013 rcmdnk
-#
-#Permission is hereby granted, free of charge, to any person obtaining a copy of
-#this software and associated documentation files (the "Software"), to deal in
-#the Software without restriction, including without limitation the rights to
-#use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-#the Software, and to permit persons to whom the Software is furnished to do so,
-#subject to the following conditions:
-#
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
-#
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-#FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-#COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-#IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-#CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#}}}
-
+TMPDIR="${TMPDIR:-/tmp}"
+SCREENEXCHANGE="${SCREENEXCHANGE:-$HOME/.screen-exchange}"
+SCREEN_MSGMINWAIT="${SCREEN_MSGMINWAIT:-1}"
+CLIPBOARD="${CLMAXHIST:-$HOME/.clipboard}"
+CLMAXHIST="${CLMAXHIST:-20}"
+CLSEP="${CLSEP:-'\x07'}"
+if [ -z "$CLXOS" ] && [ -z "$CLX" ]; then
+if [ "$(uname -s)" = Linux ]; then
+  if command -v xsel >/dev/null 2>&1; then
+    CLXOS="xsel"
+    CLX="xsel"
+  elif command -v xclip >/dev/null 2>&1; then
+    CLXOS="xclip"
+    CLX="xclip"
+  fi
+elif [ "$(uname -s)" = cygwin ]; then
+  if command -v xsel >/dev/null 2>&1; then
+    CLXOS="xsel"
+    CLX="xsel"
+  elif command -v xclip >/dev/null 2>&1; then
+    CLXOS="xclip"
+    CLX="xclip"
+  fi
+elif [ "$(uname -s)" = Darwin ]; then
+  if command -v pbcopy >/dev/null 2>&1; then
+    CLXOS="pbcopy"
+    CLX="pbcopy"
+  fi
+fi
+fi
 # Help {{{
 _s_help="
 Usage:
@@ -145,21 +152,21 @@ export CLMAXHIST=20
 export CLSEP=\$'\x07' # \$'\x07' is BEL
 export CLX=\"\" #xsel/xclip
 if [[ \"\$OSTYPE\" =~ linux ]];then
-  if devnull2 command -v xsel;then
+    if [ -f \"\$(command -v xsel)\" ]; then
     export CLXOS=\"xsel\"
-  elif devnull2 command -v xsel;then
+elif [ -f \"\$(command -v xsel)\" ]; then
     export CLXOS=\"xclip\"
   fi
-elif [[ \"\$OSTYPE\" =~ cygwin ]];then
-  if devnull2 command -v putclip;then
+elif [[ \"\$OSTYPE\" =~ cygwin ]]; then
+    if [ -f \"\$(command -v putclip)\" ]; then
     export CLXOS=\"putclip\"
-  elif devnull2 command -v xsel;then
+elif [ -f \"\$(command -v xsel)\" ]; then
     export CLXOS=\"xsel\"
-  elif devnull2 command -v xsel;then
+elif [ -f \"\$(command -v xsel)\" ]; then
     export CLXOS=\"xclip\"
   fi
-elif [[ \"\$OSTYPE\" =~ darwin ]];then
-  if devnull2 command -v pbcopy;then
+elif [[ \"\$OSTYPE\" =~ darwin ]]; then
+    if [ -f \"\$(command -v pbcopy)\" ]; then
     export CLXOS=\"pbcopy\"
   fi
 fi
@@ -241,21 +248,21 @@ nclbs=0
 if [ "$CLXOS" != "" ]; then
   clxos=${CLXOS}
 elif [[ "$OSTYPE" =~ linux ]]; then
-  if devnull2 command -v xsel >/dev/null 2>&1; then
+    if [ -f "$(command -v xsel >/dev/null 2>&1)" ]; then
     clxos="xsel"
-  elif devnull2 command -v xclip >/dev/null 2>&1; then
+elif [ -f "$(command -v xclip >/dev/null 2>&1)" ]; then
     clxos="xclip"
   fi
 elif [[ "$OSTYPE" =~ cygwin ]]; then
-  if devnull2 command -v putclip >/dev/null 2>&1; then
+    if [ -f "$(command -v putclip >/dev/null 2>&1)" ]; then
     clxos="putclip"
-  elif devnull2 command -v xsel >/dev/null 2>&1; then
+elif [ -f "$(command -v xsel >/dev/null 2>&1)" ]; then
     clxos="xsel"
-  elif devnull2 command -v xclip >/dev/null 2>&1; then
+elif [ -f "$(command -v xclip >/dev/null 2>&1)" ]; then
     clxos="xclip"
   fi
 elif [[ "$OSTYPE" =~ darwin ]]; then
-  if devnull2 command -v pbcopy >/dev/null 2>&1; then
+    if [ -f "$(command -v pbcopy >/dev/null 2>&1)" ]; then
     clxos="pbcopy"
   fi
 fi
