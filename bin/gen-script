@@ -245,6 +245,7 @@ __gen_header() {
 PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
