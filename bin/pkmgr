@@ -544,7 +544,11 @@ cron)
 
 ask)
   shift 1
-  __check_app "$@" && printf_green "Installed: $*" || printf_exit 1 1 "Install of $* failed"
+  if [ -n "$DISPLAY" ]; then
+    __attemp_install_menus "$@"
+  else
+    __check_app "$@" && printf_green "Installed: $*" || printf_exit 1 1 "Install of $* failed"
+  fi
   echo
   ;;
 
