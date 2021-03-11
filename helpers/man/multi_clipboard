@@ -8,4 +8,18 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "multi_clipboard"
+printf_help 2 "                   Multi Clipboard for GNU screen!"
+printf_help "multi_clipboard -i [args]  |  Insert [args] to the clipboard list"
+printf_help "multi_clipboard -s [args]  |  Send [args] to the clipboard list and the screen's clipboard"
+printf_help "multi_clipboard -I         |  Insert the screen's clipboard to the clipboard list"
+printf_help "multi_clipboard -o         |  Open clipboard list, then select one, which will be placed"
+printf_help "multi_clipboard -O         |  Same as -o, in addition, send it to the screen's clipboard"
+printf_help "multi_clipboard -g         |  Get the first one in the clipboard list"
+printf_help "multi_clipboard -w         |  w/o any other options Launch selection window and return the selected value"
+printf_help "multi_clipboard -W         |  Similar as -w, but value to the screen's clipboard"
+printf_help "multi_clipboard -x         |  Send the last clipboard to the clipboard of OS (X server)"
+printf_help "multi_clipboard -c         |  Clean up clipboard file"
+printf_help "multi_clipboard -S         |  Use in screen for selection mode"
+printf_help "multi_clipboard snippet    |  Use 'snippet' file instead of saved clipboards."
+printf_help "multi_clipboard --help     |  Show this usage"
+
