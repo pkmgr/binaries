@@ -42,6 +42,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variables
+WALLPAPERDIR="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
 WALLPAPERS="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
 ROTATE_TIME="${ROTATE_TIME:-300}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
@@ -195,9 +196,9 @@ notify_running() { notifications "Randomwallpaper" "Already running: $MAINPID" &
 __make_seen_file() {
   [ -f "$FILE_SEEN" ] || touch "$FILE_SEEN"
   [ -f "$FILE_WALLPAPER" ] || __find_cmd | sort -u >"$FILE_WALLPAPER"
-  COUNT_SEEN="$(grep -c $WALLPAPERS "$FILE_SEEN")"
-  COUNT_ALL="$(grep -c $WALLPAPERS "$FILE_WALLPAPER")"
-  [ "$COUNT_SEEN" = "$COUNT_ALL" ] && __rm_rf "$FILE_SEEN"
+  COUNT_SEEN="$(grep -c "$WALLPAPERDIR" "$FILE_SEEN")"
+  COUNT_ALL="$(grep -c "$WALLPAPERDIR" "$FILE_WALLPAPER")"
+  [ "${#COUNT_SEEN}" = "${#COUNT_ALL}" ] && __rm_rf "$FILE_SEEN"
 }
 __find_random() {
   __find_mtime "$FILE_WALLPAPER" "${REFRESH_TIME:-720}" && __find_cmd | sort -u >"$FILE_WALLPAPER"
