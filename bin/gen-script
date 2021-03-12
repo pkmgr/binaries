@@ -234,7 +234,7 @@ __gen_header() {
   __vars "$filename"
   __header_opts "$@"
   printf_green "New header info for $filename"
-  local GEN_SCRIPTS_DEFREADME="$filename --help"
+  local GEN_SCRIPTS_DEFREADME="$(__filename $filename 2>/dev/null) --help"
   local GEN_SCRIPTS_NEWFILE="$filename"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
