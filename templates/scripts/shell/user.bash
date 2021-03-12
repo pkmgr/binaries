@@ -22,11 +22,12 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Other         : REPLACE_OTHER
 # @Resource      : REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main function
+# helper function
 __help() {
   printf_help "Usage:  REPLACE_FILENAME |  REPLACE_FILENAME "
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main function
 main() {
   local DIR="${SRC_DIR:-$PWD}"
   if [[ -f "$DIR/functions.bash" ]]; then
