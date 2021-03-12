@@ -23,8 +23,9 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Resource      : REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # helper function
+__version() { app_version; }
 __help() {
-  printf_help "Usage:  REPLACE_FILENAME |  REPLACE_FILENAME "
+  app_help "Usage:  REPLACE_FILENAME |  REPLACE_FILENAME "
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
@@ -37,7 +38,11 @@ main() {
     return 1
   fi
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  [ "$1" = "--version" ] && __version
   [ "$1" = "--help" ] && __help
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Required app check
+  cmd_exists --error $APPNAME || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   !
   return "${exitCode:-$?}"
