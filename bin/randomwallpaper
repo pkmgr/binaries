@@ -55,6 +55,7 @@ if [ -d /usr/share/wallpapers ]; then
   done
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__find_cmd() { find -L "${1:-$WALLPAPERS}" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*"; }
 # variables
 ROTATE_TIME="${ROTATE_TIME:-300}"
 KILL_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER.kill"
@@ -62,6 +63,7 @@ RUN_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER"
 NOTIFICATIONS="${NOTIFICATIONS:-enabled}"
 SEEN_FILE="$HOME/.cache/randomwallpaper.seen"
 SEEN_FILE_TMP="$SEEN_FILE.tmp"
+REFRESH_TIME="$((60  * "${REFRESH_TIME:-12}"))"
 MANUAL=""
 
 if [ -f "$1" ]; then
@@ -69,12 +71,15 @@ if [ -f "$1" ]; then
   MANUAL=true
   shift 1
 elif [ -d "$1" ]; then
-  RANDOMWALLPAPER="$(find -L "$1" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
+  RANDOMWALLPAPER="$(__find_cmd "$1" | sort -R | tail -n 1)"
   MANUAL=true
   shift 1
 else
   RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
-  SETRANDOM="$(find -L "$RANDOMDIR" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
+  SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
+  if __find_mtime "$HOME/.cache/randomwallpaper.all" "${REFRESH_TIME:-720}"; then
+    __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
+  fi
 fi
 
 RANDOMWALLPAPER="${RANDOMWALLPAPER:-$SETRANDOM}"
@@ -82,9 +87,9 @@ RAND="${RANDOMWALLPAPER}"
 SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 
 if [ "$MANUAL" != "true" ] && grep -qv "$RAND" "$SEEN_FILE" &>/dev/null; then
-  while true; do
+  while :; do
     RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
-    SETRANDOM="$(find -L "$RANDOMDIR" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
+    SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
     RANDOMWALLPAPER="$SETRANDOM"
     RAND="$RANDOMWALLPAPER"
     SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
@@ -260,9 +265,12 @@ __term() {
 }
 
 __find_random() {
+  __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
+  if [[ $(<"$HOME/.cache/randomwallpaper.seen") = $(<"$HOME/.cache/randomwallpaper.all") ]]; then
+    __rm_rf "$HOME/.cache/randomwallpaper.seen"
+  fi
   while true; do
     RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
-    SETRANDOM="$(find -L "$RANDOMDIR" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*" | sort -R | tail -n 1)"
     RANDOMWALLPAPER="$SETRANDOM"
     RAND="$RANDOMWALLPAPER"
     SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
