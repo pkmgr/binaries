@@ -386,14 +386,13 @@ case "$1" in
   __find_file "$@"
   ;;
 esac
-shift
-
+shift $#
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sanity check
 [ -f "$template" ] || printf_exit 1 1 "The template file doesn't exist: $template"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # file and folder setup
-filename="$(__basename ${dest:-newScript} 2>/dev/null || echo $PWD/.)"
+filename="$(__filename ${dest:-newScript} 2>/dev/null)"
 destfolder="$(__basedir $dest 2>/dev/null)"
 # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate the file
@@ -415,4 +414,5 @@ printf_answer_yes "$EDIT" && $EDITOR "$destfolder/$filename"
 printf_newline ""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
