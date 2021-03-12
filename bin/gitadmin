@@ -32,20 +32,20 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
 if [ -d "$1" ]; then
-  gitdir="$(__basedir "$1/.")"
+  gitdir="$(__basedir "$1/showcurdir")"
   shift 1
 elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
   gitdir="$(__dirname "$2")"
   shift 2
   [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a directory"
 else
-  gitdir="$PWD"
+  gitdir="$(__basedir "$PWD/.")"
 fi
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults
 unset PREVREPO
-topdir="$(__git_top_dir "$gitdir" 2>/dev/null || echo $gitdir)"
+topdir="$(__git_top_dir "$gitdir" 2>/dev/null)"
 USERNAME="${GITHUB_USERNAME:-$2}"
 TOKEN="$GITHUB_ACCESS_TOKEN"
 REPO_URL="https://github.com/$USERNAME"
@@ -54,7 +54,7 @@ PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
 WTFLICENSE="${MY_LICENSE_FILE:-$CASJAYSDEVDIR/templates/wtfpl.md}"
 REPODIR="${topdir:-$PROJECT_DIR}"
-VERSIONFILE="$(__git_top_dir $MYCURRDIR 2>/dev/null)/version.txt"
+VERSIONFILE="$(__git_top_dir $gitdir 2>/dev/null)/version.txt"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,8 +68,8 @@ if [ "$(git config --get user.email | wc -m)" -lt 2 ]; then
   git config --global user.email "$EMAIl" 2>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__curl() { curl -q; }
-__curl_api_header() { curl -q; }
+#__curl() { curl -q; }
+#__curl_api_header() { curl -q; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_pull() {
   local dir="$1" && shift 1
@@ -211,7 +211,8 @@ run_git_init() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup a new git repo
 run_git_setup() {
-  local REPODIR="$(__basedir ${1:-$REPODIR})"
+  local REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
+  printf_green "Initializing $REPODIR"
   if [ -d "$REPODIR/.git" ]; then
     local PREVREPO="$(git -C "$REPODIR" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
     printf_error "This project already has git setup"
@@ -265,7 +266,7 @@ run_git_setup() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Run git setup with no interactions
 run_git_setup_automated() {
-  local REPODIR="$(__basedir ${1:-$REPODIR})"
+  local REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
   local PREVREPO="$(git -C "$REPODIR" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
   [ -d "$REPODIR" ] || __mkd "$REPODIR"
   if [ ! -d "$REPODIR/.git" ]; then
@@ -276,7 +277,7 @@ run_git_setup_automated() {
     printf_red "Can't run in automated mode due to there not being a repo setup"
     exit 1
   fi
-  printf_red "Setting up the repo as requested" && sleep 5
+  printf_red "Setting up $REPODIR as requested" && sleep 5
   __rm_rf .git
   [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   ls "$REPODIR/README"* 1>/dev/null 2>&1 || create_new_readme_template "$REPODIR"
@@ -297,7 +298,7 @@ run_git_setup_automated() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Makes a new jeckyll site
 make_newsite() {
-  local REPODIR="$(__basedir "$REPODIR")"
+  local REPODIR="$(__basedir "$REPODIR/.git")"
   __git_clone https://github.com/casjay-templates/domain-template "$HOME/Public/sites/$1" &&
     rm -Rf "$HOME/Public/sites/new/.git" && cd "$HOME/Public/sites/$1" && "$EDITOR" _config.yml || return 1
   gitadmin "${REPODIR}" setup
@@ -315,7 +316,7 @@ git_all_orgs() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initializes a repo with default options
 repos_init() {
-  REPODIR="$(__basedir ${1:-$REPODIR})"
+  REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
   [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   git -C "${REPODIR}" add .
   if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
@@ -325,7 +326,7 @@ repos_init() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initializes a repo for github
 git_init() {
-  REPODIR="$(__basedir ${1:-$REPODIR})"
+  REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
   [ "$1" = "" ] && printf_red "Usage: userName repoName\n" && return 1
   [ "$2" = "" ] && printf_red "Usage: userName repoName\n" && return 1
   git_setup "$REPODIR"
@@ -444,7 +445,7 @@ main() {
 # push local repo
 git_push_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin push MyProjectDir"
-  local REPODIR="$(__basedir ${1:-$REPODIR})"
+  local REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
   SUCCESS_MSG() { echo "Push to $(__git_remote_origin "$REPODIR") has completed"; }
   FAILED_MSG() { echo "Push to $(__git_remote_origin "$REPODIR") has failed"; }
   if [ -d "$REPODIR/.git" ]; then
@@ -473,7 +474,7 @@ git_push_single() {
 # pull a single repo
 git_pull_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin pull MyProjectDir"
-  local REPODIR="$(__basedir ${1:-$REPODIR})"
+  local REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
   if [ -d "$REPODIR/.git" ]; then
     SUCCESS_MSG() { echo "Pull from $(__git_remote_origin "$REPODIR") has completed"; }
     FAILED_MSG() { echo "Pull from $(__git_remote_origin "$REPODIR") has failed"; }
@@ -506,7 +507,7 @@ git_clone_single() {
   local PROJECT_DIR projectdir
   local giturl="$1"
   local projdir="${2:-$projectdir}"
-  local REPODIR="$(__basedir ${1:-$projdir})"
+  local REPODIR="$(__basedir "${1:-$projdir}/.git")"
   __git_username_repo "$giturl"
   SUCCESS_MSG() { echo "Cloning from $giturl has completed"; }
   FAILED_MSG() { echo "Cloning from $giturl has failed"; }

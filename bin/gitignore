@@ -56,9 +56,11 @@ else
   gitdir="$PWD"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-GITIGNOREURL="${GITIGNOREURL:-https://www.toptal.com/developers/gitignore/api}"
-IGNORELIST="$(echo "$@" | tr ' ' ',')"
 GITDIR="$(__git_top_dir "$gitdir" 2>/dev/null || echo "$gitdir")"
+GITIGNOREURL="${GITIGNOREURL:-https://www.toptal.com/developers/gitignore/api}"
+GITIGNOREDIR="$HOME/.config/gitignore/templates"
+IGNORELIST="$(echo "$@" | tr ' ' ',')"
+IGNOREFILES=""${IGNORELIST//,/ }""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$1" ] || __help
 #[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || printf_exit 2 0 "This is not a git repo"
@@ -84,6 +86,16 @@ set_gitignoredir() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 fetch_ignore() {
+  printf_debug "arg:$arg"
+  if [ -d "$GITIGNOREDIR" ]; then
+    for file in $IGNOREFILES; do
+      if [ -f "$GITIGNOREDIR/$file" ]; then
+        cat "$GITIGNOREDIR/$file"
+      else
+        fetch_ignore "$file"
+      fi
+    done
+    else
   gi_args=()
   for arg; do
     if [[ $arg = -- ]]; then
@@ -95,6 +107,7 @@ fetch_ignore() {
   done
   IFS=,
   __curl "${curl_args[@]}" "$GITIGNOREURL/${gi_args[*]}"
+      fi
   echo ""
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -115,7 +128,7 @@ ignore_overwrite() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 create_gitignore() {
-  fetch_ignore "$@" >>"$GITDIR/.gitignore"
+  fetch_ignore "$@" >> "$GITDIR/.gitignore"
   printf_green "Added $IGNORELIST to your .gitignore"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -141,7 +154,7 @@ case $* in
 *)
   ignore_overwrite "$@"
   set_gitignoredir "$@"
-  [ $# -ne 0 ] && create_gitignore "$@" || exit
+  [ $# -ne 0 ] && create_gitignore "$@" || exit $?
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
