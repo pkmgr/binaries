@@ -179,6 +179,7 @@ __start() {
 __get_pid() { ps -ux | grep 'randomwallpaper' | grep 'run' | grep -v 'grep' | awk '{print $2}' | grep '^' || return 1; }
 
 __getstatus() {
+  MAINPID="$(__get_pid | head -n1)"
   GETTPID=$(__get_pid || return 1)
   PSPID="$(__get_pid | head -n1 || ps -ux | grep "$PROG" | grep -v 'grep' | grep "run" 2>/dev/null || return 1)"
   if [ -n "$GETTPID" ]; then
@@ -304,7 +305,8 @@ __term() {
 main() {
   init "$@"
   __find_random "$@"
-  __variety "$@"
+  __variety
+  __getstatus
   case $1 in
   *config)
     shift 1
@@ -329,7 +331,7 @@ main() {
       shift $#
       run_count="$(__start_count 'randomwallpaper' 'run')"
       if [ "$run_count" -gt 2 ]; then
-        notifications "Randomwallpaper" "Already running: $GETTPID"
+        notifications "Randomwallpaper" "Already running: $MAINPID"
       else
         __background_job "$@"
       fi
@@ -347,7 +349,7 @@ main() {
         printf_exit "More than one instance seems to be runnng"
       fi
       if __getstatus; then
-        notifications "Randomwallpaper" "Already runnng: $GETTPID"
+        notifications "Randomwallpaper" "Already runnng: $MAINPID"
       else
         __start
         exit $?
