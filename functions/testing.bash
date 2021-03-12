@@ -35,8 +35,8 @@ for check in git curl wget; do
 done
 
 # Versioning Info - __required_version "VersionNumber"
-localVersion="${localVersion:-020920211703-git}"
-requiredVersion="${requiredVersion:-020920211703-git}"
+localVersion="${localVersion:-031220211726}"
+requiredVersion="${requiredVersion:-020920211703}"
 currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 
 # Set Main Repo for dotfiles
@@ -2457,4 +2457,3 @@ __getpythonver
 
 user_install # default type
 ###################### end application functions ######################
-return

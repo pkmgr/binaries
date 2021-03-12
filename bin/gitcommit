@@ -327,7 +327,7 @@ setup)
 
 *)
   if [ -n "$1" ]; then
-    [ ! "$(echo -n "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
+    [ ! "$(echo "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
     mess="${newmess:-$@}"
   else
     mess="🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
