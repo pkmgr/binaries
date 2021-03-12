@@ -327,7 +327,11 @@ case $1 in
   case $1 in
     *run)
       shift $#
-      __background_job
+      if [ "$(ps -ux  | grep 'randomwallpaper' | grep -c 'run')" -gt 1 ]; then
+        notifications "Randomwallpaper" "Already running"
+      else
+        __background_job
+      fi
       exit
     ;;
   *new)
@@ -337,6 +341,7 @@ case $1 in
     ;;
   *start)
       shift $#
+      [ "$(ps -ux  | grep 'randomwallpaper' | grep -c 'start')" -gt 1 ] && exit 1
       if __getstatus; then
         exit 1
       else
