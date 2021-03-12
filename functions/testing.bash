@@ -37,8 +37,11 @@ done
 # Versioning Info - __required_version "VersionNumber"
 localVersion="${localVersion:-031220211726}"
 requiredVersion="${requiredVersion:-020920211703}"
-currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
-
+if [ $(cat version.txt | grep '^') ]; then
+  currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
+else
+  currentVersion="$localVersion"
+fi
 # Set Main Repo for dotfiles
 DOTFILESREPO="https://github.com/dfmgr"
 

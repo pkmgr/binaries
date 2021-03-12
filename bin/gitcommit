@@ -82,7 +82,7 @@ __git_push() {
   return $?
 }
 __version() {
-  date +"%m%d%Y%H%M-git" >"$versionfile" &>/dev/null
+  date +"%m%d%Y%H%M-git" >"$versionfile"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
