@@ -190,7 +190,7 @@ __start() {
   __getstatus && return 1
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
-  sh -c "$PROG --bg --run &>/dev/null &"
+  sh -c "sleep 60 && $PROG --bg --run &>/dev/null &"
 }
 
 __get_pid() { ps -ux  | grep 'randomwallpaper' | grep 'run' | grep -v 'grep' | awk '{print $2}' | grep '^' || return 1; }
