@@ -327,8 +327,9 @@ main() {
     case $1 in
     *run)
       shift $#
-      if [ "$(ps -ux | grep 'randomwallpaper' | grep -c 'run')" -gt 1 ]; then
-        notifications "Randomwallpaper" "Already running"
+      run_count="$(__start_count 'randomwallpaper' 'run')"
+      if [ "$run_count" -gt 2 ]; then
+        notifications "Randomwallpaper" "Already running: $GETTPID"
       else
         __background_job "$@"
       fi
@@ -341,9 +342,12 @@ main() {
       ;;
     *start)
       shift $#
-      [ "$(ps -ux | grep 'randomwallpaper' | grep -c 'start')" -gt 1 ] && exit 1
+      start_count="$(__start_count 'randomwallpaper' 'start')"
+      if [ "$start_count" -gt 2 ]; then
+        printf_exit "More than one instance seems to be runnng"
+      fi
       if __getstatus; then
-        exit 1
+        notifications "Randomwallpaper" "Already runnng: $GETTPID"
       else
         __start
         exit $?

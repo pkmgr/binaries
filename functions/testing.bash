@@ -772,6 +772,10 @@ __hostname2ip() { getent ahosts "$1" | grep -v ':*:*:' | cut -d' ' -f1 | head -n
 __ip2hostname() { nslookup "$1" 2>/dev/null | grep -v ':*:*:' | grep Name: | awk '{print $2}' | head -n1 | grep ^ || return 1; }
 #timeout "time" "command"
 __timeout() { timeout ${1} bash -c "${2}"; }
+#start_count "proc" "search"
+__start_count() { ps -ux | grep "$1" | grep -v 'grep ' | grep -c "${2:$1}"; }
+#count_words "file"
+__count_lines() { wc -l "$1" | awk '${print $1}'; }
 #count_files "dir"
 __count_files() { __devnull2 find -L "${1:-./}" -maxdepth "${2:-1}" -not -path "${1:-./}/.git/*" -type l,f | wc -l; }
 #count_dir "dir"
