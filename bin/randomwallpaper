@@ -41,83 +41,32 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Init
-WALLPAPERS="${WALLPAPERS:-$HOME/.local/share/wallpapers/system}"
-[ -d "$WALLPAPERS/system " ] || __mkd "$WALLPAPERS/system"
-if [ -d /usr/share/backgrounds ]; then
-  for l in $(ls /usr/share/backgrounds); do
-    [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"
-  done
-fi
-if [ -d /usr/share/wallpapers ]; then
-  for l in $(ls /usr/share/wallpapers); do
-    [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"
-  done
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__find_cmd() { find -L "${1:-$WALLPAPERS}" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*"; }
 # variables
+WALLPAPERS="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
 ROTATE_TIME="${ROTATE_TIME:-300}"
-KILL_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER.kill"
-RUN_FILE="${TMP_DIR:-/tmp}/randomwallpaper.$USER"
+KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
+RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
 NOTIFICATIONS="${NOTIFICATIONS:-enabled}"
-SEEN_FILE="$HOME/.cache/randomwallpaper.seen"
-SEEN_FILE_TMP="$SEEN_FILE.tmp"
-REFRESH_TIME="$((60  * "${REFRESH_TIME:-12}"))"
+SEEN_FILE="${SEEN_FILE:-$HOME/.cache/randomwallpaper.seen}"
+SEEN_FILE_TMP="${SEEN_FILE_TMP:-$SEEN_FILE.tmp}"
+REFRESH_TIME="$((60 * "${REFRESH_TIME:-12}"))"
 MANUAL=""
-
-if [ -f "$1" ]; then
-  RANDOMWALLPAPER="$1"
-  MANUAL=true
-  shift 1
-elif [ -d "$1" ]; then
-  RANDOMWALLPAPER="$(__find_cmd "$1" | sort -R | tail -n 1)"
-  MANUAL=true
-  shift 1
-else
-  RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
-  SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
-  if __find_mtime "$HOME/.cache/randomwallpaper.all" "${REFRESH_TIME:-720}"; then
-    __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
-  fi
-fi
-
-RANDOMWALLPAPER="${RANDOMWALLPAPER:-$SETRANDOM}"
-RAND="${RANDOMWALLPAPER}"
-SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
-
-if [ "$MANUAL" != "true" ] && grep -qv "$RAND" "$SEEN_FILE" &>/dev/null; then
-  while :; do
-    RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
-    SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
-    RANDOMWALLPAPER="$SETRANDOM"
-    RAND="$RANDOMWALLPAPER"
-    SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
-    grep "$RAND" "$SEEN_FILE" &>/dev/null || break
-  done
-fi
-__seen_file() {
-  echo "$RAND" >>"$SEEN_FILE"
-  __mv_f "$SEEN_FILE" "$SEEN_FILE_TMP" && cat "$SEEN_FILE_TMP" | sort -u >"$SEEN_FILE"
-  __rm_rf "$SEEN_FILE_TMP"
-}
-__seen_file
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
+if [ "$NOTIFICATIONS" != "enabled" ]; then notification() { true "$@"; }; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 __config() {
   printf_green "Generating the config"
   __mkd "$HOME/.config/randomwallpaper"
   echo '# Randomwallpaper Settings
 ROTATE_TIME='"${ROTATE_TIME:-300}"'
-KILL_FILE="'${TMP_DIR:-/tmp}/randomwallpaper.$USER.kill'"
-RUN_FILE="'${TMP_DIR:-/tmp}/randomwallpaper.$USER'"
+KILL_FILE="'${TMPDIR:-/tmp}/randomwallpaper.$USER.kill'"
+RUN_FILE="'${TMPDIR:-/tmp}/randomwallpaper.$USER'"
 NOTIFICATIONS="'${NOTIFICATIONS:-enabled}'"
 ' >"$HOME/.config/randomwallpaper/settings"
   printf_exit "2" "$?" "config saved to $HOME/.config/randomwallpaper/settings"
 }
-
-if [ "$NOTIFICATIONS" != "enabled" ]; then notification() { true "$@"; }; fi
 
 __startup() {
   printf_green "Adding the randomwallpaper to startup"
@@ -162,18 +111,52 @@ __mesg_fail() { notifications "Wallpaper Changer" "Failed to change the wallpape
 
 __kill() {
   if [ -f "$KILL_FILE" ]; then
-  __rm_rf "$KILL_FILE" "$RUN_FILE"
-  if __get_pid &>/dev/null; then
-    notifications "Wallpaper Changer" "Background service is shutting down"
-    for f in $(__get_pid); do
-      kill -15 "$f" &>/dev/null
-    done && exitCode=0 || exitCode=1
+    __rm_rf "$KILL_FILE" "$RUN_FILE"
+    if __get_pid &>/dev/null; then
+      notifications "Wallpaper Changer" "Background service is shutting down"
+      for f in $(__get_pid); do
+        kill -15 "$f" &>/dev/null
+      done && exitCode=0 || exitCode=1
+    else
+      notifications "Wallpaper Changer" "Background service is not running"
+      exitCode=1
+    fi
+    return "$exitCode"
+  fi
+}
+
+__find_cmd() { find -L "${1:-$WALLPAPERS}" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*"; }
+
+init() {
+  [ -d "$WALLPAPERS/system " ] || __mkd "$WALLPAPERS/system"
+  if [ -d /usr/share/backgrounds ]; then
+    for l in $(ls /usr/share/backgrounds); do
+      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"
+    done
+  fi
+  if [ -d /usr/share/wallpapers ]; then
+    for l in $(ls /usr/share/wallpapers); do
+      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"
+    done
+  fi
+
+  if [ -f "$1" ]; then
+    RANDOMWALLPAPER="$1"
+    MANUAL=true
+    shift 1
+  elif [ -d "$1" ]; then
+    RANDOMWALLPAPER="$(__find_cmd "$1" | sort -R | tail -n 1)"
+    MANUAL=true
+    shift 1
   else
-    notifications "Wallpaper Changer" "Background service is not running"
-    exitCode=1
+    RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
+    SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
+    __make_seen_file
   fi
-  return "$exitCode"
-  fi
+
+  RANDOMWALLPAPER="${RANDOMWALLPAPER:-$SETRANDOM}"
+  RAND="${RANDOMWALLPAPER}"
+  SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 }
 
 __background_job() {
@@ -193,7 +176,7 @@ __start() {
   disown
 }
 
-__get_pid() { ps -ux  | grep 'randomwallpaper' | grep 'run' | grep -v 'grep' | awk '{print $2}' | grep '^' || return 1; }
+__get_pid() { ps -ux | grep 'randomwallpaper' | grep 'run' | grep -v 'grep' | awk '{print $2}' | grep '^' || return 1; }
 
 __getstatus() {
   GETTPID=$(__get_pid || return 1)
@@ -206,6 +189,59 @@ __getstatus() {
     exitCode=1
   fi
   return $exitCode
+}
+__make_seen_file() {
+  [ -f "$HOME/.cache/randomwallpaper.seen" ] || touch "$HOME/.cache/randomwallpaper.seen"
+  [ -f "$HOME/.cache/randomwallpaper.all" ] || __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
+}
+__find_random() {
+  __make_seen_file
+  if __find_mtime "$HOME/.cache/randomwallpaper.all" "${REFRESH_TIME:-720}"; then
+    __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
+  fi
+  if [[ $(<"$HOME/.cache/randomwallpaper.seen") = $(<"$HOME/.cache/randomwallpaper.all") ]]; then
+    __rm_rf "$HOME/.cache/randomwallpaper.seen"
+  fi
+  if [ "$MANUAL" != "true" ] && grep -qv "$RAND" "$SEEN_FILE" &>/dev/null; then
+    while :; do
+      RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
+      SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
+      RANDOMWALLPAPER="$SETRANDOM"
+      RAND="$RANDOMWALLPAPER"
+      SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
+      grep "$RAND" "$SEEN_FILE" &>/dev/null || break
+    done
+  fi
+  __seen_file
+}
+
+__seen_file() {
+  echo "$RAND" >>"$SEEN_FILE"
+  __mv_f "$SEEN_FILE" "$SEEN_FILE_TMP" && cat "$SEEN_FILE_TMP" | sort -u >"$SEEN_FILE"
+  __rm_rf "$SEEN_FILE_TMP"
+}
+
+__randomwallpaper() {
+  local exitCode=0
+  xfce_change_wp() {
+    xfconf-query --channel xfce4-desktop --list | grep last-image | while read path; do
+      xfconf-query --channel xfce4-desktop --property "$path" --set "$1"
+    done
+  }
+
+  [ -n "$RAND" ] || exit 1
+  if __cmd_exists variety; then
+    variety --set="$RAND" &>/dev/null
+  elif __cmd_exists feh; then
+    feh --bg-fill "$RAND" &>/dev/null
+  elif __cmd_exists xwallpaper; then
+    xwallpaper --maximize "$RAND" &>/dev/null
+  elif [[ "$DESKTOP_SESSION" =~ "xfce4" ]] && __cmd_exists xfconf-query; then
+    xfce_change_wp "$RAND" &>/dev/null
+  else
+    return 1
+  fi
+  return $?
 }
 
 __term() {
@@ -263,124 +299,88 @@ __term() {
   done
   clear
 }
-
-__find_random() {
-  __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
-  if [[ $(<"$HOME/.cache/randomwallpaper.seen") = $(<"$HOME/.cache/randomwallpaper.all") ]]; then
-    __rm_rf "$HOME/.cache/randomwallpaper.seen"
-  fi
-  while true; do
-    RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
-    RANDOMWALLPAPER="$SETRANDOM"
-    RAND="$RANDOMWALLPAPER"
-    SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
-    grep "$RAND" "$SEEN_FILE" &>/dev/null || break
-  done
-  __seen_file
-}
-
-__randomwallpaper() {
-  local exitCode=0
-  xfce_change_wp() {
-    xfconf-query --channel xfce4-desktop --list | grep last-image | while read path; do
-      xfconf-query --channel xfce4-desktop --property "$path" --set "$1"
-    done
-  }
-
-  [ -n "$RAND" ] || exit 1
-  if __cmd_exists variety; then
-    variety --set="$RAND" &>/dev/null
-  elif __cmd_exists feh; then
-    feh --bg-fill "$RAND" &>/dev/null
-  elif __cmd_exists xwallpaper; then
-    xwallpaper --maximize "$RAND" &>/dev/null
-  elif [[ "$DESKTOP_SESSION" =~ "xfce4" ]] && __cmd_exists xfconf-query; then
-    xfce_change_wp "$RAND" &>/dev/null
-  else
-    return 1
-  fi
-  return $?
-}
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# execute application
-__variety
-case $1 in
-*config)
-  shift 1
-  __config
-  ;;
-*startup | *enable)
-  shift 1
-  __startup
-  ;;
-*disable)
-  __rm_rf "$HOME/.config/autostart/randomwallpaper.desktop"
-  notifications "Wallpaper Changer" "Deleted the autostart service"
-  ;;
-*term)
-  shift 1
-  __term "$@"
-  ;;
-*bg) # background
-  shift 1
+main() {
+  init "$@"
+  __find_random "$@"
+  __variety "$@"
   case $1 in
+  *config)
+    shift 1
+    __config
+    ;;
+  *startup | *enable)
+    shift 1
+    __startup
+    ;;
+  *disable)
+    __rm_rf "$HOME/.config/autostart/randomwallpaper.desktop"
+    notifications "Wallpaper Changer" "Deleted the autostart service"
+    ;;
+  *term)
+    shift 1
+    __term "$@"
+    ;;
+  *bg) # background
+    shift 1
+    case $1 in
     *run)
       shift $#
-      if [ "$(ps -ux  | grep 'randomwallpaper' | grep -c 'run')" -gt 1 ]; then
+      if [ "$(ps -ux | grep 'randomwallpaper' | grep -c 'run')" -gt 1 ]; then
         notifications "Randomwallpaper" "Already running"
       else
-        __background_job
+        __background_job "$@"
       fi
       exit
-    ;;
-  *new)
+      ;;
+    *new)
       shift $#
-      __randomwallpaper  && __mesg_ok || __mesg_fail
+      __randomwallpaper && __mesg_ok || __mesg_fail
       exit $?
-    ;;
-  *start)
+      ;;
+    *start)
       shift $#
-      [ "$(ps -ux  | grep 'randomwallpaper' | grep -c 'start')" -gt 1 ] && exit 1
+      [ "$(ps -ux | grep 'randomwallpaper' | grep -c 'start')" -gt 1 ] && exit 1
       if __getstatus; then
         exit 1
       else
         __start
         exit $?
       fi
-    ;;
-  *status)
-    shift $#
-    if __getstatus; then
-      if [ -n "$GETTPID" ]; then
-        notifications "RandomWallPapers" "randomwallpapers is running with PID: $GETTPID"
-        printf_exit 2 0 "randomwallpapers is running with PID: $GETTPID"
+      ;;
+    *status)
+      shift $#
+      if __getstatus; then
+        if [ -n "$GETTPID" ]; then
+          notifications "RandomWallPapers" "randomwallpapers is running with PID: $GETTPID"
+          printf_exit 2 0 "randomwallpapers is running with PID: $GETTPID"
+        else
+          notifications "RandomWallPapers" "randomwallpapers appears to be stop"
+          printf_exit 1 1 "randomwallpapers appears to be stop"
+        fi
       else
         notifications "RandomWallPapers" "randomwallpapers appears to be stop"
         printf_exit 1 1 "randomwallpapers appears to be stop"
       fi
-    else
-      notifications "RandomWallPapers" "randomwallpapers appears to be stop"
-      printf_exit 1 1 "randomwallpapers appears to be stop"
-    fi
-    exit $?
-    ;;
-  *stop | *kill)
-    shift $#
-    printf_green "Killing background service" && touch "$KILL_FILE" && __kill
-    exit
+      exit $?
+      ;;
+    *stop | *kill)
+      shift $#
+      printf_green "Killing background service" && touch "$KILL_FILE" && __kill
+      exit
+      ;;
+    *)
+      __start "$@"
+      exit $?
+      ;;
+    esac
     ;;
   *)
-  __start "$@"
-  exit $?
-  ;;
-esac
-;;
-*)
-  __randomwallpaper "$@" && __mesg_ok || __mesg_fail
-  ;;
-esac
-
+    __randomwallpaper "$@" && __mesg_ok || __mesg_fail
+    ;;
+  esac
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end

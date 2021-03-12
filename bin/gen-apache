@@ -30,8 +30,8 @@ fi
 system_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TMP_DIR="$(mktemp -d /tmp/apacheXXX)"
-TMP_FILE="$(mktemp $TMP_DIR/apacheXXX.conf)"
+TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/apacheXXX")"
+TMP_FILE="$(mktemp "$TMPDIR/apacheXXX.conf")"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __return__error() {
@@ -70,10 +70,10 @@ __apache_www() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_html() {
-  __mkd "$TMP_DIR/www"
-  __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$TMP_DIR/www/"
-  find "$TMP_DIR" -type f -exec sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
-  find "$TMP_DIR" -type f -exec sed -i 's#REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
+  __mkd "$TMPDIR/www"
+  __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$TMPDIR/www/"
+  find "$TMPDIR" -type f -exec sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
+  find "$TMPDIR" -type f -exec sed -i 's#REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -172,7 +172,7 @@ if user_is_root; then
   fi
   if [ -f "$TMP_FILE" ]; then
     printf_green "Installing $TMP_FILE to $apacheconfdir/$APACHEDOMAIN.conf"
-    __mv_f "$TMP_FILE" "$apacheconfdir/$APACHEDOMAIN.conf" && __mv_f "$TMP_DIR/www/" "$APACHEDOCROOT"
+    __mv_f "$TMP_FILE" "$apacheconfdir/$APACHEDOMAIN.conf" && __mv_f "$TMPDIR/www/" "$APACHEDOCROOT"
     [ "$?" = 0 ] && printf_green "Everything has been setup" || __return__error
   else
     __return__error
