@@ -193,13 +193,15 @@ __getstatus() {
 __make_seen_file() {
   [ -f "$HOME/.cache/randomwallpaper.seen" ] || touch "$HOME/.cache/randomwallpaper.seen"
   [ -f "$HOME/.cache/randomwallpaper.all" ] || __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
+  COUNT_SEEN="$(grep -c $WALLPAPERS "$HOME/.cache/randomwallpaper.seen")"
+  COUNT_ALL="$(grep -c $WALLPAPERS "$HOME/.cache/randomwallpaper.all")"
 }
 __find_random() {
   __make_seen_file
   if __find_mtime "$HOME/.cache/randomwallpaper.all" "${REFRESH_TIME:-720}"; then
     __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
   fi
-  if [[ $(<"$HOME/.cache/randomwallpaper.seen") = $(<"$HOME/.cache/randomwallpaper.all") ]]; then
+  if [[ "$COUNT_SEEN" = "$COUNT_ALL" ]]; then
     __rm_rf "$HOME/.cache/randomwallpaper.seen"
   fi
   if [ "$MANUAL" != "true" ] && grep -qv "$RAND" "$SEEN_FILE" &>/dev/null; then
