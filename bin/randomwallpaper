@@ -53,7 +53,7 @@ REFRESH_TIME="$((60 * "${REFRESH_TIME:-12}"))"
 MANUAL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
-if [ "$NOTIFICATIONS" != "enabled" ]; then notification() { true "$@"; }; fi
+if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { echo "$*" >/dev/null; }; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 __config() {
@@ -217,7 +217,7 @@ __find_random() {
 
 __seen_file() {
   echo "$RAND" >>"$SEEN_FILE"
-  __mv_f "$SEEN_FILE" "$SEEN_FILE_TMP" && cat "$SEEN_FILE_TMP" | sort -u >"$SEEN_FILE"
+  __cp_rf "$SEEN_FILE" "$SEEN_FILE_TMP" && cat "$SEEN_FILE_TMP" | sort -u >"$SEEN_FILE"
   __rm_rf "$SEEN_FILE_TMP"
 }
 
@@ -230,14 +230,14 @@ __randomwallpaper() {
   }
 
   [ -n "$RAND" ] || exit 1
-  if __cmd_exists variety; then
-    variety --set="$RAND" &>/dev/null
+  if [[ "$DESKTOP_SESSION" =~ "xfce" ]] && __cmd_exists xfconf-query; then
+    xfce_change_wp "$RAND" &>/dev/null &
+  elif __cmd_exists variety; then
+    variety --set="$RAND" &>/dev/null &
   elif __cmd_exists feh; then
-    feh --bg-fill "$RAND" &>/dev/null
+    feh --bg-fill "$RAND" &>/dev/null &
   elif __cmd_exists xwallpaper; then
-    xwallpaper --maximize "$RAND" &>/dev/null
-  elif [[ "$DESKTOP_SESSION" =~ "xfce4" ]] && __cmd_exists xfconf-query; then
-    xfce_change_wp "$RAND" &>/dev/null
+    xwallpaper --maximize "$RAND" &>/dev/null &
   else
     return 1
   fi
