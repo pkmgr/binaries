@@ -35,9 +35,9 @@ for check in git curl wget; do
 done
 
 # Versioning Info - __required_version "VersionNumber"
-localVersion="${localVersion:-031220211726}"
+localVersion="${localVersion:-031220211739-git}"
 requiredVersion="${requiredVersion:-020920211703}"
-if [ $(cat version.txt | grep '^') ]; then
+if [ $(cat "$CASJAYSDEVDIR/version.txt" | grep '^') ]; then
   currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 else
   currentVersion="$localVersion"
