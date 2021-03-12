@@ -82,7 +82,7 @@ __git_push() {
   return $?
 }
 __version() {
-  date +"%m%d%Y%H%M-git" >"$versionfile"
+  date +"%m%d%Y%H%M-git" >"$versionfile" &>/dev/null
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -327,7 +327,7 @@ setup)
 
 *)
   if [ -n "$1" ]; then
-    [ ! "$(echo "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
+    [ ! "$(echo -n "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
     mess="${newmess:-$@}"
   else
     mess="🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
@@ -340,7 +340,6 @@ if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit in ${basedir}"
   exit
 else
-  printf_newline
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
   [ -f "$versionfile" ] && __version
@@ -359,9 +358,8 @@ else
   if __am_i_online_err "No internet connection. Skipping push"; then
     __git_push "$@"
   fi
-  printf_newline
 fi
-
+printf_newline
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end

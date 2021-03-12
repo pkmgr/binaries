@@ -68,6 +68,7 @@ IGNOREFILES=""${IGNORELIST//,/ }""
 set_gitignoredir() {
   case $@ in
   dirignore)
+    [ -f "$GITIGNOREDIR/dirignore" ] && return
     shift 1
     if [ -f "$GITDIR/.gitignore" ]; then
       if ! grep -qF 'ignoredirmessage' "$GITDIR/.gitignore" 2>/dev/null; then
@@ -79,7 +80,9 @@ set_gitignoredir() {
           printf_error "Failed to add ignoredirmessage to gitignore"
       fi
     else
-      printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore"
+      printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore" && \
+        printf_green "Added ignoredirmessage to your .gitignore" ||
+        printf_error "Failed to add ignoredirmessage to gitignore"
     fi
     ;;
   esac
