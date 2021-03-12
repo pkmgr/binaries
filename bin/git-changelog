@@ -4,18 +4,19 @@
 PROG="git-changelog"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 031220211748-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : git-changelog --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Sunday, Feb 07, 2021 13:48 EST
+# @Created       : Friday, Mar 12, 2021 17:48 EST
 # @File          : git-changelog
 # @Description   : Generate a human-readable change log from a git repo
 # @TODO          :

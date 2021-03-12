@@ -36,7 +36,7 @@ done
 
 # Versioning Info - __required_version "VersionNumber"
 localVersion="${localVersion:-031220211739-git}"
-requiredVersion="${requiredVersion:-020920211703}"
+requiredVersion="${requiredVersion:-031220211739-git}"
 if [ $(cat "$CASJAYSDEVDIR/version.txt" | grep '^') ]; then
   currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 else

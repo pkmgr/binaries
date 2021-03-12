@@ -4,18 +4,19 @@
 PROG="gitup"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 031020210413-git
+##@Version       : 031220211752-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : gitup --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Wednesday, Mar 10, 2021 04:13 EST
+# @Created       : Friday, Mar 12, 2021 17:52 EST
 # @File          : gitup
 # @Description   : automagically add commit and push current git repo
 # @TODO          :
@@ -41,29 +42,30 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-gitdir="${1:-.}"
+gitdir="${1:-$PWD}"
 repo="$(__git_remote_pull "$gitdir")"
 gitdir="$(__git_top_dir "$gitdir")"
 oldpwd="$PWD"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -d "$gitdir" ]; then
-  printf_exit "This does not seem to be a git repo"
-  exit 1
-fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_git_pull() { git -C "$gitdir" pull -q || printf_exit "Failed to pull from $repo"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-printf_warning "Commiting Changes and pushing to the repo"
-date +"%m%d%Y%H%M-git" >version.txt &&
-  [ -f gitmasterconfig ] && [ -d .git ] &&
-  __cp_rf gitmasterconfig .git/config
-__devnull git add . &&
-  [ -n "$1" ] &&
-  git -C "$gitdir" commit -q -S "$1" "$2" ||
-  git -C "$gitdir" commit -q -S -m " 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 " &&
-  run_git_pull &&
-  __devnull git -C "$gitdir" push -q || __devnull git -C "$gitdir" push -q || false
-__getexitcode $? "Successfully pushed to: $repo" "Failed to push to: $repo"
+if [ -d "$gitdir/.git" ]; then
+  printf_warning "Commiting Changes and pushing to the repo"
+  date +"%m%d%Y%H%M-git" >$gitdir/version.txt &&
+    [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ] &&
+    __cp_rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
+    __devnull git -C "$gitdir" add . &&
+      [ -n "$1" ] &&
+      git -C "$gitdir" commit -q -S "$1" "$2" ||
+      git -C "$gitdir" commit -q -S -m " 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 " &&
+      run_git_pull &&
+      __devnull git -C "$gitdir" push -q || __devnull git -C "$gitdir" push -q || false
+    __getexitcode $? "Successfully pushed to: $repo" "Failed to push to: $repo"
+  else
+    printf_exit "This does not seem to be a git repo"
+    exit 1
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end

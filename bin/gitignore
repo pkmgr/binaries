@@ -4,18 +4,19 @@
 PROG="gitignore"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 031220211745-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : gitignore --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Sunday, Feb 14, 2021 21:05 EST
+# @Created       : Friday, Mar 12, 2021 17:45 EST
 # @File          : gitignore
 # @Description   : Generate a .gitignore file
 # @TODO          : Make this work locally
@@ -40,6 +41,8 @@ fi
 # user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Required apps
 __check_app git
 __check_app curl
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
