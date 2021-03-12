@@ -18,7 +18,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Created       : Monday, Mar 08, 2021 15:23 EST
 # @File          : randomwallpaper
 # @Description   : Set a random wallpaper
-# @TODO          :
+# @TODO          : Refactor the code/Add MacOS support
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -191,6 +191,7 @@ __getstatus() {
   fi
   return $exitCode
 }
+notify_running() { notifications "Randomwallpaper" "Already running: $MAINPID" && return 1; }
 __make_seen_file() {
   [ -f "$HOME/.cache/randomwallpaper.seen" ] || touch "$HOME/.cache/randomwallpaper.seen"
   [ -f "$HOME/.cache/randomwallpaper.all" ] || __find_cmd | sort -u >"$HOME/.cache/randomwallpaper.all"
@@ -274,7 +275,7 @@ __term() {
       ;;
     r)
       if __getstatus; then
-        notifications "Randomwallpaper" "Already running: $GETTPID"
+        notify_running
       else
         printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-e"
         counter=$(echo $((60 * $sleeptime)))
@@ -331,7 +332,7 @@ main() {
       shift $#
       run_count="$(__start_count 'randomwallpaper' 'run')"
       if [ "$run_count" -gt 2 ]; then
-        notifications "Randomwallpaper" "Already running: $MAINPID"
+        notify_running
       else
         __background_job "$@"
       fi
@@ -346,10 +347,11 @@ main() {
       shift $#
       start_count="$(__start_count 'randomwallpaper' 'start')"
       if [ "$start_count" -gt 2 ]; then
+        notify_running
         printf_exit "More than one instance seems to be runnng"
       fi
       if __getstatus; then
-        notifications "Randomwallpaper" "Already runnng: $MAINPID"
+        notify_running
       else
         __start
         exit $?
@@ -359,7 +361,7 @@ main() {
       shift $#
       if __getstatus; then
         if [ -n "$GETTPID" ]; then
-          notifications "RandomWallPapers" "randomwallpapers is running with PID: $GETTPID"
+          notify_running
           printf_exit 2 0 "randomwallpapers is running with PID: $GETTPID"
         else
           notifications "RandomWallPapers" "randomwallpapers appears to be stop"
