@@ -1,9 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
-VERSION="REPLACE_VERSION"
-USER="$USER"
-HOME="$HOME"
+PROG="REPLACE_FILENAME"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -12,7 +13,6 @@ HOME="$HOME"
 # @Author        : REPLACE_AUTHOR
 # @Contact       : REPLACE_EMAIL
 # @License       : REPLACE_LICENSE
-# @ReadME        : REPLACE_README
 # @Copyright     : REPLACE_COPYRIGHT
 # @Created       : REPLACE_DATE
 # @File          : REPLACE_FILENAME
@@ -22,7 +22,6 @@ HOME="$HOME"
 # @Resource      : REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-check_app bash || exit 1  # graphical prompt
 cmd_exists bash || exit 1 # exit if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
@@ -30,7 +29,14 @@ cmd_exists bash || exit 1 # exit if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 printf_color() { printf "%b" "$(tput setaf "$1" 2>/dev/null)" "\t\t$2\n" "$(tput sgr0 2>/dev/null)"; }
-__help() { printf_color "4" "usage: REPLACE_FILENAME  |  REPLACE_FILENAME --help" && exit; }
+__version() {
+  grep ^"# @" "REPLACE_FILENAME"
+  grep ^"##@" "REPLACE_FILENAME"
+}
+__help() {
+  printf_color "4" "usage: REPLACE_FILENAME  |  REPLACE_FILENAME --version"
+  exit
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables
 
@@ -40,7 +46,6 @@ __help() { printf_color "4" "usage: REPLACE_FILENAME  |  REPLACE_FILENAME --help
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-
 case "$1" in
 --help)
   shift 1
@@ -48,14 +53,13 @@ case "$1" in
   ;;
 --version)
   shift 1
-  grep ^"# @" "$APPNAME"
-  grep ^"##@" "$APPNAME"
+  __version
   ;;
 *)
   exec ""
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

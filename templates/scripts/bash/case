@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+PROG="REPLACE_FILENAME"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -11,13 +12,13 @@ HOME="${USER_HOME:-${HOME}}"
 # @Author        : REPLACE_AUTHOR
 # @Contact       : REPLACE_EMAIL
 # @License       : REPLACE_LICENSE
-# @Copyright     : Copyright (c) REPLACE_YEAR, REPLACE_AUTHOR
+# @Copyright     : REPLACE_COPYRIGHT
 # @Created       : REPLACE_DATE
 # @File          : REPLACE_FILENAME
-# @Description   :
-# @TODO          :
-# @Other         :
-# @Resource      :
+# @Description   : REPLACE_DESC
+# @TODO          : REPLACE_TODO
+# @Other         : REPLACE_OTHER
+# @Resource      : REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -39,9 +40,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__check_app bash            # graphical prompt
 __cmd_exists bash || exit 1 # exit 1 if not found
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
 
@@ -89,7 +88,6 @@ while :; do
   esac
   shift
 done
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$1" in
@@ -97,7 +95,7 @@ case "$1" in
   printf_exit "1" "1" "Error"
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
+

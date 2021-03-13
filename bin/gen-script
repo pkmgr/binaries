@@ -93,7 +93,7 @@ __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dir
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f,n:,u --long help,user,desc:,todo:,copy:,other:,res:,type:,funct*:,name: -n "$APPNAME" -- "$@" 2>/dev/null)
+  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f,n:,u --long help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name: -n "$APPNAME" -- "$@" 2>/dev/null)
   eval set -- "$t" 2>/dev/null
   while :; do
     case "$1" in
@@ -135,6 +135,10 @@ __header_opts() {
     -u | --user)
       shift
       gen_header_user=true
+      ;;
+    --raw)
+      shift
+      gen_header_raw=true
       ;;
     --)
       shift
@@ -242,7 +246,9 @@ __gen_header() {
   local GEN_SCRIPTS_NEWFILE="$filename"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
-  if [ -n "$gen_header_user" ]; then
+  if [ -n "$gen_header_raw" ]; then
+    __gen_header_raw
+  elif [ -n "$gen_header_user" ]; then
     echo '#!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
@@ -336,6 +342,54 @@ EOF
     if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline "\n\n"; fi
   fi
   printf_blue "Your header is ready for use\n\n"
+}
+
+__gen_header_raw() {
+  echo '
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="REPLACE_APPNAME"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : REPLACE_VERSION
+# @Author        : REPLACE_AUTHOR
+# @Contact       : REPLACE_EMAIL
+# @License       : REPLACE_LICENSE
+# @Copyright     : REPLACE_COPYRIGHT
+# @Created       : REPLACE_DATE
+# @File          : REPLACE_FILENAME
+# @Description   : REPLACE_DESC
+# @TODO          : REPLACE_TODO
+# @Other         : REPLACE_OTHER
+# @Resource      : REPLACE_RES
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+'
+return
 }
 
 __gen_functions() {

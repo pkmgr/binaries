@@ -3,6 +3,8 @@
 APPNAME="REPLACE_APPNAME"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -11,7 +13,6 @@ HOME="${USER_HOME:-${HOME}}"
 # @Author        : REPLACE_AUTHOR
 # @Contact       : REPLACE_EMAIL
 # @License       : REPLACE_LICENSE
-# @ReadME        : REPLACE_README
 # @Copyright     : REPLACE_COPYRIGHT
 # @Created       : REPLACE_DATE
 # @File          : REPLACE_FILENAME

@@ -25,7 +25,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # helper function
 __version() { app_version; }
 __help() {
-  app_help "Usage: REPLACE_FILENAME  |  REPLACE_FILENAME "
+  app_help "Usage: REPLACE_FILENAME  |  REPLACE_FILENAME --version"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
