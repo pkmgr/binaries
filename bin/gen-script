@@ -88,12 +88,12 @@ fi
 # Application functions
 __date() { date +"$1"; }
 __filename() { basename "$1" 2>/dev/null; }
-__dirname() { if [ $(dirname "$1" 2>/dev/null) = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
+__dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
 
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f,n: --long help,desc:,todo:,copy:,other:,res:,type:,funct*:,name: -n "$APPNAME" -- "$@" 2>/dev/null)
+  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f,n:,u --long help,user,desc:,todo:,copy:,other:,res:,type:,funct*:,name: -n "$APPNAME" -- "$@" 2>/dev/null)
   eval set -- "$t" 2>/dev/null
   while :; do
     case "$1" in
@@ -131,6 +131,10 @@ __header_opts() {
     -n | --name)
       shift
       GEN_FILENAME="$1"
+      ;;
+    -u | --user)
+      shift
+      gen_header_user=true
       ;;
     --)
       shift
@@ -238,9 +242,8 @@ __gen_header() {
   local GEN_SCRIPTS_NEWFILE="$filename"
   [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
   [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
-
-  echo '#!/usr/bin/env bash
-
+  if [ -n "$gen_header_user" ]; then
+    echo '#!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
 USER="${SUDO_USER:-${USER}}"
@@ -250,8 +253,71 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 '
+    cat <<EOF | tee
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
+# @Author        : $GEN_SCRIPTS_AUTHOR
+# @Contact       : $GEN_SCRIPTS_EMAIL
+# @License       : $GEN_SCRIPTS_DEFLICENSE
+# @ReadME        : $GEN_SCRIPTS_DEFREADME
+# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
+# @Created       : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
+# @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
+# @Description   : ${desc:-}
+# @TODO          : ${todo:-}
+# @Other         : ${other:-}
+# @Resource      : ${res:-}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# helper function
+__version() { app_version; }
+__help() {
+  app_help "Usage: $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)  |  $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) "
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main function
+main() {
+  if [ -f "\$SRC_DIR/functions.bash" ]; then
+    FUNCTIONS_DIR="\$SRC_DIR"
+    . "\$FUNCTIONS_DIR/functions.bash"
+  elif [ -f "\$HOME/.local/bin/functions.bash" ]; then
+    FUNCTIONS_DIR="\$HOME/.local/bin"
+    . "\$FUNCTIONS_DIR/functions.bash"
+  else
+    printf "\t\t\\033[0;31m%s \033[0m\n" "Couldn't source the functions file from \$FUNCTIONS_DIR"
+    return 1
+  fi
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  [ "\$1" = "--version" ] && __version
+  [ "\$1" = "--help" ] && __help
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Required app check
+  cmd_exists --error $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) || exit 1
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  #
+  return "\${exitCode:-$?}"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute function
+main "\$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit \$?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end
+EOF
+  else
+    echo '#!/usr/bin/env bash
 
-  cat <<EOF | tee
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SCRIPTSFUNCTDIR="'"${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"'"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+'
+
+    cat <<EOF | tee
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
 # @Author        : $GEN_SCRIPTS_AUTHOR
@@ -267,7 +333,8 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Resource      : ${res:-}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
-  if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline "\n\n"; fi
+    if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline "\n\n"; fi
+  fi
   printf_blue "Your header is ready for use\n\n"
 }
 
@@ -275,7 +342,6 @@ __gen_functions() {
   __vars "$@"
   echo '# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
