@@ -69,28 +69,30 @@ IGNOREFILES=""${IGNORELIST//,/ }""
 #[[ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" == "true" ]] || printf_exit 2 0 "This is not a git repo"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mkd "$GITIGNOREDIR"
-printf "# Disable reminder in prompt\nignoredirmessage\n\n" >"$GITIGNOREDIR/dirignore"
-set_gitignoredir() {
-  local args="${@:-dirignore}"
-  case $args in
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+setup_custom() {
+  case $1 in
   dirignore)
-    shift 1
+    custom_cmd='# Disable reminder in prompt\nignoredirmessage'
     if [ -f "$GITDIR/.gitignore" ]; then
-      if ! grep -qF 'ignoredirmessage' "$GITDIR/.gitignore" 2>/dev/null; then
+      if ! grep -qF "$dirignore" "$GITDIR/.gitignore" 2>/dev/null; then
         mv -f "$GITDIR/.gitignore" "$GITDIR/.gitignore.tmp" &&
-          printf "# Disable reminder in prompt\nignoredirmessage\n\n" >"$GITDIR/.gitignore" &&
+          printf "$custom_cmd\n\n" >"$GITDIR/.gitignore" &&
           cat "$GITDIR/.gitignore.tmp" >>"$GITDIR/.gitignore" &&
           rm -Rf "$GITDIR/.gitignore.tmp" &&
-          printf_green "Added ignoredirmessage to your .gitignore" ||
-          printf_error "Failed to add ignoredirmessage to gitignore"
+          printf_green "Added dirignore to your .gitignore" ||
+          printf_error "Failed to add dirignore to gitignore"
       else
         printf_green "dirignore added to .gitignore"
       fi
     else
-      printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore" &&
-        printf_green "Added ignoredirmessage to your .gitignore" ||
-        printf_error "Failed to add ignoredirmessage to gitignore"
+      printf "$custom_cmd\n\n" >>"$GITDIR/.gitignore" &&
+        printf_green "Added dirignore to your .gitignore" ||
+        printf_error "Failed to add dirignore to gitignore"
     fi
+  ;;
+  *)
+    return
     ;;
   esac
 }
@@ -98,13 +100,15 @@ set_gitignoredir() {
 fetch_ignore() {
   if [ -d "$GITIGNOREDIR" ]; then
     for file in $IGNOREFILES; do
-      if [ -f "$GITIGNOREDIR/$file" ]; then
+      if setup_custom "$file"; then
+        true
+      elif [ -f "$GITIGNOREDIR/$file" ]; then
         cat "$GITIGNOREDIR/$file"
       else
         fetch_ignore "$file"
       fi
     done
-    else
+  else
   gi_args=()
   for arg; do
     if [[ $arg = -- ]]; then
@@ -114,10 +118,10 @@ fetch_ignore() {
       gi_args+=("$arg")
     fi
   done
-  IFS=,
+  local IFS=,
   __curl "${curl_args[@]}" "$GITIGNOREURL/${gi_args[*]}"
-      fi
-  echo ""
+  fi
+  printf "\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ignore_overwrite() {
@@ -158,14 +162,10 @@ case $* in
   ;;
 dirignore)
   if [ $# = 1 ]; then
-    set_gitignoredir
+    setup_custom
   fi
   ;;
 *)
-  if [ ! -f "$GITIGNOREDIR/dirignore" ]; then
-    shift 1
-    set_gitignoredir "dirignore"
-  fi
   ignore_overwrite "$@" $ignoredir
   [ $# -ne 0 ] && create_gitignore "$@" || exit $?
   ;;
