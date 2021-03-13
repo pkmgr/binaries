@@ -1,38 +1,49 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="gen-dns"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : gen-dns
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Generate a dns zone
-# @Source      : https://bash.cyberciti.biz/domain/create-bind9-domain-zone-configuration-file/
-#
+#set opts
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set functions
+##@Version       : 031220212318-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : gen-dns --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Mar 12, 2021 23:18 EST
+# @File          : gen-dns
+# @Description   : Generate a dns zone
+# @TODO          :
+# @Other         :
+# @Resource      : https://bash.cyberciti.biz/domain/create-bind9-domain-zone-configuration-file/
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-system_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-dns/settings" ] && . "$HOME/.config/gen-dns/settings"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EDITOR="${EDITOR:-vim}"
 DNSROOT="${DNSROOT:-$HOME/.config/gen-dns/zones}"
 SERIAL="${SERIAL:-%Y%m%d}"
@@ -41,11 +52,11 @@ HOSTIP="${2:-$HOSTIP}"
 DNSIP="${3:-$DNSIP}"
 DNSIP6="${4:-$DNSIP6}"
 HOSTIP6="${5:-$HOSTIP6}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ! -d "$DNSROOT" ]; then
   __mkd "$DNSROOT"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __ip_addr() {
   [ -n "$DNSIP" ] || printf_read_question "3" "What is your DNS Servers IP" 120 DNSIP
   [ -n "$HOSTIP" ] || printf_read_question "3" "What is your hosts IP address" 120 HOSTIP
@@ -289,3 +300,7 @@ config)
   __gen_dns "$@"
   ;;
 esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#end

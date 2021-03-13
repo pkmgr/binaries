@@ -1,83 +1,102 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="gen-apache"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : gen-apache
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Generate an apache host
-# @Source      :
-#
+#set opts
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set functions
+##@Version       : 031320210033-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : gen-apache --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 13, 2021 00:33 EST
+# @File          : gen-apache
+# @Description   : Generate a new apache host
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-system_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/apacheXXX")"
-TMP_FILE="$(mktemp "$TMPDIR/apacheXXX.conf")"
-
+TMPFILE="$TMPDIR/$(hostname -f)"
+APACHEDOMAIN="${1:-$(hostname -f)}"
+APACHEDOCROOT="${2:-/var/www}"
+APACHECONFDIR="${APACHECONFDIR:-$TMPDIR}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __return__error() {
   printf_error "Somethings seems to have gone very wrong"
   printf_yellow "File has been saved to $TMP_FILE"
   printf_exit 1 1
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_confdir() {
   if [ -d /etc/apache2/sites-enabled ]; then
-    apacheconfdir="/etc/apache2/sites-enabled"
+    APACHECONFDIR="/etc/apache2/sites-enabled"
   elif [ -d "/etc/httpd/conf/vhosts.d" ]; then
-    apacheconfdir="/etc/httpd/conf/vhosts.d"
+    APACHECONFDIR="/etc/httpd/conf/vhosts.d"
   else
-    printf_read_question "4" "Where are your apache server files located?" "120" apacheconfdir
-    if [[ ! -d "$apacheconfdir" ]]; then
+    printf_read_question_nt "4" "Where are your apache server files located?" "120" "APACHECONFDIR" "-e -i $APACHECONFDIR"
+    if [[ ! -d "$APACHECONFDIR" ]]; then
       if user_is_root; then
-        printf_read_question "4" "The directory doesn't exist should I try to create it?"
-        if printf_answer_yes; then __mkd "$apacheconfdir"; fi
+        printf_read_question_nt "4" "The directory doesn't exist should I try to create it?"
+        if printf_answer_yes; then __mkd "$APACHECONFDIR"; fi
       fi
-      printf_error "Can not create $apacheconfdir"
+      printf_error "Can not create $APACHECONFDIR"
     fi
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_dom() {
-  printf_read_question "4" "What is your domain name?" "120" APACHEDOMAIN
+  printf_read_question_nt "4" "What is your domain name?" "120" "APACHEDOMAIN" "-e -i $(hostname -f) "
+  [ -z "$APACHEDOMAIN" ] && printf_exit "domain name is required" || APACHEDOMAIN=$APACHEDOMAIN
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_www() {
-  printf_read_question "4" "What is your DocumentRoot?" "120" APACHEDOCROOT
+  if user_is_root; then
+    printf_read_question_nt "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-e -i $APACHEDOCROOT "
+  else
+    printf_read_question_nt "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-e -i $TMPDIR/www "
+  fi
+  [ -z "$APACHEDOCROOT" ] && printf_exit "DocumentRoot is required" || APACHEDOCROOT=$APACHEDOCROOT
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_html() {
-  __mkd "$TMPDIR/www"
-  __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$TMPDIR/www/"
+  printf_green "Copying the template html files to $TMPDIR/www"
+  __mkd "$TMPDIR/www" && __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$TMPDIR/www/"
   find "$TMPDIR" -type f -exec sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
   find "$TMPDIR" -type f -exec sed -i 's#REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_conf() {
+  TMP_FILE="$TMPDIR/${APACHEDOMAIN:-$TMPFILE}.conf"
+  printf_green "Generating apache conf in $TMP_FILE"
   if [ -d /etc/letsencrypt/live/domain ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
     if [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
       [ -d /etc/letsencrypt/live/domain ] || __ln_sf "/etc/letsencrypt/live/$(hostname -f)" /etc/letsencrypt/live/domain
@@ -146,41 +165,30 @@ EOF
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APACHEDOMAIN="${APACHEDOMAIN:-$1}"
 APACHEDOCROOT="${APACHEDOCROOT:-$2}"
-
-if [ -z "$apacheconfdir" ]; then
-  __apache_confdir
-fi
-
-if [ -z "$APACHEDOMAIN" ]; then
-  __apache_dom
-fi
-
-if [ -z "$APACHEDOCROOT" ]; then
-  __apache_www
-fi
-
+APACHECONFDIR="${APACHECONFDIR:-$TMPDIR}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-printf_green "Setting up $APACHEDOMAIN in $TMP_FILE"
-__apache_conf "$@"
-printf_green "Copying the template html files to $TMP_FILE"
-__apache_html
-
+__apache_confdir && __apache_dom && __apache_www || __return__error
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+printf_green "Setting up $APACHEDOMAIN in $TMPDIR"
+__apache_conf "$@" && __apache_html || __return__error
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # move files if root
 if user_is_root; then
   if [ -n "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
     echo "127.0.0.1      $APACHEDOMAIN" >>/etc/hosts
   fi
   if [ -f "$TMP_FILE" ]; then
-    printf_green "Installing $TMP_FILE to $apacheconfdir/$APACHEDOMAIN.conf"
-    __mv_f "$TMP_FILE" "$apacheconfdir/$APACHEDOMAIN.conf" && __mv_f "$TMPDIR/www/" "$APACHEDOCROOT"
-    [ "$?" = 0 ] && printf_green "Everything has been setup" || __return__error
+    printf_green "Installing $TMP_FILE to $APACHECONFDIR/$APACHEDOMAIN.conf"
+    __mv_f "$TMP_FILE" "$APACHECONFDIR/$APACHEDOMAIN.conf" && __mv_f "$TMPDIR/www/" "$APACHEDOCROOT" &&
+      find "$TMPDIR" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1 &&
+      find "$TMPDIR" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1 &&
+      [ "$?" = 0 ] && printf_green "Everything has been setup" || __return__error
   else
     __return__error
   fi
 else
-  printf_green "The config file has been generated and saved to $TMP_FILE"
+  printf_green "The config file has been generated and html templates copied"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 #End

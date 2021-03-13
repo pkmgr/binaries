@@ -170,19 +170,55 @@ ICON_QUESTION="[ ❓ ]"
 
 printf_newline() { printf "${*:-}\n"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
-printf_normal() { printf_color "\t\t$1" "$2"; printf "\n"; }
-printf_green() { printf_color "\t\t$1" 2 ; printf "\n"; }
-printf_red() { printf_color "\t\t$1" 1; printf "\n"; }
-printf_purple() { printf_color "\t\t$1" 5; printf "\n"; }
-printf_yellow() { printf_color "\t\t$1" 3; printf "\n"; }
-printf_blue() { printf_color "\t\t$1" 4; printf "\n"; }
-printf_cyan() { printf_color "\t\t$1" 6; printf "\n"; }
-printf_info() { printf_color "\t\t$ICON_INFO $1" 3; printf "\n"; }
-printf_success() { printf_color "\t\t$ICON_GOOD $1" 2; printf "\n"; }
-printf_warning() { printf_color "\t\t$ICON_WARN $1" 3; printf "\n"; }
+printf_normal() {
+  printf_color "\t\t$1" "$2"
+  printf "\n"
+}
+printf_green() {
+  printf_color "\t\t$1" 2
+  printf "\n"
+}
+printf_red() {
+  printf_color "\t\t$1" 1
+  printf "\n"
+}
+printf_purple() {
+  printf_color "\t\t$1" 5
+  printf "\n"
+}
+printf_yellow() {
+  printf_color "\t\t$1" 3
+  printf "\n"
+}
+printf_blue() {
+  printf_color "\t\t$1" 4
+  printf "\n"
+}
+printf_cyan() {
+  printf_color "\t\t$1" 6
+  printf "\n"
+}
+printf_info() {
+  printf_color "\t\t$ICON_INFO $1" 3
+  printf "\n"
+}
+printf_success() {
+  printf_color "\t\t$ICON_GOOD $1" 2
+  printf "\n"
+}
+printf_warning() {
+  printf_color "\t\t$ICON_WARN $1" 3
+  printf "\n"
+}
 printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
-printf_execute_success() { printf_color "\t\t$ICON_GOOD $1" 2; printf "\n"; }
-printf_execute_error() { printf_color "\t\t$ICON_WARN $1 $2" 1; printf "\n"; }
+printf_execute_success() {
+  printf_color "\t\t$ICON_GOOD $1" 2
+  printf "\n"
+}
+printf_execute_error() {
+  printf_color "\t\t$ICON_WARN $1 $2" 1
+  printf "\n"
+}
 printf_execute_result() {
   if [ "$1" -eq 0 ]; then printf_execute_success "$2"; else printf_execute_error "${3:-$2}"; fi
   return "$1"
@@ -207,7 +243,10 @@ printf_pause() {
   printf "\n"
 }
 
-print_wait() { printf_pause "$*";printf "\n"; }
+print_wait() {
+  printf_pause "$*"
+  printf "\n"
+}
 
 #printf_error "color" "exitcode" "message"
 printf_error() {
@@ -292,7 +331,6 @@ printf_question() {
   local msg="$*"
   shift
   printf_color "\t\t$ICON_QUESTION $msg? " "$color"
-  printf "\n"
 }
 
 printf_custom_question() {
@@ -300,7 +338,6 @@ printf_custom_question() {
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
-  printf "\n"
 }
 
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -370,13 +407,20 @@ printf_head() {
   local msg7="$1" && shift 1 || msg7=
   shift
   [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
-  [ -z "$msg1" ] || printf_color "\t\t$msg1" "$color"; printf "\n"
-  [ -z "$msg2" ] || printf_color "\t\t$msg2" "$color"; printf "\n"
-  [ -z "$msg3" ] || printf_color "\t\t$msg3" "$color"; printf "\n"
-  [ -z "$msg4" ] || printf_color "\t\t$msg4" "$color"; printf "\n"
-  [ -z "$msg5" ] || printf_color "\t\t$msg5" "$color"; printf "\n"
-  [ -z "$msg6" ] || printf_color "\t\t$msg6" "$color"; printf "\n"
-  [ -z "$msg7" ] || printf_color "\t\t$msg7" "$color"; printf "\n"
+  [ -z "$msg1" ] || printf_color "\t\t$msg1" "$color"
+  printf "\n"
+  [ -z "$msg2" ] || printf_color "\t\t$msg2" "$color"
+  printf "\n"
+  [ -z "$msg3" ] || printf_color "\t\t$msg3" "$color"
+  printf "\n"
+  [ -z "$msg4" ] || printf_color "\t\t$msg4" "$color"
+  printf "\n"
+  [ -z "$msg5" ] || printf_color "\t\t$msg5" "$color"
+  printf "\n"
+  [ -z "$msg6" ] || printf_color "\t\t$msg6" "$color"
+  printf "\n"
+  [ -z "$msg7" ] || printf_color "\t\t$msg7" "$color"
+  printf "\n"
   [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
 }
 
@@ -391,13 +435,20 @@ printf_header() {
   local msg7="$1" && shift 1 || msg7=
   shift
   [ -z "$msg1" ] || printf "##################################################\n"
-  [ -z "$msg1" ] || printf "$msg1";printf "\n"
-  [ -z "$msg2" ] || printf "$msg2";printf "\n"
-  [ -z "$msg3" ] || printf "$msg3";printf "\n"
-  [ -z "$msg4" ] || printf "$msg4";printf "\n"
-  [ -z "$msg5" ] || printf "$msg5";printf "\n"
-  [ -z "$msg6" ] || printf "$msg6";printf "\n"
-  [ -z "$msg7" ] || printf "$msg7";printf "\n"
+  [ -z "$msg1" ] || printf "$msg1"
+  printf "\n"
+  [ -z "$msg2" ] || printf "$msg2"
+  printf "\n"
+  [ -z "$msg3" ] || printf "$msg3"
+  printf "\n"
+  [ -z "$msg4" ] || printf "$msg4"
+  printf "\n"
+  [ -z "$msg5" ] || printf "$msg5"
+  printf "\n"
+  [ -z "$msg6" ] || printf "$msg6"
+  printf "\n"
+  [ -z "$msg7" ] || printf "$msg7"
+  printf "\n"
   [ -z "$msg1" ] || printf "##################################################\n"
 }
 
