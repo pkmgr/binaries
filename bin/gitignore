@@ -71,9 +71,8 @@ IGNOREFILES=""${IGNORELIST//,/ }""
 __mkd "$GITIGNOREDIR"
 printf "# Disable reminder in prompt\nignoredirmessage\n\n" >"$GITIGNOREDIR/dirignore"
 set_gitignoredir() {
-  __mkd "$GITIGNOREDIR"
-  printf "# Disable reminder in prompt\nignoredirmessage\n\n" >"$GITIGNOREDIR/dirignore" && return
-  case $@ in
+  local args="${@:-dirignore}"
+  case $args in
   dirignore)
     shift 1
     if [ -f "$GITDIR/.gitignore" ]; then
@@ -84,6 +83,8 @@ set_gitignoredir() {
           rm -Rf "$GITDIR/.gitignore.tmp" &&
           printf_green "Added ignoredirmessage to your .gitignore" ||
           printf_error "Failed to add ignoredirmessage to gitignore"
+      else
+        printf_green "dirignore added to .gitignore"
       fi
     else
       printf "# Disable reminder in prompt\nignoredirmessage\n\n" >>"$GITDIR/.gitignore" &&
@@ -155,12 +156,17 @@ case $* in
   printf_green "$(fetch_ignore "$@")"
   exit
   ;;
+dirignore)
+  if [ $# = 1 ]; then
+    set_gitignoredir
+  fi
+  ;;
 *)
   if [ ! -f "$GITIGNOREDIR/dirignore" ]; then
     shift 1
     set_gitignoredir "dirignore"
   fi
-  ignore_overwrite "$@"
+  ignore_overwrite "$@" $ignoredir
   [ $# -ne 0 ] && create_gitignore "$@" || exit $?
   ;;
 esac
