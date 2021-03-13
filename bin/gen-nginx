@@ -44,15 +44,20 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __requiresudo true
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/nginxXXX")"
+NGINXDOMAIN="${1:-$(hostname -f)}"
+NGINXDOCROOT="${2:-$TMPDIR/$(hostname -f)}"
+NGINXCONFDIR="${NGINXCONFDIR:-$TMPDIR}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __nginx_confdir() {
   if [ -d /etc/nginx/sites-enabled ]; then
-    nginxconfdir="/etc/nginx/sites-enabled"
+    NGINXCONFDIR="/etc/nginx/sites-enabled"
   elif [ -d "/etc/nginx/vhosts.d" ]; then
-    nginxconfdir="/etc/nginx/vhosts.d"
+    NGINXCONFDIR="/etc/nginx/vhosts.d"
   else
-    printf_read_question_nt "4" "Where are your nginx server files located?" "120" "nginxconfdir" "-e"
-    if [[ ! -d "$nginxconfdir" ]]; then
-      printf_exit "$nginxconfdir is an invalid directory"
+    printf_read_question_nt "4" "Where are your nginx server files located?" "120" "NGINXCONFDIR" "-e -i $NGINXCONFDIR"
+    if [[ ! -d "$NGINXCONFDIR" ]]; then
+      printf_exit "$NGINXCONFDIR is an invalid directory"
       exit 1
     fi
   fi
@@ -64,11 +69,11 @@ __hosts() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __nginx_dom() {
-  printf_read_question_nt "4" "What is your domain name?" "120" "NGINXDOMAIN" "-e -i $(hostname -f) "
-  printf_read_question_nt "4" "What is the name of the app?" "120" "REVPROXYNAME" "-e "
-  printf_read_question_nt "4" "What should I proxy for?" "120" "REVPROXY" "-e -i localhost "
-  printf_read_question_nt "4" "What is your APPs port [3000]?" "120" "REVPROXY_PORT" "-e -i 3000 "
-  printf_read_question_nt "4" "What is the protocol http[s]?" "120" "REVPROXY_PROTO" "-e -i http"
+  printf_read_question_nt "4" "What is your domain name?" "120" "NGINXDOMAIN" "-e -i $(hostname -f) " || printf_newline
+  printf_read_question_nt "4" "What is the name of the app?" "120" "REVPROXYNAME" "-e" || printf_newline
+  printf_read_question_nt "4" "What should I proxy for?" "120" "REVPROXY" "-e -i localhost " || printf_newline
+  printf_read_question_nt "4" "What is your APPs port [3000]?" "120" "REVPROXY_PORT" "-e -i 3000 " || printf_newline
+  printf_read_question_nt "4" "What is the protocol http[s]?" "120" "REVPROXY_PROTO" "-e -i http" || printf_newline
   [ -n "$NGINXDOMAIN" ] && NGINXDOMAIN="$NGINXDOMAIN" || printf_exit "domain name is required"
   [ -n "$REVPROXYNAME" ] && REVPROXYNAME="$REVPROXYNAME" || printf_exit "app name is required"
   REVPROXY="${REVPROXY:-localhost}"
@@ -127,7 +132,7 @@ server {
 #    }
 
 #  location ~ ^/uri {
-#    rewrite ^/(.*)$ http://$host:port/ permanent;
+#    rewrite ^/(.*)$ http://$host:$port/ permanent;
 #    }
 
     include /etc/nginx/global.d/nginx-defaults.conf;
@@ -137,7 +142,7 @@ server {
     include /etc/nginx/global.d/vnstats.conf;
     include /etc/nginx/global.d/others.conf;
 }
-' | sudo tee "$nginxconfdir/$NGINXDOMAIN.conf" &>/dev/null
+' | sudo tee "$NGINXCONFDIR/$NGINXDOMAIN.conf" &>/dev/null
   else
     echo '#Define your primary service
 # upstream '$REVPROXYNAME' { server '$REVPROXY':'$REVPROXY_PORT' fail_timeout=0; }
@@ -160,7 +165,7 @@ server {
 
   location / {
     proxy_redirect          http:// https://;
-    proxy_pass              '$REVPROXY_PROTO'://'$REVPROXY';
+    proxy_pass              '$REVPROXY_PROTO'://'$REVPROXY':'$REVPROXY_PORT';
     proxy_ssl_verify        off;
     send_timeout            3600;
     client_max_body_size    1024M;
@@ -180,7 +185,7 @@ server {
 
 #  location ~ ^/uri {
 #    rewrite ^/(.*)$ /$1 break;
-#    proxy_pass http://127.0.0.1:port/;
+#    proxy_pass '$REVPROXY_PROTO'://'$REVPROXY':'$REVPROXY_PORT'/;
 #    proxy_set_header X-Real-IP $remote_addr;
 #    proxy_set_header Host $host;
 #    proxy_redirect   off;
@@ -188,7 +193,7 @@ server {
 #    }
 
 #  location ~ ^/uri {
-#    rewrite ^/(.*)$ http://$host:port/ permanent;
+#    rewrite ^/(.*)$ '$REVPROXY_PROTO'://'$REVPROXY':'$REVPROXY_PORT' permanent;
 #    }
 
     include /etc/nginx/global.d/nginx-defaults.conf;
@@ -198,12 +203,12 @@ server {
     include /etc/nginx/global.d/vnstats.conf;
     include /etc/nginx/global.d/others.conf;
 }
-' | sudo tee "$nginxconfdir/$NGINXDOMAIN.conf" &>/dev/null
+' | sudo tee "$NGINXCONFDIR/$NGINXDOMAIN.conf" &>/dev/null
   fi
-  if [ -f "$nginxconfdir/$NGINXDOMAIN.conf" ]; then
-    printf_green "Successfully created $nginxconfdir/$NGINXDOMAIN.conf"
+  if [ -f "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
+    printf_green "Successfully created $NGINXCONFDIR/$NGINXDOMAIN.conf"
   else
-    print_error "Failed to create $nginxconfdir/$NGINXDOMAIN.conf"
+    print_error "Failed to create $NGINXCONFDIR/$NGINXDOMAIN.conf"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -213,9 +218,15 @@ main() {
   REVPROXY="${REVPROXY:-$3}"
   REVPROXY_PORT="${REVPROXY_PORT:-$4}"
   REVPROXY_PROTO="${REVPROXY_PROTO:-$5}"
-  [ -z "$nginxconfdir" ] && __nginx_confdir
-  [ -z "$NGINXDOMAIN" ] && __nginx_dom
+  __nginx_dom
+  __nginx_confdir
   __nginx_conf "$@"
+  if [ "$TMPDIR/$NGINXDOMAIN.conf" != "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
+    if [ -d "/etc/nginx/vhosts.d" ] && __can_i_sudo; then
+      printf_green "Installing config to $NGINXCONFDIR/$NGINXDOMAIN.conf"
+      sudo mv -f "$TMPDIR/$NGINXDOMAIN.conf" "$NGINXCONFDIR/$NGINXDOMAIN.conf"
+    fi
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main "$@"

@@ -43,10 +43,11 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/apacheXXX")"
-TMPFILE="$TMPDIR/$(hostname -f)"
 APACHEDOMAIN="${1:-$(hostname -f)}"
-APACHEDOCROOT="${2:-/var/www}"
+APACHEDOCROOT="${2:-$TMPDIR/$(hostname -f)}"
 APACHECONFDIR="${APACHECONFDIR:-$TMPDIR}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__requiresudo true
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __return__error() {
   printf_error "Somethings seems to have gone very wrong"
@@ -64,11 +65,11 @@ __apache_confdir() {
     if [[ ! -d "$APACHECONFDIR" ]]; then
       if user_is_root; then
         printf_read_question_nt "4" "The directory doesn't exist should I try to create it?"
-        if printf_answer_yes; then __mkd "$APACHECONFDIR"; fi
+        if printf_answer_yes; then sudo mkdir -p "$APACHECONFDIR"; fi
       fi
-      printf_error "Can not create $APACHECONFDIR"
     fi
   fi
+  [ -d "$APACHECONFDIR" ] || printf_error "Can not create $APACHECONFDIR"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_dom() {
@@ -77,11 +78,7 @@ __apache_dom() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_www() {
-  if user_is_root; then
-    printf_read_question_nt "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-e -i $APACHEDOCROOT "
-  else
-    printf_read_question_nt "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-e -i $TMPDIR/www "
-  fi
+  printf_read_question_nt "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-e -i $APACHEDOCROOT "
   [ -z "$APACHEDOCROOT" ] && printf_exit "DocumentRoot is required" || APACHEDOCROOT=$APACHEDOCROOT
 }
 
@@ -95,7 +92,7 @@ __apache_html() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_conf() {
-  TMP_FILE="$TMPDIR/${APACHEDOMAIN:-$TMPFILE}.conf"
+  TMP_FILE="$TMPDIR/$(hostname -f).conf"
   printf_green "Generating apache conf in $TMP_FILE"
   if [ -d /etc/letsencrypt/live/domain ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
     if [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
@@ -113,7 +110,7 @@ DocumentRoot "$APACHEDOCROOT"
 #Rewrites
 RewriteEngine On
 RewriteCond %{HTTPS} !=on
-RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
+RewriteRule ^/?(.*) https://%{SERVER_NAME}/\$1 [R,L]
 
 ##LE Certs
 SSLEngine on
@@ -124,7 +121,7 @@ SSLCertificateChainFile /etc/letsencrypt/live/domain/fullchain.pem
 #Headers
 #Header always set Strict-Transport-Security "max-age=31536000; preload"
 #RequestHeader set Connection ""
-#RequestHeader set Upgrade $http_upgrade;
+#RequestHeader set Upgrade \$http_upgrade;
 #RequestHeader set Connection "upgrade"
 #RequestHeader set X-Forwarded-Proto "https"
 </VirtualHost>
@@ -143,7 +140,7 @@ DocumentRoot "$APACHEDOCROOT"
 #Rewrites
 RewriteEngine On
 RewriteCond %{HTTPS} !=on
-RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R,L]
+RewriteRule ^/?(.*) https://%{SERVER_NAME}/\$1 [R,L]
 
 SSLEngine on
 SSLCertificateFile /etc/ssl/CA/CasjaysDev/certs/localhost.crt
@@ -153,7 +150,7 @@ SSLCertificateKeyFile /etc/ssl/CA/CasjaysDev/private/localhost.key
 #Headers
 #Header always set Strict-Transport-Security "max-age=31536000; preload"
 #RequestHeader set Connection ""
-#RequestHeader set Upgrade $http_upgrade;
+#RequestHeader set Upgrade \$http_upgrade;
 #RequestHeader set Connection "upgrade"
 #RequestHeader set X-Forwarded-Proto "https"
 </VirtualHost>
@@ -161,7 +158,6 @@ SSLCertificateKeyFile /etc/ssl/CA/CasjaysDev/private/localhost.key
 EOF
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APACHEDOMAIN="${APACHEDOMAIN:-$1}"
 APACHEDOCROOT="${APACHEDOCROOT:-$2}"
@@ -169,22 +165,27 @@ APACHECONFDIR="${APACHECONFDIR:-$TMPDIR}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_confdir && __apache_dom && __apache_www || __return__error
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+printf_newline "\n"
 printf_green "Setting up $APACHEDOMAIN in $TMPDIR"
 __apache_conf "$@" && __apache_html || __return__error
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # move files if root
-if user_is_root; then
-  if [ -n "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
-    echo "127.0.0.1      $APACHEDOMAIN" >>/etc/hosts
+if __can_i_sudo; then
+  if [ -z "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
+    echo "127.0.3.1      $APACHEDOMAIN" | sudo tee -a /etc/hosts &>/dev/null
   fi
-  if [ -f "$TMP_FILE" ]; then
-    printf_green "Installing $TMP_FILE to $APACHECONFDIR/$APACHEDOMAIN.conf"
-    __mv_f "$TMP_FILE" "$APACHECONFDIR/$APACHEDOMAIN.conf" && __mv_f "$TMPDIR/www/" "$APACHEDOCROOT" &&
-      find "$TMPDIR" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1 &&
-      find "$TMPDIR" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1 &&
-      [ "$?" = 0 ] && printf_green "Everything has been setup" || __return__error
-  else
-    __return__error
+  if [ "$TMP_FILE" != "$APACHECONFDIR/$APACHEDOMAIN.conf" ]; then
+    if [ -f "$TMP_FILE" ]; then
+      printf_green "Installing $TMP_FILE to" &&
+        printf_green "$APACHECONFDIR/$APACHEDOMAIN.conf" &&
+        sudo mv -f "$TMP_FILE" "$APACHECONFDIR/$APACHEDOMAIN.conf" &&
+        sudo mv -f "$TMPDIR/www/" "$APACHEDOCROOT" &&
+        sudo find "$APACHEDOCROOT" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1 &&
+        sudo find "$APACHEDOCROOT" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1 &&
+        printf_green "Everything has been setup" || __return__error
+    else
+      __return__error
+    fi
   fi
 else
   printf_green "The config file has been generated and html templates copied"
@@ -192,3 +193,4 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 #End
+
