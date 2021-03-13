@@ -42,12 +42,12 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__requiresudo true
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/nginxXXX")"
 NGINXDOMAIN="${1:-$(hostname -f)}"
-NGINXDOCROOT="${2:-$TMPDIR/$(hostname -f)}"
-NGINXCONFDIR="${NGINXCONFDIR:-$TMPDIR}"
+NGINXDOCROOT="${2:-$HOME/.config/gen-nginx/www/$(hostname -f)}"
+NGINXCONFDIR="${3:-$HOME/.config/gen-nginx/conf}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+mkdir -p "$HOME/.config/gen-nginx/www/$(hostname -f)"
+mkdir -p "$HOME/.config/gen-nginx/conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __nginx_confdir() {
   if [ -d /etc/nginx/sites-enabled ]; then
@@ -205,6 +205,8 @@ server {
 }
 ' | sudo tee "$NGINXCONFDIR/$NGINXDOMAIN.conf" &>/dev/null
   fi
+  printf_newline
+  printf_head 4 "Setting up $NGINXDOMAIN.conf" "in $NGINXCONFDIR"
   if [ -f "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
     printf_green "Successfully created $NGINXCONFDIR/$NGINXDOMAIN.conf"
   else
@@ -221,8 +223,10 @@ main() {
   __nginx_dom
   __nginx_confdir
   __nginx_conf "$@"
-  if [ "$TMPDIR/$NGINXDOMAIN.conf" != "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
+  if [ "$HOME/.config/gen-nginx/conf/$NGINXDOMAIN.conf" != "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
     if [ -d "/etc/nginx/vhosts.d" ] && __can_i_sudo; then
+      __requiresudo true
+      __nginx_confdir
       printf_green "Installing config to $NGINXCONFDIR/$NGINXDOMAIN.conf"
       sudo mv -f "$TMPDIR/$NGINXDOMAIN.conf" "$NGINXCONFDIR/$NGINXDOMAIN.conf"
     fi

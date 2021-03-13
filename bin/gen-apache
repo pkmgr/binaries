@@ -42,16 +42,19 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/apacheXXX")"
 APACHEDOMAIN="${1:-$(hostname -f)}"
-APACHEDOCROOT="${2:-$TMPDIR/$(hostname -f)}"
-APACHECONFDIR="${APACHECONFDIR:-$TMPDIR}"
+APACHEDOCROOT="${2:-$HOME/.config/gen-apache/www/$(hostname -f)}"
+APACHECONFDIR="${3:-$HOME/.config/gen-apache/conf}"
+APACHECONFFILE="$APACHECONFDIR/$(hostname -f).conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __requiresudo true
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+mkdir -p "$HOME/.config/gen-apache/www/$(hostname -f)"
+mkdir -p "$HOME/.config/gen-apache/conf"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __return__error() {
   printf_error "Somethings seems to have gone very wrong"
-  printf_yellow "File has been saved to $TMP_FILE"
+  printf_yellow "File has been saved to $APACHECONFFILE"
   printf_exit 1 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,21 +87,21 @@ __apache_www() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_html() {
-  printf_green "Copying the template html files to $TMPDIR/www"
-  __mkd "$TMPDIR/www" && __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$TMPDIR/www/"
-  find "$TMPDIR" -type f -exec sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
-  find "$TMPDIR" -type f -exec sed -i 's#REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
+  printf_green "Copying the template html files to $APACHEDOCROOT"
+  __mkd "$APACHEDOCROOT" && __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$APACHEDOCROOT/"
+  find "$APACHECONFDIR" -type f -exec sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
+  find "$APACHECONFDIR" -type f -exec sed -i 's#REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_conf() {
-  TMP_FILE="$TMPDIR/$(hostname -f).conf"
-  printf_green "Generating apache conf in $TMP_FILE"
+  local APACHECONFFILE="$APACHECONFDIR/$(hostname -f).conf"
+  printf_green "Generating apache conf in $APACHECONFFILE"
   if [ -d /etc/letsencrypt/live/domain ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
     if [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
       [ -d /etc/letsencrypt/live/domain ] || __ln_sf "/etc/letsencrypt/live/$(hostname -f)" /etc/letsencrypt/live/domain
     fi
-    cat <<EOF >"$TMP_FILE"
+    cat <<EOF >"$APACHECONFFILE"
 # VirtualHost for $APACHEDOMAIN
 
 <IfModule mod_ssl.c>
@@ -128,7 +131,7 @@ SSLCertificateChainFile /etc/letsencrypt/live/domain/fullchain.pem
 </IfModule>
 EOF
   else
-    cat <<EOF >"$TMP_FILE"
+    cat <<EOF >"$APACHECONFFILE"
 # VirtualHost for $APACHEDOMAIN
 
 <IfModule mod_ssl.c>
@@ -161,12 +164,12 @@ EOF
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APACHEDOMAIN="${APACHEDOMAIN:-$1}"
 APACHEDOCROOT="${APACHEDOCROOT:-$2}"
-APACHECONFDIR="${APACHECONFDIR:-$TMPDIR}"
+APACHECONFDIR="${APACHECONFDIR:-$APACHECONFDIR}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_confdir && __apache_dom && __apache_www || __return__error
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-printf_newline "\n"
-printf_green "Setting up $APACHEDOMAIN in $TMPDIR"
+printf_newline
+printf_head 4 "Setting up $APACHEDOMAIN" "in $APACHECONFDIR"
 __apache_conf "$@" && __apache_html || __return__error
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # move files if root
@@ -174,14 +177,14 @@ if __can_i_sudo; then
   if [ -z "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
     echo "127.0.3.1      $APACHEDOMAIN" | sudo tee -a /etc/hosts &>/dev/null
   fi
-  if [ "$TMP_FILE" != "$APACHECONFDIR/$APACHEDOMAIN.conf" ]; then
-    if [ -f "$TMP_FILE" ]; then
-      printf_green "Installing $TMP_FILE to" &&
+  if [ "$HOME/.config/gen-apache/conf/$APACHEDOMAIN.conf" != "$APACHECONFDIR/$APACHEDOMAIN.conf" ]; then
+    if [ -f "$APACHECONFFILE" ]; then
+      printf_green "Installing $APACHECONFFILE to" &&
         printf_green "$APACHECONFDIR/$APACHEDOMAIN.conf" &&
-        sudo mv -f "$TMP_FILE" "$APACHECONFDIR/$APACHEDOMAIN.conf" &&
-        sudo mv -f "$TMPDIR/www/" "$APACHEDOCROOT" &&
-        sudo find "$APACHEDOCROOT" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1 &&
-        sudo find "$APACHEDOCROOT" -type f -exec sed -i 's#'$TMPDIR'#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1 &&
+        sudo mv -f "$APACHECONFFILE" "$APACHECONFDIR/$APACHEDOMAIN.conf" &&
+        sudo mv -f "$APACHEDOCROOT" "$APACHEDOCROOT" &&
+        sudo find "$APACHEDOCROOT" -type f -exec sed -i 's#'$APACHECONFDIR'#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1 &&
+        sudo find "$APACHEDOCROOT" -type f -exec sed -i 's#'$APACHECONFDIR'#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1 &&
         printf_green "Everything has been setup" || __return__error
     else
       __return__error
