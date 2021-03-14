@@ -27,7 +27,7 @@ _gen-script() {
   local BASH=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/bash/ 2>/dev/null)
   local INSTALLERS=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/installers/ 2>/dev/null)
   local ALL="$(find $GEN_SCRIPTS_TEMPLATE_DIR -type f | sed 's#'$GEN_SCRIPTS_TEMPLATE_DIR/'##g' 2>/dev/null)"
-  local ARRAY="--help config header all os shell installers"
+  local ARRAY="--help config header all os shell bash installers"
 
   _init_completion || return
 

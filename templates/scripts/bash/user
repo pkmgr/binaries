@@ -12,7 +12,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 ##@Version       : REPLACE_VERSION
 # @Author        : REPLACE_AUTHOR
 # @Contact       : REPLACE_EMAIL
-# @License       : WTFPL
+# @License       : REPLACE_LICENSE
 # @ReadME        : REPLACE_FILENAME --help
 # @Copyright     : REPLACE_COPYRIGHT
 # @Created       : REPLACE_DATE

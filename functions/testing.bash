@@ -283,6 +283,9 @@ printf_help() {
   local msg="$*"
   shift
   echo ""
+  if [ "${PROG:-$APPNAME}" ]; then
+    printf_color "\t\t$(grep ^"# @Description" $(command -v "${PROG:-$APPNAME}") | grep ' : ' | sed 's#..* : ##g' || "${PROG:-$APPNAME}" help)\n" 2
+  fi
   printf_color "\t\t$msg" "$color"
   printf "\n\n"
   exit 0

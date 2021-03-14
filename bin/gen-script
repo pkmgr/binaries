@@ -93,8 +93,10 @@ __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dir
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local t=$(getopt -o h,d:,t:,c:,o:,r:,i:,f,n:,u --long help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name: -n "$APPNAME" -- "$@" 2>/dev/null)
-  eval set -- "$t" 2>/dev/null
+  local LONGOPTS="help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:"
+  local OPTS="h,d:,t:,c:,o:,r:,i:,f,n:,u,l:"
+  local parsed=$(getopt --options=$OPTS --longoptions=$LONGOPTS -- "$@" 2>/dev/null)
+  eval set -- "${parsed[@]}" 2>/dev/null
   while :; do
     case "$1" in
     -h | --help)
@@ -135,6 +137,11 @@ __header_opts() {
     -u | --user)
       shift
       gen_header_user=true
+      ;;
+    -l | --license)
+      shift
+      GEN_SCRIPTS_CUSTOM_LICENSE="true"
+      GEN_SCRIPTS_DEFLICENSE="$1"
       ;;
     --raw)
       shift
@@ -234,6 +241,8 @@ __gen_header_help() {
   printf_blue "-f: Include functions"
   printf_blue "-i: Install function to use - user_install"
   printf_blue "-n: Define the script APPNAME"
+  printf_blue "-l: Define license type"
+  printf_blue "--raw: Show raw headed"
   printf_yellow "Types: user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr"
   printf_yellow 'IE: gen-script header filename -d "My Descr" -c "My Copy" -t "My TODO" -o "OTHER" -r "RESOURCE" -i "system" -f'
   exit 0

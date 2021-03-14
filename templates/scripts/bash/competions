@@ -12,7 +12,7 @@
 # @Other         : REPLACE_OTHER
 # @Resource      : REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_REPLACE_APPNAME() {
+_REPLACE_FILENAME() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
@@ -34,4 +34,4 @@ _REPLACE_APPNAME() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _REPLACE_APPNAME REPLACE_APPNAME
+  complete -F _REPLACE_FILENAME REPLACE_FILENAME
