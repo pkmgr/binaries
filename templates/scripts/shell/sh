@@ -34,6 +34,7 @@ __version() {
   grep ^"##@" "REPLACE_FILENAME"
 }
 __help() {
+  printf_color "4" "$(grep ^"# @Description" "REPLACE_FILENAME | grep ' : " || REPLACE_FILENAME help)"
   printf_color "4" "usage: REPLACE_FILENAME  |  REPLACE_FILENAME --version"
   exit
 }

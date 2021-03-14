@@ -22,6 +22,18 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Other         : REPLACE_OTHER
 # @Resource      : REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main function file
+if [ -f "$SRC_DIR/functions.bash" ]; then
+  FUNCTIONS_DIR="$SRC_DIR"
+  . "$FUNCTIONS_DIR/functions.bash"
+elif [ -f "$HOME/.local/bin/functions.bash" ]; then
+  FUNCTIONS_DIR="$HOME/.local/bin"
+  . "$FUNCTIONS_DIR/functions.bash"
+else
+  printf "\t\t\033[0;31m%s \033[0m\n" "Couldn't source the functions file from $FUNCTIONS_DIR"
+  return 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # helper function
 __version() { app_version; }
 __help() {
@@ -30,24 +42,15 @@ __help() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
 main() {
-  if [ -f "$SRC_DIR/functions.bash" ]; then
-    FUNCTIONS_DIR="$SRC_DIR"
-    . "$FUNCTIONS_DIR/functions.bash"
-  elif [ -f "$HOME/.local/bin/functions.bash" ]; then
-    FUNCTIONS_DIR="$HOME/.local/bin"
-    . "$FUNCTIONS_DIR/functions.bash"
-  else
-    printf "\t\t\033[0;31m%s \033[0m\n" "Couldn't source the functions file from $FUNCTIONS_DIR"
-    return 1
-  fi
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # options
   [ "$1" = "--version" ] && __version
   [ "$1" = "--help" ] && __help
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Required app check
   cmd_exists --error REPLACE_FILENAME || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  #
+  # begin main app
   return "${exitCode:-0}"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

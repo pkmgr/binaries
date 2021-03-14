@@ -27,28 +27,9 @@ printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
-  printf_color "\t\t$msg" "$color"
-  printf "\n"
+  printf_color "\t\t$msg\n" "$color"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# version and  help function
-app_version() { echo REPLACE_VERSION; }
-app_help() {
-  printf_help "Usage: REPLACE_FILENAME  |  "
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main app
-main() {
-  [ "$1" = "--help" ] && __help
-  [ "$1" = "--version" ] && __version
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Execute main app
-main "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
-
+# begin
+printf_help "2" 'REPLACE _FILENAME help file'
+printf_help "4" "Usage: REPLACE_FILENAME  |  "

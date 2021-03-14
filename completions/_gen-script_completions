@@ -24,6 +24,7 @@ _gen-script() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local OS=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/os/ 2>/dev/null)
   local SHELL=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/shell/ 2>/dev/null)
+  local BASH=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/bash/ 2>/dev/null)
   local INSTALLERS=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/installers/ 2>/dev/null)
   local ALL="$(find $GEN_SCRIPTS_TEMPLATE_DIR -type f | sed 's#'$GEN_SCRIPTS_TEMPLATE_DIR/'##g' 2>/dev/null)"
   local ARRAY="--help config header all os shell installers"
@@ -31,15 +32,21 @@ _gen-script() {
   _init_completion || return
 
   case $prev in
-    all)
-      shift 1
-      COMPREPLY=($(compgen -W '$ALL' -- "$cur"))
-      return
+  all)
+    shift 1
+    COMPREPLY=($(compgen -W '$ALL' -- "$cur"))
+    return
     ;;
 
   installers)
     shift 1
     COMPREPLY=($(compgen -W '$INSTALLERS' -- "$cur"))
+    return 0
+    ;;
+
+  bash)
+    shift 1
+    COMPREPLY=($(compgen -W '$BASH' -- "$cur"))
     return 0
     ;;
 
@@ -57,15 +64,15 @@ _gen-script() {
 
   header)
     shift 1
-    COMPREPLY=($(compgen -W '--help -t -d -c -o -r -f -i' -- "$cur"))
+    COMPREPLY=($(compgen -W '--help -t -d -c -o -r -f -i -u --raw' -- "$cur"))
     return 0
     ;;
 
   *)
     COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
     return 0
-   ;;
-esac
+    ;;
+  esac
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
