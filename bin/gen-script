@@ -200,21 +200,43 @@ __copy_templates() {
 
 __makefile() {
   local temp="$1"
-  local new="$2"
+  local new="${newfile:-$2}"
   local newdir="$(__dirname "$new")"
+  local newfile="$(basename "$2")"
+  local newcmd="$(command -v "$newfile")"
   shift 2
   __mkd "$newdir"
   __vars "$new"
   __cp_rf "$temp" "$new" || return 1
   __edit_header "$new" || return 1
   chmod -f 755 "$new" || return 1
-  if grep -q 'local cur prev words cword$' "$new" ; then
+  if grep -q 'local cur prev words cword$' "$new"; then
+    if [ -f "$newcmd" ]; then
+      local GEN_SCRIPT_REPLACE_license"$(grep ^'# @License ' "$new" 2>/dev/null)"
+      local GEN_SCRIPT_REPLACE_readme="$(grep ^'# @ReadME  ' "$new" 2>/dev/null)"
+      local GEN_SCRIPT_REPLACE_desc="$(grep ^'# @Description ' "$new" 2>/dev/null)"
+      local GEN_SCRIPT_REPLACE_todo="$(grep ^'# @TODO ' "$new" 2>/dev/null)"
+      local GEN_SCRIPT_REPLACE_other="$(grep ^'# @Other ' "$new" 2>/dev/null)"
+      local GEN_SCRIPT_REPLACE_resource="$(grep ^'# @Resource ' "$new" 2>/dev/null)"
+      local license="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local readme="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local desc="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local todo="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local other="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local resource="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+    fi
+    [ -n "$license" ] && [ -n "$GEN_SCRIPT_REPLACE_license" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_license"'/'"$license"'/g' "$new" 2>/dev/null
+    [ -n "$readme" ] && [ -n "$GEN_SCRIPT_REPLACE_readme" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_readme"'/'"$readme"'/g' "$new" 2>/dev/null
+    [ -n "$desc" ] && [ -n "$GEN_SCRIPT_REPLACE_desc" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_desc"'/'"$desc"'/g' "$new" 2>/dev/null
+    [ -n "$todo" ] && [ -n "$GEN_SCRIPT_REPLACE_todo" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_todo"'/'"$todo"'/g' "$new" 2>/dev/null
+    [ -n "$other" ] && [ -n "$GEN_SCRIPT_REPLACE_other" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_other"'/'"$other"'/g' "$new" 2>/dev/null
+    [ -n "$resource" ] && [ -n "$GEN_SCRIPT_REPLACE_resource" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_resource"'/'"$resource"'/g' "$new" 2>/dev/null
     local compfile="_$(basename "$new")_completion"
     local destfolder="$(dirname "$new")"
-    __mv_f "$new" "$destfolder/$compfile" && \
-      new="$destfolder/$compfile" && \
-      filename="$compfile" && \
-      destfolder="$newdir" && \
+    __mv_f "$new" "$destfolder/$compfile" &&
+      new="$destfolder/$compfile" &&
+      filename="$compfile" &&
+      destfolder="$newdir" &&
       chmod 664 "$destfolder/$filename" && exitCode=0 || exitCode=1
   fi
   [ ${exitCode:-$?} -ne 0 ] && printf_red "Failed to create $new" || printf_green "Your file has been created"
@@ -228,22 +250,22 @@ __edit_header() {
   local GEN_SCRIPTS_NEWFILEDIR="${GEN_FILENAME:-$GEN_SCRIPTS_NEWFILEDIR}"
   __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
-  sed -i 's#REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_COPYRIGHT#'"$GEN_SCRIPTS_COPYRIGHT"'#g' "$GEN_SCRIPTS_NEWFILE"
-  sed -i 's#REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_FILENAME#'"$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_DATE#'"$(__date "$GEN_SCRIPTS_DATEFMT" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_LICENSE#'"$GEN_SCRIPTS_DEFLICENSE"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_README#'"$GEN_SCRIPTS_DEFREADME"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_AUTHOR#'"$GEN_SCRIPTS_AUTHOR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_EMAIL#'"$GEN_SCRIPTS_EMAIL"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_YEAR#'"$GEN_SCRIPTS_YEAR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_COPYRIGHT#'"$GEN_SCRIPTS_COPYRIGHT"'#g' "$GEN_SCRIPTS_NEWFILE"
+  sed -i 's#GEN_SCRIPT_REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_FILENAME#'"$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_DATE#'"$(__date "$GEN_SCRIPTS_DATEFMT" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_LICENSE#'"$GEN_SCRIPTS_DEFLICENSE"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_README#'"$GEN_SCRIPTS_DEFREADME"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_AUTHOR#'"$GEN_SCRIPTS_AUTHOR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_EMAIL#'"$GEN_SCRIPTS_EMAIL"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_YEAR#'"$GEN_SCRIPTS_YEAR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   #
-  sed -i 's#REPLACE_DESC#'"$desc"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_TODO#'"$todo"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_OTHER#'"$other"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#REPLACE_RES#'"$res"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_DESC#'"$desc"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_TODO#'"$todo"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_OTHER#'"$other"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_RES#'"$res"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
 
   return $?
 }
@@ -373,7 +395,7 @@ __gen_header_raw() {
   echo '
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="REPLACE_APPNAME"
+PROG="GEN_SCRIPT_REPLACE_APPNAME"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -382,17 +404,18 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : REPLACE_VERSION
-# @Author        : REPLACE_AUTHOR
-# @Contact       : REPLACE_EMAIL
-# @License       : REPLACE_LICENSE
-# @Copyright     : REPLACE_COPYRIGHT
-# @Created       : REPLACE_DATE
-# @File          : REPLACE_FILENAME
-# @Description   : REPLACE_DESC
-# @TODO          : REPLACE_TODO
-# @Other         : REPLACE_OTHER
-# @Resource      : REPLACE_RES
+##@Version       : GEN_SCRIPT_REPLACE_VERSION
+# @Author        : GEN_SCRIPT_REPLACE_AUTHOR
+# @Contact       : GEN_SCRIPT_REPLACE_EMAIL
+# @License       : GEN_SCRIPT_REPLACE_LICENSE
+# @ReadME        : GEN_SCRIPT_REPLACE_FILENAME --help
+# @Copyright     : GEN_SCRIPT_REPLACE_COPYRIGHT
+# @Created       : GEN_SCRIPT_REPLACE_DATE
+# @File          : GEN_SCRIPT_REPLACE_FILENAME
+# @Description   : GEN_SCRIPT_REPLACE_DESC
+# @TODO          : GEN_SCRIPT_REPLACE_TODO
+# @Other         : GEN_SCRIPT_REPLACE_OTHER
+# @Resource      : GEN_SCRIPT_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -414,7 +437,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 '
-return
+  return
 }
 
 __gen_functions() {

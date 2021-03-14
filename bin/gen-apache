@@ -89,8 +89,8 @@ __apache_www() {
 __apache_html() {
   printf_green "Copying the template html files to $APACHEDOCROOT"
   __mkd "$APACHEDOCROOT" && __cp_rf "$CASJAYSDEVDIR/templates/apache/html/." "$APACHEDOCROOT/"
-  find "$APACHECONFDIR" -type f -exec sed -i 's#REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
-  find "$APACHECONFDIR" -type f -exec sed -i 's#REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
+  find "$APACHECONFDIR" -type f -exec sed -i 's#GEN_SCRIPT_REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
+  find "$APACHECONFDIR" -type f -exec sed -i 's#GEN_SCRIPT_REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -196,4 +196,3 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 #End
-

@@ -248,7 +248,7 @@ __addtonamed() {
     };' >"$DNSROOT/$DOMAIN.zone.conf"
 }
 
-__replace_conf() {
+__GEN_SCRIPT_REPLACE_conf() {
   printf_read_question "3" "Would you like to replace the zone?" "1" REPLACE "-s"
   printf_answer_yes $REPLACE || printf_exit "1" "2" "$DNSROOT/$DOMAIN.zone already exist\n"
 }
@@ -256,7 +256,7 @@ __replace_conf() {
 __gen_dns() {
   printf_green "Configuring DNS zone"
   [ -n "$DOMAIN" ] || printf_read_question "3" "What is your Domain name" 120 DOMAIN
-  [ -f "$DNSROOT/$DOMAIN.zone" ] && __replace_conf
+  [ -f "$DNSROOT/$DOMAIN.zone" ] && __GEN_SCRIPT_REPLACE_conf
   __ip_addr
   [ -n "$DOMAIN" ] || [ -n "$DNSIP" ] || [ -n "$HOSTIP" ] || printf_error "Continuing but with unset variables"
 

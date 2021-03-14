@@ -426,7 +426,7 @@ To use this License in a document you have written, include a copy of
 the License in the document and put the following copyright and
 license notices just after the title page:
 
-    Copyright (c)  <REPLACE_YEAR>  <REPLACE_AUTHOR>.
+    Copyright (c)  <GEN_SCRIPT_REPLACE_YEAR>  <GEN_SCRIPT_REPLACE_AUTHOR>.
     Permission is granted to copy, distribute and/or modify this document
     under the terms of the GNU Free Documentation License, Version 1.3
     or any later version published by the Free Software Foundation;

@@ -154,9 +154,9 @@ _modify_license_file() {
       [ -f "$licDir/LICENSE.md" ] && __sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "$licDir/LICENSE.md"
     fi
   fi
-  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#REPLACE_YEAR#$(date +'%Y')#g" "$licDir/LICENSE.md"
-  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#REPLACE_AUTHOR#${gitconfig_user}#g" "$licDir/LICENSE.md"
-  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#REPLACE_EMAIL#${gitconfig_email}#g" "$licDir/LICENSE.md"
+  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_SCRIPT_REPLACE_YEAR#$(date +'%Y')#g" "$licDir/LICENSE.md"
+  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_SCRIPT_REPLACE_AUTHOR#${gitconfig_user}#g" "$licDir/LICENSE.md"
+  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_SCRIPT_REPLACE_EMAIL#${gitconfig_email}#g" "$licDir/LICENSE.md"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Init

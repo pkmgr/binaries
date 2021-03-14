@@ -179,7 +179,7 @@ recommend that a file or class name and description of purpose be included on
 the same “printed page” as the copyright notice for easier identification within
 third-party archives.
 
-    Copyright [REPLACE_YEAR] [REPLACE_AUTHOR]
+    Copyright [GEN_SCRIPT_REPLACE_YEAR] [GEN_SCRIPT_REPLACE_AUTHOR]
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -192,4 +192,3 @@ third-party archives.
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-

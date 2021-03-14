@@ -91,7 +91,7 @@ generate_readme() {
     create_local_file "$readmeDir/$readmeFile"
     [ -f ${curDir}/README.md ] && __sed -i "s#AuthorName#${author}#g" "${curDir}/README.md"
     [ -f ${curDir}/README.md ] && __sed -i "s#ProjectName#${BaseDir}#g" "${curDir}/README.md"
-    [ -f ${curDir}/README.md ] && __sed -i "s#REPLACE_APPNAME#${BaseDir}#g" "${curDir}/README.md"
+    [ -f ${curDir}/README.md ] && __sed -i "s#GEN_SCRIPT_REPLACE_APPNAME#${BaseDir}#g" "${curDir}/README.md"
   else
     printf_exit 1 1 "$readmeDir/$readmeFile does not exist"
   fi
