@@ -58,6 +58,7 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   gitdir="$PWD"
 fi
+if [ "$gitdir" = "." ]; then gitdir="$(__basedir ".")"; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 GITDIR="$(__git_top_dir "$gitdir" 2>/dev/null || echo "$gitdir")"
 GITIGNOREURL="${GITIGNOREURL:-https://www.toptal.com/developers/gitignore/api}"
@@ -90,7 +91,7 @@ setup_custom() {
         printf_green "Added dirignore to your .gitignore" ||
         printf_error "Failed to add dirignore to gitignore"
     fi
-  ;;
+    ;;
   *)
     return
     ;;
@@ -109,17 +110,17 @@ fetch_ignore() {
       fi
     done
   else
-  gi_args=()
-  for arg; do
-    if [[ $arg = -- ]]; then
-      curl_args=("${gi_args[@]}")
-      gi_args=()
-    else
-      gi_args+=("$arg")
-    fi
-  done
-  local IFS=,
-  __curl "${curl_args[@]}" "$GITIGNOREURL/${gi_args[*]}"
+    gi_args=()
+    for arg; do
+      if [[ $arg = -- ]]; then
+        curl_args=("${gi_args[@]}")
+        gi_args=()
+      else
+        gi_args+=("$arg")
+      fi
+    done
+    local IFS=,
+    __curl "${curl_args[@]}" "$GITIGNOREURL/${gi_args[*]}"
   fi
   printf "\n"
 }
@@ -141,7 +142,7 @@ ignore_overwrite() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 create_gitignore() {
-  fetch_ignore "$@" >> "$GITDIR/.gitignore"
+  fetch_ignore "$@" >>"$GITDIR/.gitignore"
   printf_green "Added $IGNORELIST to your .gitignore"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

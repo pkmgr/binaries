@@ -56,6 +56,7 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   MYCURRDIR="$PWD"
 fi
+if [ "$MYCURRDIR" = "." ]; then MYCURRDIR="$(__basedir ".")"; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--message" ]; then
   shift 1

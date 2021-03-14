@@ -52,6 +52,7 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   MYCURRDIR="$PWD"
 fi
+if [ "$MYCURRDIR" = "." ]; then MYCURRDIR="$(__basedir ".")"; fi
 if [ "$1" = "--skip" ]; then OVERWRITE="Y" && OPENEDIT="N" && shift 1; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # default variables

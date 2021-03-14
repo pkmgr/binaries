@@ -55,6 +55,7 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   licDir="$PWD"
 fi
+if [ "$licDir" = "." ]; then licDir="$(__basedir ".")"; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-license/settings" ] && . "$HOME/.config/gen-license/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

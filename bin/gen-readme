@@ -52,6 +52,7 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   curDir="$PWD"
 fi
+if [ "$curDir" = "." ]; then curDir="$(__basedir ".")"; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-readme/settings" ] && . "$HOME/.config/gen-readme/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

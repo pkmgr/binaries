@@ -53,7 +53,7 @@ elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
 else
   gitdir="$(__basedir "$PWD/.")"
 fi
-
+if [ "$gitdir" = "." ]; then gitdir="$(__basedir ".")"; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # defaults
 unset PREVREPO
@@ -243,7 +243,7 @@ run_git_setup() {
   [ -f "$VERSIONFILE" ] && date +"%m%d%Y%H%M-git" >"$VERSIONFILE"
   ls "$REPODIR/README"* >/dev/null 2>&1 || create_new_readme_template "$REPODIR"
   ls "$REPODIR/LICENSE"* >/dev/null 2>&1 || create_new_wtfpl "$REPODIR"
-   __devnull git -C "$REPODIR" init . &&
+  __devnull git -C "$REPODIR" init . &&
     __devnull git -C "$REPODIR" add . &&
     git -C "$REPODIR" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
     printf_green "Success: $(__git_repobase "$REPODIR") has been initialized" ||
