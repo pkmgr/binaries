@@ -30,41 +30,37 @@ _gitcommit() {
     _filedir
     return
     ;;
-
   improve)
     _filedir
     return
     ;;
-
   fix)
     _filedir
     return
     ;;
-
   release)
     _filedir
     return
     ;;
-
   docs)
     _filedir
     return
     ;;
-
   test)
     _filedir
     return
     ;;
-
   breaking)
     _filedir
     return
     ;;
-
+  *)
+    COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
+    return
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _gitcommit -o default gitcommit
+

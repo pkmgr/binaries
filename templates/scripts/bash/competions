@@ -15,22 +15,35 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _GEN_SCRIPT_REPLACE_FILENAME() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+  local FUNCTIONSDIR="${HOME/.local/share/CasjaysDev/functions}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local OPTS="--help --version"
+  local SHORTOPTS="-h -v"
+  local LONGOPTS="--help --version"
+  local ARGS="${SHORTOPTS} ${LONGOPTS}"
   local ARRAY=""
+  local SHOW_COMP_OPTS=""
 
   _init_completion || return
 
   if [[ ${cur} == -* ]]; then
-    COMPREPLY=($(compgen -W '${OPTS}' -- ${cur}))
+    COMPREPLY=($(compgen -W '${ARGS}' -- ${cur}))
   else
     case $prev in
-    *)
-      if [ -n "$ARRAY" ]; then
+      *) if [ "$SHOW_COMP_OPTS" != "" ]; then
+        local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
+        compopt -o ${SHOW_COMP_OPTS_SEP}
+      fi
+      if [ "$ARRAY" = "show-commands" ]; then
+        COMPREPLY=($(compgen -c -- "${cur}"))
+      elif [ "$ARRAY" = "show-none" ]; then
+        COMPREPLY=($(compgen -W '' -- "${cur}"))
+      elif [ "$ARRAY" = "show-_filedir" ]; then
+        _filedir
+      elif [ "$ARRAY" != "" ]; then
         COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
-      else
-        COMPREPLY=($(compgen -W '$(_filedir)' -- "${cur}"))
+      elif [ -n "$OPTS" ]; then
+        COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       fi
       return 0
       ;;
@@ -39,4 +52,5 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _GEN_SCRIPT_REPLACE_FILENAME GEN_SCRIPT_REPLACE_FILENAME
+  complete -F _GEN_SCRIPT_REPLACE_FILENAME -o default GEN_SCRIPT_REPLACE_FILENAME
+

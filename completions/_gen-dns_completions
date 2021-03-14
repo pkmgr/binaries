@@ -29,10 +29,11 @@ _gen-dns() {
     COMPREPLY=($(compgen -W '--help' -- "$cur"))
     return
     ;;
-
+  *)
+    _filedir
+    return
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '${LIST}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

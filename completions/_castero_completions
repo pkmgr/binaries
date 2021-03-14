@@ -28,11 +28,12 @@ _castero() {
     _filedir
     return
     ;;
+  *)
+    _filedir
+    return
+    ;;
   esac
-
-  # relevant options completion
-  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _castero -o default castero
+  complete -F _castero castero

@@ -219,12 +219,12 @@ __makefile() {
       local GEN_SCRIPT_REPLACE_todo="$(grep ^'# @TODO ' "$new" 2>/dev/null)"
       local GEN_SCRIPT_REPLACE_other="$(grep ^'# @Other ' "$new" 2>/dev/null)"
       local GEN_SCRIPT_REPLACE_resource="$(grep ^'# @Resource ' "$new" 2>/dev/null)"
-      local license="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local readme="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local license="$(grep ^'# @License ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local readme="$(grep ^'# @ReadME ' "$newcmd" | grep ' : ' 2>/dev/null)"
       local desc="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local todo="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local other="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local resource="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local todo="$(grep ^'# @TODO ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local other="$(grep ^'# @Other ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local resource="$(grep ^'# @Resource ' "$newcmd" | grep ' : ' 2>/dev/null)"
     fi
     [ -n "$license" ] && [ -n "$GEN_SCRIPT_REPLACE_license" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_license"'/'"$license"'/g' "$new" 2>/dev/null
     [ -n "$readme" ] && [ -n "$GEN_SCRIPT_REPLACE_readme" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_readme"'/'"$readme"'/g' "$new" 2>/dev/null

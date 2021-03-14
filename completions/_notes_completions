@@ -44,7 +44,7 @@ _notes() {
     ;;
 
   *client)
-    COMPREPLY=($(compgen -W '$(_filedir)' -- "$cur"))
+    _filedir
     return
     ;;
 

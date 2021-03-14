@@ -28,7 +28,7 @@ _config() {
     ;;
 
   add)
-    COMPREPLY=($(compgen -W '$(_filedir)' -- "$cur"))
+    _filedir
     return
     ;;
 
@@ -65,9 +65,11 @@ _config() {
     return
     ;;
 
+  *)
+    _filedir
+    return
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
