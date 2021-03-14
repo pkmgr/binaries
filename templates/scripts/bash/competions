@@ -18,11 +18,11 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   local FUNCTIONSDIR="${HOME/.local/share/CasjaysDev/functions}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
+  local SHOW_COMP_OPTS=""
   local SHORTOPTS="-h -v"
   local LONGOPTS="--help --version"
   local ARGS="${SHORTOPTS} ${LONGOPTS}"
   local ARRAY=""
-  local SHOW_COMP_OPTS=""
 
   _init_completion || return
 
