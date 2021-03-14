@@ -26,14 +26,16 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
 
   _init_completion || return
 
+  if [ "$SHOW_COMP_OPTS" != "" ]; then
+    local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
+    compopt -o ${SHOW_COMP_OPTS_SEP}
+  fi
+
   if [[ ${cur} == -* ]]; then
     COMPREPLY=($(compgen -W '${ARGS}' -- ${cur}))
   else
     case $prev in
-      *) if [ "$SHOW_COMP_OPTS" != "" ]; then
-        local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
-        compopt -o ${SHOW_COMP_OPTS_SEP}
-      fi
+      *)
       if [ "$ARRAY" = "show-commands" ]; then
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [ "$ARRAY" = "show-none" ]; then
@@ -52,5 +54,5 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _GEN_SCRIPT_REPLACE_FILENAME -o default GEN_SCRIPT_REPLACE_FILENAME
+  complete -F _GEN_SCRIPT_REPLACE_FILENAME GEN_SCRIPT_REPLACE_FILENAME
 
