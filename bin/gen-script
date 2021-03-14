@@ -93,9 +93,9 @@ __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dir
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local LONGOPTS="help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:"
-  local OPTS="h,d:,t:,c:,o:,r:,i:,f,n:,u,l:"
-  local parsed=$(getopt --options=$OPTS --longoptions=$LONGOPTS -- "$@" 2>/dev/null)
+  local LONGOPTS="no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:"
+  local OPTS="e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:"
+  local parsed=$(getopt --options="$OPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
   eval set -- "${parsed[@]}" 2>/dev/null
   while :; do
     case "$1" in
@@ -142,6 +142,13 @@ __header_opts() {
       shift
       GEN_SCRIPTS_CUSTOM_LICENSE="true"
       GEN_SCRIPTS_DEFLICENSE="$1"
+      ;;
+    -e | --no)
+      shift
+      printf_red "Setting overwrite to yes and edit to no"
+      OVERWRITE="yes"
+      EDITFILE="no"
+      MAKEFILE="${MAKEFILE:-yes}"
       ;;
     --raw)
       shift
@@ -201,8 +208,17 @@ __makefile() {
   __cp_rf "$temp" "$new" || return 1
   __edit_header "$new" || return 1
   chmod -f 755 "$new" || return 1
-  [ $? -ne 0 ] && printf_red "Failed to create $new" && return 1 || printf_green "Your file has been created"
-  return $?
+  if grep -q 'local cur prev words cword$' "$new" ; then
+    local compfile="_$(basename "$new")_completion"
+    local destfolder="$(dirname "$new")"
+    __mv_f "$new" "$destfolder/$compfile" && \
+      new="$destfolder/$compfile" && \
+      filename="$compfile" && \
+      destfolder="$newdir" && \
+      chmod 664 "$destfolder/$filename" && exitCode=0 || exitCode=1
+  fi
+  [ ${exitCode:-$?} -ne 0 ] && printf_red "Failed to create $new" || printf_green "Your file has been created"
+  return ${exitCode:-$?}
 }
 
 __edit_header() {
@@ -536,10 +552,16 @@ if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
   printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
   printf_answer_yes "$YN" || printf_exit 1 1 "Refusing to overwrite existing file!"
 fi
-printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $destfolder/$filename"
-__makefile "${template:?}" "$destfolder/$filename" || printf_exit 1 1 "Failed to create $destfolder/$filename"
-[ -n "$OPENEDIT" ] || printf_read_question "3" "Should we edit this file?" "1" "EDIT" "-s"
-printf_answer_yes "$EDIT" && $EDITOR "$destfolder/$filename"
+if [ "$MAKEFILE" != "no" ]; then
+  printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $destfolder/$filename"
+  __makefile "${template:?}" "$destfolder/$filename"
+else
+  printf_exit "Not creating the file due to the MAKEFILE=no being set"
+fi
+if [ "$EDITFILE" != "no" ]; then
+  [ -n "$OPENEDIT" ] || printf_read_question "3" "Should we edit this file?" "1" "EDIT" "-s"
+  printf_answer_yes "$EDIT" && $EDITOR "$destfolder/$filename"
+fi
 printf_newline ""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
