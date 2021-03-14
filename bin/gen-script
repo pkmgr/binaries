@@ -212,7 +212,7 @@ __makefile() {
   chmod -f 755 "$new" || return 1
   if grep -q 'local cur prev words cword$' "$new"; then
     if [ -f "$newcmd" ]; then
-      local GEN_SCRIPT_REPLACE_license"$(grep ^'# @License ' "$new" 2>/dev/null)"
+      local GEN_SCRIPT_REPLACE_license="$(grep ^'# @License ' "$new" 2>/dev/null)"
       local GEN_SCRIPT_REPLACE_readme="$(grep ^'# @ReadME  ' "$new" 2>/dev/null)"
       local GEN_SCRIPT_REPLACE_desc="$(grep ^'# @Description ' "$new" 2>/dev/null)"
       local GEN_SCRIPT_REPLACE_todo="$(grep ^'# @TODO ' "$new" 2>/dev/null)"
