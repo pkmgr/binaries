@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="gen-script"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -303,7 +301,6 @@ PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 '
@@ -313,7 +310,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Author        : $GEN_SCRIPTS_AUTHOR
 # @Contact       : $GEN_SCRIPTS_EMAIL
 # @License       : $GEN_SCRIPTS_DEFLICENSE
-# @ReadME        : $GEN_SCRIPTS_DEFREADME
+# @ReadME        : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) --help
 # @Copyright     : $GEN_SCRIPTS_COPYRIGHT
 # @Created       : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
 # @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
@@ -322,33 +319,42 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Other         : ${other:-}
 # @Resource      : ${res:-}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Main function file
+if [ -f "\$SRC_DIR/functions.bash" ]; then
+  FUNCTIONS_DIR="\$SRC_DIR"
+  . "\$FUNCTIONS_DIR/functions.bash"
+elif [ -f "\$HOME/.local/bin/functions.bash" ]; then
+  FUNCTIONS_DIR="\$HOME/.local/bin"
+  . "\$FUNCTIONS_DIR/functions.bash"
+else
+  printf "\t\t\033[0;31m%s \033[0m\n" "Couldn't source the functions file from \$FUNCTIONS_DIR"
+  return 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # helper function
 __version() { app_version; }
 __help() {
-  app_help "Usage: $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)  |  $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) "
+  app_help "Usage: $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)  -  $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) --version"  \\
+    "-v, --version          -  display version" \\
+    "-h, --help             -  display help"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
 main() {
-  if [ -f "\$SRC_DIR/functions.bash" ]; then
-    FUNCTIONS_DIR="\$SRC_DIR"
-    . "\$FUNCTIONS_DIR/functions.bash"
-  elif [ -f "\$HOME/.local/bin/functions.bash" ]; then
-    FUNCTIONS_DIR="\$HOME/.local/bin"
-    . "\$FUNCTIONS_DIR/functions.bash"
-  else
-    printf "\t\t\\033[0;31m%s \033[0m\n" "Couldn't source the functions file from \$FUNCTIONS_DIR"
-    return 1
-  fi
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  [ "\$1" = "--version" ] && __version
-  [ "\$1" = "--help" ] && __help
+  # options
+  case \$1 in
+    -v | --version) __version ;;
+    -h | --help) __help ;;
+  esac
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Required app check
-  cmd_exists --error $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) || exit 1
+  cmd_exists --error bash || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  #
-  return "\${exitCode:-$?}"
+  # begin main app
+
+
+  return "\${exitCode:-\$?}"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute function
@@ -357,6 +363,7 @@ main "\$@"
 exit \$?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+
 EOF
   else
     echo '#!/usr/bin/env bash
