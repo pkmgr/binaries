@@ -36,18 +36,22 @@ fi
 # helper function
 __version() { app_version; }
 __help() {
-  app_help "Usage: GEN_SCRIPT_REPLACE_FILENAME  |  GEN_SCRIPT_REPLACE_FILENAME --version"
+  app_help "Usage: GEN_SCRIPT_REPLACE_FILENAME  -  GEN_SCRIPT_REPLACE_FILENAME --version"  \
+    "-v, --version          -  display version" \
+    "-h, --help             -  display help"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
 main() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
-  [ "$1" = "--version" ] && __version
-  [ "$1" = "--help" ] && __help
+  case $1 in
+    -v | --version) __version ;;
+    -h | --help) __help ;;
+  esac
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Required app check
-  cmd_exists --error GEN_SCRIPT_REPLACE_FILENAME || exit 1
+  cmd_exists --error bash || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
   return "${exitCode:-0}"
