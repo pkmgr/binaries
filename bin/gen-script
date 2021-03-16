@@ -120,7 +120,7 @@ __replace_header() {
 # @Resource      : ${res:-}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
-   fi
+  fi
 }
 # Set up options
 __header_opts() {
@@ -197,9 +197,9 @@ __header_opts() {
     --)
       break
       ;;
-    #*)
-    #  break
-    #  ;;
+      #*)
+      #  break
+      #  ;;
     esac
     shift
   done
@@ -323,7 +323,11 @@ __gen_header_help() {
   exit 0
 }
 __gen_header() {
-  rerun() { unset gen_header_replace exitCode; rerun=true __gen_header; exit $?; }
+  rerun() {
+    unset gen_header_replace exitCode
+    rerun=true __gen_header
+    exit $?
+  }
   if [ "$rerun" != "true" ]; then
     __vars "$filename"
     __header_opts "$@"
@@ -350,8 +354,8 @@ __gen_header() {
     cat <<EOF | tee
 $(. $HOME/.config/gen-script/headerfile)
 EOF
-elif [ -n "$gen_header_user" ] && [ -z "$gen_header_raw" ]; then
-  unset showFunctions
+  elif [ -n "$gen_header_user" ] && [ -z "$gen_header_raw" ]; then
+    unset showFunctions
     echo '#!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
@@ -451,7 +455,7 @@ SCRIPTSFUNCTDIR="'"${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functio
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
   fi
-  if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline ; fi
+  if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline; fi
   [ ${exitCode:-$?} -ne 0 ] || printf_blue "Your header is ready for use\n"
 }
 
@@ -487,7 +491,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 __gen_functions() {
   __vars "$@"
   if [ -n "$gen_header_user" ]; then
-  echo '# Main function file
+    echo '# Main function file
 if [ -f "$SRC_DIR/functions.bash" ]; then
   FUNCTIONS_DIR="$SRC_DIR"
   . "$FUNCTIONS_DIR/functions.bash"
@@ -500,8 +504,8 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 '
-else
-  echo '# Import functions
+  else
+    echo '# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
@@ -520,7 +524,7 @@ fi
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 '
-fi
+  fi
 }
 
 __backup_file() { __cp_rf "$destfolder/$filename" "${TMP:-/tmp}/$filename.$$" && printf_red "copied to ${TMP:-/tmp}/$filename.$$"; }
@@ -635,7 +639,7 @@ filename=${tmpfilename// /_}
 if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
   printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
   if printf_answer_yes "$YN"; then
-    printf_read_question "3" "Should i display file before overwrite?"  "1" "SHOW" "-s"
+    printf_read_question "3" "Should i display file before overwrite?" "1" "SHOW" "-s"
     printf_answer_yes "$SHOW" && cat "$destfolder/$filename" || __backup_file
   else
     printf_exit 1 1 "Refusing to overwrite existing file!"

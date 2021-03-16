@@ -41,13 +41,13 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main application
 main() {
+  local appname="${PROG:-$APPNAME}"
   local question="${1:-Would you like to proceed?}"
   local command="${2:-true}"
-  local appname="${PROG:-$APPNAME}"
-  local PROG="${3:-$appname}"
+  local name="${3:-$appname}"
   notify_good() {
     local prog="${PROG:-$APPNAME}"
-    local name="$(basename $0)"
+    local name="${1:-$prog}"
     local message="${*:-Command was successfull}"
     if [ -z "$SEND_NOTIFY" ]; then
       notifications "${prog:-$name}:" "$message"
@@ -58,7 +58,7 @@ main() {
   }
   notify_error() {
     local prog="${PROG:-$APPNAME}"
-    local name="$(basename $0)"
+    local name="${1:-$prog}"
     local message="${*:-Command has failed}"
     if [ -z "$SEND_NOTIFY" ]; then
       notifications "${prog:-$name}:" "$message"
@@ -79,7 +79,7 @@ main() {
     elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then
       __dialog "$question" "$command" && notify_good || notify_error
     else
-      __term "$question" "$command" || notify_error
+      __term "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
     fi
   else
     if [ -t 0 ]; then
@@ -98,4 +98,3 @@ main() {
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

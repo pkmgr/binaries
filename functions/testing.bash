@@ -517,40 +517,20 @@ __mycurrdir() {
 }
 ###################### checks ######################
 #cmd_exists command
-# command check
 __cmd_exists() {
-  install_missing() { ask_confirm "Would you like to install then packages" "pkmgr install $@" || return 1; }
-  case "$1" in
-    *show) local show=true && shift 1 ;;
-    *err*) local error=show && shift 1 ;;
-  esac
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  local exitCode=0
-  local missing=""
-  for f in "$@"; do
-    if [ -f "$(command -v "$f" 2>/dev/null)" ] || [ -f "$(type -P "$f" 2>/dev/null)" ]; then
-      found+="$f "
-      local exitCode+=0
+  [ $# -eq 0 ] && return 1
+  local args="$*"
+  local exitTmp
+  local exitCode
+  for cmd in $args; do
+    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
+      local exitTmp=0
     else
-      missing="$f "
-      local exitCode+=1
+      local exitTmp=1
     fi
+    local exitCode+="$exitTmp"
   done
-  if [ "$show" = "true" ] && [ -n "$found" ]; then
-    printf_green "$found"
-    notifications "CMD Exists" "Found: $found"
-  fi
-  if [ "$show" = "true" ] && [ -n "$found" ] && [ -n "$missing" ]; then
-    printf_red "$missing"
-    notifications "CMD Exists" "Missing: $missing"
-  fi
-  if [ "$error" = "show" ] && [ -n "$missing" ]; then
-    printf_red "Missing: $missing" >&2
-    notifications "CMD Exists" "Missing: $missing"
-    exitCode="1"
-  fi
-  [ -z "$missing" ] || install_missing "$missing"
-  return ${exitCode:-$?}
+  [ "$exitCode" -eq 0 ] && return 0 || return 1
 }
 #system_service_active "list of services to check"
 __system_service_active() {
@@ -725,17 +705,18 @@ __getphpver() {
 type_function() { type -f $1 2>/dev/null | grep -q 'is aliased to' && return 1 || return 0; }
 ###################### macos fixes#################
 if [ "$(uname -s)" = Darwin ]; then
-  [ -f "$(command -v gls 2>/dev/null)" ] && lscmd="$(type -P gls)" || lscmd="$(type -P ls)"; alias ls="$lscmd"
+  [ -f "$(command -v gls 2>/dev/null)" ] && lscmd="$(type -P gls)" || lscmd="$(type -P ls)"
+  alias ls='$lscmd'
   [ -f "$(command -v gdate 2>/dev/null)" ] && datecmd="$(type -P gdate)" || datecmd="$(type -P date)"
   [ -f "$(command -v greadlink 2>/dev/null)" ] && readlinkcmd="$(type -P greadlink)" || readlinkcmd="$(type -P readlink)"
   [ -f "$(command -v gbasename 2>/dev/null)" ] && basenamecmd="$(type -P gbasename)" || basenamecmd="$(type -P basename)"
   [ -f "$(command -v gdircolors 2>/dev/null)" ] && dircolorscmd="$(type -P gdircolors)" || dircolorscmd="$(type -P dircolors)"
   [ -f "$(command -v grealpath 2>/dev/null)" ] && realpathcmd="$(type -P grealpath)" || realpathcmd="$(type -P realpath)"
-  [ -n "$date" ] || date() { $datecmd "$@"; }
-  [ -n "$readlink" ] || readlink() { $readlinkcmd "$@"; }
-  [ -n "$basename" ] || basename() { $basenamecmd "$@"; }
-  [ -n "$dircolors" ] || dircolors() { $dircolorscmd "$@"; }
-  [ -n "$realpath" ] || realpath() { $realpathcmd "$@"; }
+  [ -n "$datecmd" ] || date() { $datecmd "$@"; }
+  [ -n "$readlinkcmd" ] || readlink() { $readlinkcmd "$@"; }
+  [ -n "$basenamecmd" ] || basename() { $basenamecmd "$@"; }
+  [ -n "$dircolorscmd" ] || dircolors() { $dircolorscmd "$@"; }
+  [ -n "$realpathcmd" ] || realpath() { $realpathcmd "$@"; }
 fi
 ###################### tools ######################
 __setcursor() { echo -e -n "\x1b[\x35 q" "\e]12;cyan\a" 2>/dev/null; }
@@ -937,14 +918,22 @@ __urlinvalid() {
 }
 check_local() {
   local file="${1:-$PWD}"
-  if [ -d "$file" ]; then type=dir && localfile=true && return 0
-  elif [ -f "$file" ]; then type=file && localfile=true && return 0
-  elif [ -L "$file" ]; then type=symlink && localfile=true && return 0
-  elif [ -S "$file" ]; then type=socket && localfile=true && return 0
-  elif [ -b "$file" ]; then type=block && localfile=true && return 0
-  elif [ -p "$file" ]; then type=pipe && localfile=true && return 0
-  elif [ -c "$file" ]; then type=character && localfile=true && return 0
-  elif [ -e "$file" ]; then type=file && localfile=true && return 0
+  if [ -d "$file" ]; then
+    type=dir && localfile=true && return 0
+  elif [ -f "$file" ]; then
+    type=file && localfile=true && return 0
+  elif [ -L "$file" ]; then
+    type=symlink && localfile=true && return 0
+  elif [ -S "$file" ]; then
+    type=socket && localfile=true && return 0
+  elif [ -b "$file" ]; then
+    type=block && localfile=true && return 0
+  elif [ -p "$file" ]; then
+    type=pipe && localfile=true && return 0
+  elif [ -c "$file" ]; then
+    type=character && localfile=true && return 0
+  elif [ -e "$file" ]; then
+    type=file && localfile=true && return 0
   else
     type= && localfile=
     return 1
@@ -952,10 +941,14 @@ check_local() {
 }
 check_uri() {
   local url="$1"
-  if echo "$url" | grep -q "http.*://\S\+\.[A-Za-z]\+\S*"; then uri=http && return 0
-  elif echo "$url" | grep -q "ftp.*://\S\+\.[A-Za-z]\+\S*"; then uri=ftp && return 0
-  elif echo "$url" | grep -q "git.*://\S\+\.[A-Za-z]\+\S*"; then uri=git && return 0
-  elif echo "$url" | grep -q "ssh.*://\S\+\.[A-Za-z]\+\S*"; then uri=ssh && return 0
+  if echo "$url" | grep -q "http.*://\S\+\.[A-Za-z]\+\S*"; then
+    uri=http && return 0
+  elif echo "$url" | grep -q "ftp.*://\S\+\.[A-Za-z]\+\S*"; then
+    uri=ftp && return 0
+  elif echo "$url" | grep -q "git.*://\S\+\.[A-Za-z]\+\S*"; then
+    uri=git && return 0
+  elif echo "$url" | grep -q "ssh.*://\S\+\.[A-Za-z]\+\S*"; then
+    uri=ssh && return 0
   else
     uri=
     return 1
@@ -1392,52 +1385,52 @@ user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" 
 # show a spinner while executing code or zenity
 if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DESKTOP_SESSION" ] && [ -z "$SSH_TTY" ]; then
   __execute() {
-    local CMD="$1" && shift $#
+    local CMD="$1"
     $CMD | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
-}
+  }
 else
-__execute() {
-  __set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
-  __kill_all_subprocesses() {
-    local i=""
-    for i in $(jobs -p); do
-      kill "$i"
-      wait "$i" &>/dev/null
-    done
+  __execute() {
+    __set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
+    __kill_all_subprocesses() {
+      local i=""
+      for i in $(jobs -p); do
+        kill "$i"
+        wait "$i" &>/dev/null
+      done
+    }
+    __show_spinner() {
+      local -r FRAMES='/-\|'
+      local -r NUMBER_OR_FRAMES=${#FRAMES}
+      local -r CMDS="$2"
+      local -r MSG="$3"
+      local -r PID="$1"
+      local i=0
+      local frameText=""
+      while kill -0 "$PID" &>/dev/null; do
+        frameText="                [${FRAMES:i++%NUMBER_OR_FRAMES:1}] $MSG"
+        printf "%s" "$frameText"
+        sleep 0.2
+        printf "\r"
+      done
+    }
+    local -r CMDS="$1"
+    local -r MSG="${2:-$1}"
+    local -r TMP_FILE="$(mktemp /tmp/XXXXX)"
+    local exitCode=0
+    local cmdsPID=""
+    __set_trap "EXIT" "__kill_all_subprocesses"
+    eval "$CMDS" &>/dev/null 2>"$TMP_FILE" &
+    cmdsPID=$!
+    __show_spinner "$cmdsPID" "$CMDS" "$MSG"
+    wait "$cmdsPID" &>/dev/null
+    exitCode=$?
+    printf_execute_result $exitCode "$MSG"
+    if [ $exitCode -ne 0 ]; then
+      printf_execute_error_stream <"$TMP_FILE"
+    fi
+    rm -rf "$TMP_FILE"
+    return $exitCode
   }
-  __show_spinner() {
-    local -r FRAMES='/-\|'
-    local -r NUMBER_OR_FRAMES=${#FRAMES}
-    local -r CMDS="$2"
-    local -r MSG="$3"
-    local -r PID="$1"
-    local i=0
-    local frameText=""
-    while kill -0 "$PID" &>/dev/null; do
-      frameText="                [${FRAMES:i++%NUMBER_OR_FRAMES:1}] $MSG"
-      printf "%s" "$frameText"
-      sleep 0.2
-      printf "\r"
-    done
-  }
-  local -r CMDS="$1"
-  local -r MSG="${2:-$1}"
-  local -r TMP_FILE="$(mktemp /tmp/XXXXX)"
-  local exitCode=0
-  local cmdsPID=""
-  __set_trap "EXIT" "__kill_all_subprocesses"
-  eval "$CMDS" &>/dev/null 2>"$TMP_FILE" &
-  cmdsPID=$!
-  __show_spinner "$cmdsPID" "$CMDS" "$MSG"
-  wait "$cmdsPID" &>/dev/null
-  exitCode=$?
-  printf_execute_result $exitCode "$MSG"
-  if [ $exitCode -ne 0 ]; then
-    printf_execute_error_stream <"$TMP_FILE"
-  fi
-  rm -rf "$TMP_FILE"
-  return $exitCode
-}
 fi
 #runpost "program"
 __run_post() {
@@ -1583,26 +1576,29 @@ ask_confirm() {
   if [ "$(command -v ask_yes_no_question)" ]; then
     ask_yes_no_question "$question" "$command" "${APPNAME:-$PROG}"
   else
-  __zenity(){ zenity --question --text="$1" --ellipsize --default-cancel && $2 || return 1; }
-  __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
-  __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
-  __term() { printf_question_term "$1" && $2 || return 1; }
-  if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ] || [ -z "$SSH_TTY" ]; then
-    if [ -f "$(command -v zenity 2>/dev/null)" ]; then __zenity "$question" "$command" && notify_good || notify_error
-    elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then __dmenu "$question" "$command" && notify_good || notify_error
-    elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then __dialog "$question" "$command" && notify_good || notify_error
+    __zenity() { zenity --question --text="$1" --ellipsize --default-cancel && "$2" || return 1; }
+    __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && eval "${2:-true}" || return 1; }
+    __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
+    __term() { printf_question_term "$1" && "$2" || return 1; }
+    if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ] || [ -z "$SSH_TTY" ]; then
+      if [ -f "$(command -v zenity 2>/dev/null)" ]; then
+        __zenity "$question" "$command" && notify_good || notify_error
+      elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then
+        __dmenu "$question" "$command" && notify_good || notify_error
+      elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then
+        __dialog "$question" "$command" && notify_good || notify_error
+      else
+        __term "$question" "$command" && notify_good "$2" || notify_error "$2"
+      fi
     else
-      __term "$question" "$command" || notify_error
+      if [ -t 0 ]; then
+        export -f __term notify_error
+        $TERMINAL -e "__term "$question" "$command" || notify_error"
+      else
+        __term "$question" "$command" || notify_error
+      fi
     fi
-  else
-    if [ -t 0 ]; then
-      export -f __term notify_error
-      $TERMINAL -e "__term "$question" "$command" || notify_error"
-    else
-      __term "$question" "$command" || notify_error
-    fi
-  fi
-  return ${exitCode:-$?}
+    return ${exitCode:-$?}
   fi
 }
 
@@ -2217,7 +2213,10 @@ get_desc() {
 }
 __help() {
   #----------------
-  printf_help() { printf "%b" "$(tput setaf "${2:-4}" 2>/dev/null)" "\t\t$1" "$(tput sgr0 2>/dev/null)";printf '\n'; }
+  printf_help() {
+    printf "%b" "$(tput setaf "${2:-4}" 2>/dev/null)" "\t\t$1" "$(tput sgr0 2>/dev/null)"
+    printf '\n'
+  }
   #----------------
   if [ -f "$CASJAYSDEVDIR/helpers/man/$APPNAME" ] && [ -s "$CASJAYSDEVDIR/helpers/man/$APPNAME" ]; then
     source "$CASJAYSDEVDIR/helpers/man/$APPNAME"
@@ -2596,4 +2595,3 @@ __getpythonver
 
 user_install # default type
 ###################### end application functions ######################
-

@@ -1,23 +1,30 @@
 #!/usr/bin/env bash
 
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="fontmgr"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SCRIPTSFUNCTDIR="/usr/local/share/CasjaysDev/scripts/functions"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : fontmgr
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Install system fonts
-#
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 031620211624-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : fontmgr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Mar 16, 2021 16:24 EDT
+# @File          : fontmgr
+# @Description   : Install system fonts
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -25,51 +32,44 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 fontmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 removefont() {
   __devnull sudo rm -Rf "$APPDIR/$rmf"
   __devnull sudo unlink "$FONTDIR/$rmf"
   __devnull sudo fc-cache -f
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __listfonts() {
   printf_green "All Fonts"
   printf_green "$LIST"
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
-
 help | -*)
   __help
   ;;
-
 makecache)
   generate_font_index "$@"
   ;;
-
 list)
   __listfonts
   ;;
-
 search)
   shift 1
   run_install_search "$@"
   ;;
-
 available)
   shift 1
   run_install_available
   ;;
-
 remove)
   shift 1
   printf_green "Removing the fonts from $APPDIR"
@@ -82,7 +82,6 @@ remove)
   done
   __ln_rm "$FONTDIR/"
   ;;
-
 update)
   shift 1
   unset APPNAME
@@ -101,7 +100,6 @@ update)
   fi
   exit $?
   ;;
-
 install)
   shift 1
   unset APPNAME
@@ -116,22 +114,19 @@ install)
   fi
   exit $?
   ;;
-
 cron)
   shift 1
   cron_updater "$@"
   ;;
-
 version)
   shift 1
   run_install_version "$@"
   ;;
-
 *)
   __help
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

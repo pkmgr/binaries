@@ -1,22 +1,28 @@
 #!/usr/bin/env bash
-
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="findmypi"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SCRIPTSFUNCTDIR="/usr/local/share/CasjaysDev/scripts/functions"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : findmypi
-# @Created     : Wed, Aug 23, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : script to find a raspberry pi on your network
-#
+##@Version       : 031620211626-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : findmypi --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Tuesday, Mar 16, 2021 16:26 EDT
+# @File          : findmypi
+# @Description   : Script to find a raspberry pi on your network
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -24,28 +30,28 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __gethostname() {
   local host="$1"
   __cmd_exists nslookup && sethost="$(getent hosts $host 2>/dev/null | head -n 1 | awk '{print $2}')"
   echo "$host    $sethost" >>"$HOME/Documents/raspis.txt" 2>/dev/null
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ -z "$1" ] && ip="10.0.0.0" || ip="$1"
 [ -z "$2" ] && nm="16" || nm="$2"
 [ -f "${TMP:-/tmp}/raspi.search.txt" ] && rm -Rf "${TMP:-/tmp}/raspi.search.txt"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __require_app nmap
 sudoreq
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 printf_green "Searching the $ip/$nm network for your Raspberry PI"
 printf_green "Depending on your network range this may take some time\n"
 nmap -sP "$ip"/"$nm" 2>/dev/null | awk '/^Nmap/{ip=$NF}/Raspberry Pi/{print ip}' | sed 's#(##g' | sed 's#)##g' >"${TMP:-/tmp}/raspi.search.txt" 2>/dev/null
@@ -59,8 +65,8 @@ if [ -s "${TMP:-/tmp}/raspi.search.txt" ]; then
 else
   printf_red "I didn't find a Raspberry PI on your network"
 fi
-
 rm -Rf "${TMP:-/tmp}/raspi.search.txt"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
