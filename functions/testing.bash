@@ -1531,9 +1531,7 @@ gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || retu
 httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 
 #connection test
-# online check
 __am_i_online() {
-  local NAME="${PROG:-$APPNAME}"
   local site="1.1.1.1"
   [ -z "$FORCE_CONNECTION" ] || return 0
   return_code() {
@@ -1555,9 +1553,11 @@ __am_i_online() {
     local httpExit=$?
     return_code $httpExit
   }
-  err() { [ "$1" = "show" ] && notifications "${3:-$NAME}" "${2:-This requires internet, however, You appear to be offline!}" 1>&2; }
+  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" 1>&2; }
   __test_ping "$site" || __test_http "$site" || err "$@"
 }
+#am_i_online_err "Message" "color" "exitCode"
+__am_i_online_err() { __am_i_online show "$@"; }
 
 notify_good() {
   local prog="${PROG:-$APPNAME}"
@@ -1606,8 +1606,6 @@ ask_confirm() {
   fi
 }
 
-#am_i_online_err "Message" "color" "exitCode"
-__am_i_online_err() { __am_i_online show "$@"; }
 #setup clipboard
 if [[ "$OSTYPE" =~ ^darwin ]]; then
   printclip() { __cmd_exists pbpaste && LC_CTYPE=UTF-8 tr -d "\n" | pbpaste || return 1; }
@@ -2598,3 +2596,4 @@ __getpythonver
 
 user_install # default type
 ###################### end application functions ######################
+
