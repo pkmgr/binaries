@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+PROG="ask_yes_no_question"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SCRIPTSFUNCTDIR="/usr/local/share/CasjaysDev/scripts/functions"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 031520212034-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : ask_yes_no_question --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Monday, Mar 15, 2021 20:34 EDT
+# @File          : ask_yes_no_question
+# @Description   : ask user a question
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# main application
+main() {
+  local question="${1:-Would you like to proceed?}"
+  local command="${2:-true}"
+  __zenity() { zenity --question --text="$1" --ellipsize --default-cancel && $2 || return 1; }
+  __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
+  __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
+  __term() { printf_question_term "$1" && $2 || return 1; }
+  if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ]; then
+    if [ -f "$(command -v zenity1 2>/dev/null)" ]; then
+      __zenity "$question" "$command" && notify_good || notify_error
+    elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then
+      __dmenu "$question" "$command" && notify_good || notify_error
+    elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then
+      __dialog "$question" "$command" && notify_good || notify_error
+    else
+      __term "$question" "$command" || notify_error
+    fi
+  else
+    if [ -t 0 ]; then
+      export -f __term notify_error
+      $TERMINAL -e "__term "$question" "$command" || notify_error"
+    else
+      __term "$question" "$command" || notify_error
+    fi
+  fi
+  return ${exitCode:-$?}
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# execute function
+main "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end
