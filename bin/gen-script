@@ -227,10 +227,11 @@ EOF
 
 __copy_templates() {
   if [ -d "$HOME/.config/gen-script/files/.git" ]; then
-    git -C "$HOME/.config/gen-script/files" pull -q
+    am_i_online && git -C "$HOME/.config/gen-script/files" pull -q &>/dev/null && true || false
   else
-    printf_green "Copying the files from:"
-    printf_green "$CASJAYSDEVDIR/templates/scripts to $HOME/.config/gen-script/files"
+    printf_green "Copying the template files"
+    printf_yellow "from: $CASJAYSDEVDIR/templates/scripts"
+    printf_yellow "to: $HOME/.config/gen-script/files"
     __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
   fi
   [ $? -eq 0 ] && [ -d "$HOME/.config/gen-script/files" ] &&
