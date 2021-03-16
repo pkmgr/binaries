@@ -703,7 +703,7 @@ __getphpver() {
   fi
   echo $PHPVER
 }
-type_function() { type -f $1 2>/dev/null | grep -q 'is aliased to' && then return 1 || else return 0; }
+type_function() { type -f $1 2>/dev/null | grep -q 'is aliased to' && return 1 || return 0; }
 ###################### macos fixes#################
 if [ "$(uname -s)" = Darwin ]; then
   [ -f "$(command -v gls 2>/dev/null)" ] && lscmd="$(type -P gls)" || lscmd="$(type -P ls)"; alias ls="$lscmd"
@@ -2109,27 +2109,25 @@ get_installer_version() {
 }
 
 ###################### help ######################
-
+get_desc() {
+  local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
+  local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
+  local desc="$(grep ^"# @Description" "$appname" 2>/dev/null | grep ' : ' | sed 's#..* : ##g' | grep '^')"
+  [ -n "$desc" ] && printf '%s' "$desc" || return 1
+}
 __help() {
   #----------------
-  printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
-  printf_help() {
-    test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
-    local msg="$*"
-    shift
-    printf_color "\t\t$msg\n" "$color"
-  }
+  printf_help() { printf "%b" "$(tput setaf "${2:-4}" 2>/dev/null)" "\t\t$1" "$(tput sgr0 2>/dev/null)";printf '\n'; }
   #----------------
   if [ -f "$CASJAYSDEVDIR/helpers/man/$APPNAME" ] && [ -s "$CASJAYSDEVDIR/helpers/man/$APPNAME" ]; then
     source "$CASJAYSDEVDIR/helpers/man/$APPNAME"
   else
-    printf_help "4" "There is no man page for this app in: "
-    printf_help "4" "$CASJAYSDEVDIR/helpers/man/$APPNAME"
+    printf_help "There is no man page for this app in: "
+    printf_help "$CASJAYSDEVDIR/helpers/man/$APPNAME"
   fi
   printf "\n"
   exit 0
 }
-
 ###################### call options ######################
 __options() {
   $installtype
