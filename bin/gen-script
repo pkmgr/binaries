@@ -65,14 +65,17 @@ GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
 GEN_SCRIPTS_CURRENT_DIR="$MYCURRDIR"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -d "$HOME/.config/gen-script/files" ]; then
   GEN_SCRIPTS_TEMPLATE_DIR="$HOME/.config/gen-script/files"
 else
   GEN_SCRIPTS_TEMPLATE_DIR="${GEN_SCRIPTS_TEMPLATE_DIR:-$CASJAYSDEVDIR/templates/scripts}"
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-script/settings" ] && . "$HOME/.config/gen-script/settings"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+REPLACE_VERSION="$(date +"${GEN_SCRIPTS_VERSION}" 2>/dev/null)"
+REPLACE_CREATED="$(date +"${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(__count_files $HOME/.config/gen-script/files "3")" -eq 0 ]; then
   __mkd "$HOME/.config/gen-script/files"
@@ -87,79 +90,115 @@ fi
 # Application functions
 __date() { date +"$1"; }
 __filename() { basename "$1" 2>/dev/null; }
+__fullfilename() { type -P $(basename "$1") 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
-
+# Current file info
+__prev_header() {
+  local command="$(__fullfilename "$filename")"
+  [ -f "$command" ] && grep ^'# @' -B2 -A1 "$command" 2>/dev/null || printf_return 1 "Could not find $filename"
+}
+__replace_header() {
+  if [ -f "$(__fullfilename "$filename")" ]; then
+    printf "Version: %s | Created: %s\n" "$REPLACE_VERSION" "$REPLACE_CREATED"
+    __prev_header | head -n${count:-99999999} | grep '^' || return 1
+  else
+    cat <<EOF | tee
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
+# @Author        : $GEN_SCRIPTS_AUTHOR
+# @Contact       : $GEN_SCRIPTS_EMAIL
+# @License       : $GEN_SCRIPTS_DEFLICENSE
+# @ReadME        : $GEN_SCRIPTS_DEFREADME
+# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
+# @Created       : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
+# @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
+# @Description   : ${desc:-}
+# @TODO          : ${todo:-}
+# @Other         : ${other:-}
+# @Resource      : ${res:-}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+EOF
+   fi
+}
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local LONGOPTS="no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:"
-  local OPTS="e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:"
+  local LONGOPTS="no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace:,keep"
+  local OPTS="e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
   local parsed=$(getopt --options="$OPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
   eval set -- "${parsed[@]}" 2>/dev/null
   while :; do
     case "$1" in
     -h | --help)
-      shift
       __gen_header_help
       ;;
     -f | --funct*)
       showFunctions=true
       ;;
     -d | --desc)
-      shift
+      shift 1
       desc="$1"
       ;;
     -t | --todo)
-      shift
+      shift 1
       todo="$1"
       ;;
     -c | --copy)
-      shift
+      shift 1
       GEN_SCRIPTS_COPYRIGHT="$1"
       ;;
     -o | --other)
-      shift
+      shift 1
       other="$1"
       ;;
     -r | --res)
-      shift
+      shift 1
       res="$1"
       ;;
     -i | --type)
-      shift
+      shift 1
       type="$1"
       ;;
+    -p | --prev)
+      gen_header_prev=true
+      ;;
     -n | --name)
-      shift
+      shift 1
       GEN_FILENAME="$1"
       ;;
     -u | --user)
-      shift
       gen_header_user=true
       ;;
     -l | --license)
-      shift
+      shift 1
       GEN_SCRIPTS_CUSTOM_LICENSE="true"
       GEN_SCRIPTS_DEFLICENSE="$1"
       ;;
     -e | --no)
-      shift
       printf_red "Setting overwrite to yes and edit to no"
       OVERWRITE="yes"
       EDITFILE="no"
       MAKEFILE="${MAKEFILE:-yes}"
       ;;
+    -k | --keep)
+      printf_red "Setting overwrite to no and edit to no"
+      OVERWRITE="no"
+      EDITFILE="no"
+      MAKEFILE="no"
+      ;;
+    --replace)
+      gen_header_replace=true
+      [[ $1 == ?(-)+([0-9]) ]] && count=$2 && shift 1 && echo $count
+      ;;
     --raw)
-      shift
       gen_header_raw=true
       ;;
     --)
-      shift
       break
       ;;
-    *)
-      break
-      ;;
+    #*)
+    #  break
+    #  ;;
     esac
     shift
   done
@@ -211,18 +250,18 @@ __makefile() {
   chmod -f 755 "$new" || return 1
   if grep -q 'local cur prev words cword$' "$new"; then
     if [ -f "$newcmd" ]; then
-      local GEN_SCRIPT_REPLACE_license="$(grep ^'# @License ' "$new" 2>/dev/null)"
-      local GEN_SCRIPT_REPLACE_readme="$(grep ^'# @ReadME  ' "$new" 2>/dev/null)"
-      local GEN_SCRIPT_REPLACE_desc="$(grep ^'# @Description ' "$new" 2>/dev/null)"
-      local GEN_SCRIPT_REPLACE_todo="$(grep ^'# @TODO ' "$new" 2>/dev/null)"
-      local GEN_SCRIPT_REPLACE_other="$(grep ^'# @Other ' "$new" 2>/dev/null)"
-      local GEN_SCRIPT_REPLACE_resource="$(grep ^'# @Resource ' "$new" 2>/dev/null)"
-      local license="$(grep ^'# @License ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local readme="$(grep ^'# @ReadME ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local desc="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local todo="$(grep ^'# @TODO ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local other="$(grep ^'# @Other ' "$newcmd" | grep ' : ' 2>/dev/null)"
-      local resource="$(grep ^'# @Resource ' "$newcmd" | grep ' : ' 2>/dev/null)"
+      local GEN_SCRIPT_REPLACE_license="$(grep ^'# @License ' "$new" 2>/dev/null | head -n1)"
+      local GEN_SCRIPT_REPLACE_readme="$(grep ^'# @ReadME  ' "$new" 2>/dev/null | head -n1)"
+      local GEN_SCRIPT_REPLACE_desc="$(grep ^'# @Description ' "$new" 2>/dev/null | head -n1)"
+      local GEN_SCRIPT_REPLACE_todo="$(grep ^'# @TODO ' "$new" 2>/dev/null | head -n1)"
+      local GEN_SCRIPT_REPLACE_other="$(grep ^'# @Other ' "$new" 2>/dev/null | head -n1)"
+      local GEN_SCRIPT_REPLACE_resource="$(grep ^'# @Resource ' "$new" 2>/dev/null | head -n1)"
+      local license="$(grep ^'# @License ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
+      local readme="$(grep ^'# @ReadME ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
+      local desc="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
+      local todo="$(grep ^'# @TODO ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
+      local other="$(grep ^'# @Other ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
+      local resource="$(grep ^'# @Resource ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
     fi
     [ -n "$license" ] && [ -n "$GEN_SCRIPT_REPLACE_license" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_license"'/'"$license"'/g' "$new" 2>/dev/null
     [ -n "$readme" ] && [ -n "$GEN_SCRIPT_REPLACE_readme" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_readme"'/'"$readme"'/g' "$new" 2>/dev/null
@@ -260,12 +299,10 @@ __edit_header() {
   sed -i 's#GEN_SCRIPT_REPLACE_AUTHOR#'"$GEN_SCRIPTS_AUTHOR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_EMAIL#'"$GEN_SCRIPTS_EMAIL"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_YEAR#'"$GEN_SCRIPTS_YEAR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  #
   sed -i 's#GEN_SCRIPT_REPLACE_DESC#'"$desc"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_TODO#'"$todo"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_OTHER#'"$other"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_RES#'"$res"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-
   return $?
 }
 
@@ -285,16 +322,35 @@ __gen_header_help() {
   exit 0
 }
 __gen_header() {
-  __vars "$filename"
-  __header_opts "$@"
-  printf_green "New header info for $filename"
-  local GEN_SCRIPTS_DEFREADME="$(__filename $filename 2>/dev/null) --help"
-  local GEN_SCRIPTS_NEWFILE="$filename"
-  [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
-  [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
-  if [ -n "$gen_header_raw" ]; then
-    __gen_header_raw
-  elif [ -n "$gen_header_user" ]; then
+  rerun() { unset gen_header_replace exitCode; rerun=true __gen_header; exit $?; }
+  if [ "$rerun" != "true" ]; then
+    __vars "$filename"
+    __header_opts "$@"
+    [ -n "$gen_header_raw" ] && filename=template
+    printf_green "New header info for $filename"
+    local GEN_SCRIPTS_DEFREADME="$(__filename $filename 2>/dev/null) --help"
+    local GEN_SCRIPTS_NEWFILE="$filename"
+    [ -n "$gen_header_raw" ] || [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
+    [ -n "$gen_header_raw" ] || [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
+  fi
+  if [ -n "$gen_header_prev" ]; then
+    printf_blue "header from $(__fullfilename "$filename")"
+    __prev_header || rerun
+    printf_newline
+  elif [ -n "$gen_header_replace" ]; then
+    printf_blue "header from $(__fullfilename "$filename")"
+    __replace_header || rerun
+    printf_newline
+  elif [ -n "$gen_header_raw" ]; then
+    printf_blue "Showing the header template"
+    __gen_header_raw || rerun
+  elif [ -f "$HOME/.config/gen-script/headerfile" ] && [ -z "$gen_header_user" ]; then
+    printf_blue "header from $HOME/.config/gen-script/headerfile"
+    cat <<EOF | tee
+$(. $HOME/.config/gen-script/headerfile)
+EOF
+elif [ -n "$gen_header_user" ] && [ -z "$gen_header_raw" ]; then
+  unset showFunctions
     echo '#!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="'"$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"'"
@@ -363,7 +419,6 @@ main "\$@"
 exit \$?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-
 EOF
   else
     echo '#!/usr/bin/env bash
@@ -394,9 +449,9 @@ SCRIPTSFUNCTDIR="'"${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functio
 # @Resource      : ${res:-}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
-    if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline "\n\n"; fi
   fi
-  printf_blue "Your header is ready for use\n\n"
+  if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline ; fi
+  [ ${exitCode:-$?} -ne 0 ] || printf_blue "Your header is ready for use\n"
 }
 
 __gen_header_raw() {
@@ -424,32 +479,27 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @TODO          : GEN_SCRIPT_REPLACE_TODO
 # @Other         : GEN_SCRIPT_REPLACE_OTHER
 # @Resource      : GEN_SCRIPT_REPLACE_RES
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Import functions
-CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
-else
-  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
-  exit 1
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
-user_install
-__options "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-'
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
   return
 }
 
 __gen_functions() {
   __vars "$@"
+  if [ -n "$gen_header_user" ]; then
+  echo '# Main function file
+if [ -f "$SRC_DIR/functions.bash" ]; then
+  FUNCTIONS_DIR="$SRC_DIR"
+  . "$FUNCTIONS_DIR/functions.bash"
+elif [ -f "$HOME/.local/bin/functions.bash" ]; then
+  FUNCTIONS_DIR="$HOME/.local/bin"
+  . "$FUNCTIONS_DIR/functions.bash"
+else
+  printf "\t\t\033[0;31m%s \033[0m\n" "Could not source the functions file from $FUNCTIONS_DIR"
+  return 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+'
+else
   echo '# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
@@ -469,8 +519,10 @@ fi
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 '
+fi
 }
 
+__backup_file() { __cp_rf "$destfolder/$filename" "${TMP:-/tmp}/$filename.$$" && printf_red "copied to ${TMP:-/tmp}/$filename.$$"; }
 __vars() {
   [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="README.md" || GEN_SCRIPTS_DEFREADME="$(basename "$1" 2>/dev/null) --help"
   [ -f "$topdir/LICENSE.md" ] && GEN_SCRIPTS_DEFLICENSE="LICENSE.md" || GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE"
@@ -581,13 +633,18 @@ fi
 filename=${tmpfilename// /_}
 if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
   printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
-  printf_answer_yes "$YN" || printf_exit 1 1 "Refusing to overwrite existing file!"
+  if printf_answer_yes "$YN"; then
+    printf_read_question "3" "Should i display file before overwrite?"  "1" "SHOW" "-s"
+    printf_answer_yes "$SHOW" && cat "$destfolder/$filename" || __backup_file
+  else
+    printf_exit 1 1 "Refusing to overwrite existing file!"
+  fi
 fi
 if [ "$MAKEFILE" != "no" ]; then
   printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $destfolder/$filename"
   __makefile "${template:?}" "$destfolder/$filename"
 else
-  printf_exit "Not creating the file due to the MAKEFILE=no being set"
+  printf_red "Not creating the file due to the MAKEFILE=no being set"
 fi
 if [ "$EDITFILE" != "no" ]; then
   [ -n "$OPENEDIT" ] || printf_read_question "3" "Should we edit this file?" "1" "EDIT" "-s"
@@ -595,6 +652,6 @@ if [ "$EDITFILE" != "no" ]; then
 fi
 printf_newline ""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+exit ${exitCode:-$?}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
