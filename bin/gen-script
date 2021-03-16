@@ -94,13 +94,15 @@ __fullfilename() { type -P $(basename "$1") 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
 # Current file info
 __prev_header() {
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "$filename")"
-  [ -f "$command" ] && grep ^'# @' -B2 -A1 "$command" 2>/dev/null || printf_return 1 "Could not find $filename"
+  [ -f "$command" ] && grep ^'# @' -B2 -A1 "$command" 2>/dev/null | head -n14 | grep '^' || printf_return 1 "Could not find $filename"
 }
 __replace_header() {
-  if [ -f "$(__fullfilename "$filename")" ]; then
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
+  if [ -n "$filename" ]; then
     printf "Version: %s | Created: %s\n" "$REPLACE_VERSION" "$REPLACE_CREATED"
-    __prev_header | head -n${count:-99999999} | grep '^' || return 1
+    __prev_header | head -n14 | grep '^' || return 1
   else
     cat <<EOF | tee
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,7 +125,7 @@ EOF
 # Set up options
 __header_opts() {
   printf_blue "Setting header options"
-  local LONGOPTS="no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace:,keep"
+  local LONGOPTS="no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace,keep"
   local OPTS="e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
   local parsed=$(getopt --options="$OPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
   eval set -- "${parsed[@]}" 2>/dev/null
@@ -188,7 +190,6 @@ __header_opts() {
       ;;
     --replace)
       gen_header_replace=true
-      [[ $1 == ?(-)+([0-9]) ]] && count=$2 && shift 1 && echo $count
       ;;
     --raw)
       gen_header_raw=true
@@ -335,12 +336,12 @@ __gen_header() {
   fi
   if [ -n "$gen_header_prev" ]; then
     printf_blue "header from $(__fullfilename "$filename")"
+    printf_newline
     __prev_header || rerun
-    printf_newline
-  elif [ -n "$gen_header_replace" ]; then
+  elif [ "$gen_header_replace" = true ]; then
     printf_blue "header from $(__fullfilename "$filename")"
-    __replace_header || rerun
     printf_newline
+    __replace_header #|| rerun
   elif [ -n "$gen_header_raw" ]; then
     printf_blue "Showing the header template"
     __gen_header_raw || rerun
