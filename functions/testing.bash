@@ -1533,43 +1533,30 @@ httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 #connection test
 # online check
 __am_i_online() {
-  __curl() { timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null; }
-  __ping() { timeout 1 ping -c1 "$site" &>/dev/null; }
-  case $1 in
-  *err* | *show)
-    shift 1
-    showerror=yes
-    site="${1:-1.1.1.1}"
-    ;;
-  *console)
-    shift 1
-    console="yes"
-    site="${1:-1.1.1.1}"
-    ;;
-  *)
-    site="${1:-1.1.1.1}"
-    ;;
-  esac
-  shift
-  test_ping() { __ping || false; pingExit=$?; return ${pingExit:-$?}; }
-  test_http() { __curl || false; httpExit=$?; return ${httpExit:-$?} ;}
-  if test_ping || test_http; then exitCode=0; else exitCode=1; fi
-  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-    if [ "$console" = "yes" ]; then
-      notifications "Am I Online" "$site is up: you seem to be connected to the internet"
-      exitCode=0
+  local NAME="${PROG:-$APPNAME}"
+  local site="1.1.1.1"
+  [ -z "$FORCE_CONNECTION" ] || return 0
+  return_code() {
+    if [ "$1" = 0 ]; then
+      return 0
+    else
+      return 1
     fi
-  else
-    if [ "$console" = "yes" ]; then
-      notifications "Am I Online" "$site is down: you appear to not be connected to the internet"
-      exitCode=1
-    fi
-    if [ "$showerror" = "yes" ] && [ -z "$console" ]; then
-      notifications "Am I Online" "$site is down: you appear to not be connected to the internet"
-      exitCode=1
-    fi
-  fi
-  return ${exitCode:-$?}
+  }
+  __test_ping() {
+    local site="$1"
+    timeout 0.3 ping -c1 $site >/dev/null 2>&1
+    local pingExit=$?
+    return_code $pingExit
+  }
+  __test_http() {
+    local site="$1"
+    curl -q -LSsik --max-time 1 http://$site 2>/dev/null | grep -E "HTTP/[0123456789]" | grep -E "200" -n1 -q
+    local httpExit=$?
+    return_code $httpExit
+  }
+  err() { [ "$1" = "show" ] && notifications "${3:-$NAME}" "${2:-This requires internet, however, You appear to be offline!}" 1>&2; }
+  __test_ping "$site" || __test_http "$site" || err "$@"
 }
 
 notify_good() {
