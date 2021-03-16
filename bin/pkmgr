@@ -239,6 +239,14 @@ pkginit="$pkgmgrbincle ; $pkgmgrbincac ; $pkgmgrbinupdsil"
 
 #---------------------------------------------------------------------------------------
 
+pipecmd() {
+  if [ -n "$DISPLAY" ]; then
+    [ -f "$(command -v zenity)" ] && zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
+  else
+    printf_readline "5"
+  fi
+}
+
 cpan_run() {
   if c__md_exists cpan; then
     local cpandir="$(__devnull2 sudo find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"

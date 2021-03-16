@@ -703,23 +703,21 @@ __getphpver() {
   fi
   echo $PHPVER
 }
+type_function() { type -f $1 2>/dev/null | grep -q 'is aliased to' && then return 1 || else return 0; }
 ###################### macos fixes#################
-case "$(uname -s)" in
-Darwin)
-  [ -f "$(command -v gls 2>/dev/null)" ] && ls="$(type -P gls)" || ls="$(type -P ls)"
-  [ -f "$(command -v gdate 2>/dev/null)" ] && date="$(type -P gdate)" || date="$(type -P date)"
-  [ -f "$(command -v greadlink 2>/dev/null)" ] && readlink="$(type -P greadlink)" || readlink="$(type -P readlink)"
-  [ -f "$(command -v gbasename 2>/dev/null)" ] && basename="$(type -P gbasename)" || basename="$(type -P basename)"
-  [ -f "$(command -v gdircolors 2>/dev/null)" ] && dircolors="$(type -P gdircolors)" || dircolors="$(type -P dircolors)"
-  [ -f "$(command -v grealpath 2>/dev/null)" ] && realpath="$(type -P grealpath)" || realpath="$(type -P realpath)"
-  ls() { $ls "$@"; }
-  date() { $date "$@"; }
-  readlink() { $readlink "$@"; }
-  basename() { $basename "$@"; }
-  dircolors() { $dircolors "$@"; }
-  realpath() { $realpath "$@"; }
-  ;;
-esac
+if [ "$(uname -s)" = Darwin ]; then
+  [ -f "$(command -v gls 2>/dev/null)" ] && lscmd="$(type -P gls)" || lscmd="$(type -P ls)"; alias ls="$lscmd"
+  [ -f "$(command -v gdate 2>/dev/null)" ] && datecmd="$(type -P gdate)" || datecmd="$(type -P date)"
+  [ -f "$(command -v greadlink 2>/dev/null)" ] && readlinkcmd="$(type -P greadlink)" || readlinkcmd="$(type -P readlink)"
+  [ -f "$(command -v gbasename 2>/dev/null)" ] && basenamecmd="$(type -P gbasename)" || basenamecmd="$(type -P basename)"
+  [ -f "$(command -v gdircolors 2>/dev/null)" ] && dircolorscmd="$(type -P gdircolors)" || dircolorscmd="$(type -P dircolors)"
+  [ -f "$(command -v grealpath 2>/dev/null)" ] && realpathcmd="$(type -P grealpath)" || realpathcmd="$(type -P realpath)"
+  [ -n "$date" ] || date() { $datecmd "$@"; }
+  [ -n "$readlink" ] || readlink() { $readlinkcmd "$@"; }
+  [ -n "$basename" ] || basename() { $basenamecmd "$@"; }
+  [ -n "$dircolors" ] || dircolors() { $dircolorscmd "$@"; }
+  [ -n "$realpath" ] || realpath() { $realpathcmd "$@"; }
+fi
 ###################### tools ######################
 __setcursor() { echo -e -n "\x1b[\x35 q" "\e]12;cyan\a" 2>/dev/null; }
 __ps() {
