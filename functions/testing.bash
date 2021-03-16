@@ -1532,7 +1532,7 @@ httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 
 #connection test
 # online check
-am_i_online() {
+__am_i_online() {
   __curl() { timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null; }
   __ping() { timeout 1 ping -c1 "$site" &>/dev/null; }
   case $1 in
