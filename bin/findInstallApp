@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="findInstallApp"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -113,21 +111,21 @@ main() {
   return=$exitCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -n "$DISPLAY" ]; then
+if [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
   main "$@" | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install $*" --height=200 --width=400
 else
   main "$@"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$exitCode" = 0 ]; then
-  if [ -n "$DISPLAY" ]; then
+  if [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
     zenity --timeout=10 --height=200 --width=400 --info --title="Install successfull" --text="Successfully installed $*"
   else
     printf_green "Successfully installed $*"
   fi
   exitCode=0
 else
-  if [ -n "$DISPLAY" ]; then
+  if [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
     zenity --timeout=10 --height=200 --width=400 --error --title="Install unsuccessfull" --text="Failed to install $*"
   else
     printf_error "Failed to install $*"
@@ -137,3 +135,4 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $exitCode
 # end
+

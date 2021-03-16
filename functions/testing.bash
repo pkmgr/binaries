@@ -1390,7 +1390,7 @@ __requiresudo() {
 user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
 ###################### spinner and execute function ######################
 # show a spinner while executing code or zenity
-if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DESKTOP_SESSION" ]; then
+if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DESKTOP_SESSION" ] && [ -z "$SSH_TTY" ]; then
   __execute() {
     local CMD="$1" && shift $#
     $CMD | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
@@ -1587,7 +1587,7 @@ ask_confirm() {
   __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
   __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
   __term() { printf_question_term "$1" && $2 || return 1; }
-  if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ]; then
+  if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ] || [ -z "$SSH_TTY" ]; then
     if [ -f "$(command -v zenity 2>/dev/null)" ]; then __zenity "$question" "$command" && notify_good || notify_error
     elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then __dmenu "$question" "$command" && notify_good || notify_error
     elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then __dialog "$question" "$command" && notify_good || notify_error
