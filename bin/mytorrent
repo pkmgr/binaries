@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="mytorrent"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -44,6 +42,7 @@ __options "$@"
 [ -f "$HOME/.config/mytorrent/settings" ] && . "$HOME/.config/mytorrent/settings"
 MYTORRENT_NOTIFICATIONS="${MYTORRENT_NOTIFICATIONS:-yes}"
 MYTERMINAL_NOTIFICATIONS="no"
+TORRENT_SERVER="${TORRENT_SERVER:-localhost}:9091"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating config file"
@@ -52,6 +51,7 @@ __config() {
 MYTORRENT="config"
 TORRENT="'$TORRENT'"
 MYTORRENT_NOTIFICATIONS="'$MYTORRENT_NOTIFICATIONS'"
+TORRENT_SERVER="'${TORRENT_SERVER:-localhost}:9091'"
   ' >"$HOME/.config/mytorrent/settings"
   if [ -f "$HOME/.config/mytorrent/settings" ]; then
     printf_green "File saved to: $HOME/.config/mytorrent/settings"
@@ -80,7 +80,7 @@ __create_link() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __launch() {
-  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Attempting to launch $TORRENT_NAME"
+  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "$NOTIFY_MESSAGE"
   local args="$@"
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
     __exec ~/.local/bin/mytorrent ${args:-}
@@ -124,7 +124,6 @@ if [ -z "$TORRENT" ]; then
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
   printf_exit 1 1 "No bittorrent clients are installed"
 fi
-TORRENT_NAME="$(basename "$TORRENT" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $TORRENT in
 transmission-remote*)
@@ -139,10 +138,13 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $TORRENT in
 transmission-remote)
+  NOTIFY_MESSAGE="Attempting to launch $TORRENT"
   TORRENT="myterminal -e 'bash -c transmission-remote;bash'"
   ;;
+*)
+  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TORRENT"
+  ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
@@ -161,8 +163,13 @@ case $1 in
     exit $?
   elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
     [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Adding $ARGS"
-    __cmd_exists transadd && transadd "$ARGS" | grep -q "success" || "$TORRENT" -a "$ARGS"
-    exit $?
+    if __cmd_exists transadd; then
+      transadd "$ARGS" | grep -q "success" && true
+    elif [ -n "$DESKTOP_SESSION" ]; then
+      xdg-open "$ARGS"
+    else
+      "$TORRENT" -a "$ARGS"
+    fi
   elif [ $# -ne 0 ]; then
     ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch "$ARGS" && sleep 10 || $TORRENT "$ARGS"
   else

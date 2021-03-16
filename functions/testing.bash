@@ -5,7 +5,6 @@ APPNAME="${APPNAME:-testing}"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 FUNCFILE="testing.bash"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -518,20 +517,40 @@ __mycurrdir() {
 }
 ###################### checks ######################
 #cmd_exists command
+# command check
 __cmd_exists() {
-  [ $# -eq 0 ] && return 1
-  local args="$*"
-  local exitTmp
-  local exitCode
-  for cmd in $args; do
-    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
-      local exitTmp=0
+  install_missing() { ask_confirm "Would you like to install then packages" "pkmgr install $@" || return 1; }
+  case "$1" in
+    *show) local show=true && shift 1 ;;
+    *err*) local error=show && shift 1 ;;
+  esac
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  local exitCode=0
+  local missing=""
+  for f in "$@"; do
+    if [ -f "$(command -v "$f" 2>/dev/null)" ] || [ -f "$(type -P "$f" 2>/dev/null)" ]; then
+      found+="$f "
+      local exitCode+=0
     else
-      local exitTmp=1
+      missing="$f "
+      local exitCode+=1
     fi
-    local exitCode+="$exitTmp"
   done
-  [ "$exitCode" -eq 0 ] && return 0 || return 1
+  if [ "$show" = "true" ] && [ -n "$found" ]; then
+    printf_green "$found"
+    notifications "CMD Exists" "Found: $found"
+  fi
+  if [ "$show" = "true" ] && [ -n "$found" ] && [ -n "$missing" ]; then
+    printf_red "$missing"
+    notifications "CMD Exists" "Missing: $missing"
+  fi
+  if [ "$error" = "show" ] && [ -n "$missing" ]; then
+    printf_red "Missing: $missing" >&2
+    notifications "CMD Exists" "Missing: $missing"
+    exitCode="1"
+  fi
+  [ -z "$missing" ] || install_missing "$missing"
+  return ${exitCode:-$?}
 }
 #system_service_active "list of services to check"
 __system_service_active() {
@@ -915,6 +934,32 @@ __urlinvalid() {
     printf_red "Can't find $1"
   fi
   return 1
+}
+check_local() {
+  local file="${1:-$PWD}"
+  if [ -d "$file" ]; then type=dir && localfile=true && return 0
+  elif [ -f "$file" ]; then type=file && localfile=true && return 0
+  elif [ -L "$file" ]; then type=symlink && localfile=true && return 0
+  elif [ -S "$file" ]; then type=socket && localfile=true && return 0
+  elif [ -b "$file" ]; then type=block && localfile=true && return 0
+  elif [ -p "$file" ]; then type=pipe && localfile=true && return 0
+  elif [ -c "$file" ]; then type=character && localfile=true && return 0
+  elif [ -e "$file" ]; then type=file && localfile=true && return 0
+  else
+    type= && localfile=
+    return 1
+  fi
+}
+check_uri() {
+  local url="$1"
+  if echo "$url" | grep -q "http.*://\S\+\.[A-Za-z]\+\S*"; then uri=http && return 0
+  elif echo "$url" | grep -q "ftp.*://\S\+\.[A-Za-z]\+\S*"; then uri=ftp && return 0
+  elif echo "$url" | grep -q "git.*://\S\+\.[A-Za-z]\+\S*"; then uri=git && return 0
+  elif echo "$url" | grep -q "ssh.*://\S\+\.[A-Za-z]\+\S*"; then uri=ssh && return 0
+  else
+    uri=
+    return 1
+  fi
 }
 #very simple function to ensure connection and jq exists
 __api_test() {
@@ -1344,6 +1389,13 @@ __requiresudo() {
 
 user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
 ###################### spinner and execute function ######################
+# show a spinner while executing code or zenity
+if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DESKTOP_SESSION" ]; then
+  __execute() {
+    local CMD="$1" && shift $#
+    $CMD | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
+}
+else
 __execute() {
   __set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
   __kill_all_subprocesses() {
@@ -1386,7 +1438,7 @@ __execute() {
   rm -rf "$TMP_FILE"
   return $exitCode
 }
-#
+fi
 #runpost "program"
 __run_post() {
   local e="$1"
@@ -1479,31 +1531,94 @@ gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || retu
 httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 
 #connection test
-__am_i_online() {
-  local site="1.1.1.1"
-  [ -z "$FORCE_CONNECTION" ] || return 0
-  return_code() {
-    if [ "$1" = 0 ]; then
-      return 0
-    else
-      return 1
+# online check
+am_i_online() {
+  __curl() { timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null; }
+  __ping() { timeout 1 ping -c1 "$site" &>/dev/null; }
+  case $1 in
+  *err* | *show)
+    shift 1
+    showerror=yes
+    site="${1:-1.1.1.1}"
+    ;;
+  *console)
+    shift 1
+    console="yes"
+    site="${1:-1.1.1.1}"
+    ;;
+  *)
+    site="${1:-1.1.1.1}"
+    ;;
+  esac
+  shift
+  test_ping() { __ping || false; pingExit=$?; return ${pingExit:-$?}; }
+  test_http() { __curl || false; httpExit=$?; return ${httpExit:-$?} ;}
+  if test_ping || test_http; then exitCode=0; else exitCode=1; fi
+  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
+    if [ "$console" = "yes" ]; then
+      notifications "Am I Online" "$site is up: you seem to be connected to the internet"
+      exitCode=0
     fi
-  }
-  __test_ping() {
-    local site="$1"
-    timeout 0.3 ping -c1 $site >/dev/null 2>&1
-    local pingExit=$?
-    return_code $pingExit
-  }
-  __test_http() {
-    local site="$1"
-    curl -q -LSsik --max-time 1 http://$site 2>/dev/null | grep -E "HTTP/[0123456789]" | grep -E "200" -n1 -q
-    local httpExit=$?
-    return_code $httpExit
-  }
-  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" 1>&2; }
-  __test_ping "$site" || __test_http "$site" || err "$@"
+  else
+    if [ "$console" = "yes" ]; then
+      notifications "Am I Online" "$site is down: you appear to not be connected to the internet"
+      exitCode=1
+    fi
+    if [ "$showerror" = "yes" ] && [ -z "$console" ]; then
+      notifications "Am I Online" "$site is down: you appear to not be connected to the internet"
+      exitCode=1
+    fi
+  fi
+  return ${exitCode:-$?}
 }
+
+notify_good() {
+  local prog="${PROG:-$APPNAME}"
+  local name="${1}"
+  local message="${*:-Command was successfull}"
+  notifications "${prog:-$name}:" "$message"
+  printf_green "${prog:-$name}: $message"
+  return 0
+}
+
+notify_error() {
+  local prog="${PROG:-$APPNAME}"
+  local name="${1}"
+  local message="${*:-Command has failed}"
+  notifications "${prog:-$name}:" "$message"
+  printf_red "${prog:-$name}: $message"
+  return 1
+}
+# ask question and execute
+ask_confirm() {
+  local question="${1:-Continue}"
+  local command="${2:-true}"
+  if [ "$(command -v ask_yes_no_question)" ]; then
+    ask_yes_no_question "$question" "$command" "${APPNAME:-$PROG}"
+  else
+  __zenity(){ zenity --question --text="$1" --ellipsize --default-cancel && $2 || return 1; }
+  __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
+  __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
+  __term() { printf_question_term "$1" && $2 || return 1; }
+  if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ]; then
+    if [ -f "$(command -v zenity 2>/dev/null)" ]; then __zenity "$question" "$command" && notify_good || notify_error
+    elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then __dmenu "$question" "$command" && notify_good || notify_error
+    elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then __dialog "$question" "$command" && notify_good || notify_error
+    else
+      __term "$question" "$command" || notify_error
+    fi
+  else
+    if [ -t 0 ]; then
+      export -f __term notify_error
+      $TERMINAL -e "__term "$question" "$command" || notify_error"
+    else
+      __term "$question" "$command" || notify_error
+    fi
+  fi
+  return ${exitCode:-$?}
+  fi
+}
+
 #am_i_online_err "Message" "color" "exitCode"
 __am_i_online_err() { __am_i_online show "$@"; }
 #setup clipboard
