@@ -45,6 +45,25 @@ __options "$@"
 main() {
   local question="${1:-Would you like to proceed?}"
   local command="${2:-true}"
+  local app="${PROG:-$APPNAME}"
+  notify_good() {
+    local prog="${PROG:-$APPNAME}"
+    local name="${2:-$(basename $0)}"
+    local message="${*:-Command was successfull}"
+    notifications "${prog:-$name}:" "$message"
+    printf_green "${prog:-$name}: $message"
+    return 0
+  }
+
+  notify_error() {
+    local prog="${PROG:-$APPNAME}"
+    local name="${2:-$(basename $0)}"
+    local message="${*:-Command has failed}"
+    notifications "${prog:-$name}:" "$message"
+    printf_red "${prog:-$name}: $message"
+    return 1
+  }
+
   __zenity() { zenity --question --text="$1" --ellipsize --default-cancel && $2 || return 1; }
   __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
   __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
