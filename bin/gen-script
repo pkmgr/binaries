@@ -527,8 +527,20 @@ __options "$@"
 '
   fi
 }
-
-__backup_file() { __cp_rf "$destfolder/$filename" "${TMP:-/tmp}/$filename.$$" && printf_red "copied to ${TMP:-/tmp}/$filename.$$"; }
+__backup_file() {
+  local DIR="$(basename $(__git_top_dir $destfolder))"
+  local DEST="$(echo $destfolder | sed 's#\./##g' | sed 's#'$(dirname $destfolder)/'##g' )"
+  local BACKUPDIR="$HOME/.config/gen-script/backups/$DIR/$DEST"
+  local NAME="$filename-$(date +'%m%d%Y%H%M' 2>/dev/null)"
+  [ -d "$BACKUPDIR" ] || __mkd "$BACKUPDIR"
+  if cp -Rf "$destfolder/$filename" "$BACKUPDIR/$NAME"; then
+    printf_blue "copied $filename to"
+    printf_blue "$BACKUPDIR/$NAME"
+  else
+    printf_red "Failed to copy $filename to"
+    printf_blue "$BACKUPDIR/$NAME"
+  fi
+}
 __vars() {
   [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="README.md" || GEN_SCRIPTS_DEFREADME="$(basename "$1" 2>/dev/null) --help"
   [ -f "$topdir/LICENSE.md" ] && GEN_SCRIPTS_DEFLICENSE="LICENSE.md" || GEN_SCRIPTS_DEFLICENSE="$GEN_SCRIPTS_DEFLICENSE"
