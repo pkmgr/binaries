@@ -74,14 +74,14 @@ main() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
   local setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "GEN_SCRIPT_REPLACE_FILENAME" -- "$@" 2>/dev/null)
-  eval set "$setopts" 2>/dev/null
+  eval set -- "$setopts" 2>/dev/null
   while :; do
     case $1 in
       -v | --version) __version ;;
       -h | --help) __help ;;
       -c | --config) __config_gen ;;
-      -d | --dir) shift; MYCURRDIR="$1" ;;
-      -f | --file) shift; MYCURRFILE="$1" ;;
+      -d | --dir) MYCURRDIR="$2" ;;
+      -f | --file); MYCURRFILE="$2" ;;
       *) break ;;
     esac
     shift
