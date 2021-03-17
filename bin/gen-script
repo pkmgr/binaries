@@ -533,13 +533,14 @@ __backup_file() {
   local BACKUPDIR="$HOME/.config/gen-script/backups/$DIR/$DEST"
   local NAME="$filename-$(date +'%m%d%Y%H%M' 2>/dev/null)"
   [ -d "$BACKUPDIR" ] || __mkd "$BACKUPDIR"
-  if cp -Rf "$destfolder/$filename" "$BACKUPDIR/$NAME"; then
+  if mv -Rf "$destfolder/$filename" "$BACKUPDIR/$NAME"; then
     printf_blue "copied $filename to"
     printf_blue "$BACKUPDIR/$NAME"
   else
     printf_red "Failed to copy $filename to"
     printf_blue "$BACKUPDIR/$NAME"
   fi
+  if [ -f "$destfolder/$filename" ]; then __rm_rf "$destfolder/$filename"; fi
 }
 __vars() {
   [ -f "$topdir/README.md" ] && GEN_SCRIPTS_DEFREADME="README.md" || GEN_SCRIPTS_DEFREADME="$(basename "$1" 2>/dev/null) --help"
