@@ -273,6 +273,8 @@ __makefile() {
     [ -n "$resource" ] && [ -n "$GEN_SCRIPT_REPLACE_resource" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_resource"'/'"$resource"'/g' "$new" 2>/dev/null
     local compfile="_$(basename "$new")_completion"
     local destfolder="$(dirname "$new")"
+    printf_cyan "Creating the completion file: $compfile"
+    printf_yellow "in $destfolder"
     __mv_f "$new" "$destfolder/$compfile" &&
       new="$destfolder/$compfile" &&
       filename="$compfile" &&
@@ -658,7 +660,8 @@ if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
   fi
 fi
 if [ "$MAKEFILE" != "no" ]; then
-  printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to $destfolder/$filename"
+  printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to"
+  printf_yellow "$destfolder/$filename"
   __makefile "${template:?}" "$destfolder/$filename"
 else
   printf_red "Not creating the file due to the MAKEFILE=no being set"
