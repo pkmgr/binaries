@@ -46,13 +46,13 @@ gitdir="${1:-$PWD}"
 repo="$(__git_remote_pull "$gitdir")"
 gitdir="$(__git_top_dir "$gitdir")"
 oldpwd="$PWD"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+gitversion="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_git_pull() { git -C "$gitdir" pull -q || printf_exit "Failed to pull from $repo"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -d "$gitdir/.git" ]; then
   printf_warning "Commiting Changes and pushing to the repo"
-  date +"%m%d%Y%H%M-git" >$gitdir/version.txt &&
+  date +"$gitversion" >$gitdir/version.txt &&
     [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ] &&
     __cp_rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
     __devnull git -C "$gitdir" add . &&

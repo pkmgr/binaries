@@ -73,6 +73,7 @@ gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$gitdir/version.txt"
 repo="$(__git_remote_fetch $gitdir)"
 basedir="$(basename $gitdir)"
+gitversion="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 [ -n "$repo" ] || repo="localdir"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Functions
@@ -95,7 +96,7 @@ __git_push() {
   return $?
 }
 __version() {
-  date +"%m%d%Y%H%M-git" >"$versionfile"
+  date +"$gitversion" >"$versionfile"
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

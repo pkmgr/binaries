@@ -31,7 +31,7 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+GIT_VERSION_FORMAT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 __requiresudo true
 __getlipaddr
 
@@ -60,7 +60,7 @@ CURRIP4=${CURRIP4}
 CURRIP6=${CURRIP6}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dategit="$(date +"%m%d%Y%H%M-git")"
+dategit="$(date +"$GIT_VERSION_FORMAT")"
 datever="$(date +"%b %d, %Y at %H:%M")"
 if [ -f /etc/casjaysdev/updates/versions/scripts.txt ]; then
   scriptsversion="$(__devnull2 cat /etc/casjaysdev/updates/versions/scripts.txt)"
