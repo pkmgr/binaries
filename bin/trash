@@ -90,9 +90,9 @@ trash-put() {
       #[[ $file =~ $HOME ]] && __refuse_home || break 2
       if [ -d "$file" ]; then
         __mkd "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
-        rsync -a "$file/." "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+        cp -Rfa "$file/." "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
       else
-        rsync -a "$file" "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
+        cp -Rfa "$file" "$TrashDir/files/$(filename_trash "$file")-$(basename "$file")"
       fi
       rm -Rf "$file"
       shift 1
