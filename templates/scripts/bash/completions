@@ -14,17 +14,17 @@
 # @Resource      : GEN_SCRIPT_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _GEN_SCRIPT_REPLACE_FILENAME() {
-  mkdir -p "$HOME/.config/GEN_SCRIPT_REPLACE_FILENAME"
-  local CONFDIR="$HOME/.config/GEN_SCRIPT_REPLACE_FILENAME"
+  local CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPT_REPLACE_FILENAME"
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local FUNCTIONSDIR="${HOME/.local/share/CasjaysDev/functions}"
   local SEARCHCMD="$(find -L $CONFDIR -maxdepth 3 -type f | sed 's#'$CONFDIR/'##g' | grep '^' || return 1)"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local SHOW_COMP_OPTS=""
-  local SHORTOPTS="-h -v"
-  local LONGOPTS="--help --version"
-  local ARGS="${SHORTOPTS} ${LONGOPTS}"
+  local DEFAULTOPTS='-h -v -f -d -c --help --version --file --config --dir'
+  local SHORTOPTS=""
+  local LONGOPTS=" "
+  local ARGS="${DEFAULTOPTS} ${SHORTOPTS} ${LONGOPTS}"
   local ARRAY=""
 
   _init_completion || return
