@@ -59,8 +59,8 @@ __config_gen() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
 main() {
-  local SHORTOPTS="-c,-v,-h,-d:"
-  local LONGOPTS="--config,--version,--help,--dir:"
+  local SHORTOPTS="c,v,h,d:"
+  local LONGOPTS="config,version,help,dir:"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ -f "$CONFDIR/$CONFFILE" ] && . "$CONFDIR/$CONFFILE"
   [ -d "$1" ] && MYCURRDIR="$1" && shift 1 || MYCURRDIR="$PWD"

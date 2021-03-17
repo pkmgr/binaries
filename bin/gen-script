@@ -528,7 +528,7 @@ __options "$@"
   fi
 }
 __backup_file() {
-  local DIR="$(basename $(__git_top_dir $destfolder))"
+  local DIR="$( __git_repobase $destfolder)"
   local DEST="$(echo $destfolder | sed 's#\./##g' | sed 's#'$(dirname $destfolder)/'##g' )"
   local BACKUPDIR="$HOME/.config/gen-script/backups/$DIR/$DEST"
   local NAME="$filename-$(date +'%m%d%Y%H%M' 2>/dev/null)"
