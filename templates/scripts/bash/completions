@@ -23,7 +23,7 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   local SHOW_COMP_OPTS=""
   local DEFAULTOPTS='-h -v -f -d -c --help --version --file --config --dir'
   local SHORTOPTS=""
-  local LONGOPTS=" "
+  local LONGOPTS=""
   local ARGS="${DEFAULTOPTS} ${SHORTOPTS} ${LONGOPTS}"
   local ARRAY=""
 
@@ -31,7 +31,7 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
 
   if [ "$SHOW_COMP_OPTS" != "" ]; then
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
-    compopt -o ${SHOW_COMP_OPTS_SEP}
+    compopt -o $SHOW_COMP_OPTS_SEP
   fi
 
   if [[ ${cur} == -* ]]; then
@@ -45,7 +45,7 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
         COMPREPLY=($(compgen -W '' -- "${cur}"))
       elif [ "$ARRAY" = "show-_filedir" ]; then
         _filedir
-      elif [ "$ARRAY" != "" ]; then
+      elif [ -n "$ARRAY" ]; then
         COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [ -n "$OPTS" ]; then
         COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))

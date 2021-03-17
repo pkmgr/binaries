@@ -38,8 +38,9 @@ fi
 __version() { app_version; }
 __help() {
   app_help "Usage: GEN_SCRIPT_REPLACE_FILENAME  -  GEN_SCRIPT_REPLACE_FILENAME --version"  \
-    "-d --dir               -  set working dir"
-    "-c, --config           -  create config file"
+    "-f, --file             -  set filename" \
+    "-d, --dir              -  set working dir" \
+    "-c, --config           -  create config file" \
     "-v, --version          -  display version" \
     "-h, --help             -  display help"
 }
@@ -48,10 +49,12 @@ __config_gen() {
   printf_green "$CONFDIR/$CONFFILE"
   [ -d "$CONFDIR" ] || mkdir -p "$CONFDIR"
   [ -f "$CONFDIR/$CONFFILE" ] && cp -Rf "$CONFDIR/$CONFFILE" "$CONFDIR/$CONFFILE.$$"
-  touch "$CONFDIR/$CONFFILE"
-  if_else '[ -f "$CONFDIR/$CONFFILE" ]' 'printf_green "Config file has been created"' \
-    'printf_red "Failed to create the config file"'
-  exit $?
+  cat <<EOF > "$CONFDIR/$CONFFILE"
+# Settings for GEN_SCRIPT_REPLACE_FILENAME
+
+EOF
+  if [ -f "$CONFDIR/$CONFFILE" ]; then printf_green "Your config file for GEN_SCRIPT_REPLACE_FILENAME has been created"
+  else printf_red "Failed to create the config file"; fi; exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
@@ -61,24 +64,25 @@ main() {
   local LONGOPTS="config,version,help,dir:file:"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   local CONFFILE="settings.conf"
-  local CONFDIR="$HOME/.config/GEN_SCRIPT_REPLACE_FILENAME"
+  local CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPT_REPLACE_FILENAME"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ -f "$CONFDIR/$CONFFILE" ] && . "$CONFDIR/$CONFFILE"
-  [ -f "$1" ] && OPTS=setfile && FILE="$1" && shift 1 || FILE=""
-  [ -d "$1" ] && MYCURRDIR="$1" && shift 1 || MYCURRDIR="$(__git_top_dir "$MYCURRDIR")"
+  [ -d "$1" ] && MYCURRDIR="$1" && shift
+  [ -f "$1" ] && MYCURRFILE="$1" && OPTS=setfile && shift
+  [ -f "$2" ] && MYCURRFILE="$2" && OPTS=setfile && shift || MYCURRFILE="$MYCURRFILE"
+  [ -d "$1" ] && MYCURRDIR="$1" && shift || MYCURRDIR="$(__git_top_dir "$MYCURRDIR")"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
-  local setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "setverfile" -- "$@" 2>/dev/null)
-  eval set -- "$setopts" 2>/dev/null
+  local setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "GEN_SCRIPT_REPLACE_FILENAME" -- "$@" 2>/dev/null)
+  eval set "$setopts" 2>/dev/null
   while :; do
     case $1 in
       -v | --version) __version ;;
       -h | --help) __help ;;
       -c | --config) __config_gen ;;
       -d | --dir) shift; MYCURRDIR="$1" ;;
-      -f | --file) shift; FILE="$1" ;;
-      --) break ;;
-      *) OPTS+="$@"; break ;;
+      -f | --file) shift; MYCURRFILE="$1" ;;
+      *) break ;;
     esac
     shift
   done
@@ -88,7 +92,7 @@ main() {
   cmd_exists --error bash || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
-  case $OPTS in
+  case ${OPTS:-$1} in
     *) printf_green "Version:$VERSION DIR=$MYCURRDIR" ;;
   esac
   # lets exit with code
