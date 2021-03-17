@@ -44,26 +44,27 @@ __help() {
     "-h, --help             -  display help"
 }
 __config_gen() {
-  local CONFDIR="$HOME/.config/GEN_SCRIPT_REPLACE_FILENAME"
-  local CONFFILE="settings.conf"
   printf_green "Generating the config file in"
   printf_green "$CONFDIR/$CONFFILE"
   [ -d "$CONFDIR" ] || mkdir -p "$CONFDIR"
   [ -f "$CONFDIR/$CONFFILE" ] && cp -Rf "$CONFDIR/$CONFFILE" "$CONFDIR/$CONFFILE.$$"
-  echo "$SETVER_FORMAT" >"$CONFDIR/$CONFFILE"
-  echo "$SETVER_TYPE" >> "$CONFDIR/$CONFFILE"
-  [ -f "$CONFDIR/$CONFFILE" ] && printf_green "Config file has been created" || \
-    printf_red "Failed to create the config file"
+  touch "$CONFDIR/$CONFFILE"
+  if_else '[ -f "$CONFDIR/$CONFFILE" ]' 'printf_green "Config file has been created"' \
+    'printf_red "Failed to create the config file"'
   exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
 main() {
-  local OPTS SHORTOPTS LONGOPTS setopts
+  local OPTS="$@"
   local SHORTOPTS="c,v,h,d:,f:"
   local LONGOPTS="config,version,help,dir:file:"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  local CONFFILE="settings.conf"
+  local CONFDIR="$HOME/.config/GEN_SCRIPT_REPLACE_FILENAME"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ -f "$CONFDIR/$CONFFILE" ] && . "$CONFDIR/$CONFFILE"
+  [ -f "$1" ] && OPTS=setfile && FILE="$1" && shift 1 || FILE=""
   [ -d "$1" ] && MYCURRDIR="$1" && shift 1 || MYCURRDIR="$(__git_top_dir "$MYCURRDIR")"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
@@ -88,7 +89,7 @@ main() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
   case $OPTS in
-    *) printf "Version:$VERSION DIR=$MYCURRDIR" ;;
+    *) printf_green "Version:$VERSION DIR=$MYCURRDIR" ;;
   esac
   # lets exit with code
   return "${exitCode:-0}"

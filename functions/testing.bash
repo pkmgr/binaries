@@ -738,6 +738,8 @@ __basedir() {
 }
 #__basename "file"
 __basename() { basename "${1:-.}" 2>/dev/null; }
+# dirname dir
+__dirname() { cd "$1" 2>/dev/null && echo $PWD || return 1; }
 #to_lowercase "args"
 __to_lowercase() { echo "$@" | tr [A-Z] [a-z]; }
 #to_uppercase "args"

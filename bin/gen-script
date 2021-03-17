@@ -528,12 +528,10 @@ __options "$@"
   fi
 }
 __backup_file() {
-  local DIR="$( __git_repobase $destfolder)"
-  local DEST="$(echo $destfolder | sed 's#\./##g' | sed 's#'$(dirname $destfolder)/'##g' )"
-  local BACKUPDIR="$HOME/.config/gen-script/backups/$DIR/$DEST"
+  local BACKUPDIR="$HOME/.config/gen-script/backups/${destfolder/\/}"
   local NAME="$filename-$(date +'%m%d%Y%H%M' 2>/dev/null)"
   [ -d "$BACKUPDIR" ] || __mkd "$BACKUPDIR"
-  if mv -Rf "$destfolder/$filename" "$BACKUPDIR/$NAME"; then
+  if mv -f "$destfolder/$filename" "$BACKUPDIR/$NAME" &>/dev/null; then
     printf_blue "copied $filename to"
     printf_blue "$BACKUPDIR/$NAME"
   else
