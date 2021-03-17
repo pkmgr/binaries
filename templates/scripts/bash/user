@@ -59,11 +59,12 @@ __config_gen() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
 main() {
-  local SHORTOPTS="c,v,h,d:"
-  local LONGOPTS="config,version,help,dir:"
+  local OPTS SHORTOPTS LONGOPTS setopts
+  local SHORTOPTS="c,v,h,d:,f:"
+  local LONGOPTS="config,version,help,dir:file:"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ -f "$CONFDIR/$CONFFILE" ] && . "$CONFDIR/$CONFFILE"
-  [ -d "$1" ] && MYCURRDIR="$1" && shift 1 || MYCURRDIR="$PWD"
+  [ -d "$1" ] && MYCURRDIR="$1" && shift 1 || MYCURRDIR="$(__git_top_dir "$MYCURRDIR")"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
   local setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "setverfile" -- "$@" 2>/dev/null)
@@ -74,19 +75,21 @@ main() {
       -h | --help) __help ;;
       -c | --config) __config_gen ;;
       -d | --dir) shift; MYCURRDIR="$1" ;;
+      -f | --file) shift; FILE="$1" ;;
       --) break ;;
-      *) break ;;
+      *) OPTS+="$@"; break ;;
     esac
     shift
   done
-  if [ "$MYCURRDIR" = "." ]; then MYCURRDIR="$(dirname ".")"; fi
   [ -d "$MYCURRDIR" ] || printf_mkdir "$MYCURRDIR"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Required app check
   cmd_exists --error bash || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
-  printf_green "CurDir:$MYCURRDIR Version:$VERSION"
+  case $OPTS in
+    *) printf "Version:$VERSION DIR=$MYCURRDIR" ;;
+  esac
   # lets exit with code
   return "${exitCode:-0}"
 }
