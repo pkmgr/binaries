@@ -69,23 +69,24 @@ main() {
   __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
   __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && $2 || return 1; }
   __term() { printf_question_term "$1" && $2 || return 1; }
-  if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ]; then
-    if [ -f "$(command -v zenity1 2>/dev/null)" ]; then
-      __zenity "$question" "$command" && notify_good || notify_error
-    elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then
-      __dmenu "$question" "$command" && notify_good || notify_error
-    elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then
-      __dialog "$question" "$command" && notify_good || notify_error
-    else
-      __term "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
-    fi
-  else
-    if [ -t 0 ]; then
-      export -f __term notify_error
-      $TERMINAL -e "__term "$question" "$command" || notify_error"
-    else
+  if [ -n "$DISPLAY" ]; then
+    if [ -n "$DESKTOP_SESSION" ]; then
+      if [ -f "$(command -v zenity1 2>/dev/null)" ]; then
+        __zenity "$question" "$command" && notify_good || notify_error
+      elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then
+        __dmenu "$question" "$command" && notify_good || notify_error
+      elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then
+        __dialog "$question" "$command" && notify_good || notify_error
+      else
+        __term "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
+      fi
+    elif [ -t 0 ]; then
       __term "$question" "$command" || notify_error
     fi
+  else
+      __term
+      #export -f __term notify_error
+      #$TERMINAL -e "__term "$question" "$command" || notify_error"
   fi
   return ${exitCode:-$?}
 }
