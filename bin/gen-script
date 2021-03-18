@@ -93,35 +93,50 @@ __filename() { basename "$1" 2>/dev/null; }
 __fullfilename() { type -P $(basename "$1") 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
 __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exit "Please provide a filename"; }
-__check_header() { grep ^'# @Description' "$(__fullfilename "$filename")" 2>/dev/null | grep -q ' : ' || return 1; }
+__check_header() { grep ^'#.@Version' "$(__fullfilename "$filename")" 2>/dev/null | head -n1 | grep '^' | grep -q ' : ' || return 1; }
 #
+__get_header() {
+local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
+local command="$(__fullfilename "$filename")"
+if [ -f "$command" ] && __check_header; then
+  if [ "$1" = "all" ]; then
+    shift 1
+    printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+    grep ^'#.@'*'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${1:-15} | grep '^' || return 1
+    printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+  elif [ "$1" = "prev" ]; then
+    shift 1
+    grep ^'#.@' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep '^' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | grep '^' || return 1
+  else
+    local search="$1"
+    local command="${2:-$command}"
+   grep ^'#.@'$search'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | \
+     awk -F': ' '{print $2}' | head -n1 | grep '^' || return 1
+  fi
+fi
+}
 __get_prev() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "$filename")"
   if [ -f "$command" ] && __check_header; then
-    printf_green "setting desc todo other and res from $command"
-    get_desc="$(grep ^'# @Description' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
-    get_todo="$(grep ^'# @TODO' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
-    get_other="$(grep ^'# @Other' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
-    get_res="$(grep ^'# @Resource' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
+    [ -n "$get_prev_shown" ] || printf_green "setting desc todo other and res from $command"
+    get_desc="$(__get_header 'Description')"
+    get_todo="$( __get_header 'TODO')"
+    get_other="$( __get_header '@Other')"
+    get_res="$(__get_header 'Resource')"
   fi
+  get_prev_shown=true
 }
 # Current file info
 __prev_header() {
-  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
-  local command="$(__fullfilename "$filename")"
-  if __check_header; then
-    [ -f "$command" ] && grep ^'# @' -B2 -A1 "$command" 2>/dev/null | head -n14 | grep '^' || printf_return 1 "Could not find $filename"
-  else
-    printf_red "No header info was found"
-  fi
+    __get_header "prev" || printf_red "No header info was found"
 }
 __replace_header() {
   __get_prev
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   if [ -n "$filename" ]; then
     printf "Version: %s | Created: %s\n" "$REPLACE_VERSION" "$REPLACE_CREATED"
-    __prev_header | head -n14 | grep '^' || return 1
+    __get_header "all"
   else
     [ -z "$desc" ] && desc="$get_desc"
     [ -z "$todo" ] && todo="$get_todo"
@@ -145,15 +160,25 @@ __replace_header() {
 EOF
   fi
 }
+__set_header() {
+  printf_blue "Setting header options"
+  __header_opts "$@"
+}
 # Set up options
 __header_opts() {
-  printf_blue "Setting header options"
-  local LONGOPTS="no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace,keep"
-  local SHORTOPTS="e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
+  local LONGOPTS="a:,no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace,keep"
+  local SHORTOPTS="all:,e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
   local parsed=$(getopt --options="$SHORTOPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
   eval set -- "${parsed[@]}" 2>/dev/null
   while :; do
     case "$1" in
+    -a | --all)
+      [ "$1" = --long ] && echo -n "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
+      [ "$1" = --short ] && echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g'
+      [ "$1" = --all ] && echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo -n "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
+      shift $#
+      return
+      ;;
     -h | --help)
       __gen_header_help
       ;;
@@ -243,21 +268,34 @@ GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_TEMPLATE_DIR="$GEN_SCRIPTS_TEMPLATE_DIR"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
-OVERWRITE="A"
-EDITFILE="N"
-MAKEFILE="Y"
+# Make file options
+OVERWRITE="${OVERWRITE:-A}"
+EDITFILE="${EDITFILE:-N}"
+# This should always be Y
+MAKEFILE="${MAKEFILE:-Y}"
+
 EOF
   [ $? = 0 ] && printf_green "Settings have been saved" || printf_error "Failed to save the settings"
+}
+__copy_files() {
+  printf_green "Copying the template files"
+  printf_yellow "from: $CASJAYSDEVDIR/templates/scripts"
+  printf_yellow "to: $HOME/.config/gen-script/files"
+  __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
 }
 
 __copy_templates() {
   if [ -d "$HOME/.config/gen-script/files/.git" ]; then
     am_i_online && git -C "$HOME/.config/gen-script/files" pull -q &>/dev/null && true || false
   else
-    printf_green "Copying the template files"
-    printf_yellow "from: $CASJAYSDEVDIR/templates/scripts"
-    printf_yellow "to: $HOME/.config/gen-script/files"
-    __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
+    if [ $(__count_files $HOME/.config/gen-script/files "3") -ne 0 ]; then
+      printf_read_question 6 "Would you like overwrite current files" "1" "COPY" "-s"
+      if printf_answer_yes "$COPY"; then
+        __copy_files
+      fi
+    else
+      __copy_files
+    fi
   fi
   [ $? -eq 0 ] && [ -d "$HOME/.config/gen-script/files" ] &&
     printf_green "Install has succeeded" || printf_red "Install of the files failed"
@@ -277,18 +315,18 @@ __makefile() {
   chmod -f 755 "$new" || return 1
   if grep -q 'local cur prev words cword$' "$new"; then
     if [ -f "$newcmd" ]; then
-      local GEN_SCRIPT_REPLACE_license="$(grep ^'# @License ' "$new" 2>/dev/null | head -n1)"
-      local GEN_SCRIPT_REPLACE_readme="$(grep ^'# @ReadME  ' "$new" 2>/dev/null | head -n1)"
-      local GEN_SCRIPT_REPLACE_desc="$(grep ^'# @Description ' "$new" 2>/dev/null | head -n1)"
-      local GEN_SCRIPT_REPLACE_todo="$(grep ^'# @TODO ' "$new" 2>/dev/null | head -n1)"
-      local GEN_SCRIPT_REPLACE_other="$(grep ^'# @Other ' "$new" 2>/dev/null | head -n1)"
-      local GEN_SCRIPT_REPLACE_resource="$(grep ^'# @Resource ' "$new" 2>/dev/null | head -n1)"
-      local license="$(grep ^'# @License ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
-      local readme="$(grep ^'# @ReadME ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
-      local desc="$(grep ^'# @Description ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
-      local todo="$(grep ^'# @TODO ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
-      local other="$(grep ^'# @Other ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
-      local resource="$(grep ^'# @Resource ' "$newcmd" | grep ' : ' 2>/dev/null | head -n1)"
+      local GEN_SCRIPT_REPLACE_license="$(__get_header 'License' "$new")"
+      local GEN_SCRIPT_REPLACE_readme="$(__get_header 'ReadME' "$new")"
+      local GEN_SCRIPT_REPLACE_desc="$(__get_header 'Description ' "$new")"
+      local GEN_SCRIPT_REPLACE_todo="$(__get_header 'TODO ' "$new")"
+      local GEN_SCRIPT_REPLACE_other="$(__get_header 'Other ' "$new")"
+      local GEN_SCRIPT_REPLACE_resource="$(__get_header 'Resource ' "$new")"
+      local license="$(__get_header 'License ' "$newcmd")"
+      local readme="$(__get_header 'ReadME ' "$newcmd")"
+      local desc="$(__get_header 'Description ' "$newcmd")"
+      local todo="$(__get_header 'TODO ' "$newcmd")"
+      local other="$(__get_header 'Other ' "$newcmd")"
+      local resource="$(__get_header 'Resource' "$newcmd")"
     fi
     [ -n "$license" ] && [ -n "$GEN_SCRIPT_REPLACE_license" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_license"'/'"$license"'/g' "$new" 2>/dev/null
     [ -n "$readme" ] && [ -n "$GEN_SCRIPT_REPLACE_readme" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_readme"'/'"$readme"'/g' "$new" 2>/dev/null
@@ -337,6 +375,7 @@ __edit_header() {
 }
 
 __gen_header_help() {
+  printf_blue "-a: Show all options"
   printf_blue "-d: Description"
   printf_blue "-t: TODO"
   printf_blue "-c: Copyright"
@@ -360,13 +399,13 @@ __gen_header() {
   if [ "$rerun" != "true" ]; then
     __vars "$filename"
     __get_prev "$filename"
-    __header_opts "$@"
+    __set_header "$@"
     [ -n "$gen_header_raw" ] && filename=template
     printf_green "New header info for $filename"
     local GEN_SCRIPTS_DEFREADME="$(__filename $filename 2>/dev/null) --help"
     local GEN_SCRIPTS_NEWFILE="$filename"
-    [ -n "$gen_header_raw" ] || [ -n "$desc" ] || printf_yellow "Description: ${desc:-None provided}"
-    [ -n "$gen_header_raw" ] || [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
+    [ -n "$gen_header_raw" ] || [ -n "${desc:-$get_desc}" ] || printf_yellow "Description: ${desc:-None provided}"
+    [ -n "$gen_header_raw" ] || [ -n "${todo:-$get_todo}" ] || printf_yellow "TODO: ${todo:-None provided}"
   fi
   if [ -n "$gen_header_prev" ]; then
     __check_header || printf_exit "No header info was found"
@@ -601,37 +640,52 @@ __find_file() {
     [[ "$1" = -* ]] && dest="newScript" || dest="$1"
   fi
   dest="${dest:-newScript}"
-  __header_opts "$dest" "$@"
+  __set_header "$dest" "$@"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script" || __mkd "$HOME/.config/gen-script"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$1" in
-*config)
-  shift 1
-  __config
-  __copy_templates "$@"
-  exit
+  -a | --all)
+    shift 1
+    [[ "$1" = *header ]] && __header_opts "-a" "--long"
+    [[ "$1" = *short ]] && echo -n "-c -g -f -h -i -o -s -i"
+    [[ "$1" = *long ]] && echo -n "-config -function -header -installers -os -shell -all -copy"
+    [[ "$1" = "" ]] && echo -n "-config -function -header -installers -os -shell -all -copy"
+    printf '\n'
+    exit
+    ;;
+  -c | *copy)
+    shift 1
+    __copy_templates "$@"
+    exit $?
+    ;;
+  -g | *config)
+    shift 1
+    __config
+    __copy_templates "$@"
+    exit $?
   ;;
 
-*funct*)
-  shift 1
-  [ $# -lt 2 ] || printf_exit "Only takes a filename as an argument"
-  printf_green "New functions info for ${1:-template}"
-  __gen_functions ${1:-template}
-  printf_green "End of functions"
-  exit
+  -f | *funct*)
+    shift 1
+    [ "$1" = -u ] && gen_header_user=true && shift 1
+    [ $# -lt 2 ] || printf_exit "Only takes a filename as an argument"
+    printf_green "New functions info for ${1:-template}"
+    __gen_functions ${1:-template}
+    printf_green "End of functions"
+  exit $?
   ;;
 
-*header)
+-h | *header)
   shift 1
   [[ "$1" != -* ]] && filename="$1" && shift 1 || filename="template"
   __gen_header "$@"
-  exit
+  exit $?
   ;;
 
-*installers)
+-i | *installers)
   case "$2" in
   *)
     __find_file "$@"
@@ -639,7 +693,7 @@ case "$1" in
   esac
   ;;
 
-*os)
+-o | *os)
   case "$2" in
   *) ## Allows drop in without need to update this
     __find_file "$@"
@@ -647,7 +701,7 @@ case "$1" in
   esac
   ;;
 
-*shell)
+-s | *shell)
   case "$2" in
   *) ## Allows drop in without need to update this
     __find_file "$@"
@@ -655,7 +709,7 @@ case "$1" in
   esac
   ;;
 
-*all) ## Bash Completion
+-l | *all) ## Bash Completion list
   shift 1
   __find_file "$@"
   ;;

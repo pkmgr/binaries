@@ -32,11 +32,11 @@ _gen-script() {
   local OTHER=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/other/ 2>/dev/null)
   local INSTALLERS=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/installers/ 2>/dev/null)
   local ALL="$(find $GEN_SCRIPTS_TEMPLATE_DIR -type f | sed 's#'$GEN_SCRIPTS_TEMPLATE_DIR/'##g' 2>/dev/null)"
-  local ARRAY="--help config header all $FOLDERS"
+  local ARRAY="$FOLDERS"
   local SHOW_COMP_OPTS=""
-  local SHORTOPTS="-e -h -d -t -c -o -r -i -f -n -u -l -p -k -v"
-  local LONGOPTS="--help --version --no --user --raw --desc --todo --copy --other --res --type --functions --name --prev --replace --keep"
-  local HEADEROPTS='-e -h -d -t -c -o -r -i -f -n -u -l -p -k'
+  local SHORTOPTS="$(gen-script -a --short)"
+  local LONGOPTS="$(gen-script -a --long)"
+  local HEADEROPTS="$(gen-script -a --header)"
   local ARGS="${SHORTOPTS} ${LONGOPTS}"
 
   _init_completion || return
