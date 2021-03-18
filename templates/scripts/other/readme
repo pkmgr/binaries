@@ -10,9 +10,10 @@ get_desc() {
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
   local desc="$(grep ^"# @Description" "$appname" 2>/dev/null | grep ' : ' | sed 's#..* : ##g' | grep '^')"
-  [ -n "$desc" ] && printf '%s' "$desc" || return 1
+  if [ -n "$desc" ]; then printf '%s' "$desc"; else return 1; fi
 }
-printf_descr() { [ -n "${PROG:-$APPNAME}" ] && [ -n "$(get_desc)" ] && printf_color "    $(get_desc)" 6 || printf_help "$1" "${2:-10}"; }
+printf_descr() { if [ -n "${PROG:-$APPNAME}" ] && [ -n "$(get_desc)" ]; then
+  printf_color "    $(get_desc)" 6; else || printf_help "$1" "${2:-10}"; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
 printf_descr "    GEN_SCRIPT_REPLACE_DESC"

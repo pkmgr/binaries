@@ -16,7 +16,7 @@ HOME="${USER_HOME:-${HOME}}"
 # @Created       : Sunday, Feb 07, 2021 13:25 EST
 # @File          : gen-script
 # @Description   : Create a script from template
-# @TODO          :
+# @TODO          : Reactor code
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,18 +92,41 @@ __date() { date +"$1"; }
 __filename() { basename "$1" 2>/dev/null; }
 __fullfilename() { type -P $(basename "$1") 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
+__providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exit "Please provide a filename"; }
+__check_header() { grep ^'# @Description' "$(__fullfilename "$filename")" 2>/dev/null | grep -q ' : ' || return 1; }
+#
+__get_prev() {
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
+  local command="$(__fullfilename "$filename")"
+  if [ -f "$command" ] && __check_header; then
+    printf_green "setting desc todo other and res from $command"
+    get_desc="$(grep ^'# @Description' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
+    get_todo="$(grep ^'# @TODO' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
+    get_other="$(grep ^'# @Other' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
+    get_res="$(grep ^'# @Resource' "$command" 2>/dev/null | grep ' : ' | awk -F': ' '{print $2}' | head -n1 | grep '^')"
+  fi
+}
 # Current file info
 __prev_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "$filename")"
-  [ -f "$command" ] && grep ^'# @' -B2 -A1 "$command" 2>/dev/null | head -n14 | grep '^' || printf_return 1 "Could not find $filename"
+  if __check_header; then
+    [ -f "$command" ] && grep ^'# @' -B2 -A1 "$command" 2>/dev/null | head -n14 | grep '^' || printf_return 1 "Could not find $filename"
+  else
+    printf_red "No header info was found"
+  fi
 }
 __replace_header() {
+  __get_prev
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   if [ -n "$filename" ]; then
     printf "Version: %s | Created: %s\n" "$REPLACE_VERSION" "$REPLACE_CREATED"
     __prev_header | head -n14 | grep '^' || return 1
   else
+    [ -z "$desc" ] && desc="$get_desc"
+    [ -z "$todo" ] && todo="$get_todo"
+    [ -z "$other" ] && other="$get_other"
+    [ -z "$res" ] && res="$get_other"
     cat <<EOF | tee
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
@@ -126,8 +149,8 @@ EOF
 __header_opts() {
   printf_blue "Setting header options"
   local LONGOPTS="no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace,keep"
-  local OPTS="e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
-  local parsed=$(getopt --options="$OPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
+  local SHORTOPTS="e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
+  local parsed=$(getopt --options="$SHORTOPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
   eval set -- "${parsed[@]}" 2>/dev/null
   while :; do
     case "$1" in
@@ -178,15 +201,15 @@ __header_opts() {
       ;;
     -e | --no)
       printf_red "Setting overwrite to yes and edit to no"
-      OVERWRITE="yes"
-      EDITFILE="no"
+      OVERWRITE="Y"
+      EDITFILE="N"
       MAKEFILE="${MAKEFILE:-yes}"
       ;;
     -k | --keep)
       printf_red "Setting overwrite to no and edit to no"
-      OVERWRITE="no"
-      EDITFILE="no"
-      MAKEFILE="no"
+      OVERWRITE="N"
+      EDITFILE="N"
+      MAKEFILE="N"
       ;;
     --replace)
       gen_header_replace=true
@@ -220,7 +243,9 @@ GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_TEMPLATE_DIR="$GEN_SCRIPTS_TEMPLATE_DIR"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
-
+OVERWRITE="A"
+EDITFILE="N"
+MAKEFILE="Y"
 EOF
   [ $? = 0 ] && printf_green "Settings have been saved" || printf_error "Failed to save the settings"
 }
@@ -334,6 +359,7 @@ __gen_header() {
   }
   if [ "$rerun" != "true" ]; then
     __vars "$filename"
+    __get_prev "$filename"
     __header_opts "$@"
     [ -n "$gen_header_raw" ] && filename=template
     printf_green "New header info for $filename"
@@ -343,13 +369,17 @@ __gen_header() {
     [ -n "$gen_header_raw" ] || [ -n "$todo" ] || printf_yellow "TODO: ${todo:-None provided}"
   fi
   if [ -n "$gen_header_prev" ]; then
+    __check_header || printf_exit "No header info was found"
+    __providefilename "$filename"
     printf_blue "header from $(__fullfilename "$filename")"
     printf_newline
-    __prev_header || rerun
+    __prev_header
   elif [ "$gen_header_replace" = true ]; then
+    __check_header || printf_exit "No header info was found"
+    __providefilename "$filename"
     printf_blue "header from $(__fullfilename "$filename")"
     printf_newline
-    __replace_header #|| rerun
+    __replace_header
   elif [ -n "$gen_header_raw" ]; then
     printf_blue "Showing the header template"
     __gen_header_raw || rerun
@@ -379,10 +409,10 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Copyright     : $GEN_SCRIPTS_COPYRIGHT
 # @Created       : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
 # @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
-# @Description   : ${desc:-}
-# @TODO          : ${todo:-}
-# @Other         : ${other:-}
-# @Resource      : ${res:-}
+# @Description   : ${desc:-$get_desc}
+# @TODO          : ${todo:-$get_todo}
+# @Other         : ${other:-$get_other}
+# @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function file
 if [ -f "\$SRC_DIR/functions.bash" ]; then
@@ -452,10 +482,10 @@ SCRIPTSFUNCTDIR="'"${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functio
 # @Copyright     : $GEN_SCRIPTS_COPYRIGHT
 # @Created       : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
 # @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
-# @Description   : ${desc:-}
-# @TODO          : ${todo:-}
-# @Other         : ${other:-}
-# @Resource      : ${res:-}
+# @Description   : ${desc:-$get_desc}
+# @TODO          : ${todo:-$get_todo}
+# @Other         : ${other:-$get_other}
+# @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
   fi
@@ -651,7 +681,7 @@ else
   tmpfilename="$filename"
 fi
 filename=${tmpfilename// /_}
-if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
+if [ -f "$destfolder/$filename" ] && [ "$OVERWRITE" != "Y" ]; then
   printf_read_question "3" "Should we overwrite this file?" "1" "YN" "-s"
   if printf_answer_yes "$YN"; then
     printf_read_question "3" "Should i display file before overwrite?" "1" "SHOW" "-s"
@@ -660,14 +690,14 @@ if [ -f "$destfolder/$filename" ] && [ -z "$OVERWRITE" ]; then
     printf_exit 1 1 "Refusing to overwrite existing file!"
   fi
 fi
-if [ "$MAKEFILE" != "no" ]; then
+if [ "$MAKEFILE" != "N" ]; then
   printf_green "Copying the file ${template//$GEN_SCRIPTS_TEMPLATE_DIR\//} to"
   printf_yellow "$destfolder/$filename"
   __makefile "${template:?}" "$destfolder/$filename"
 else
   printf_red "Not creating the file due to the MAKEFILE=no being set"
 fi
-if [ "$EDITFILE" != "no" ]; then
+if [ "$EDITFILE" != "N" ]; then
   [ -n "$OPENEDIT" ] || printf_read_question "3" "Should we edit this file?" "1" "EDIT" "-s"
   printf_answer_yes "$EDIT" && $EDITOR "$destfolder/$filename"
 fi
@@ -676,3 +706,4 @@ printf_newline ""
 exit ${exitCode:-$?}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+
