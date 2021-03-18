@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+GEN_SCRIPT_REPLACE_FILENAME() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="GEN_SCRIPT_REPLACE_FILENAME"
 VERSION="GEN_SCRIPT_REPLACE_VERSION"
@@ -35,7 +36,6 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # helper function
-__version() { app_version; }
 __help() {
   app_help "Usage: GEN_SCRIPT_REPLACE_FILENAME  -  GEN_SCRIPT_REPLACE_FILENAME --version"  \
     "-f, --file             -  set filename" \
@@ -43,8 +43,10 @@ __help() {
     "-c, --config           -  create config file" \
     "-v, --version          -  display version" \
     "-h, --help             -  display help"
+  exit
 }
-__config_gen() {
+__version() { app_version; }
+__gen_config() {
   printf_green "Generating the config file in"
   printf_green "$CONFDIR/$CONFFILE"
   [ -d "$CONFDIR" ] || mkdir -p "$CONFDIR"
@@ -54,38 +56,42 @@ __config_gen() {
 
 EOF
   if [ -f "$CONFDIR/$CONFFILE" ]; then printf_green "Your config file for GEN_SCRIPT_REPLACE_FILENAME has been created"
-  else printf_red "Failed to create the config file"; fi; exit $?
+  else printf_red "Failed to create the config file"; fi
+  exit $?
 }
+__list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' && exit; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
-main() {
-  local OPTS="$@"
-  local SHORTOPTS="c,v,h,d:,f:"
-  local LONGOPTS="config,version,help,dir:file:"
+  local SETARGS="$@"
+  local SHORTOPTS="a,c,v,h,d:,f:"
+  local LONGOPTS="all,config,version,help,dir:,file:"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   local CONFFILE="settings.conf"
   local CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPT_REPLACE_FILENAME"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ -f "$CONFDIR/$CONFFILE" ] && . "$CONFDIR/$CONFFILE"
   [ -d "$1" ] && MYCURRDIR="$1" && shift
-  [ -f "$1" ] && MYCURRFILE="$1" && OPTS=setfile && shift
-  [ -f "$2" ] && MYCURRFILE="$2" && OPTS=setfile && shift || MYCURRFILE="$MYCURRFILE"
-  [ -d "$1" ] && MYCURRDIR="$1" && shift || MYCURRDIR="$(__git_top_dir "$MYCURRDIR")"
+  [ -f "$1" ] && MYCURRFILE="$1" && shift
+  [ -f "$2" ] && MYCURRFILE="$2" && shift || MYCURRFILE="$MYCURRFILE"
+  [ -d "$2" ] && MYCURRDIR="$2" && shift || MYCURRDIR="$(__git_top_dir "$MYCURRDIR")"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
   local setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "GEN_SCRIPT_REPLACE_FILENAME" -- "$@" 2>/dev/null)
   eval set -- "$setopts" 2>/dev/null
   while :; do
     case $1 in
+      -a | --all) __list_options
       -v | --version) __version ;;
       -h | --help) __help ;;
-      -c | --config) __config_gen ;;
-      -d | --dir) MYCURRDIR="$2" ;;
-      -f | --file); MYCURRFILE="$2" ;;
+      -c | --config) __gen_config ;;
+      -d | --dir) MYCURRDIR="$2"; shift 1 ;;
+      -f | --file); MYCURRFILE="$2"; shift 1 ;;
+      --) shift 1; break ;;
       *) break ;;
     esac
     shift
   done
+  set -- $SETARGS
   [ -d "$MYCURRDIR" ] || printf_mkdir "$MYCURRDIR"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Required app check
@@ -100,7 +106,7 @@ main() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute function
-main "$@"
+GEN_SCRIPT_REPLACE_FILENAME "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -274,7 +274,6 @@ __makefile() {
     local compfile="_$(basename "$new")_completion"
     local destfolder="$(dirname "$new")"
     printf_cyan "Creating the completion file: $compfile"
-    printf_yellow "in $destfolder"
     __mv_f "$new" "$destfolder/$compfile" &&
       new="$destfolder/$compfile" &&
       filename="$compfile" &&
@@ -288,6 +287,7 @@ __makefile() {
 __edit_header() {
   local GEN_SCRIPTS_NEWFILE="$1"
   local GEN_SCRIPTS_NEWFILE_FULL="$(__get_full_file "$1")"
+  local GEN_SCRIPTS_FULLPATH="$(__fullfilename "$1")"
   local GEN_SCRIPTS_NEWFILEDIR="$(__dirname $GEN_SCRIPTS_NEWFILE_FULL)"
   local GEN_SCRIPTS_NEWFILEDIR="${GEN_FILENAME:-$GEN_SCRIPTS_NEWFILEDIR}"
   __vars "$*"
@@ -296,6 +296,7 @@ __edit_header() {
   sed -i 's#GEN_SCRIPT_REPLACE_COPYRIGHT#'"$GEN_SCRIPTS_COPYRIGHT"'#g' "$GEN_SCRIPTS_NEWFILE"
   sed -i 's#GEN_SCRIPT_REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_FILENAME#'"$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_FULLFILENAME#'"$GEN_SCRIPTS_FULLPATH"'#g' "$GEN_SCRIPTS_NEWFILE"
   sed -i 's#GEN_SCRIPT_REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_DATE#'"$(__date "$GEN_SCRIPTS_DATEFMT" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_LICENSE#'"$GEN_SCRIPTS_DEFLICENSE"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null

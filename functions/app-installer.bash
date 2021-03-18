@@ -2210,7 +2210,7 @@ run_postinst_global() {
       if [ "$comps" != "0" ]; then
         compFiles="$(ls $INSTDIR/completions)"
         for comp in $compFiles; do
-          cp_rf "$INSTDIR/completions/$comp" "$COMPDIR/$comp"
+          ln_sf "$INSTDIR/completions/$comp" "$COMPDIR/$comp"
         done
       fi
       ln_rm "$COMPDIR/"

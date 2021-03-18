@@ -21,7 +21,8 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local SHOW_COMP_OPTS=""
-  local DEFAULTOPTS='-h -v -f -d -c --help --version --file --config --dir'
+  local DEFAULTOPTS="$(GEN_SCRIPT_REPLACE_FULLFILENAME -a || echo -v -h -a)"
+  local DEFAULTARRAY="$(GEN_SCRIPT_REPLACE_FULLFILENAME -l || echo )"
   local SHORTOPTS=""
   local LONGOPTS=""
   local ARGS="${DEFAULTOPTS} ${SHORTOPTS} ${LONGOPTS}"
