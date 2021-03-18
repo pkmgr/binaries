@@ -65,6 +65,7 @@ GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
 GEN_SCRIPTS_CURRENT_DIR="$MYCURRDIR"
+GEN_SCRIPT_OPTSDIR="$HOME/.local/share/gen-script"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -d "$HOME/.config/gen-script/files" ]; then
   GEN_SCRIPTS_TEMPLATE_DIR="$HOME/.config/gen-script/files"
@@ -94,26 +95,26 @@ __fullfilename() { type -P $(basename "$1") 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
 __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exit "Please provide a filename"; }
 __check_header() { grep ^'#.@Version' "$(__fullfilename "$filename")" 2>/dev/null | head -n1 | grep '^' | grep -q ' : ' || return 1; }
-#
+__gen_confdir() { __to_uppercase "${1:-$filename}"; }
 __get_header() {
-local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
-local command="$(__fullfilename "$filename")"
-if [ -f "$command" ] && __check_header; then
-  if [ "$1" = "all" ]; then
-    shift 1
-    printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
-    grep ^'#.@'*'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${1:-15} | grep '^' || return 1
-    printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
-  elif [ "$1" = "prev" ]; then
-    shift 1
-    grep ^'#.@' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep '^' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | grep '^' || return 1
-  else
-    local search="$1"
-    local command="${2:-$command}"
-   grep ^'#.@'$search'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | \
-     awk -F': ' '{print $2}' | head -n1 | grep '^' || return 1
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
+  local command="$(__fullfilename "$filename")"
+  if [ -f "$command" ] && __check_header; then
+    if [ "$1" = "all" ]; then
+      shift 1
+      printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+      grep ^'#.@'*'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${1:-15} | grep '^' || return 1
+      printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+    elif [ "$1" = "prev" ]; then
+      shift 1
+      grep ^'#.@' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep '^' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | grep '^' || return 1
+    else
+      local search="$1"
+      local command="${2:-$command}"
+      grep ^'#.@'$search'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' |
+        awk -F': ' '{print $2}' | head -n1 | grep '^' || return 1
+    fi
   fi
-fi
 }
 __get_prev() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
@@ -121,15 +122,15 @@ __get_prev() {
   if [ -f "$command" ] && __check_header; then
     [ -n "$get_prev_shown" ] || printf_green "setting desc todo other and res from $command"
     get_desc="$(__get_header 'Description')"
-    get_todo="$( __get_header 'TODO')"
-    get_other="$( __get_header '@Other')"
+    get_todo="$(__get_header 'TODO')"
+    get_other="$(__get_header '@Other')"
     get_res="$(__get_header 'Resource')"
   fi
   get_prev_shown=true
 }
 # Current file info
 __prev_header() {
-    __get_header "prev" || printf_red "No header info was found"
+  __get_header "prev" || printf_red "No header info was found"
 }
 __replace_header() {
   __get_prev
@@ -161,7 +162,7 @@ EOF
   fi
 }
 __set_header() {
-  printf_blue "Setting header options"
+printf_blue "Setting header options"
   __header_opts "$@"
 }
 # Set up options
@@ -173,11 +174,11 @@ __header_opts() {
   while :; do
     case "$1" in
     -a | --all)
-      [ "$1" = --long ] && echo -n "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
-      [ "$1" = --short ] && echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g'
+      [ "$1" = --long ] && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
+      [ "$1" = --short ] && echo "-$SHORTOPTS " | sed 's#:##g;s#,# -#g'
       [ "$1" = --all ] && echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo -n "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
       shift $#
-      return
+      return 0
       ;;
     -h | --help)
       __gen_header_help
@@ -253,7 +254,6 @@ __header_opts() {
   done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __config() {
   printf_green "Generating the config and saving it to:"
   printf_cyan "$HOME/.config/gen-script/settings"
@@ -268,6 +268,7 @@ GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_TEMPLATE_DIR="$GEN_SCRIPTS_TEMPLATE_DIR"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
+GEN_SCRIPT_REPLACE_CONFDIR="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_CONFIG_DIR"
 # Make file options
 OVERWRITE="${OVERWRITE:-A}"
 EDITFILE="${EDITFILE:-N}"
@@ -346,16 +347,19 @@ __makefile() {
   [ ${exitCode:-$?} -ne 0 ] && printf_red "Failed to create $new" || printf_green "Your file has been created"
   return ${exitCode:-$?}
 }
-
 __edit_header() {
   local GEN_SCRIPTS_NEWFILE="$1"
   local GEN_SCRIPTS_NEWFILE_FULL="$(__get_full_file "$1")"
   local GEN_SCRIPTS_FULLPATH="$(__fullfilename "$1")"
   local GEN_SCRIPTS_NEWFILEDIR="$(__dirname $GEN_SCRIPTS_NEWFILE_FULL)"
   local GEN_SCRIPTS_NEWFILEDIR="${GEN_FILENAME:-$GEN_SCRIPTS_NEWFILEDIR}"
+  if [ -z "$GEN_SCRIPT_REPLACE_CONFDIR" ]; then
+    local GEN_SCRIPT_REPLACE_CONFDIR="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE")_CONFIG_DIR"
+  fi
   __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
   sed -i 's#GEN_SCRIPT_REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  sed -i 's#GEN_SCRIPT_REPLACE_CONFDIR=#'$GEN_SCRIPT_REPLACE_CONFDIR'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_COPYRIGHT#'"$GEN_SCRIPTS_COPYRIGHT"'#g' "$GEN_SCRIPTS_NEWFILE"
   sed -i 's#GEN_SCRIPT_REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
   sed -i 's#GEN_SCRIPT_REPLACE_FILENAME#'"$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
@@ -600,7 +604,7 @@ __options "$@"
   fi
 }
 __backup_file() {
-  local BACKUPDIR="$HOME/.config/gen-script/backups/${destfolder/\/}"
+  local BACKUPDIR="$HOME/.config/gen-script/backups/${destfolder/\//}"
   local NAME="$filename-$(date +'%m%d%Y%H%M' 2>/dev/null)"
   [ -d "$BACKUPDIR" ] || __mkd "$BACKUPDIR"
   if mv -f "$destfolder/$filename" "$BACKUPDIR/$NAME" &>/dev/null; then
@@ -642,39 +646,74 @@ __find_file() {
   dest="${dest:-newScript}"
   __set_header "$dest" "$@"
 }
+__gen_opts() {
+  [ -d "$GEN_SCRIPT_OPTSDIR" ] || __mkd "$GEN_SCRIPT_OPTSDIR"
+  if [ -z "$gen_opts_seen" ]; then
+    printf_green "Generating to opts files for bash completion"
+  fi
+  [ -n "$1" ] && __GEN_OPTS=true
+  if [[ "$1" = --help ]]; then
+    printf_blue "-create        -  create all opts files"
+    printf_blue "-header        -  create header opts files"
+    printf_blue "-long          -  create gen-script opt file"
+    return
+  fi
+  if [[ "$1" = *create ]]; then
+    __rm_rf "$GEN_SCRIPT_OPTSDIR/*"
+    __header_opts "-a" "--long" >"$GEN_SCRIPT_OPTSDIR/opt-header.txt"
+    echo "-c -g -f -h -i -o -s -i" >"$GEN_SCRIPT_OPTSDIR/optshort-header.txt"
+    echo "-config -function -header -installers -os -shell -all -copy" >"$GEN_SCRIPT_OPTSDIR/opts.txt"
+  fi
+  if [[ "$1" = *header ]]; then
+    __header_opts "-a" "--long" >"$GEN_SCRIPT_OPTSDIR/opt-header.txt"
+  fi
+  if [[ "$1" = *short ]]; then
+    echo "-c -g -f -h -i -o -s -i" >"$GEN_SCRIPT_OPTSDIR/optshort-header.txt"
+  fi
+  if [[ "$1" = *long ]]; then
+    echo "-config -function -header -installers -os -shell -all -copy" >"$GEN_SCRIPT_OPTSDIR/opts.txt"
+  fi
+  if [[ "$1" = "" ]] && [[ -z "$__GEN_OPTS" ]]; then
+    __header_opts "-a" "--long"
+    echo "-config -function -header -installers -os -shell -all -copy"
+    printf_newline
+  fi
+  gen_opts_seen=true
+  return
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script" || __mkd "$HOME/.config/gen-script"
+[ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script"
+[ -d "$HOME/.config/gen-script" ] || __mkd "$HOME/.config/gen-script"
+[ -f "$GEN_SCRIPT_OPTSDIR/opt-header.txt" ] || __gen_opts "header"
+[ -f "$GEN_SCRIPT_OPTSDIR/gen-script/optshort-header.txt" ] || __gen_opts "short"
+[ -f "$GEN_SCRIPT_OPTSDIR/optlong-long.txt" ] || __gen_opts "long"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$1" in
-  -a | --all)
-    shift 1
-    [[ "$1" = *header ]] && __header_opts "-a" "--long"
-    [[ "$1" = *short ]] && echo -n "-c -g -f -h -i -o -s -i"
-    [[ "$1" = *long ]] && echo -n "-config -function -header -installers -os -shell -all -copy"
-    [[ "$1" = "" ]] && echo -n "-config -function -header -installers -os -shell -all -copy"
-    printf '\n'
-    exit
-    ;;
-  -c | *copy)
-    shift 1
-    __copy_templates "$@"
-    exit $?
-    ;;
-  -g | *config)
-    shift 1
-    __config
-    __copy_templates "$@"
-    exit $?
+-a | --all)
+  shift 1
+  __gen_opts "$@"
+  exit
+  ;;
+-c | *copy)
+  shift 1
+  __copy_templates "$@"
+  exit $?
+  ;;
+-g | *config)
+  shift 1
+  __config
+  __copy_templates "$@"
+  exit $?
   ;;
 
-  -f | *funct*)
-    shift 1
-    [ "$1" = -u ] && gen_header_user=true && shift 1
-    [ $# -lt 2 ] || printf_exit "Only takes a filename as an argument"
-    printf_green "New functions info for ${1:-template}"
-    __gen_functions ${1:-template}
-    printf_green "End of functions"
+-f | *funct*)
+  shift 1
+  [ "$1" = -u ] && gen_header_user=true && shift 1
+  [ $# -lt 2 ] || printf_exit "Only takes a filename as an argument"
+  printf_green "New functions info for ${1:-template}"
+  __gen_functions ${1:-template}
+  printf_green "End of functions"
   exit $?
   ;;
 
@@ -760,4 +799,3 @@ printf_newline ""
 exit ${exitCode:-$?}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

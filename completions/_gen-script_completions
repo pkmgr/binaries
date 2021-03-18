@@ -6,13 +6,16 @@
 # @License       : WTFPL
 # @ReadME        : gen-script --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Friday, Feb 05, 2021 11:22 EST
+ @Created       : Friday, Feb 05, 2021 11:22 EST
 # @File          : gen-script
 # @Description   : autocomplete for gen-script
 # @TODO          :
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+mkdir -p "$HOME/.config/gen-script" &>/dev/null
+mkdir -p "$HOME/.local/share/gen-script" &>/dev/null
+gen-script -a -all &>/dev/null
 _gen-script() {
   local cur prev words cword
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -23,6 +26,7 @@ _gen-script() {
   fi
   mkdir -p "$HOME/.config/gen-script"
   local CONFDIR="$HOME/.config/gen-script"
+  local OPTSDIR="$HOME/.local/share/gen-script"
   local SEARCHCMD="$(find -L $CONFDIR -maxdepth 3 -type f | sed 's#'$CONFDIR/'##g' | grep '^' || return 1)"
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local FOLDERS="$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/)"
@@ -34,9 +38,9 @@ _gen-script() {
   local ALL="$(find $GEN_SCRIPTS_TEMPLATE_DIR -type f | sed 's#'$GEN_SCRIPTS_TEMPLATE_DIR/'##g' 2>/dev/null)"
   local ARRAY="$FOLDERS"
   local SHOW_COMP_OPTS=""
-  local SHORTOPTS="$(gen-script -a --short)"
-  local LONGOPTS="$(gen-script -a --long)"
-  local HEADEROPTS="$(gen-script -a --header)"
+  local SHORTOPTS=""
+  local LONGOPTS="$(<"$OPTSDIR/optlong-long.txt")"
+  local HEADEROPTS="$(<"$OPTSDIR/opt-header.txt)"
   local ARGS="${SHORTOPTS} ${LONGOPTS}"
 
   _init_completion || return

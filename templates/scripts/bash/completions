@@ -18,6 +18,7 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local CONFFILE="settings.conf"
   local CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPT_REPLACE_FILENAME"
+  local OPTSDIR="$HOME/.local/share/misc/options/GEN_SCRIPT_REPLACE_FILENAME"
   local SEARCHDIR="$HOME/.config/misc/settings/GEN_SCRIPT_REPLACE_FILENAME"
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local FUNCTIONSDIR="${HOME/.local/share/CasjaysDev/functions}"
