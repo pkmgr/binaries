@@ -184,7 +184,7 @@ __dedup() {
   shift $#
   if grep -qx "$_MSG" "$_NOTESP"; then
     DEDUP=true
-    if [ "${NOTES_DEDUP_NOTIFY:-$DEDUP_NOTIFY}" = "yes" ] && ${3:-true}; then
+    if [ "${NOTES_DEDUP_NOTIFY:-$DEDUP_NOTIFY}" = "yes" ]; then
       _notifications "NotesCLI" "$_MSG already added to $_NOTESP"
     fi
     return 1
@@ -255,7 +255,7 @@ __server() {
   fi
   timeout ${NOTES_SERVER_TIMEOUT:-600} $netcat -l -p $_PORT >"$_TMPFILE"
   message="$(<"$_TMPFILE")"
-  if __dedup "$message" "$NOTES_PATH" "__file_not_empty $_TMPFILE"; then
+  if __dedup "$message" "$NOTES_PATH"; then
     __update_notes "$message" "$NOTES_PATH" "$NOTES_LOG_FILE"
   else
     errormsg="$message seemes to be duplicate"
@@ -270,8 +270,9 @@ __server() {
     rm -Rf "$_KILL"
     echo "Notes server is shutting down" >>"$NOTES_LOG_FILE"
     _notifications "Notes Server" "Notes server is shutting down"
-    exit $?
+    exit 5
   fi
+  unset message
   __server --loop
   #notes --server --start --loop
 }
