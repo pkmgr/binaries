@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#----------------
+printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
+printf_head() { printf_help "4" "############################" "$1"; }
+printf_help() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local msg="$*"
+  shift
+  printf_color "\t\t$msg\n" "$color"
+}
+#----------------
+printf_help "4" "Usage: gen-script template filename options"
+printf_head "4" "############################ Main options"
+printf_help "4" "-a, --options               - Generates the options file for completion"
+printf_help "4" "-c, --copy                  - Copy the sample scripts to ~/.config/gen-script/files"
+printf_help "4" "-g. --config                - Creates the config file"
+printf_help "4" "-f, --function              - Generates the function options"
+printf_help "4" "-head, --header             - Generates header: See header options"
+printf_head "4" "############################ Header options"
+printf_help "4" "-h, --help                  -  Show this message"
+printf_help "4" "-a, --all                   -  Show options"
+printf_help "4" "-f, --functions             -  Shows functions"
+printf_help "4" "-d, --description           -  Creates the description for file header"
+printf_help "4" "-t, --todo                  -  Add a TODO to file header"
+printf_help "4" "-c, --copy                  -  Adds a copyrigth to file header"
+printf_help "4" "-o, --other                 -  Adds an other to the file header"
+printf_help "4" "-r, --res                   -  Adds resources to the file header"
+printf_help "4" "-i, --type                  -  Adds type to functions: user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr"
+printf_help "4" "-p, --prev                  -  Will set header based on an existing file"
+printf_help "4" "-u, --user                  -  Generate a script for suitable for local user"
+printf_help "4" "-l, --license               -  Adds the license type to header"
+printf_help "4" "-e, --no                    -  Don't ask to edit file"
+printf_help "4" "-k, --keep                  -  Will not overwrite an existing file"
+printf_help "4" "--replace                   -  Imports and creates a new header to replace an older one"
+printf_help "4" "--raw                       -  Generate a raw header"

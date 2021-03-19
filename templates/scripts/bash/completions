@@ -23,7 +23,7 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local FUNCTIONSDIR="${HOME/.local/share/CasjaysDev/functions}"
   local DEFAULTOPTS="$(GEN_SCRIPT_REPLACE_FULLFILENAME -a || echo -v -h -a)"
-  local DEFAULTARRAY="$(GEN_SCRIPT_REPLACE_FULLFILENAME -l || echo )"
+  local DEFAULTARRAY="$(GEN_SCRIPT_REPLACE_FULLFILENAME -l || echo)"
   local SEARCHCMD="$(find -L $SEARCHDIR -maxdepth 3 -type f | sed 's#'$CONFDIR/'##g' | grep '^' || return 1)"
   local SHOW_COMP_OPTS=""
   local SHORTOPTS=""
@@ -44,9 +44,9 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
     COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
   else
     case $prev in
-      *)
-       if [ -n "$FILEDIR" ]; then
-          _filedir
+    *)
+      if [ -n "$FILEDIR" ]; then
+        _filedir
       fi
       if [[ "$ARRAY" = "show-commands" ]]; then
         COMPREPLY=($(compgen -c -- "${cur}"))
@@ -67,4 +67,3 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _GEN_SCRIPT_REPLACE_FILENAME GEN_SCRIPT_REPLACE_FILENAME
-

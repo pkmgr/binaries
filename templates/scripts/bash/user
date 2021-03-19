@@ -1,70 +1,71 @@
 #!/usr/bin/env bash
 GEN_SCRIPT_REPLACE_FILENAME() {
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="GEN_SCRIPT_REPLACE_FILENAME"
-VERSION="GEN_SCRIPT_REPLACE_VERSION"
-USER="${SUDO_USER:-${USER}}"
-HOME="${USER_HOME:-${HOME}}"
-SRC_DIR="${BASH_SOURCE%/*}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#set opts
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  PROG="GEN_SCRIPT_REPLACE_FILENAME"
+  VERSION="GEN_SCRIPT_REPLACE_VERSION"
+  USER="${SUDO_USER:-${USER}}"
+  HOME="${USER_HOME:-${HOME}}"
+  SRC_DIR="${BASH_SOURCE%/*}"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  #set opts
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : GEN_SCRIPT_REPLACE_VERSION
-# @Author        : GEN_SCRIPT_REPLACE_AUTHOR
-# @Contact       : GEN_SCRIPT_REPLACE_EMAIL
-# @License       : GEN_SCRIPT_REPLACE_LICENSE
-# @ReadME        : GEN_SCRIPT_REPLACE_FILENAME --help
-# @Copyright     : GEN_SCRIPT_REPLACE_COPYRIGHT
-# @Created       : GEN_SCRIPT_REPLACE_DATE
-# @File          : GEN_SCRIPT_REPLACE_FILENAME
-# @Description   : GEN_SCRIPT_REPLACE_DESC
-# @TODO          : GEN_SCRIPT_REPLACE_TODO
-# @Other         : GEN_SCRIPT_REPLACE_OTHER
-# @Resource      : GEN_SCRIPT_REPLACE_RES
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main function file
-if [ -f "$SRC_DIR/functions.bash" ]; then
-  FUNCTIONS_DIR="$SRC_DIR"
-  . "$FUNCTIONS_DIR/functions.bash"
-elif [ -f "$HOME/.local/bin/functions.bash" ]; then
-  FUNCTIONS_DIR="$HOME/.local/bin"
-  . "$FUNCTIONS_DIR/functions.bash"
-else
-  printf "\t\t\033[0;31m%s \033[0m\n" "Couldn't source the functions file from $FUNCTIONS_DIR"
-  return 1
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# helper function
-__help() {
-  app_help "Usage: GEN_SCRIPT_REPLACE_FILENAME  -  GEN_SCRIPT_REPLACE_FILENAME --version"  \
-    "-f, --file             -  set filename" \
-    "-d, --dir              -  set working dir" \
-    "-c, --config           -  create config file" \
-    "-v, --version          -  display version" \
-    "-h, --help             -  display help"
-  exit
-}
-__version() { app_version; }
-__gen_config() {
-  printf_green "Generating the config file in"
-  printf_green "$CONFDIR/$CONFFILE"
-  [ -d "$CONFDIR" ] || mkdir -p "$CONFDIR"
-  [ -f "$CONFDIR/$CONFFILE" ] && cp -Rf "$CONFDIR/$CONFFILE" "$CONFDIR/$CONFFILE.$$"
-  cat <<EOF > "$CONFDIR/$CONFFILE"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  ##@Version       : GEN_SCRIPT_REPLACE_VERSION
+  # @Author        : GEN_SCRIPT_REPLACE_AUTHOR
+  # @Contact       : GEN_SCRIPT_REPLACE_EMAIL
+  # @License       : GEN_SCRIPT_REPLACE_LICENSE
+  # @ReadME        : GEN_SCRIPT_REPLACE_FILENAME --help
+  # @Copyright     : GEN_SCRIPT_REPLACE_COPYRIGHT
+  # @Created       : GEN_SCRIPT_REPLACE_DATE
+  # @File          : GEN_SCRIPT_REPLACE_FILENAME
+  # @Description   : GEN_SCRIPT_REPLACE_DESC
+  # @TODO          : GEN_SCRIPT_REPLACE_TODO
+  # @Other         : GEN_SCRIPT_REPLACE_OTHER
+  # @Resource      : GEN_SCRIPT_REPLACE_RES
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Main function file
+  if [ -f "$SRC_DIR/functions.bash" ]; then
+    FUNCTIONS_DIR="$SRC_DIR"
+    . "$FUNCTIONS_DIR/functions.bash"
+  elif [ -f "$HOME/.local/bin/functions.bash" ]; then
+    FUNCTIONS_DIR="$HOME/.local/bin"
+    . "$FUNCTIONS_DIR/functions.bash"
+  else
+    printf "\t\t\033[0;31m%s \033[0m\n" "Couldn't source the functions file from $FUNCTIONS_DIR"
+    return 1
+  fi
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # helper function
+  __help() {
+    app_help "Usage: GEN_SCRIPT_REPLACE_FILENAME  -  GEN_SCRIPT_REPLACE_FILENAME --version" \
+      "-f, --file             -  set filename" \
+      "-d, --dir              -  set working dir" \
+      "-c, --config           -  create config file" \
+      "-v, --version          -  display version" \
+      "-h, --help             -  display help"
+    exit
+  }
+  __version() { app_version; }
+  __gen_config() {
+    printf_green "Generating the config file in"
+    printf_green "$CONFDIR/$CONFFILE"
+    [ -d "$CONFDIR" ] || mkdir -p "$CONFDIR"
+    [ -f "$CONFDIR/$CONFFILE" ] && cp -Rf "$CONFDIR/$CONFFILE" "$CONFDIR/$CONFFILE.$$"
+    cat <<EOF >"$CONFDIR/$CONFFILE"
 # Settings for GEN_SCRIPT_REPLACE_FILENAME
 
 EOF
-  if [ -f "$CONFDIR/$CONFFILE" ]; then printf_green "Your config file for GEN_SCRIPT_REPLACE_FILENAME has been created"
-  else printf_red "Failed to create the config file"; fi
-  exit $?
-}
-__list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' && exit; }
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main function
-  local SETARGS="$@"
+    if [ -f "$CONFDIR/$CONFFILE" ]; then
+      printf_green "Your config file for GEN_SCRIPT_REPLACE_FILENAME has been created"
+    else printf_red "Failed to create the config file"; fi
+    exit $?
+  }
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Main function
+  local SETARGS="$*"
   local SHORTOPTS="a,c,v,h,d:,f:"
   local LONGOPTS="all,config,version,help,dir:,file:"
+  __list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' && exit; }
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   local CONFFILE="settings.conf"
   local CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPT_REPLACE_FILENAME"
@@ -80,18 +81,27 @@ __list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LO
   eval set -- "$setopts" 2>/dev/null
   while :; do
     case $1 in
-      -a | --all) __list_options ;;
-      -v | --version) __version ;;
-      -h | --help) __help ;;
-      -c | --config) __gen_config ;;
-      -d | --dir) MYCURRDIR="$2"; shift 1 ;;
-      -f | --file); MYCURRFILE="$2"; shift 1 ;;
-      --) shift 1; break ;;
-      *) break ;;
+    -a | --all) __list_options ;;
+    -v | --version) __version ;;
+    -h | --help) __help ;;
+    -c | --config) __gen_config ;;
+    -d | --dir)
+      MYCURRDIR="$2"
+      shift 1
+      ;;
+    -f | --file)
+      MYCURRFILE="$2"
+      shift 1
+      ;;
+    --)
+      shift 1
+      break
+      ;;
+      #*) break ;;
     esac
     shift
   done
-  set -- $SETARGS
+  set -- "$SETARGS"
   [ -d "$MYCURRDIR" ] || printf_mkdir "$MYCURRDIR"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Required app check
@@ -99,7 +109,7 @@ __list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LO
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
   case ${OPTS:-$1} in
-    *) printf_green "Version:$VERSION DIR=$MYCURRDIR" ;;
+  *) printf_green "Version:$VERSION DIR=$MYCURRDIR" ;;
   esac
   # lets exit with code
   return "${exitCode:-0}"
@@ -111,4 +121,3 @@ GEN_SCRIPT_REPLACE_FILENAME "$@"
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-
