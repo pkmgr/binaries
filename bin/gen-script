@@ -167,17 +167,20 @@ printf_blue "Setting header options"
 }
 # Set up options
 __header_opts() {
-  local LONGOPTS="a:,no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace,keep"
-  local SHORTOPTS="all:,e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
+  local LONGOPTS="all:,no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,funct*:,name:,prev,replace,keep"
+  local SHORTOPTS="a:,e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
   local parsed=$(getopt --options="$SHORTOPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
   eval set -- "${parsed[@]}" 2>/dev/null
   while :; do
     case "$1" in
     -a | --all)
-      [ "$1" = --long ] && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
-      [ "$1" = --short ] && echo "-$SHORTOPTS " | sed 's#:##g;s#,# -#g'
-      [ "$1" = --all ] && echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo -n "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
-      shift $#
+      shift 1
+      if [ "$1" = "--long" ]; then echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g'; fi
+      if [ "$1" = "--short" ]; then echo "-$SHORTOPTS " | sed 's#:##g;s#,# -#g';fi
+      if [ "$1" = "--all" ]; then
+        echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g'
+        echo -n "--$LONGOPTS " | sed 's#:##g;s#,# --#g'
+      fi
       return 0
       ;;
     -h | --help)
@@ -647,36 +650,40 @@ __find_file() {
   __set_header "$dest" "$@"
 }
 __gen_opts() {
+  local OPTS="$@"
+  shift $#
   [ -d "$GEN_SCRIPT_OPTSDIR" ] || __mkd "$GEN_SCRIPT_OPTSDIR"
   if [ -z "$gen_opts_seen" ]; then
     printf_green "Generating to opts files for bash completion"
   fi
-  [ -n "$1" ] && __GEN_OPTS=true
-  if [[ "$1" = --help ]]; then
+  [ -n "$OPTS" ] && __GEN_OPTS=true
+  if [[ "$OPTS" = "" ]] && [[ -z "$__GEN_OPTS" ]]; then
+    __header_opts -a --long
+    echo "-config -function -header -installers -os -shell -all -copy"
+    printf_newline
+  fi
+  if [[ "$OPTS" = --help ]]; then
     printf_blue "-create        -  create all opts files"
     printf_blue "-header        -  create header opts files"
     printf_blue "-long          -  create gen-script opt file"
     return
   fi
-  if [[ "$1" = *create ]]; then
-    __rm_rf "$GEN_SCRIPT_OPTSDIR/*"
-    __header_opts "-a" "--long" >"$GEN_SCRIPT_OPTSDIR/opt-header.txt"
-    echo "-c -g -f -h -i -o -s -i" >"$GEN_SCRIPT_OPTSDIR/optshort-header.txt"
+  if [[ "$OPTS" = -create ]]; then
+    __rm_rf "$GEN_SCRIPT_OPTSDIR"
+    __mkd "$GEN_SCRIPT_OPTSDIR"
+    __gen_opts "-header"
+    __gen_opts "-short"
+    __gen_opts "-long"
+  fi
+  if [[ "$OPTS" = -header ]]; then
+    __header_opts "-a" "--long" >"$GEN_SCRIPT_OPTSDIR/opts-header.txt"
+  fi
+  if [[ "$OPTS" = -short ]]; then
+    echo "-c -g -f -h -i -o -s -i" >"$GEN_SCRIPT_OPTSDIR/opts-short.txt"
+    __header_opts "-a" "--short" >>"$GEN_SCRIPT_OPTSDIR/opts-short.txt"
+  fi
+  if [[ "$OPTS" = -long ]]; then
     echo "-config -function -header -installers -os -shell -all -copy" >"$GEN_SCRIPT_OPTSDIR/opts.txt"
-  fi
-  if [[ "$1" = *header ]]; then
-    __header_opts "-a" "--long" >"$GEN_SCRIPT_OPTSDIR/opt-header.txt"
-  fi
-  if [[ "$1" = *short ]]; then
-    echo "-c -g -f -h -i -o -s -i" >"$GEN_SCRIPT_OPTSDIR/optshort-header.txt"
-  fi
-  if [[ "$1" = *long ]]; then
-    echo "-config -function -header -installers -os -shell -all -copy" >"$GEN_SCRIPT_OPTSDIR/opts.txt"
-  fi
-  if [[ "$1" = "" ]] && [[ -z "$__GEN_OPTS" ]]; then
-    __header_opts "-a" "--long"
-    echo "-config -function -header -installers -os -shell -all -copy"
-    printf_newline
   fi
   gen_opts_seen=true
   return
@@ -684,9 +691,9 @@ __gen_opts() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script"
 [ -d "$HOME/.config/gen-script" ] || __mkd "$HOME/.config/gen-script"
-[ -f "$GEN_SCRIPT_OPTSDIR/opt-header.txt" ] || __gen_opts "header"
-[ -f "$GEN_SCRIPT_OPTSDIR/gen-script/optshort-header.txt" ] || __gen_opts "short"
-[ -f "$GEN_SCRIPT_OPTSDIR/optlong-long.txt" ] || __gen_opts "long"
+[ -f "$GEN_SCRIPT_OPTSDIR/opt-header.txt" ] || __gen_opts "-header"
+[ -f "$GEN_SCRIPT_OPTSDIR/optshort-header.txt" ] || __gen_opts "-short"
+[ -f "$GEN_SCRIPT_OPTSDIR/optlong-long.txt" ] || __gen_opts "-long"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$1" in
