@@ -28,7 +28,7 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   local SHOW_COMP_OPTS=""
   local SHORTOPTS=""
   local LONGOPTS=""
-  local ARGS="${DEFAULTOPTS} ${SHORTOPTS} ${LONGOPTS}"
+  local ARGS="${DEFAULTOPTS}"
   local ARRAY=""
 
   _init_completion || return
@@ -38,8 +38,10 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
     compopt -o $SHOW_COMP_OPTS_SEP
   fi
 
-  if [[ ${cur} == -* ]]; then
-    COMPREPLY=($(compgen -W '${ARGS}' -- ${cur}))
+  if [[ ${cur} == --* ]]; then
+    COMPREPLY=($(compgen -W '${LONGOPTS}' -- ${cur}))
+  elif [[ ${cur} == -* ]]; then
+    COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
   else
     case $prev in
       *)

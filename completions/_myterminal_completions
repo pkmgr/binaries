@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+_myterminal() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 020520211122-git
 # @Author        : Jason Hempstead
@@ -13,7 +14,6 @@
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_myterminal() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
   local cur="${COMP_WORDS[COMP_CWORD]}"

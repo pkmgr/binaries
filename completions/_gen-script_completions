@@ -13,10 +13,10 @@
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f /home/jason/.local/share/gen-script/opts.txt ]; then
- mkdir -p "$HOME/.config/gen-script" &>/dev/null
- mkdir -p "$HOME/.local/share/gen-script" &>/dev/null
- gen-script -a -create &>/dev/null
+if [ ! -f "$HOME/.local/share/gen-script/opts.txt" ]; then
+  mkdir -p "$HOME/.config/gen-script" &>/dev/null
+  mkdir -p "$HOME/.local/share/gen-script" &>/dev/null
+  gen-script -a -create &>/dev/null
 fi
 _gen-script() {
   local cur prev words cword
@@ -38,11 +38,11 @@ _gen-script() {
   local OTHER=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/other/ 2>/dev/null)
   local INSTALLERS=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/installers/ 2>/dev/null)
   local ALL="$(find $GEN_SCRIPTS_TEMPLATE_DIR -type f | sed 's#'$GEN_SCRIPTS_TEMPLATE_DIR/'##g' 2>/dev/null)"
-  local ARRAY="$FOLDERS"
+  local ARRAY="all ${FOLDERS}"
   local SHOW_COMP_OPTS=""
   local SHORTOPTS="$(<"$OPTSDIR/opts-short.txt")"
   local LONGOPTS="$(<"$OPTSDIR/opts.txt")"
-  local HEADEROPTS="$(<"$OPTSDIR/opts-header.txt")"
+  local HEADEROPTS="$(<"$OPTSDIR/opts-header.txt"))"
   local ARGS="${SHORTOPTS} ${LONGOPTS}"
 
   _init_completion || return
@@ -51,46 +51,43 @@ _gen-script() {
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
     compopt -o ${SHOW_COMP_OPTS_SEP}
   fi
-  if [[ ${cur} == -* ]]; then
+  if [[ ${cur} == --* ]]; then
+    COMPREPLY=($(compgen -W '${HEADEROPTS}' -- ${cur}))
+  elif [[ ${cur} == -* ]]; then
     COMPREPLY=($(compgen -W '${ARGS}' -- ${cur}))
   else
-  case $prev in
-  all)
-    shift 1
-    COMPREPLY=($(compgen -W '$ALL' -- "$cur"))
-    return
-    ;;
-  installers)
-    shift 1
-    COMPREPLY=($(compgen -W '$INSTALLERS' -- "$cur"))
-    return 0
-    ;;
-  bash)
-    shift 1
-    COMPREPLY=($(compgen -W '$BASH' -- "$cur"))
-    return 0
-    ;;
-  shell)
-    shift 1
-    COMPREPLY=($(compgen -W '$SHELL' -- "$cur"))
-    return 0
-    ;;
-  os)
-    shift 1
-    COMPREPLY=($(compgen -W '$OS' -- "$cur"))
-    return 0
-    ;;
-  other)
-    shift 1
-    COMPREPLY=($(compgen -W '$OTHER' -- "$cur"))
-    return
-    ;;
-  header)
-    shift 1
-    COMPREPLY=($(compgen -W '$HEADEROPTS' -- "$cur"))
-    return 0
-    ;;
-  *)
+    case $prev in
+    all)
+      COMPREPLY=($(compgen -W '${ALL}' -- "${cur}"))
+      return 0
+      ;;
+    installers)
+      COMPREPLY=($(compgen -W '${INSTALLERS}' -- "${cur}"))
+      return 0
+      ;;
+    bash)
+      COMPREPLY=($(compgen -W '${BASH}' -- "${cur}"))
+      return 0
+      ;;
+    shell)
+      COMPREPLY=($(compgen -W '${SHELL}' -- "${cur}"))
+      return 0
+      ;;
+    os)
+      COMPREPLY=($(compgen -W '${OS}' -- "${cur}"))
+      return 0
+      ;;
+    other)
+      COMPREPLY=($(compgen -W '${OTHER}' -- "${cur}"))
+      return 0
+      ;;
+    -header)
+      if [[ ${cur} != -* ]]; then
+        COMPREPLY=($(compgen -c -- "${cur}"))
+      fi
+      return 0
+      ;;
+    *)
       if [ "$ARRAY" = "show-commands" ]; then
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [ "$ARRAY" = "show-none" ]; then
@@ -102,14 +99,13 @@ _gen-script() {
       elif [ -n "$OPTS" ]; then
         COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       else
-    COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
+        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       fi
-    return 0
-    ;;
-  esac
+      #return 0
+      ;;
+    esac
   fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _gen-script -o default gen-script
-

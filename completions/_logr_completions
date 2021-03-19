@@ -24,7 +24,6 @@ _logr() {
 
   case $prev in
   --open)
-    shift 1
     COMPREPLY=($(compgen -W '${OPEN}' -- "$cur"))
     return 0
     ;;
