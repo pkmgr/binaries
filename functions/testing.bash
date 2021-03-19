@@ -797,6 +797,9 @@ __netcat_kill_server() {
     ${prints} "${succ}" || ${printf} "${fail}"
   sleep 2
 }
+#file_is_emtpy return 1
+__file_not_empty() { [ -s "$1" ] && return 0 || return 1; }
+__file_is_empty() { [ ! -s "$1" ] && return 0 || return 1; }
 #Sets the title
 #__title_info() { echo -n "$USER@$HOSTNAME:$APPNAME"; }
 #sed "commands"
