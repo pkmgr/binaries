@@ -169,18 +169,39 @@ EOF
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
 __nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE" || return 1; }
-__local() { if [ "$NOTES_SERVER_NAME" = "$(hostname -f)" ] || [ "$NOTES_SERVER_NAME" = "localhost" ]; then return 1; else return 0; fi; }
-__notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "vim ${1:-$NOTES_PATH}" &>/dev/null || return 1; }
+__local() { if [ "$NOTES_SERVER_NAME" = "$(hostname -f)" ] || [ "$NOTES_SERVER_NAME" = "$(hostname -s)" ] || \
+  [ "$NOTES_SERVER_NAME" = "localhost" ]; then return 1; else return 0; fi; }
+  __notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "${NOTES_EDITOR:-vim} ${1:-$NOTES_PATH}" &>/dev/null || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__dedup() {
+  local _NOTESP=${2:-$NOTES_PATH}
+  if grep -qx "$1" "$_NOTESP"; then
+    DEDUP=false
+    _notifications "NotesCLI" "Note has already been added to $_NOTESP"
+    return 1
+  else
+    return 0
+  fi
+}
+#__update_notes "$message" "${NOTES_PATH}"
+__update_notes() {
+  if __dedup "$1" "$2"; then
+    printf "%s\n" "$1" >>"${NOTES_PATH}" && _notifications "New Note" "$1\nposted to\n$2"
+  else
+    return 1
+  fi
+}
 __sync_tmp() {
   local _NOTESP="${1:-$NOTES_PATH}"
   local _TPATH="${2:-$_PATH}"
   shift
-  if [ -n "$_TPATH" ]; then cat "$_NOTESP" "$_TPATH" >"$NOTES_TMPDIR/notes_cli.tmp" && __mv_f "$NOTES_TMPDIR/notes_cli.tmp" "$_NOTESP"; fi
+  if [ -n "$_TPATH" ]; then cat "$_NOTESP" "$_TPATH" >"$NOTES_TMPDIR/notes_cli.tmp" && \
+    __mv_f "$NOTES_TMPDIR/notes_cli.tmp" "$_NOTESP"; fi
   [ -f "$NOTES_DIRECTORY/all.txt" ] && __sync_all && echo synced >>"$NOTES_LOG_FILE"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __sync_all() {
+  [ -z "$DEDUP" ] || return
   local exitCode=0
   local _NOTESP=${1:-$NOTES_PATH}
   local _NOTESA="${2:-$NOTES_DIRECTORY/all.txt}"
@@ -269,7 +290,8 @@ __client() {
   printf "%s\n" "$*" >"${_PATH}" 2>>$NOTES_TMPDIR/notes_client
   cat "$_PATH" 2>>$NOTES_TMPDIR/notes_client | __nc_send "$_SERVER" "$_PORT" 2>>$NOTES_TMPDIR/notes_client || __failed
   if [ "$NOTES_NOTIFY" = "yes" ]; then
-    [ $? = 0 ] && _notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" || _notifications "NotesCLI" "Sending of note failed"
+    [ $? = 0 ] && _notifications "New note" "$(cat $_PATH)\nPosted to: ${NOTES_PATH}" || \
+      _notifications "NotesCLI" "Sending of note failed"
   fi
   __local && __sync_tmp "$NOTES_PATH" "$_PATH"
   rm -Rf "$_PATH"
@@ -538,15 +560,15 @@ search)
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
       message="$(</dev/stdin)"
-      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+      __update_notes "$message" "${NOTES_PATH}"
     else
       echo "Type your note, hit control-d when done"
       message="$(</dev/stdin)"
-      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+      __update_notes "$message" "${NOTES_PATH}"
     fi
   else
       message="$*"
-      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+      __update_notes "$message" "${NOTES_PATH}"
   fi
   ;;
 
@@ -554,13 +576,13 @@ search)
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
       message="$(</dev/stdin)"
-      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+      __update_notes "$message" "${NOTES_PATH}"
     else
       __notes
     fi
   else
       message="$*"
-      printf "%s\n" "$message" >>"${NOTES_PATH}" && _notifications "New Note" "$message\nposted to\n$NOTES_PATH"
+      __update_notes "$message" "${NOTES_PATH}"
   fi
   __run_sync
   ;;
