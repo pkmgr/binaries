@@ -31,7 +31,7 @@ _gen-script() {
   local OPTSDIR="$HOME/.local/share/gen-script"
   local SEARCHCMD="$(find -L $CONFDIR -maxdepth 3 -type f | sed 's#'$CONFDIR/'##g' | grep '^' || return 1)"
   local cur="${COMP_WORDS[COMP_CWORD]}"
-  local FOLDERS="$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/)"
+  local FOLDERS="$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/ | grep -v ^'templates')"
   local OS=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/os/ 2>/dev/null)
   local SHELL=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/shell/ 2>/dev/null)
   local BASH=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/bash/ 2>/dev/null)
