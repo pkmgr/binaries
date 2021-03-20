@@ -392,11 +392,11 @@ __edit_header() {
   __sed "GEN_SCRIPT_REPLACE_APPNAME" "${GEN_SCRIPTS_NEWFILEDIR##*/}" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPT_REPLACE_CONFDIR=" "$GEN_SCRIPT_REPLACE_CONFDIR=" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPT_REPLACE_COPYRIGHT" "$GEN_SCRIPTS_COPYRIGHT" "$GEN_SCRIPTS_NEWFILE"
-  __sed "GEN_SCRIPT_REPLACE_VERSION" "$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
-  __sed "GEN_SCRIPT_REPLACE_FILENAME" "$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_VERSION" "$(__date "$GEN_SCRIPTS_VERSION")" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_FILENAME" "$(__filename "$GEN_SCRIPTS_NEWFILE")" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPT_REPLACE_FULLFILENAME" "$GEN_SCRIPTS_FULLPATH" "$GEN_SCRIPTS_NEWFILE"
-  __sed "GEN_SCRIPT_REPLACE_VERSION" "$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
-  __sed "GEN_SCRIPT_REPLACE_DATE" "$(__date "$GEN_SCRIPTS_DATEFMT" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_VERSION" "$(__date "$GEN_SCRIPTS_VERSION")" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_DATE" "$(__date "$GEN_SCRIPTS_DATEFMT")" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPT_REPLACE_LICENSE" "$GEN_SCRIPTS_DEFLICENSE" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPT_REPLACE_README" "$GEN_SCRIPTS_DEFREADME" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPT_REPLACE_AUTHOR" "$GEN_SCRIPTS_AUTHOR" "$GEN_SCRIPTS_NEWFILE"
@@ -711,7 +711,7 @@ __gen_opts() {
   [ -n "$OPTS" ] && __GEN_OPTS=true
   if [[ "$OPTS" = "" ]] && [[ -z "$__GEN_OPTS" ]]; then
     __header_opts -a --long
-    echo "-config -function -header -installers -os -shell -all -copy"
+    echo "-config -replace -function -header -installers -os -shell -all -copy"
     printf_newline
   fi
   if [[ "$OPTS" = --help ]]; then
