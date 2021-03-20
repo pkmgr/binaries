@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 GEN_SCRIPT_REPLACE_FILENAME() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  PROG="GEN_SCRIPT_REPLACE_FILENAME"
+  PROG="$(basename $0)"
   VERSION="GEN_SCRIPT_REPLACE_VERSION"
   USER="${SUDO_USER:-${USER}}"
   HOME="${USER_HOME:-${HOME}}"

@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-#----------------
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME_README="GEN_SCRIPT_REPLACE_APPNAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# This is what I use for my system scripts
+# REPLACE_THIS_WITH_HEADER_INFO
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_head() { printf_help "4" "############################" "$1"; }
 printf_help() {
@@ -8,8 +14,17 @@ printf_help() {
   shift
   printf_color "\t\t$msg\n" "$color"
 }
-#----------------
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Begin help
 printf_help "4" "Usage: "
 printf_head "4" "############################ Main options"
 printf_help "4" ""
 printf_help "4" "-h, --help                  - Shows this message"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end help
+printf '\n'
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#exit "${exitCode:-1}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

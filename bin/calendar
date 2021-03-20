@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="calendar"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : calendar
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : A calendar written in bash
-# @Source      : https://github.com/coreymwamba/estonta
+##@Version       : 202103200332-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : calendar --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 03:32 EDT
+# @File          : calendar
+# @Description   : A calendar written in bash
+# @TODO          :
+# @Other         :
+# @Resource      : https://github.com/coreymwamba/estonta
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,15 +36,14 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ "$1" = "--version" ] && get_app_info "$APPNAME"
 [ "$1" = "--help " ] && printf_exit "A calendar written in bash"
 [[ "$1" = -y ]] && __cmd_exists cal && cal -y | printf_readline && exit || true
 CAL_CONFIG="$HOME/.config/local/calendar.local"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 gen_config() {
@@ -59,10 +65,10 @@ MESSAGE="$(date +"Today is: %A %B %d, %Y and the time is: %H:%M")"
 }
 
 if [ -f "$HOME/.config/local/calendar.local" ]; then
-  source "$HOME/.config/local/calendar.local"
+  . "$HOME/.config/local/calendar.local"
 else
   gen_config "$CAL_CONFIG"
-  source "$HOME/.config/local/calendar.local"
+  . "$HOME/.config/local/calendar.local"
 fi
 [ -z "$MESSAGE" ] && MESSAGE="$(date +'Today is: %A %B %d, %Y and the time is: %H:%M')"
 printf_custom "3" "$MESSAGE"
@@ -80,7 +86,7 @@ containsElement() {
 initialise() {
   if [[ ! -s "$eventpath" ]]; then
     mkdir -p "$eventpath" 2>/dev/null
-    echo "New directory created at $eventpath."
+    printf_geen "New directory created at $eventpath."
   fi
 }
 

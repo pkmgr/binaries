@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="gen-script"
+PROG="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -69,22 +69,22 @@ GEN_SCRIPT_OPTSDIR="$HOME/.local/share/gen-script"
 GEN_SCRIPTS_CONFIG_DIR="$HOME/.config/gen-script"
 GEN_SCRIPTS_BACKUP_DIR="$GEN_SCRIPTS_CONFIG_DIR/backups"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -d "$HOME/.config/gen-script/files" ]; then
-  GEN_SCRIPTS_TEMPLATE_DIR="$HOME/.config/gen-script/files"
+if [ -d "$GEN_SCRIPTS_CONFIG_DIR/files" ]; then
+  GEN_SCRIPTS_TEMPLATE_DIR="$GEN_SCRIPTS_CONFIG_DIR/files"
 else
   GEN_SCRIPTS_TEMPLATE_DIR="${GEN_SCRIPTS_TEMPLATE_DIR:-$CASJAYSDEVDIR/templates/scripts}"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/gen-script/settings" ] && . "$HOME/.config/gen-script/settings"
+[ -f "$GEN_SCRIPTS_CONFIG_DIR/settings" ] && . "$GEN_SCRIPTS_CONFIG_DIR/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 REPLACE_VERSION="$(date +"${GEN_SCRIPTS_VERSION}" 2>/dev/null)"
 REPLACE_CREATED="$(date +"${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$(__count_files $HOME/.config/gen-script/files "3")" -eq 0 ]; then
-  __mkd "$HOME/.config/gen-script/files"
+if [ "$(__count_files $GEN_SCRIPTS_CONFIG_DIR/files "3")" -eq 0 ]; then
+  __mkd "$GEN_SCRIPTS_CONFIG_DIR/files"
   if [ "$(__count_files "$CASJAYSDEVDIR/templates/scripts" "2")" -ne 0 ]; then
     printf_green "Setting up the Scripts directory"
-    __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
+    __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$GEN_SCRIPTS_CONFIG_DIR/files/"
   else
     printf_exit "1" "1" "No scripts exist"
   fi
@@ -100,6 +100,8 @@ __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exi
 __check_header() { grep ^'#.@Version' "$(__fullfilename "$filename")" 2>/dev/null | head -n1 | grep '^' | grep -q ' : ' || return 1; }
 __remove_opts() { echo "$*" | tr ' ' '\n' | grep -v '^-' | head -n1 | grep '^' || return 1; }
 __gen_confdir() { __to_uppercase "${1:-$filename}"; }
+__print_wait() { printf_pause "$*" && printf_newline "\n"; }
+__prev_readme() { grep -R ^'printf_help "." ' "$1"; }
 __get_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "$filename")"
@@ -170,18 +172,18 @@ __replace_header() {
     [ -z "$res" ] && res="$get_other"
     cat <<EOF | tee
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
-# @Author        : $GEN_SCRIPTS_AUTHOR
-# @Contact       : $GEN_SCRIPTS_EMAIL
-# @License       : $GEN_SCRIPTS_DEFLICENSE
-# @ReadME        : $GEN_SCRIPTS_DEFREADME
-# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
-# @Created       : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
-# @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
-# @Description   : ${desc:-}
-# @TODO          : ${todo:-}
-# @Other         : ${other:-}
-# @Resource      : ${res:-}
+##@Version          : $(__date "${GEN_SCRIPTS_VERSION}" 2>/dev/null)
+# @Author           : $GEN_SCRIPTS_AUTHOR
+# @Contact          : $GEN_SCRIPTS_EMAIL
+# @License          : $GEN_SCRIPTS_DEFLICENSE
+# @ReadME           : $GEN_SCRIPTS_DEFREADME
+# @Copyright        : $GEN_SCRIPTS_COPYRIGHT
+# @Created          : $(__date "${GEN_SCRIPTS_DATEFMT}" 2>/dev/null)
+# @File             : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
+# @Description      : ${desc:-}
+# @TODO             : ${todo:-}
+# @Other            : ${other:-}
+# @Resource         : ${res:-}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
   fi
@@ -192,7 +194,7 @@ __set_header() {
 }
 # Set up options
 __header_opts() {
-  local LONGOPTS="all:,no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,functions:,name:,prev,replace,keep"
+  local LONGOPTS="all:,no,help,user,raw,desc:,todo:,copy:,other:,res:,type:,functions:,name:,prev,replace,keep,pause"
   local SHORTOPTS="a:,e,h,d:,t:,c:,o:,r:,i:,f,n:,u,l:,p,k"
   local parsed=$(getopt --options="$SHORTOPTS" --longoptions="$LONGOPTS" -- "$@" 2>/dev/null)
   eval set -- "${parsed[@]}" 2>/dev/null
@@ -272,6 +274,9 @@ __header_opts() {
     --raw)
       gen_header_raw=true
       ;;
+    --pause)
+      pause=true
+      ;;
     --)
       break
       ;;
@@ -286,9 +291,9 @@ __header_opts() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config and saving it to:"
-  printf_cyan "$HOME/.config/gen-script/settings"
-  __rm_rf "$HOME/.config/gen-script/settings"
-  cat <<EOF >>"$HOME/.config/gen-script/settings"
+  printf_cyan "$GEN_SCRIPTS_CONFIG_DIR/settings"
+  __rm_rf "$GEN_SCRIPTS_CONFIG_DIR/settings"
+  cat <<EOF >>"$GEN_SCRIPTS_CONFIG_DIR/settings"
 GEN_SCRIPTS_EMAIL="$GEN_SCRIPTS_EMAIL"
 GEN_SCRIPTS_AUTHOR="$GEN_SCRIPTS_AUTHOR"
 GEN_SCRIPTS_COMPANY="$GEN_SCRIPTS_COMPANY"
@@ -299,7 +304,7 @@ GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_TEMPLATE_DIR="$GEN_SCRIPTS_TEMPLATE_DIR"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
 GEN_SCRIPT_REPLACE_CONFDIR="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_CONFIG_DIR"
-GEN_SCRIPTS_CONFIG_DIR="${GEN_SCRIPTS_CONFIG_DIR:-$HOME/.config/gen-script}"
+GEN_SCRIPTS_CONFIG_DIR="${GEN_SCRIPTS_CONFIG_DIR:-$GEN_SCRIPTS_CONFIG_DIR}"
 GEN_SCRIPTS_BACKUP_DIR="${GEN_SCRIPTS_BACKUP_DIR:-$GEN_SCRIPTS_CONFIG_DIR/backups}"
 # Make file options
 # Default ask
@@ -315,15 +320,15 @@ EOF
 __copy_files() {
   printf_green "Copying the template files"
   printf_yellow "from: $CASJAYSDEVDIR/templates/scripts"
-  printf_yellow "to: $HOME/.config/gen-script/files"
-  __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$HOME/.config/gen-script/files/"
+  printf_yellow "to: $GEN_SCRIPTS_CONFIG_DIR/files"
+  __cp_rf "$CASJAYSDEVDIR/templates/scripts/." "$GEN_SCRIPTS_CONFIG_DIR/files/"
 }
 
 __copy_templates() {
-  if [ -d "$HOME/.config/gen-script/files/.git" ]; then
-    am_i_online && git -C "$HOME/.config/gen-script/files" pull -q &>/dev/null && true || false
+  if [ -d "$GEN_SCRIPTS_CONFIG_DIR/files/.git" ]; then
+    am_i_online && git -C "$GEN_SCRIPTS_CONFIG_DIR/files" pull -q &>/dev/null && true || false
   else
-    if [ $(__count_files $HOME/.config/gen-script/files "3") -ne 0 ]; then
+    if [ $(__count_files $GEN_SCRIPTS_CONFIG_DIR/files "3") -ne 0 ]; then
       printf_read_question 6 "Would you like overwrite current files" "1" "COPY" "-s"
       if printf_answer_yes "$COPY"; then
         __copy_files
@@ -332,8 +337,90 @@ __copy_templates() {
       __copy_files
     fi
   fi
-  [ $? -eq 0 ] && [ -d "$HOME/.config/gen-script/files" ] &&
+  [ $? -eq 0 ] && [ -d "$GEN_SCRIPTS_CONFIG_DIR/files" ] &&
     printf_green "Install has succeeded" || printf_red "Install of the files failed"
+}
+
+__import_readme() {
+  type="${1:-system}"
+  if [ "$type" = user ]; then
+    cat <<EOF | tee
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME_README="GEN_SCRIPT_REPLACE_APPNAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# This is what I use for my user scripts
+# REPLACE_THIS_WITH_HEADER_INFO
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
+printf_help() {
+  printf "%b" "$(tput setaf "${2:-4}" 2>/dev/null)" "\t\t\$1" "\$(tput sgr0 2>/dev/null)"
+  printf '\n'
+}
+get_desc() {
+  local PATH="\$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
+  local appname="\$(type -P "\${PROG:-\$APPNAME}" 2>/dev/null || command -v "\${PROG:-\$APPNAME}" 2>/dev/null)"
+  local desc="\$(grep ^"# @Description" "\$appname" 2>/dev/null | grep ' : ' | sed 's#..* : ##g' | grep '^')"
+  if [ -n "\$desc" ]; then printf '%s' "\$desc"; else return 1; fi
+}
+printf_descr() {
+  if [ -n "\${PROG:-\$APPNAME}" ] && [ -n "\$(get_desc)" ]; then
+    printf_color "    \$(get_desc)" 6
+  else printf_help "\$1" "\${2:-10}"; fi
+}
+printf_head() { printf_help "4" "############################" "\$1"; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin
+printf_descr "    GEN_SCRIPT_REPLACE_DESC"
+printf_help "4" "Usage: "
+printf_head "4" "############################ Main options"
+printf_help "4" "-h, --help                  - Shows this message"
+. $(<"${2:-}")
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end help
+printf '\n'
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#exit "\${exitCode:-1}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end
+
+EOF
+  else
+    cat <<EOF | tee
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME_README="GEN_SCRIPT_REPLACE_APPNAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# This is what I use for my system scripts
+# REPLACE_THIS_WITH_HEADER_INFO
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
+printf_color() { printf "%b" "\$(tput setaf "$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
+printf_head() { printf_help "4" "############################" "\$1"; }
+printf_help() {
+  test -n "\$1" && test -z "\${1//[0-9]/}" && local color="\$1" && shift 1 || local color="4"
+  local msg="\$*"
+  shift
+  printf_color "\t\t\$msg\n" "\$color"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Begin help
+printf_help "4" "Usage: "
+printf_head "4" "############################ Main options"
+printf_help "4" "-h, --help                  - Shows this message"
+. $(<"${2:-}")
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end help
+printf '\n'
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#exit "\${exitCode:-0}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end
+
+EOF
+  fi
 }
 
 __makefile() {
@@ -413,22 +500,28 @@ __edit_header() {
 }
 
 __gen_header_help() {
-  printf_blue "-a: Show all options"
-  printf_blue "-d: Description"
-  printf_blue "-t: TODO"
-  printf_blue "-c: Copyright"
-  printf_blue "-o: Other"
-  printf_blue "-r: Resources"
-  printf_blue "-f: Include functions"
-  printf_blue "-i: Install function to use - user_install"
-  printf_blue "-n: Define the script APPNAME"
-  printf_blue "-l: Define license type"
-  printf_blue "--raw: Show raw headed"
-  printf_yellow "Types: user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr"
-  printf_yellow 'gen-script header filename -d "My Descr" -c "My Copy" -t "My TODO" -o "OTHER" -r "RESOURCE" -i "system" -f'
+  printf_blue "4" "Usage: gen-script -head filename options"
+  printf_blue "4" "############################ Header options"
+  printf_blue "4" "-h, --help                  -  Show this message"
+  printf_blue "4" "-a, --all                   -  Show options"
+  printf_blue "4" "-f, --functions             -  Shows functions"
+  printf_blue "4" "-d, --description           -  Creates the description for file header"
+  printf_blue "4" "-t, --todo                  -  Add a TODO to file header"
+  printf_blue "4" "-c, --copy                  -  Adds a copyrigth to file header"
+  printf_blue "4" "-o, --other                 -  Adds an other to the file header"
+  printf_blue "4" "-r, --res                   -  Adds resources to the file header"
+  printf_blue "4" "-i, --type                  -  Adds type to functions: user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr"
+  printf_blue "4" "-p, --prev                  -  Will set header based on an existing file"
+  printf_blue "4" "-u, --user                  -  Generate a script for suitable for local user"
+  printf_blue "4" "-l, --license               -  Adds the license type to header"
+  printf_blue "4" "-e, --no                    -  Don't ask to edit file"
+  printf_blue "4" "-k, --keep                  -  Will not overwrite an existing file"
+  printf_blue "4" "--replace                   -  Imports and creates a new header to replace an older one"
+  printf_blue "4" "--raw                       -  Generate a raw header"
   exit 0
 }
 __gen_header() {
+  [ -z "$pause" ] || { clear && printf_newline "\n\n\n"; }
   rerun() {
     unset gen_header_replace exitCode
     rerun=true
@@ -460,33 +553,40 @@ __gen_header() {
     __replace_header
   elif [ -n "$gen_header_raw" ]; then
     printf_blue "Showing the raw header template"
+    printf_newline
     __gen_header_raw || rerun
-  elif [ -f "$HOME/.config/gen-script/templates/headerfile" ] && [ -z "$gen_header_user" ]; then
-    printf_blue "header from $HOME/.config/gen-script/templates/headerfile"
+  elif [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/headerfile" ] && [ -z "$gen_header_user" ]; then
+    printf_blue "header from $GEN_SCRIPTS_CONFIG_DIR/templates/headerfile"
+    printf_newline
     cat <<EOF | tee
-$(. $HOME/.config/gen-script/templates/headerfile)
+$(. $GEN_SCRIPTS_CONFIG_DIR/templates/headerfile)
 EOF
   elif [ -n "$gen_header_user" ] && [ -z "$gen_header_raw" ]; then
     unset showFunctions
+    printf_newline
     __gen_template_user
   else
+    printf_newline
     __gen_template_system
   fi
   if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline; fi
-  [ ${exitCode:-$?} -ne 0 ] || printf_blue "Your header is ready for use\n"
+  [ ${exitCode:-$?} -ne 0 ] || printf_blue "Your header is ready for use"
+  [ -z "$pause" ] || __print_wait "Press any key when done"
+  printf_newline
+  return ${exitCode:-$?}
 }
 
 __gen_template_user() {
   if [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/gen_user.sh" ]; then
     cat <<EOF | tee
-$(. $HOME/.config/gen-script/templates/gen_user.sh)
+$(. $GEN_SCRIPTS_CONFIG_DIR/templates/gen_user.sh)
 EOF
   else
     cat <<EOF | tee
 #!/usr/bin/env bash
 GEN_SCRIPTS_NEWFILE() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"
+PROG="\$(basename $0)"
 USER="\${SUDO_USER:-\${USER}}"
 HOME="\${USER_HOME:-\${HOME}}"
 SRC_DIR="\${BASH_SOURCE%/*}"
@@ -513,13 +613,13 @@ EOF
 __gen_template_system() {
   if [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/gen_system.sh" ]; then
     cat <<EOF | tee
-$(. $HOME/.config/gen-script/templates/gen_system.sh)
+$(. $GEN_SCRIPTS_CONFIG_DIR/templates/gen_system.sh)
 EOF
   else
     cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"
+APPNAME="\$(basename $0)"
 USER="\${SUDO_USER:-\${USER}}"
 HOME="\${USER_HOME:-\${HOME}}"
 SRC_DIR="\${BASH_SOURCE%/*}"
@@ -546,13 +646,13 @@ EOF
 __gen_header_raw() {
   if [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/gen_raw.sh" ]; then
     cat <<EOF | tee
-$(. $HOME/.config/gen-script/templates/gen_raw.sh)
+$(. $GEN_SCRIPTS_CONFIG_DIR/templates/gen_raw.sh)
 EOF
   else
     cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="GEN_SCRIPT_REPLACE_APPNAME"
+PROG="\$(basename $0)"
 USER="\${SUDO_USER:-\${USER}}"
 HOME="\${USER_HOME:-\${HOME}}"
 SRC_DIR="\${BASH_SOURCE%/*}"
@@ -583,7 +683,7 @@ __gen_functions() {
   if [ -n "$gen_header_user" ]; then
     if [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/gen_user_functions.sh" ]; then
       cat <<EOF | tee
-$(. $HOME/.config/gen-script/templates/gen_user_functions.sh)
+$(. $GEN_SCRIPTS_CONFIG_DIR/templates/gen_user_functions.sh)
 EOF
     else
       cat <<EOF | tee
@@ -604,7 +704,7 @@ EOF
   else
     if [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/gen_system_functions.sh" ]; then
       cat <<EOF | tee
-$(. $HOME/.config/gen-script/templates/gen_system_functions.sh)
+$(. $GEN_SCRIPTS_CONFIG_DIR/templates/gen_system_functions.sh)
 EOF
     else
       echo '# Import functions
@@ -631,7 +731,7 @@ __options "$@"
   fi
 }
 __backup_file() {
-  local BASEDIR="${GEN_SCRIPTS_BACKUP_DIR:-$HOME/.config/gen-script/backups}"
+  local BASEDIR="${GEN_SCRIPTS_BACKUP_DIR:-$GEN_SCRIPTS_CONFIG_DIR/backups}"
   local BACKUPDIR="$BASEDIR/${destfolder/\//}"
   local NAME="$filename-$(date +'%m%d%Y%H%M' 2>/dev/null)"
   [ -d "$BACKUPDIR" ] || __mkd "$BACKUPDIR"
@@ -715,8 +815,8 @@ __gen_opts() {
   return
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/gen-script" ] && __rm_rf "$HOME/.config/gen-script"
-[ -d "$HOME/.config/gen-script" ] || __mkd "$HOME/.config/gen-script"
+[ -f "$GEN_SCRIPTS_CONFIG_DIR" ] && __rm_rf "$GEN_SCRIPTS_CONFIG_DIR"
+[ -d "$GEN_SCRIPTS_CONFIG_DIR" ] || __mkd "$GEN_SCRIPTS_CONFIG_DIR"
 [ -f "$GEN_SCRIPT_OPTSDIR/opt-header.txt" ] || __gen_opts "-header"
 [ -f "$GEN_SCRIPT_OPTSDIR/optshort-header.txt" ] || __gen_opts "-short"
 [ -f "$GEN_SCRIPT_OPTSDIR/optlong-long.txt" ] || __gen_opts "-long"
@@ -760,11 +860,29 @@ case $1 in
   exit $?
   ;;
 
+-readme)
+  shift 1
+  printf_green "Creating a readme file"
+  prev_filename="$1"
+  readme_template="$GEN_SCRIPTS_CONFIG_DIR/files/other/${2:-script_help}"
+  new_filename="${3:-$PWD/man/$(basename "$prev_filename")}"
+  if [ -f "$readme_template" ]; then
+    __prev_readme "$(__fullfilename "$prev_filename")"
+    __mkd "$(dirname "$new_filename")"
+    __cp_rf "$readme_template" "$new_filename"
+    __import_readme "${4:-system}" "$prev_filename"
+    #cat <<<"$(__prev_readme "$prev_filename")" | tee -a "$new_filename"
+  else
+    printf_exit "$readme_template doesn't exist"
+  fi
+  exit $?
+  ;;
+
 -head | *header)
   shift 1
   __header_opts "$@"
-  if [[ "$1" != -* ]]; then
-    filename="$1"
+  if [[ "$1" != -* ]] && [ $# -ne 0 ]; then
+    filename="${1:-template}"
     shift 1
   elif __remove_opts "$HEADER_ARGS" &>/dev/null; then
     filename="$(__remove_opts "$HEADER_ARGS")"
@@ -809,12 +927,19 @@ shift $#
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sanity check
 [ -f "$template" ] || printf_exit 1 1 "The template file doesn't exist: $template"
+[ -n "${dest:-newScript}" ] || printf_exit 1 1 "Something went wrong while setting up filename"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # file and folder setup
 filename="$(__filename ${dest:-newScript} 2>/dev/null)"
 destfolder="$(__basedir $dest 2>/dev/null)"
+templatename="$(basename $template)"
 # # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate the file
+if [ "$templatename" = "readme" ] || [ "$templatename" = "script_help" ]; then
+  printf_yellow "Setting up the script as a scripts readme file"
+  destfolder="${GEN_SCRIPTS_MAN_DIR:-$destfolder/man}"
+  filename="${filename}"
+fi
 if [ "$filename" = "newScript" ]; then
   printf_read_question "3" "What should we name this ?" "120" "tmpfilename" "-i ${dest:-$filename}"
   tmpfilename="${tmpfilename:-$filename}"

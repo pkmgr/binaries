@@ -1,23 +1,22 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="append_path"
+APPNAME="append_path"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103200325-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
-# @License       : LICENSE.md
-# @ReadME        : README.md
+# @License       : WTFPL
+# @ReadME        : append_path --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Feb 13, 2021 19:57 EST
+# @Created       : Saturday, Mar 20, 2021 03:25 EDT
 # @File          : append_path
-# @Description   : Append a path to $PATH
+# @Description   :
 # @TODO          :
 # @Other         :
 # @Resource      :

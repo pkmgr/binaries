@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="GEN_SCRIPT_REPLACE_FILENAME"
+APPNAME_README="GEN_SCRIPT_REPLACE_APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#REPLACE_THIS_WITH_HEADER_INFO
+# This is what I use for my user scripts
+# REPLACE_THIS_WITH_HEADER_INFO
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 printf_help() {
@@ -15,17 +16,21 @@ get_desc() {
   local desc="$(grep ^"# @Description" "$appname" 2>/dev/null | grep ' : ' | sed 's#..* : ##g' | grep '^')"
   if [ -n "$desc" ]; then printf '%s' "$desc"; else return 1; fi
 }
-printf_descr() { if [ -n "${PROG:-$APPNAME}" ] && [ -n "$(get_desc)" ]; then
-  printf_color "    $(get_desc)" 6
-else printf_help "$1" "${2:-10}"; fi; }
+printf_descr() {
+  if [ -n "${PROG:-$APPNAME}" ] && [ -n "$(get_desc)" ]; then
+    printf_color "    $(get_desc)" 6
+  else printf_help "$1" "${2:-10}"; fi
+}
+printf_head() { printf_help "4" "############################" "$1"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
 printf_descr "    GEN_SCRIPT_REPLACE_DESC"
-printf_help "Usage: GEN_SCRIPT_REPLACE_FILENAME " "5"
-printf_help ""
-printf_help "-v, --version           -  display version"
-printf_help "-h, --help              -  display help"
+printf_help "4" "Usage: "
+printf_head "4" "############################ Main options"
+printf_help "4" ""
+printf_help "4" "-h, --help                  - Shows this message"
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
 printf '\n'
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
