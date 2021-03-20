@@ -328,6 +328,13 @@ printf_column() {
   set +o pipefail
 }
 
+printf_cat() {
+  file=${1--}
+  while IFS= read -r line; do
+    printf '%s\n' "$line"
+  done < <(cat -- "$file")
+}
+
 printf_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
@@ -396,7 +403,7 @@ printf_answer_no() {
   fi
 }
 
-printf_return() { return "${1:-1}"; }
+printf_return() { return ${1:-3}; }
 
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"

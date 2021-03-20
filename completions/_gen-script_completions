@@ -48,7 +48,6 @@ _gen-script() {
 
   _init_completion || return
 
-
   if [[ "$prev" = *header ]]; then
     [ $# -eq 3 ] && COMPREPLY=($(compgen -c -- "${cur}"))
     [ $# -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
@@ -89,11 +88,9 @@ _gen-script() {
       return 0
       ;;
     *)
-      [ $COMP_CWORD -eq 3 ] && [[ "$prev" != *header ]] && COMPREPLY=($(compgen -c -- "${cur}"))
-      [ $COMP_CWORD -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
       if [[ "$prev" = *header ]]; then
         [ $# -eq 3 ] && COMPREPLY=($(compgen -c -- "${cur}"))
-         [ $# -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
+        [ $# -ne 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
       elif [ "$ARRAY" = "show-commands" ]; then
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [ "$ARRAY" = "show-none" ]; then
@@ -101,13 +98,15 @@ _gen-script() {
       elif [ "$ARRAY" = "show-_filedir" ]; then
         _filedir
       elif [ "$ARRAY" != "" ]; then
-        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        [ "$COMP_CWORD" -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [ -n "$OPTS" ]; then
-        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
+        [ "$COMP_CWORD" -eq 1 ] && COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       else
-        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        [ "$COMP_CWORD" -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       fi
-      #return 0
+      [ "$COMP_CWORD" -eq 3 ] && [[ "$prev" != *header ]] && COMPREPLY=($(compgen -c -- "${cur}"))
+      [ "$COMP_CWORD" -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
+      return 0
       ;;
     esac
   fi
@@ -115,4 +114,3 @@ _gen-script() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _gen-script gen-script
-

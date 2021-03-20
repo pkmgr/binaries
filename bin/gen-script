@@ -129,10 +129,13 @@ __update_header() {
   local replace="$3"
   if __grep -q; then
     local search="$(grep "#.@$headerfield.*.:" "${filename}" | head -n1 | awk -F': ' '{print $2}' | grep '^')"
-    if [ -z "$search" ]; then search="$(__grep)"; replace="$search$replace"; fi
+    if [ -z "$search" ]; then
+      search="$(__grep)"
+      replace="$search$replace"
+    fi
     #sed -i 's#'"$search"'#'"$replace"'#g' "$filename" 2>/dev/null
-    __sed "$search" "$replace" "$filename" && \
-      printf_green "Changed $headerfield to $replace" || \
+    __sed "$search" "$replace" "$filename" &&
+      printf_green "Changed $headerfield to $replace" ||
       printf_red "Change $headerfield to $replace has failed"
   else
     printf_exit "Failed to change $search to $3 pattern was not found"
@@ -504,49 +507,6 @@ SRC_DIR="\${BASH_SOURCE%/*}"
 # @Other         : ${other:-$get_other}
 # @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main function file
-if [ -f "\$SRC_DIR/functions.bash" ]; then
-  FUNCTIONS_DIR="\$SRC_DIR"
-  . "\$FUNCTIONS_DIR/functions.bash"
-elif [ -f "\$HOME/.local/bin/functions.bash" ]; then
-  FUNCTIONS_DIR="\$HOME/.local/bin"
-  . "\$FUNCTIONS_DIR/functions.bash"
-else
-  printf "\t\t\033[0;31m%s \033[0m\n" "Couldn't source the functions file from \$FUNCTIONS_DIR"
-  return 1
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# helper function
-__version() { app_version; }
-__help() {
-  app_help "Usage: $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)  -  $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) --version"  \\
-    "-v, --version          -  display version" \\
-    "-h, --help             -  display help"
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main function
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # options
-  case \$1 in
-    -v | --version) __version ;;
-    -h | --help) __help ;;
-  esac
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # Required app check
-  cmd_exists --error bash || exit 1
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # begin main app
-
-
-  return "\${exitCode:-\$?}"
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# execute function
-GEN_SCRIPTS_NEWFILE "\$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit \$?
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
 EOF
   fi
 }
@@ -562,7 +522,7 @@ EOF
 APPNAME="$(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)"
 USER="\${SUDO_USER:-\${USER}}"
 HOME="\${USER_HOME:-\${HOME}}"
-SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SRC_DIR="\${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -588,6 +548,7 @@ __gen_header_raw() {
     cat <<EOF | tee
 $(. $HOME/.config/gen-script/templates/gen_raw.sh)
 EOF
+  else
     cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -620,7 +581,12 @@ EOF
 __gen_functions() {
   __vars "$@"
   if [ -n "$gen_header_user" ]; then
-    cat <<EOF | tee
+    if [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/gen_user_functions.sh" ]; then
+      cat <<EOF | tee
+$(. $HOME/.config/gen-script/templates/gen_user_functions.sh)
+EOF
+    else
+      cat <<EOF | tee
 # Main function file
 if [ -f "\$SRC_DIR/functions.bash" ]; then
   FUNCTIONS_DIR="\$SRC_DIR"
@@ -634,9 +600,16 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
+    fi
   else
-    echo '# Import functions
+    if [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/gen_system_functions.sh" ]; then
+      cat <<EOF | tee
+$(. $HOME/.config/gen-script/templates/gen_system_functions.sh)
+EOF
+    else
+      echo '# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -654,6 +627,7 @@ fi
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 '
+    fi
   fi
 }
 __backup_file() {
@@ -750,15 +724,15 @@ __gen_opts() {
 # Main application
 case $1 in
 -replace)
-    shift 1
-    [ -f "$1" ] && filename="$1" || filename="$(type -P "$(basename "$1")")"
-    if [ $# -ne 3 ]; then
-        printf_exit "Requires filename search replace"
-    else
-      __update_header "$filename" "$2" "$3"
-    fi
-    exit
-    ;;
+  shift 1
+  [ -f "$1" ] && filename="$1" || filename="$(type -P "$(basename "$1")")"
+  if [ $# -ne 3 ]; then
+    printf_exit "Requires filename search replace"
+  else
+    __update_header "$filename" "$2" "$3"
+  fi
+  exit
+  ;;
 -a | *options)
   shift 1
   __gen_opts "$@"
@@ -877,4 +851,3 @@ printf_newline ""
 exit ${exitCode:-$?}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

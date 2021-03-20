@@ -1,49 +1,46 @@
 #!/usr/bin/env bash
-
-APPNAME="$(basename $0)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="logr"
 USER="${SUDO_USER:-${USER}}"
-
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : logr
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : A logging script
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
-__options "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
-printf_green() { printf_color "$1" 2; }
-printf_red() { printf_color "$1" 1; }
-printf_exit() {
-  printf_color "$1" 1
-  exit $?
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# trace ERR through pipes
+#set opts
 set -o pipefail
 shopt -s extglob
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202103200100-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : logr --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 01:00 EDT
+# @File          : logr
+# @Description   : A logging script
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 myhostname="$(hostname -f)"
 logrname="${1:-$APPNAME}"
 logdir="${LOGDIR:-$HOME/.local/log}/logr"
@@ -52,9 +49,7 @@ stdout="$logrname-$date.log"
 stderr="$logrname-$date.err"
 toemail=${EMAIL_ERROR_TO:-root@$myhostname}
 fromemail=${EMAIL_ERROR_FROM:-root@$myhostname}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 case "$logrname" in
 -name | --name)
   logrname="$2"
@@ -72,12 +67,9 @@ cron | eval | exec)
   cmdline="$*"
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-mkdir -p "$logdir"
-mkdir -p "$logdir/pretty"
-
+mkdir -p "$logdir" "$logdir/pretty"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$logrname" in
 --help | -h)
   __help
@@ -137,19 +129,19 @@ case "$logrname" in
   bash -c "$cmdline" >>"$logdir/$stdout" 2>>"$logdir/$stderr"
   ;;
 esac
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # merge the 2 files and keep any formatting
 if [ -f "$logdir/$stderr" ]; then
   cat "$logdir/$stderr" >>"$logdir/$stdout"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # close log file
 if [ -f "$logdir/$stdout" ]; then
   printf_head "$logrname has ended on $(date +"%b %d, %Y at %H:%M")" >>"$logdir/$stdout"
   printf "\n\n" >>"$logdir/$stdout"
   cat "$logdir/$stdout" >>"$logdir/pretty/$stdout"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # remove formatting
 if [ -d "$logdir" ]; then
   for upd in "$logdir/$stdout" "$logdir/$stderr"; do
@@ -161,7 +153,7 @@ if [ -d "$logdir" ]; then
     fi
   done
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 if cmd_exists mail && [ -s "$logdir/$stderr" ]; then
   MAILFROM="$fromemail"
@@ -177,14 +169,14 @@ Mail Subject: $MAILSUB
 Log File: "$logdir/$stdout"
 \n" >>$logdir/$logrname.sent
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -n "$DESKTOP_SESSION" ] && [ -s "$logdir/$stderr" ]; then
   notifications "$logrname completed" "The task has finished with errors: check the log"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #clean up
 rm -Rf "$logdir/$stderr"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
+

@@ -1,59 +1,63 @@
 #!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="mailsync"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : mailsync
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Sync mail and give notification if there is new mail.
-#
+##@Version       : 202103200052-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : mailsync --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 00:52 EDT
+# @File          : mailsync
+# @Description   : Sync mail and give notification if there is new mail.
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+__cmd_exists notifications >/dev/null || exit 1
+__am_i_online --error || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
-
 [ -d "$PASSWORD_STORE_DIR" ] || [ -d "$HOME/.local/share/password-store" ] &&
   export PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.local/share/password-store}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Run only if user logged in (prevent cron errors)
-pgrep -u "${USER:=$LOGNAME}" >/dev/null || {
-  printf_exit "$USER not logged in; sync will not run."
-}
+pgrep -u "${USER:=$LOGNAME}" >/dev/null || printf_exit "$USER not logged in; sync will not run."
 # Run only if not already running in other instance
-pgrep -x mbsync >/dev/null && {
-  printf_exit "mbsync is already running."
+pgrep -x mbsync >/dev/null && printf_exit "mbsync is already running."
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+notify() {
+  NOTIFY_CLIENT_NAME="mutt-wizard"
+  NOTIFY_CLIENT_ICON="Thunderbird"
+  notifications "mutt-wizard" "📬 $2 new mail(s) in \`$1\` account."
 }
-
-# Checks for internet connection and set notification script.
-#ping -q -c 1 1.1.1.1 > /dev/null || { echo "No internet connection detected."; exit ;}
-command -v notifications >/dev/null || echo "Note that \`libnotify\` or \`libnotify-send\` should be installed for pop-up mail notifications with this script."
-
-# Settings are different for MacOS (Darwin) systems.
-if [ "$(uname)" = "Darwin" ]; then
-  notify() { osascript -e "display notification \"$2 in $1\" with title \"You've got Mail\" subtitle \"Account: $account\"" && sleep 2; }
-else
-  notify() { notifications --app-name="mutt-wizard" "mutt-wizard" "📬 $2 new mail(s) in \`$1\` account."; }
-fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check account for new mail. Notify if there is new content.
 syncandnotify() {
   acc="$(echo "$account" | sed "s/.*\///")"
@@ -66,33 +70,35 @@ syncandnotify() {
       # Extract subject and sender from mail.
       from=$(awk '/^From: / && ++n ==1,/^\<.*\>:/' "$file" | perl -CS -MEncode -ne 'print decode("MIME-Header", $_)' | awk '{ $1=""; if (NF>=3)$NF=""; print $0 }' | sed 's/^[[:blank:]]*[\"'\''\<]*//;s/[\"'\''\>]*[[:blank:]]*$//')
       subject=$(awk '/^Subject: / && ++n == 1,/^\<.*\>: / && ++i == 2' "$file" | head -n-1 | perl -CS -MEncode -ne 'print decode("MIME-Header", $_)' | sed 's/^Subject: //' | sed 's/^{[[:blank:]]*[\"'\''\<]*//;s/[\"'\''\>]*[[:blank:]]*$//' | tr -d '\n')
-      notifications --app-name="mutt-wizard" "📧$from:" "$subject" &
+      notify "📧$from:" "$subject" &
     done
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Sync accounts passed as argument or all.
 if [ "$#" -eq "0" ]; then
   accounts="$(awk '/^Channel/ {print $2}' "$HOME/.mbsyncrc")"
 else
   accounts=$*
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 echo " 🔃" >/tmp/imapsyncicon_"$USER"
 [ -n "${STATUSBAR:?}" ] && devnull pkill -RTMIN+12 "${STATUSBAR:?}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Parallelize multiple accounts
 for account in $accounts; do
   syncandnotify &
 done
-
 wait
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 rm -f /tmp/imapsyncicon_"$USER"
 [ -n "${STATUSBAR:?}" ] && devnull pkill -RTMIN+12 "${STATUSBAR:?}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 notmuch new 2>/dev/null
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Create a touch file that indicates the time of the last run of mailsync
 touch "$HOME/.config/mutt/.mailsynclastrun"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
 # end
+

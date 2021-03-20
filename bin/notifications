@@ -30,12 +30,22 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/notifications/settings" ] && . "$HOME/.config/notifications/settings"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-NOTIFYD_HOST="${NOTIFYD_HOST:-$NOTIFYD_HOST}"
+NOTIFYD_HOST="$NOTIFYD_HOST"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 NOTIFY_CLIENT="${NOTIFY_CLIENT:-no}"
-
+NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+NOTIFY_CLIENT_URGENY="${NOTIFY_CLIENT_URGENY:-normal}"
+NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-com.github.timecraft.notifier}"
+NOTIFYD_APPNAME="${notifyAppName:-$NOTIFY_CLIENT_NAME}"
+NOTIFYD_URGENY="${notifyUrgency:-$NOTIFY_CLIENT_URGENY}"
+NOTIFYD_ICON="${NOTIFY_CLIENT_ICON}"
+NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$NOTIFY_CONFIG_DIR/settings.conf" ] &&
+  . "$NOTIFY_CONFIG_DIR/settings.conf" || {
+  mkdir -p "$NOTIFY_CONFIG_DIR"
+  touch "$NOTIFY_CONFIG_DIR/settings.conf"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(uname -s)" = "Darwin" ]; then
   [[ "$1" = *ask ]] && exit 0
@@ -45,10 +55,10 @@ elif [ "$(uname -s)" = "Linux" ]; then
   XUSERS=($(who | grep -E "\(:[0-9](\.[0-9])*\)" | awk '{print $1$5}' | sort -u | grep $USER))
   if __cmd_exists notify-send; then
     [[ "$1" = *ask ]] && exit 0
-    __notify_send() { notify-send --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$@"; }
+    __notify_send() { notify-send --app-name="${NOTIFYD_APPNAME}" -u "${NOTIFYD_URGENY}" -i "${NOTIFY_CLIENT_ICON}" "$@"; }
   elif __cmd_exists notify-send.sh; then
     [[ "$1" = *ask ]] && exit 0
-    __notify_send() { notify-send.sh --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$@"; }
+    __notify_send() { notify-send.sh --app-name="${NOTIFYD_APPNAME}" -u "${NOTIFYD_URGENY}" -i "${NOTIFY_CLIENT_ICON}" "$@"; }
   else
     [[ "$1" = *ask ]] && exit 1
     printf_exit 1 1 "There is no notify app installed: Install notify-send, dunst, deadd"
@@ -59,17 +69,17 @@ else
   exit 1
 fi
 
-__nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
+__nc_send() { $netcat -c "$1" "$2" 2>>"$_LOG" && true || $netcat -w 1 "$1" "$2" 2>>"$_LOG" || return 1; }
 
 __config() {
   printf_green "Generating the config file"
-  __mkd "$HOME/.config/notifications"
-  __rm_rf "$HOME/.config/notifications/settings"
-  cat <<EOF >"$HOME/.config/notifications/settings"
+  __mkd "$NOTIFY_CONFIG_DIR"
+  __rm_rf "$NOTIFY_CONFIG_DIR/settings.conf"
+  cat <<EOF >"$NOTIFY_CONFIG_DIR/settings.conf"
 # Settings for notifications
-NOTIFYD_PORT="$NOTIFYD_PORT"
-NOTIFYD_HOST="$NOTIFYD_HOST"
-NOTIFY_CLIENT="$NOTIFY_CLIENT"
+NOTIFYD_PORT="${NOTIFYD_PORT:-\$NOTIFYD_PORT}"
+NOTIFYD_HOST="${NOTIFYD_HOST:-\$NOTIFYD_HOST}"
+NOTIFY_CLIENT="${NOTIFY_CLIENT:-\$NOTIFY_CLIENT}"
 EOF
   echo '
 # Option Settings
@@ -78,8 +88,8 @@ notifyIconName="${notifyIconName:-com.github.timecraft.notifier}"
 notifyUrgency="${notifyUrgency:-normal}"
 ' >>"$HOME/.config/notifications/settings"
 
-  if [ -f "$HOME/.config/notifications/settings" ]; then
-    printf_green "config saved to ~/.config/notifications/settings"
+  if [ -f "$NOTIFY_CONFIG_DIR/settings.conf" ]; then
+    printf_green "config saved to $NOTIFY_CONFIG_DIR/settings.conf"
   else
     printf_error "Failed to save the configuration"
   fi
@@ -116,12 +126,14 @@ __notifications_cli() {
   local msg="$2"
   local _PATH="$(mktemp ${TMPDIR:-/tmp}/notify-client/XXX.tmp)"
   local _LOG="${TMPDIR:-/tmp}/notify-client.log"
-  printf_green "Attempting to send message to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
-  notifications "Daemon" "Attempting to send message to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
-  printf "%s\n" "$title" "$msg" >"$_PATH" 2>>"$_LOG"
-  cat "$_PATH" 2>>"$_LOG" | __nc_send "$NOTIFYD_HOST" "$NOTIFYD_PORT" 2>>"$_LOG"
-  __rm_rf "$_PATH"
-  return 0
+  printf_green "Attempting to send $msg to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
+  notifications "Daemon" "Attempting to send $msg to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
+  printf "%s\n" "$title" "$msg" >"$_PATH" 2>>"$_LOG" &&
+    cat "$_PATH" 2>>"$_LOG" | __nc_send "$NOTIFYD_HOST" "$NOTIFYD_PORT" 2>>"$_LOG" &&
+    __rm_rf "$_PATH" && sleep 3 && return 0 || {
+    notifications "Daemon" "Failed to send message: ensure the server is running"
+    return 1
+  }
 }
 
 __notifications() {
@@ -159,7 +171,7 @@ __notifications_all() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -f "$HOME/.config/notifications/settings" ]; then
+if [ ! -f "$NOTIFY_CONFIG_DIR/settings.conf" ] && [[ "$1" != *config ]]; then
   __config
 fi
 
