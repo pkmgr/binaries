@@ -30,4 +30,5 @@ _am_i_online() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _am_i_online -o default am_i_online
+  complete -F _am_i_online am_i_online
+

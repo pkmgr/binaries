@@ -31,6 +31,7 @@ _gen-script() {
   local OPTSDIR="$HOME/.local/share/gen-script"
   local SEARCHCMD="$(find -L $CONFDIR -maxdepth 3 -type f | sed 's#'$CONFDIR/'##g' | grep '^' || return 1)"
   local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD - 1]}"
   local FOLDERS="$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/ | grep -v ^'templates')"
   local OS=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/os/ 2>/dev/null)
   local SHELL=$(ls -A $GEN_SCRIPTS_TEMPLATE_DIR/shell/ 2>/dev/null)
@@ -42,10 +43,16 @@ _gen-script() {
   local SHOW_COMP_OPTS=""
   local SHORTOPTS="$(<"$OPTSDIR/opts-short.txt")"
   local LONGOPTS="$(<"$OPTSDIR/opts.txt")"
-  local HEADEROPTS="$(<"$OPTSDIR/opts-header.txt"))"
+  local HEADEROPTS="$(<"$OPTSDIR/opts-header.txt")"
   local ARGS="${SHORTOPTS} ${LONGOPTS}"
 
   _init_completion || return
+
+
+  if [[ "$prev" = *header ]]; then
+    [ $# -eq 3 ] && COMPREPLY=($(compgen -c -- "${cur}"))
+    [ $# -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
+  fi
 
   if [ "$SHOW_COMP_OPTS" != "" ]; then
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
@@ -81,25 +88,24 @@ _gen-script() {
       COMPREPLY=($(compgen -W '${OTHER}' -- "${cur}"))
       return 0
       ;;
-    -header)
-      if [[ ${cur} != -* ]]; then
-        COMPREPLY=($(compgen -c -- "${cur}"))
-      fi
-      return 0
-      ;;
     *)
-      if [ "$ARRAY" = "show-commands" ]; then
+      [ $COMP_CWORD -eq 3 ] && [[ "$prev" != *header ]] && COMPREPLY=($(compgen -c -- "${cur}"))
+      [ $COMP_CWORD -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
+      if [[ "$prev" = *header ]]; then
+        [ $# -eq 3 ] && COMPREPLY=($(compgen -c -- "${cur}"))
+         [ $# -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
+      elif [ "$ARRAY" = "show-commands" ]; then
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [ "$ARRAY" = "show-none" ]; then
         COMPREPLY=($(compgen -W '' -- "${cur}"))
       elif [ "$ARRAY" = "show-_filedir" ]; then
         _filedir
       elif [ "$ARRAY" != "" ]; then
-        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [ -n "$OPTS" ]; then
-        COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
+        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       else
-        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       fi
       #return 0
       ;;
@@ -108,4 +114,5 @@ _gen-script() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _gen-script -o default gen-script
+  complete -F _gen-script gen-script
+

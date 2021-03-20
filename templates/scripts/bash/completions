@@ -14,8 +14,10 @@
 # @Resource      : GEN_SCRIPT_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _GEN_SCRIPT_REPLACE_FILENAME() {
-  local cur prev words cword CONFFILE CONFDIR SEARCHDIR CASJAYSDEVDIR FUNCTIONSDIR SEARCHCMD SHOW_COMP_OPTS DEFAULTOPTS
+  local cur prev words cword opts
+  local COMPREPLY=()
   local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
   local CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPT_REPLACE_FILENAME"
   local OPTSDIR="$HOME/.local/share/misc/options/GEN_SCRIPT_REPLACE_FILENAME"
@@ -45,19 +47,17 @@ _GEN_SCRIPT_REPLACE_FILENAME() {
   else
     case $prev in
     *)
-      if [ -n "$FILEDIR" ]; then
-        _filedir
-      fi
-      if [[ "$ARRAY" = "show-commands" ]]; then
-        COMPREPLY=($(compgen -c -- "${cur}"))
-      elif [[ "$ARRAY" = "show-none" ]]; then
+      if [ -n "$FILEDIR" ]; then _filedir; fi
+      if [[ "$ARRAY" = "show-none" ]]; then
         COMPREPLY=($(compgen -W '' -- "${cur}"))
       elif [[ "$ARRAY" = "show-_filedir" ]]; then
         _filedir
+      elif [[ "$ARRAY" = "show-commands" ]]; then
+        COMPREPLY=($(compgen -c -- "${cur}"))
       elif [[ -n "$ARRAY" ]]; then
-        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [[ -n "$OPTS" ]]; then
-        COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
+        [ $COMP_CWORD -eq 1 ] && COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       fi
       return 0
       ;;

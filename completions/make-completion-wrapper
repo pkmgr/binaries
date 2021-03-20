@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Wraps a completion function, eg for use with an alias.
 # Usage:
 # make-completion-wrapper <actual completion function> <name of new func.>
@@ -27,3 +25,4 @@ function make-completion-wrapper() {
 }
 
 export -f make-completion-wrapper
+
