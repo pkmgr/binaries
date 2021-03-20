@@ -95,6 +95,7 @@ __date() { date +"$1"; }
 __filename() { basename "$1" 2>/dev/null; }
 __fullfilename() { type -P "$(basename "$1")" 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo $PWD; else dirname "$1" 2>/dev/null; fi; }
+__sed() { sed -i 's|'"$1"'|'"$2"'|g' "$3" 2>/dev/null; }
 __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exit "Please provide a filename"; }
 __check_header() { grep ^'#.@Version' "$(__fullfilename "$filename")" 2>/dev/null | head -n1 | grep '^' | grep -q ' : ' || return 1; }
 __remove_opts() { echo "$*" | tr ' ' '\n' | grep -v '^-' | head -n1 | grep '^' || return 1; }
@@ -117,6 +118,24 @@ __get_header() {
       grep ^'#.@'$search'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' |
         awk -F': ' '{print $2}' | head -n1 | grep '^' || return 1
     fi
+  fi
+}
+__grep() { grep ^"#.@$headerfield.*.:" "$filename" | head -n1 | grep ${1:-} '^'; }
+#__update_header "$file" "$search" "$replace"
+__update_header() {
+  #printf_exit "$1 $2 $3"
+  local filename="$1"
+  local headerfield="$2"
+  local replace="$3"
+  if __grep -q; then
+    local search="$(grep "#.@$headerfield.*.:" "${filename}" | head -n1 | awk -F': ' '{print $2}' | grep '^')"
+    if [ -z "$search" ]; then search="$(__grep)"; replace="$search$replace"; fi
+    #sed -i 's#'"$search"'#'"$replace"'#g' "$filename" 2>/dev/null
+    __sed "$search" "$replace" "$filename" && \
+      printf_green "Changed $headerfield to $replace" || \
+      printf_red "Change $headerfield to $replace has failed"
+  else
+    printf_exit "Failed to change $search to $3 pattern was not found"
   fi
 }
 __get_prev() {
@@ -341,12 +360,12 @@ __makefile() {
       local other="$(__get_header 'Other ' "$newcmd")"
       local resource="$(__get_header 'Resource' "$newcmd")"
     fi
-    [ -n "$license" ] && [ -n "$GEN_SCRIPT_REPLACE_license" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_license"'/'"$license"'/g' "$new" 2>/dev/null
-    [ -n "$readme" ] && [ -n "$GEN_SCRIPT_REPLACE_readme" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_readme"'/'"$readme"'/g' "$new" 2>/dev/null
-    [ -n "$desc" ] && [ -n "$GEN_SCRIPT_REPLACE_desc" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_desc"'/'"$desc"'/g' "$new" 2>/dev/null
-    [ -n "$todo" ] && [ -n "$GEN_SCRIPT_REPLACE_todo" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_todo"'/'"$todo"'/g' "$new" 2>/dev/null
-    [ -n "$other" ] && [ -n "$GEN_SCRIPT_REPLACE_other" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_other"'/'"$other"'/g' "$new" 2>/dev/null
-    [ -n "$resource" ] && [ -n "$GEN_SCRIPT_REPLACE_resource" ] && sed -i 's/'"$GEN_SCRIPT_REPLACE_resource"'/'"$resource"'/g' "$new" 2>/dev/null
+    [ -n "$license" ] && [ -n "$GEN_SCRIPT_REPLACE_license" ] && __sed "$GEN_SCRIPT_REPLACE_license" "$license" "$new"
+    [ -n "$readme" ] && [ -n "$GEN_SCRIPT_REPLACE_readme" ] && __sed "$GEN_SCRIPT_REPLACE_readme" "$readme" "$new"
+    [ -n "$desc" ] && [ -n "$GEN_SCRIPT_REPLACE_desc" ] && __sed "$GEN_SCRIPT_REPLACE_desc" "$desc" "$new"
+    [ -n "$todo" ] && [ -n "$GEN_SCRIPT_REPLACE_todo" ] && __sed "$GEN_SCRIPT_REPLACE_todo" "$todo" "$new"
+    [ -n "$other" ] && [ -n "$GEN_SCRIPT_REPLACE_other" ] && __sed "$GEN_SCRIPT_REPLACE_other" "$other" "$new"
+    [ -n "$resource" ] && [ -n "$GEN_SCRIPT_REPLACE_resource" ] && __sed "$GEN_SCRIPT_REPLACE_resource" "$resource" "$new"
     local compfile="_$(basename "$new")_completion"
     local destfolder="$(dirname "$new")"
     printf_cyan "Creating the completion file: $compfile"
@@ -370,23 +389,23 @@ __edit_header() {
   fi
   __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
-  sed -i 's#GEN_SCRIPT_REPLACE_APPNAME#'${GEN_SCRIPTS_NEWFILEDIR##*/}'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_CONFDIR=#'$GEN_SCRIPT_REPLACE_CONFDIR'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_COPYRIGHT#'"$GEN_SCRIPTS_COPYRIGHT"'#g' "$GEN_SCRIPTS_NEWFILE"
-  sed -i 's#GEN_SCRIPT_REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_FILENAME#'"$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_FULLFILENAME#'"$GEN_SCRIPTS_FULLPATH"'#g' "$GEN_SCRIPTS_NEWFILE"
-  sed -i 's#GEN_SCRIPT_REPLACE_VERSION#'"$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_DATE#'"$(__date "$GEN_SCRIPTS_DATEFMT" 2>/dev/null)"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_LICENSE#'"$GEN_SCRIPTS_DEFLICENSE"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_README#'"$GEN_SCRIPTS_DEFREADME"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_AUTHOR#'"$GEN_SCRIPTS_AUTHOR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_EMAIL#'"$GEN_SCRIPTS_EMAIL"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_YEAR#'"$GEN_SCRIPTS_YEAR"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_DESC#'"$desc"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_TODO#'"$todo"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_OTHER#'"$other"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
-  sed -i 's#GEN_SCRIPT_REPLACE_RES#'"$res"'#g' "$GEN_SCRIPTS_NEWFILE" 2>/dev/null
+  __sed "GEN_SCRIPT_REPLACE_APPNAME" "${GEN_SCRIPTS_NEWFILEDIR##*/}" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_CONFDIR=" "$GEN_SCRIPT_REPLACE_CONFDIR=" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_COPYRIGHT" "$GEN_SCRIPTS_COPYRIGHT" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_VERSION" "$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_FILENAME" "$(__filename "$GEN_SCRIPTS_NEWFILE" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_FULLFILENAME" "$GEN_SCRIPTS_FULLPATH" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_VERSION" "$(__date "$GEN_SCRIPTS_VERSION" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_DATE" "$(__date "$GEN_SCRIPTS_DATEFMT" 2>/dev/null)" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_LICENSE" "$GEN_SCRIPTS_DEFLICENSE" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_README" "$GEN_SCRIPTS_DEFREADME" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_AUTHOR" "$GEN_SCRIPTS_AUTHOR" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_EMAIL" "$GEN_SCRIPTS_EMAIL" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_YEAR" "$GEN_SCRIPTS_YEAR" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_DESC" "$desc" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_TODO" "$todo" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_OTHER" "$other" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPT_REPLACE_RES" "$res" "$GEN_SCRIPTS_NEWFILE"
   return $?
 }
 
@@ -730,6 +749,16 @@ __gen_opts() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case $1 in
+-replace)
+    shift 1
+    [ -f "$1" ] && filename="$1" || filename="$(type -P "$(basename "$1")")"
+    if [ $# -ne 3 ]; then
+        printf_exit "Requires filename search replace"
+    else
+      __update_header "$filename" "$2" "$3"
+    fi
+    exit
+    ;;
 -a | *options)
   shift 1
   __gen_opts "$@"
@@ -848,3 +877,4 @@ printf_newline ""
 exit ${exitCode:-$?}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+
