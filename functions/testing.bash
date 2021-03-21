@@ -1564,16 +1564,15 @@ __am_i_online() {
     if [ "$console" = "yes" ]; then
       printf_red "you appear to not be connected to the internet" >&2
     fi
-    if [ "$showerror" = "yes" ]; then
-      if [ -n "$message" ]; then
-        printf_return 1 1 "$message"
-        if [ -z "$NOTIFY_DISABLED" ]; then
-          notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "$message"
-        fi
-      else
-        notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
-        printf_red "you appear to not be connected to the internet" >&2
+    if [ -n "$message" ]; then
+      local showerror=no
+      printf_return 1 1 "$message"
+      if [ -z "$NOTIFY_DISABLED" ]; then
+        notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "$message"
       fi
+    elif [ "$showerror" = "yes" ]; then
+      notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
+      printf_red "you appear to not be connected to the internet" >&2
     fi
     exitCode=1
   fi
