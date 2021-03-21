@@ -1,22 +1,26 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="social"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200119-git
+##@Version       : 202103201856-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : social --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 01:19 EDT
+# @Created       : Saturday, Mar 20, 2021 18:56 EDT
 # @File          : social
-# @Description   : social menu
+# @Description   : Social menu written in bash
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -49,7 +53,7 @@ post_to_social() {
   sleep 5
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-while true; do
+while :; do
   # show menu
   clear
   printf_newline "\n\n\n\n"
@@ -69,7 +73,7 @@ while true; do
   # take action
   case $main in
   0)
-    __devnull myterminal -e "$APPNAME" &
+    [ -n "$DISPLAY" ] && myterminal -e "$APPNAME" || printf_error "No display found"
     ;;
   a)
     shift 1
@@ -102,11 +106,11 @@ while true; do
     custom_menus
     ;;
   z) break ;;
-  *) shift;;
-esac
-clear
-printf_newline "\n\n"
-printf_counter "5" "3" "Re-loading menu in"
+  *) shift ;;
+  esac
+  clear
+  printf_newline "\n\n"
+  printf_counter "5" "3" "Re-loading menu in"
 done
 clear
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

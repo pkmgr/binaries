@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="ask_yes_no_question"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200326-git
+##@Version       : 202103200612-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : ask_yes_no_question --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 03:26 EDT
+# @Created       : Saturday, Mar 20, 2021 06:12 EDT
 # @File          : ask_yes_no_question
 # @Description   : ask user a question and execute command
 # @TODO          :
@@ -41,7 +41,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main application
-main() {
+ask_yes_no_question() {
   local appname="${PROG:-$APPNAME}"
   local question="${1:-Would you like to proceed?}"
   local command="${2:-true}"
@@ -69,7 +69,7 @@ main() {
   __zenity() { zenity --question --text="$1" --ellipsize --default-cancel && $2 || return 1; }
   __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
   __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && $2 || return 1; }
-  __term() { printf_question_term "$1" && $2 || return 1; }
+  __term() { printf_question_term "$1" "$2" || return 1; }
   if [ -n "$DISPLAY" ]; then
     if [ -n "$DESKTOP_SESSION" ]; then
       if [ -f "$(command -v zenity1 2>/dev/null)" ]; then
@@ -85,16 +85,15 @@ main() {
       __term "$question" "$command" || notify_error
     fi
   else
-    __term
-    #export -f __term notify_error
-    #$TERMINAL -e "__term "$question" "$command" || notify_error"
+    __term "$question" "$command" || notify_error
   fi
   return ${exitCode:-$?}
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute function
-[ $# = 0 ] || main "$@"
+[ $# = 0 ] || ask_yes_no_question "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

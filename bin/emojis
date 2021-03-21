@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : emojis
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : show and choose an emoji
-#
+##@Version       : 202103200656-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : emojis --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:56 EDT
+# @File          : emojis
+# @Description   : show and choose an emoji
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,24 +31,23 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Emoji list
 ARRAY="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/array)"
 LIST="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/emojis/list)"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 dmenu_emojis() {
   xclip -h 2>/dev/null || exit 1
   chosen=$(cut -d ';' -f1 $CASJAYSDEVDIR/helpers/emojis/emojis | dmenu -i -l 20 | sed "s/ .*//")
-
   [ "$chosen" != "" ] || exit
-
   if [ -n "$1" ]; then
     #xdotool key Shift+Insert
     xdotool key --clearmodifiers ctrl+shift+v
@@ -51,13 +57,12 @@ dmenu_emojis() {
     xdotool key --clearmodifiers ctrl+shift+v
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 update_list() {
   emojify -l | awk '{print $2}' 2>/dev/null | tr '\n' ' ' | sed 's#-  emojify emojis: ##g'
   printf_newline "\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 case "$1" in
 update | -update | --update)
   mkdir -p "$HOME/.local/bin"
@@ -65,7 +70,7 @@ update | -update | --update)
   [ $? -eq 0 ] && printf_green "Update Successful" || printf_red "Update Failed"
   if (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; then
     sudo mv -f "$HOME/.local/bin/emojify" /usr/local/bin/emojify &&
-      update_list > "$CASJAYSDEVDIR/helpers/emojis/list"
+      update_list >"$CASJAYSDEVDIR/helpers/emojis/list"
     [ $? -eq 0 ] && printf_green "System Update Successful" || printf_red "System Update Failed"
   fi
   ;;
@@ -106,12 +111,9 @@ list | -l* | --l*)
   unset var
   ;;
 
-*)
-  __help
-  ;;
-
+*) __help ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

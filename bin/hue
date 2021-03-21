@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="hue"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 030820210424-git
+##@Version       : 202103200810-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : hue --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Mar 08, 2021 04:24 EST
+# @Created       : Saturday, Mar 20, 2021 08:10 EDT
 # @File          : hue
 # @Description   : Manage hue lights
 # @TODO          :
@@ -66,7 +65,7 @@ main() {
     printf_error "$api_url"
     printf_newline "\n"
     return 1
-}
+  }
   hue_on() {
     __curlapi "on" "true" "turn on the lights" "on" && echo on >"$state"
   }

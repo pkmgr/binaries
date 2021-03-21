@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : run_commands
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : wrapper script for running commands
-#
+##@Version       : 202103201830-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : run_command --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 18:30 EDT
+# @File          : run_command
+# @Description   : wrapper script for running commands
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,16 +31,21 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ $# = 0 ] && printf_exit 1 1 "No command given"
-main() {
+run_command() {
+  [ $# = 0 ] && printf_exit 1 1 "No command given"
+  [[ "$1" = /* ]] && printf_exit 1 4 "Absolute paths not supported"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   APP="$(basename $1)" && shift 1
   ARG="$*" && shift $#
-  [[ "$APP" = /* ]] && printf_exit 1 4 "Absolute paths not supported"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   year="$(date +'%Y')"
   date="$(date +'%m%d')"
@@ -41,6 +53,7 @@ main() {
   logdir="${LOGDIR:-$HOME/.local/log}/run/$year"
   logname="$APP-$date"
   command="$APP $ARG >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &>/dev/null &"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   mkdir -p "$logdir"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   if [ -f "$(command -v $APP 2>/dev/null)" ]; then
@@ -61,6 +74,8 @@ main() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
+run_command "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="notify-daemon"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200123-git
+##@Version       : 202103201737-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : notify-daemon --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 01:23 EDT
+# @Created       : Saturday, Mar 20, 2021 17:37 EDT
 # @File          : notify-daemon
 # @Description   : Start the notification daemon
 # @TODO          : Clean code
@@ -42,10 +42,12 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NOTIFYD_HOST="${NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
-NOTIFYD_CONFIG_DIR="HOME/.config/notify-daemon"
+NOTIFYD_CONFIG_DIR="$HOME/.config/notify-daemon"
 NOTIFYD_CONFIG_FILE="setting.conf"
-NOTIFYD_SERVER_PATH="${TMPDIR:-/tmp}/notifyd"
-NOTIFYD_KILL_PATH="$NOTIFYD_SERVER_PATH/notify-daemon.kill"
+NOTIFYD_TMP_DIR="${TMPDIR:-/tmp}/notifyd"
+NOTIFYD_CLIENT_PATH="$NOTIFYD_TMP_DIR/client"
+NOTIFYD_SERVER_PATH="$NOTIFYD_TMP_DIR/server"
+NOTIFYD_KILL_PATH="$NOTIFYD_SERVER_PATH/server.kill"
 NOTIFYD_LOG_FILE="$NOTIFYD_SERVER_PATH/server.log"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if pidof xfce4-notifyd &>/dev/null; then
@@ -62,7 +64,8 @@ else
   PROCID=
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] && . "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE"
+[ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] && \
+  . "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config file"
@@ -72,8 +75,8 @@ __config() {
   fi
   cat <<EOF >"$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE"
 # Settings for notify-daemon
+NOTIFYD_HOST="${NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
-NOTIFYD_HOST="${NOTIFYD_HOST:-}"
 
 #Uncomment and insert this into $NOTIFYD_CONFIG_DIR/notifyd
 #if __cmd_exists pathToDaemon; then
@@ -85,7 +88,8 @@ NOTIFYD_HOST="${NOTIFYD_HOST:-}"
 #fi
 
 EOF
-  [ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] && printf_green "config saved to $NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ||
+  [ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] && \
+    printf_green "config saved to $NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ||
     printf_error "Failed to save the configuration"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,16 +108,16 @@ __running() {
       notifications "Daemon" "${PROCID:-$NOTIFYD} is currently the notify daemon"
   elif pidof "$PROCID" >/dev/null 2>&1; then
     printf_error "Not running"
-    notifications "Daemon" "notifiy-daemon is not running PROC should be ${PROCID:-$NOTIFYD}"
+    notifications "Daemon" "notify-daemon is not running PROC should be ${PROCID:-$NOTIFYD}"
   else
-    notifications "Daemon" "notifiy-daemon is not running PROC should be ${PROCID:-$NOTIFYD}"
+    notifications "Daemon" "notify-daemon is not running PROC should be ${PROCID:-$NOTIFYD}"
   fi
 }
 
 __kill() {
   [ -d "$NOTIFYD_SERVER_PATH" ] || __mkd "$NOTIFYD_SERVER_PATH"
   notifications "Daemon" "Stopping the notify-daemon"
-  printf_yellow "Stopping the notifiy-daemon"
+  printf_yellow "Stopping the notify-daemon"
   local pid="$(pidof "$PROCID")"
   kill -s KILL "$pid" >/dev/null 2>&1
   sleep 3
@@ -129,6 +133,7 @@ __start() {
   if [ "$?" = 0 ]; then
     notifications "Daemon" "$PROCID has been started as the notify daemon"
     exitCode=0
+    disown
   else
     exitCode=1
   fi
@@ -155,12 +160,12 @@ __client() {
   # [ $? = 0 ] && rm -Rf "$_PATH" || printf_error "Failed to send message: ensure the server is running"
   # return $?
   __netcat_test
-  __mkd "$TMP/notify-client"
   local title="$1"
   local msg="$2"
-  local _PATH="$(mktemp ${TMPDIR:-/tmp}/notify-client/XXX.tmp)"
-  local _LOG="${TMPDIR:-/tmp}/notify-client.log"
-  printf_green "Attempting to send $msg to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
+  local _PATH="$(mktemp $NOTIFYD_CLIENT_PATH/XXX.tmp)"
+  local _LOG="$NOTIFYD_CLIENT_PATH/client.log"
+  __mkd "$NOTIFYD_CLIENT_PATH"
+  printf_green "Attempting to send '$msg' to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
   notifications "Daemon" "Attempting to send $msg to $NOTIFYD_HOST on $NOTIFYD_PORT" 2>>"$_LOG"
   printf "%s\n" "$title" "$msg" >"$_PATH" 2>>"$_LOG" &&
     cat "$_PATH" 2>>"$_LOG" | __nc_send "$NOTIFYD_HOST" "$NOTIFYD_PORT" 2>>"$_LOG" &&
@@ -182,7 +187,7 @@ __server() {
   __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
   notifications "Daemon" "Starting notify-daemon server on port $_PORT"
-  __rm_rf "$_KILL" "$_LOG"
+  __rm_rf "$_KILL" "$_LOG" "$_PATH"
   while :; do
     cmdsPID="$$"
     echo "$cmdsPID" >>"$_LOG"
@@ -256,7 +261,7 @@ EOF
 
 __server_disable() {
   __rm_rf "$HOME/.config/autostart/notifyd-server.desktop"
-  touch "$TMP/notify-daemon.kill"
+  touch "$NOTIFYD_KILL_PATH"
   __client "Daemon" "Disabling server"
 }
 
@@ -494,12 +499,13 @@ status)
   fi
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
-      message="$(cat </dev/stdin)"
+      message="$(</dev/stdin)"
     fi
   else
-    message="$*"
+    title="$1"
+    message="$2"
   fi
-  __client "$message" 2>/dev/null || notifications "Daemon" "failed to send to $NOTIFYD_HOST"
+  __client "$title" "$message" 2>/dev/null || notifications "Daemon" "failed to send to $NOTIFYD_HOST"
   ;;
 
 *)
@@ -510,4 +516,5 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# End
+# end
+

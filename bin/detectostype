@@ -1,49 +1,39 @@
 #!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="$(basename $0)"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : detectos
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : script to detect the OS
-#
+##@Version       : 202103210839-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : detectostype --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Mar 21, 2021 08:39 EDT
+# @File          : detectostype
+# @Description   : Script to detect the OS
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#[[ "$" != "$" ]] || { echo This script is meant to be sourced; exit; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Get and set OS
-
 OS="$(uname)"
 case $OS in
-'Linux')
-  OS='Linux'
-  ;;
-
-'FreeBSD')
-  OS='FreeBSD'
-  ;;
-
-'WindowsNT')
-  OS='Windows'
-  ;;
-
-'Darwin')
-  OS='Mac'
-  ;;
-
-'SunOS')
-  OS='Solaris'
-  ;;
-
-'AIX')
-  OS=AIX
-  ;;
-
-*)
-  [ -n "$OS" ] && OS="$OS" || OS="Unknown"
-  ;;
+'Linux') OS='Linux' ;;
+'FreeBSD') OS='FreeBSD' ;;
+'WindowsNT') OS='Windows' ;;
+'Darwin') OS='Mac' ;;
+'SunOS') OS='Solaris' ;;
+'AIX') OS=AIX ;;
+*) [ -n "$OS" ] && OS="$OS" || OS="Unknown" ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Set OS Detection
 arch=$(uname -m)
@@ -59,7 +49,7 @@ elif [ -f "/etc/redhat-release" ]; then
 else
   distroname="$(uname -s) $(uname -r)"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Version
 if [ -f "/etc/os-release" ]; then
   DISTRO_VERSION=$(cat /etc/os-release | grep '^VERSION="' | sed 's#VERSION="##g;s#"##g')
@@ -70,7 +60,7 @@ elif [ -f "$(command -v lsb-release 2>/dev/null)" ]; then
 elif [ -f "/etc/redhat-release" ]; then
   DISTRO_VERSION=$(cat /etc/redhat-release | awk '{print $4}' | tr '[:upper:]' '[:lower:]' | sed 's#"##g')
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Various Arch Distros
 if [[ "$distroname" =~ "ArcoLinux" ]] || [[ "$distroname" =~ "Arch" ]] || [[ "$distroname" =~ "BlackArch" ]]; then
   DISTRO=Arch
@@ -100,7 +90,6 @@ elif [[ "$distroname" =~ "Ubuntu" ]] || [[ "$distroname" =~ "Mint" ]] || [[ "$di
 elif [[ "$distroname" =~ "Fedora" ]]; then
   DISTRO=Fedora
 fi
-
 if [[ "$OS" =~ Mac|Darwin ]]; then
   if [ -f "$(command -v sw_vers 2>/dev/null)" ]; then
     DISTRO="MacOS"
@@ -110,13 +99,12 @@ if [[ "$OS" =~ Mac|Darwin ]]; then
     DISTRO_VERSION=""
   fi
 fi
-
 if [ -f /etc/os-release ]; then
   DISTROID="$(grep ID_LIKE /etc/os-release | sed 's/^.*=//')"
 fi
-
 export DISTRO DISTROID CODENAME OS DISTRO_VERSION
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+#exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

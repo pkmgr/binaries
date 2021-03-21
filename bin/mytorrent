@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="mytorrent"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201732-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : mytorrent --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Feb 15, 2021 14:02 EST
+# @Created       : Saturday, Mar 20, 2021 17:32 EDT
 # @File          : mytorrent
 # @Description   : Open torrent client
 # @TODO          :
@@ -39,10 +40,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/mytorrent/settings" ] && . "$HOME/.config/mytorrent/settings"
 MYTORRENT_NOTIFICATIONS="${MYTORRENT_NOTIFICATIONS:-yes}"
 MYTERMINAL_NOTIFICATIONS="no"
-TORRENT_SERVER="${TORRENT_SERVER:-localhost}:9091"
+TORRENT_SERVER="${TORRENT_SERVER:-localhost:9091}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/mytorrent/settings" ] && . "$HOME/.config/mytorrent/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating config file"
@@ -179,4 +181,5 @@ case $1 in
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

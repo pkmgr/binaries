@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="wallpapermgr"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103202029-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : wallpapermgr --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Sunday, Feb 07, 2021 01:25 EST
+# @Created       : Saturday, Mar 20, 2021 20:29 EDT
 # @File          : wallpapermgr
 # @Description   : Wallpaper installer and manager
 # @TODO          : Refactor Code
@@ -37,7 +36,8 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-wallpapermgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main program
@@ -131,11 +131,8 @@ version)
 *)
   __help
   ;;
-
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# exit
-if [ ! -z "$EXIT" ]; then exit "$EXIT"; fi
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

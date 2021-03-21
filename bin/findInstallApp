@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="findInstallApp"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 030820210253-git
+##@Version       : 202103200710-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : findInstallApp --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Mar 08, 2021 02:53 EST
+# @Created       : Saturday, Mar 20, 2021 07:10 EDT
 # @File          : findInstallApp
 # @Description   : Try to find and install the application
 # @TODO          : Add zenity prompts
@@ -133,5 +134,6 @@ else
   exitCode=1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $exitCode
+exit ${exitCode:-$?}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

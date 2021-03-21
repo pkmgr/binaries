@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="backupapp"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200329-git
+##@Version       : 202103200613-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : backupapp --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 03:29 EDT
+# @Created       : Saturday, Mar 20, 2021 06:13 EDT
 # @File          : backupapp
 # @Description   : Backup files and folders
 # @TODO          :
@@ -41,14 +41,12 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
-__require_app tar
+__requires tar
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-declare filename count backupdir rmpre4vbackup _APPNAME _APPDIRS
 [ "$1" = "--yes" ] && YN="Y" && shift 1
 [ -d "$HOME/.config/backupapp" ] || __mkd "$HOME/.config/backupapp"
 [ -f "$HOME/.config/backupapp/settings" ] && . "$HOME/.config/backupapp/settings"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   local appname="${1:-settings}"
@@ -80,11 +78,9 @@ BICON_ERROR="[ ✖ }"
   printf_green "File saved to: $HOME/.config/backupapp/$appname.conf"
   printf_blue "You can create per app setting by running backupapp config Name Directories"
 }
-
 __backupcmd() {
   tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname" || return 1
 }
-
 main() {
   local e err appname appdir
   local _APPNAME="${_APPNAME:-$PROJECTNAME}"
@@ -150,11 +146,11 @@ __term() {
     printf_newline "\n\n\n\n"
     printf_head "Backup Menu"
     printf_custom "6" "Welcome to the backup menu: type quit to exit"
-    printf_read_question_nt "2" "Enter backupname: " "120" "_APPNAME"
+    printf_read_question_nt "2" "Enter backupname: " "120" "_APPNAME" "-e"
     if [ "$_APPNAME" = "quit" ]; then
       break
     fi
-    printf_read_question_nt "2" "Enter directories:" "140" "_APPDIRS"
+    printf_read_question_nt "2" "Enter directories:" "140" "_APPDIRS" "-e"
     printf_newline
     if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
       main "$_APPNAME" "$_APPDIRS"
@@ -172,7 +168,6 @@ __term() {
 }
 __local_cron_add() { __setupcrontab "${3:-0 0 * * *}" "backupapp --yes $1 $2 >/dev/null 2>&1"; }
 __local_cron_del() { __removecrontab "backupapp --yes $1 "; }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 *cron)
@@ -281,7 +276,8 @@ case "$1" in
   fi
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

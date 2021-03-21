@@ -1,49 +1,53 @@
 #!/usr/bin/env bash
-
-shopt -s extglob extquote
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : todo
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : A todo manager
-# @Source      : https://github.com/todotxt/todo.txt-cli
+##@Version       : 202103201951-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : todo.sh --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 19:51 EDT
+# @File          : todo.sh
+# @Description   : A todo manager
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# NOTE:  Todo.sh requires the .config/todo/config configuration file to run.
-# Place the .config/todo/config file in your home directory or use the -d option for a custom location.
-
-[ -f VERSION-FILE ] && . VERSION-FILE || VERSION="@DEV_VERSION@"
+TODO_CONFIG_DIR="${TODO_CONFIG_DIR:-/$HOME/.config/todo}"
+TODOTXT_CFG_FILE="${TODOTXT_CFG_FILE:-$HOME./config/todo/config}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$TODO_CONFIG_DIR/VERSION-FILE" ] && . "$TODO_CONFIG_DIR/VERSION-FILE" || VERSION="@DEV_VERSION@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 version() {
   cat <<-EndVersion
 		TODO.TXT Command Line Interface v$VERSION
-
 		Homepage: http://todotxt.org
 		Code repository: https://github.com/todotxt/todo.txt-cli/
 		Contributors: https://github.com/todotxt/todo.txt-cli/graphs/contributors
@@ -51,7 +55,7 @@ version() {
 	EndVersion
   exit 1
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set script name and full path early.
 TODO_SH=$(basename "$0")
 TODO_FULL_SH="$0"

@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : devenv
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : setup a development environment
-#
+##@Version       : 202103200627-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : devenv --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:27 EDT
+# @File          : devenv
+# @Description   : Setup a development environment
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,9 +36,30 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-devenvmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+DEVENV_COMAND="${DEVENV_COMAND:-}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# What to do after creating project
+__start_new_project(){
+  if [ -n "$DEVENV_COMAND" ] && [ -f "$(type -P "$(basename "$DEVENV_COMAND")")" ]; then
+    eval "$DEVENV_COMAND"
+  elif [ "$1" = "screen" ]; then
+    if [ -f "$2" ]; then eval "$1" -c "$2"
+    elif [ -f "$HOME/.config/screen/dev/singlerc" ]; then eval screen -c "$HOME/.config/screen/dev/singlerc"
+    fi
+  elif [ "$1" = "tmux" ]; then
+    if [ -f "$2" ]; then tmux -f "$2"
+    elif [ -f "$HOME/.config/tmux/dev/tmux.conf" ]; then eval tmux -f "$HOME/.config/tmux/dev/tmux.conf"
+    fi
+  else
+    ${SHELL:-bash}
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# check for sample files
 if_sample() {
   if [ -f .env.sample ] || [ -f .env ]; then cp -Rf .env.sample .env; fi
   if [ -f .config.sample ] || [ -f .config ]; then cp -Rf .config.sample .config; fi
@@ -39,193 +67,202 @@ if_sample() {
   if [ -f .config.json.sample ] || [ -f .config.json ]; then cp -Rf .config.json.sample .config.json; fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a static server
 __run_static_site() {
   run_server ${1:-20000}
   exit
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import new site from git
+__run_import_site() {
+  local sitedir
+  printf_green "Enter the full path for your imported project!"
+  printf_read_question "3" "Enter location for your new site - enter . for current:" "120" "sitedir" "-e"
+  printf_read_question "3" "Enter the url to your git repo:" "120" "import" "-e"
+  [ -n "$sitedir" ] || [ -n "$import" ] || printf_exit "Something went wrong"
+  [ -d "$sitedir" ] || __mkd "$sitedir"
+  if git clone "$import" "$sitedir" -q &>/dev/null; then
+    printf_green "Import from $import completed"
+  else
+    printf_red "Something went wrong with the import"
+    printf_exit "git clone $import $sitedir -q"
+  fi
+  cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create a new site dir
 __run_new_site() {
   local sitedir
   printf_green "Enter the full path for your new project!"
-  printf_read_question "3" "Enter location for your new site - enter . for current:" "120" "sitedir"
+  printf_read_question "3" "Enter location for your new site - enter . for current:" "120" "sitedir" "-e"
   [ -n "$sitedir" ] || printf_exit "Something went wrong"
   [ -d "$sitedir" ] || __mkd "$sitedir"
   cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Run jekyll server
 __run_jekyll() {
   local appname=jekyll
   local project=jekyll
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Run hugo server
 __run_hugo() {
   local appname=hugo
   local project=hugo
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create a ruby project
 __run_ruby() {
   local appname=ruby
   local project=ruby
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new python project
 __run_python() {
   local appname=python
   local project=python
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new perl project
 __run_perl() {
   local appname=perl
   local project=perl
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new PHP Project
 __run_php() {
   local appname=php
   local project=php
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new node project
 __run_node() {
   local appname=node || appname=node || appname=npm
   local project=node
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || npm init
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
   npm init
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new VueJS project
 __run_vuecli() {
   local appname=vue
   local project=node
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
   "$appname" create
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new ReactJS project
 __run_reactcli() {
   local appname=create-react-app
   local project=javascript
-  cmd_exists "$appname" || printf_exit "$node is not installed"
+  __requires "$appname" || printf_exit "$node is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
   $appname
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new ExpressJS project
 __run_expresscli() {
   local appname=express-generator
   local project=javascript
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
   $appname
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create a new javascript project
 __run_create-project() {
   local appname=create-project
   local project=javascript
-  cmd_exists "$appname" || printf_exit "$appname is not installed"
+  __requires "$appname" || printf_exit "$appname is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$project" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
   "$appname"
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start a new mevn project
 __run_mevn() {
   local appname=mevn
   local project=javascript
-  cmd_exists "$git" || printf_exit "$git is not installed"
+  __requires "$git" || printf_exit "$git is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$project" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
   [ -f package.json ] || printf_red "The package.json file already exits" && exit 1
-  if [ -f "$HOME/.config/screen/dev/$project" ]; then
-    screen -c "$HOME/.config/screen/dev/$project"
-  fi
   git clone -q https://github.com/icebob/vue-express-mongo-boilerplate ./
-  exit 0
+  __start_new_project screen "$HOME/.config/screen/dev/$project"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create a shellcheckrc file
 __gen_shellcheck() {
   printf_green "Generating .shellcheckrc"
   __cp_rf "$CASJAYSDEVDIR/templates/shellcheckrc" ./.shellcheckrc
-  [ -f "./shellcheckrc" ] && \
-    printf_green ".shellcheckrc has been generated" || \
+  [ -f "./shellcheckrc" ] &&
+    printf_green ".shellcheckrc has been generated" ||
     printf_exit 1 1 "Failed to create .shellcheckrc"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -235,11 +272,11 @@ if [ "$1" = "--start" ]; then
 
   case "$START" in
   jekyll)
-    __cmd_exists jekyll || printf_exit 1 1 "jekyll can't be found"
+    __requires jekyll || printf_exit 1 1 "jekyll can't be found"
     if [ -f ./_config.yml ]; then
-      if __cmd_exists watchy; then
+      if __requires watchy; then
         watchy -w _config.yml -- jekyll serve --host=0.0.0.0
-      elif cmd_exists jekyll; then
+      elif __requires jekyll; then
         jekyll serve --host=0.0.0.0
       else printf_exit "There was a problem staring - no config found"; fi
     else
@@ -255,6 +292,8 @@ if [ "$1" = "--start" ]; then
 fi
 
 case "$1" in
+  import)
+    __run_import_site
 static)
   shift 1
   __run_new_site && __run_static_site "$@"
@@ -311,7 +350,7 @@ express)
 
 create-project)
   shift 1
-  __run_new_site &&  __run_create-project "$@"
+  __run_new_site && __run_create-project "$@"
   ;;
 
 mevn)
@@ -330,4 +369,6 @@ esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

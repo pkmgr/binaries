@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="gen-apache"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 031320210033-git
+##@Version       : 202103200719-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : gen-apache --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 13, 2021 00:33 EST
+# @Created       : Saturday, Mar 20, 2021 07:19 EDT
 # @File          : gen-apache
 # @Description   : Generate a new apache host
 # @TODO          :
@@ -40,15 +40,16 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GEN_APACHE_CONFIG_DIR="${GEN_APACHE_CONFIG_DIR:-$HOME/.config/gen-apache}"
 APACHEDOMAIN="${1:-$(hostname -f)}"
-APACHEDOCROOT="${2:-$HOME/.config/gen-apache/www/$(hostname -f)}"
-APACHECONFDIR="${3:-$HOME/.config/gen-apache/conf}"
+APACHEDOCROOT="${2:-$GEN_APACHE_CONFIG_DIR/www/$(hostname -f)}"
+APACHECONFDIR="${3:-$GEN_APACHE_CONFIG_DIR/conf}"
 APACHECONFFILE="$APACHECONFDIR/$(hostname -f).conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __requiresudo true
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-mkdir -p "$HOME/.config/gen-apache/www/$(hostname -f)"
-mkdir -p "$HOME/.config/gen-apache/conf"
+mkdir -p "$APACHEDOCROOT"
+mkdir -p "$APACHECONFDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __return__error() {
   printf_error "Somethings seems to have gone very wrong"
@@ -82,7 +83,6 @@ __apache_www() {
   printf_read_question_nt "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-e -i $APACHEDOCROOT "
   [ -z "$APACHEDOCROOT" ] && printf_exit "DocumentRoot is required" || APACHEDOCROOT=$APACHEDOCROOT
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_html() {
   printf_green "Copying the template html files to $APACHEDOCROOT"
@@ -90,16 +90,18 @@ __apache_html() {
   find "$APACHECONFDIR" -type f -exec sed -i 's#GEN_SCRIPT_REPLACE_WITHDOM#'"${APACHEDOMAIN}"'#g' {} \; >/dev/null 2>&1
   find "$APACHECONFDIR" -type f -exec sed -i 's#GEN_SCRIPT_REPLACE_HTMLROOT#'"${APACHEDOCROOT}"'#g' {} \; >/dev/null 2>&1
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_conf() {
   local APACHECONFFILE="$APACHECONFDIR/$(hostname -f).conf"
   printf_green "Generating apache conf in $APACHECONFFILE"
-  if [ -d /etc/letsencrypt/live/domain ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
-    if [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
-      [ -d /etc/letsencrypt/live/domain ] || __ln_sf "/etc/letsencrypt/live/$(hostname -f)" /etc/letsencrypt/live/domain
-    fi
-    cat <<EOF >"$APACHECONFFILE"
+  if [ -f "$GEN_APACHE_CONFIG_DIR/template.conf" ]; then
+    . "$GEN_APACHE_CONFIG_DIR/template.conf"
+  else
+    if [ -d /etc/letsencrypt/live/domain ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
+      if [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
+        [ -d /etc/letsencrypt/live/domain ] || __ln_sf "/etc/letsencrypt/live/$(hostname -f)" /etc/letsencrypt/live/domain
+      fi
+      cat <<EOF >"$APACHECONFFILE"
 # VirtualHost for $APACHEDOMAIN
 
 <IfModule mod_ssl.c>
@@ -128,8 +130,8 @@ SSLCertificateChainFile /etc/letsencrypt/live/domain/fullchain.pem
 </VirtualHost>
 </IfModule>
 EOF
-  else
-    cat <<EOF >"$APACHECONFFILE"
+    else
+      cat <<EOF >"$APACHECONFFILE"
 # VirtualHost for $APACHEDOMAIN
 
 <IfModule mod_ssl.c>
@@ -157,6 +159,7 @@ SSLCertificateKeyFile /etc/ssl/CA/CasjaysDev/private/localhost.key
 </VirtualHost>
 </IfModule>
 EOF
+    fi
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -175,7 +178,7 @@ if __can_i_sudo; then
   if [ -z "$(grep $APACHEDOMAIN /etc/hosts 2>/dev/null)" ]; then
     echo "127.0.3.1      $APACHEDOMAIN" | sudo tee -a /etc/hosts &>/dev/null
   fi
-  if [ "$HOME/.config/gen-apache/conf/$APACHEDOMAIN.conf" != "$APACHECONFDIR/$APACHEDOMAIN.conf" ]; then
+  if [ "$APACHECONFDIR/$APACHEDOMAIN.conf" != "$APACHECONFDIR/$APACHEDOMAIN.conf" ]; then
     if [ -f "$APACHECONFFILE" ]; then
       printf_green "Installing $APACHECONFFILE to" &&
         printf_green "$APACHECONFDIR/$APACHEDOMAIN.conf" &&
@@ -193,4 +196,5 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
-#End
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

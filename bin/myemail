@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="myemail"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201725-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : myemail --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Feb 15, 2021 14:02 EST
+# @Created       : Saturday, Mar 20, 2021 17:25 EDT
 # @File          : myemail
 # @Description   : Open e-mail client
 # @TODO          :
@@ -42,9 +41,10 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYTERMINAL_NOTIFICATIONS="no"
-[ -f "$HOME/.config/myemail/settings" ] && . "$HOME/.config/myemail/settings"
 MYEMAIL_NOTIFICATIONS="${MYEMAIL_NOTIFICATIONS:-yes}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/myemail/settings" ] && . "$HOME/.config/myemail/settings"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/myemail"
@@ -114,9 +114,9 @@ fi
 EMAIL_NAME="$(basename "$EMAIL" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $EMAIL in
-  emacs | mutt | neomutt)
-    EMAIL="myterminal -e $EMAIL"
-    ;;
+emacs | mutt | neomutt)
+  EMAIL="myterminal -e $EMAIL"
+  ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
@@ -141,5 +141,6 @@ case $1 in
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

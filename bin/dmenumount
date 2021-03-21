@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : dmenumount
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Show and mount devices in dmenu
-
+##@Version       : 202103200637-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dmenumount --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:37 EDT
+# @File          : dmenumount
+# @Description   : Show and mount devices in dmenu
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,6 +36,7 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -36,7 +44,7 @@ __options "$@"
 # they're in /etc/fstab, they'll be mounted automatically. Otherwise, you'll
 # be prompted to give a mountpoint from already existsing directories. If you
 # input a novel directory, it will prompt you to create that directory.
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 getmount() {
   [ -z "$chosen" ] && exit 1
   mp="$(find $1 2>/dev/null | dmenu -i -p "Type in mount point.")"
@@ -46,7 +54,7 @@ getmount() {
     [ "$mkdiryn" = "Yes" ] && (mkdir -p "$mp" || sudo -A mkdir -p "$mp")
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mountusb() {
   chosen="$(echo "$usbdrives" | dmenu -i -p "Mount which drive?" | awk '{print $1}')"
   sudo -A mount "$chosen" 2>/dev/null && notifications "💻 USB mounting" "$chosen mounted." && exit 0
@@ -64,7 +72,7 @@ mountusb() {
   esac
   notifications "💻 USB mounting" "$chosen mounted to $mp."
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mountandroid() {
   chosen=$(echo "$anddrives" | dmenu -i -p "Which Android device?" | cut -d : -f 1)
   getmount "$HOME -maxdepth 3 -type d"
@@ -73,17 +81,17 @@ mountandroid() {
   simple-mtpfs --device "$chosen" "$mp"
   notifications "🤖 Android Mounting" "Android device mounted to $mp."
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 asktype() {
   case $(printf "USB\\nAndroid" | dmenu -i -p "Mount a USB drive or Android device?") in
   USB) mountusb ;;
   Android) mountandroid ;;
   esac
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 anddrives=$(simple-mtpfs -l 2>/dev/null)
 usbdrives="$(lsblk -rpo "name,type,size,mountpoint" | awk '$2=="part"&&$4==""{printf "%s (%s)\n",$1,$3}')"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$usbdrives" ]; then
   [ -z "$anddrives" ] && echo "No USB drive or Android device detected" && exit
   echo "Android device(s) detected."
@@ -97,3 +105,7 @@ else
     asktype
   fi
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

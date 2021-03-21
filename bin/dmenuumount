@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : dmenuunmount
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : dmenu prompt to unmount drives
-
+##@Version       : 202103200644-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dmenuumount --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:44 EDT
+# @File          : dmenuumount
+# @Description   : dmenu prompt to unmount drives
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,32 +36,32 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 unmountusb() {
   [ -z "$drives" ] && exit
   chosen=$(echo "$drives" | dmenu -i -p "Unmount which drive?" | awk '{print $1}')
   [ -z "$chosen" ] && exit
   sudo -A umount "$chosen" && notifications "💻 USB unmounting" "$chosen unmounted."
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 unmountandroid() {
   chosen=$(awk '/simple-mtpfs/ {print $2}' /etc/mtab | dmenu -i -p "Unmount which device?")
   [ -z "$chosen" ] && exit
   sudo -A umount -l "$chosen" && notifications "🤖 Android unmounting" "$chosen unmounted."
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 asktype() {
   case "$(printf "USB\\nAndroid" | dmenu -i -p "Unmount a USB drive or Android device?")" in
   USB) unmountusb ;;
   Android) unmountandroid ;;
   esac
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 drives=$(lsblk -nrpo "name,type,size,mountpoint" | awk '$2=="part"&&$4!~/\/boot|\/home$|SWAP/&&length($4)>1{printf "%s (%s)\n",$4,$3}')
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if ! grep simple-mtpfs /etc/mtab; then
   [ -z "$drives" ] && echo "No drives to unmount." && exit
   echo "Unmountable USB drive detected."
@@ -68,3 +75,7 @@ else
     asktype
   fi
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

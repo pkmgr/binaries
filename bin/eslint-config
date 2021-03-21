@@ -1,41 +1,45 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : eslint-config
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Setup eslint for current project
+##@Version       : 202103200659-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : eslint-config --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:59 EDT
+# @File          : eslint-config
+# @Description   : Setup eslint for current project
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dfmgr_install
-__options "$@"# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ "$1" = "--version" ] && get_app_info "$APPNAME"
-
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Package Manager Prompt
 printf_blue
 printf_blue "Which package manager are you using? "
@@ -53,7 +57,7 @@ select package_command_choices in "Yarn" "npm" "Cancel"; do
   esac
 done
 printf_blue
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # File Format Prompt
 printf_blue "Which ESLint and Prettier configuration format do you prefer? "
 select config_extension in ".js" ".json" "Cancel"; do
@@ -70,13 +74,14 @@ select config_extension in ".js" ".json" "Cancel"; do
   esac
 done
 printf_blue
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Checks for existing eslintrc files
 if [ -f ".eslintrc.js" -o -f ".eslintrc.yaml" -o -f ".eslintrc.yml" -o -f ".eslintrc.json" -o -f ".eslintrc" ]; then
   printf_red "Existing ESLint config file(s) found: "
   ls -a .eslint* | xargs -n 1 basename
   printf_blue
-  printf_red "CAUTION: there is loading priority when more than one config file is present: https://eslint.org/docs/user-guide/configuring#configuration-file-formats"
+  printf_red "CAUTION: there is loading priority when more than one config file is present:"
+  printf_blue "https://eslint.org/docs/user-guide/configuring#configuration-file-formats"
   printf_blue
   read -p "Write .eslintrc${config_extension} (Y/n)? "
   if [[ $REPLY =~ ^[Nn]$ ]]; then
@@ -85,7 +90,7 @@ if [ -f ".eslintrc.js" -o -f ".eslintrc.yaml" -o -f ".eslintrc.yml" -o -f ".esli
   fi
 fi
 finished=false
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Max Line Length Prompt
 while ! $finished; do
   read -p "What max line length do you want to set for ESLint and Prettier? (Recommendation: 80) "
@@ -97,7 +102,7 @@ while ! $finished; do
     printf_yellow "Please choose a max length of two or three digits, e.g. 80 or 100 or 120 "
   fi
 done
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Trailing Commas Prompt
 printf_blue "What style of trailing commas do you want to enforce with Prettier? "
 printf_yellow ">>>>> See https://prettier.io/docs/en/options.html#trailing-commas for more details."
@@ -109,46 +114,34 @@ select trailing_comma_pref in "none" "es5" "all"; do
   esac
 done
 echo
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Checks for existing prettierrc files
 if [ -f ".prettierrc.js" -o -f "prettier.config.js" -o -f ".prettierrc.yaml" -o -f ".prettierrc.yml" -o -f ".prettierrc.json" -o -f ".prettierrc.toml" -o -f ".prettierrc" ]; then
   printf_red "Existing Prettier config file(s) found "
   ls -a | grep "prettier*" | xargs -n 1 basename
-
   printf_red "CAUTION: The configuration file will be resolved starting from the location of the file being formatted, and searching up the file tree until a config file is (or isn't) found. https://prettier.io/docs/en/configuration.html"
-
   read -p "Write .prettierrc${config_extension} (Y/n)? "
   if [[ $REPLY =~ ^[Nn]$ ]]; then
     printf_yellow ">>>>> Skipping Prettier config"
     skip_prettier_setup="true"
   fi
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # ----------------------
 # Perform Configuration
 # ----------------------
 printf_green "Configuring your development environment... "
-
 printf_cyan "1/5 ESLint & Prettier Installation... "
-
 $pkg_cmd -D eslint prettier eslint-plugin-react-hooks
-
 printf_yellow "2/5 $Conforming to Airbnb's JavaScript Style Guide... "
-
 $pkg_cmd -D eslint-config-airbnb eslint-plugin-jsx-a11y eslint-plugin-import eslint-plugin-react babel-eslint
-
 printf_cyan "3/5 Making ESlint and Prettier play nice with each other... "
 printf_blue "See https://github.com/prettier/eslint-config-prettier for more details."
-
 $pkg_cmd -D eslint-config-prettier eslint-plugin-prettier
-
 if [ "$skip_eslint_setup" == "true" ]; then
-  exit
+  true
 else
-
-  printf_yellow "4/5 Building your .eslintrc${config_extension} file..."
-  >".eslintrc${config_extension}" # truncates existing file (or creates empty)
-
+  printf_yellow "4/5 Building your .eslintrc${config_extension} file..." >".eslintrc${config_extension}"
   echo ${config_opening}'
   "extends": [
     "airbnb",
@@ -276,18 +269,20 @@ else
   ]
 }' >>.eslintrc${config_extension}
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$skip_prettier_setup" == "true" ]; then
-  break
+  true
 else
-  printf_yellow "5/5 Building your .prettierrc${config_extension} file... "
-  >.prettierrc${config_extension} # truncates existing file (or creates empty)
-
+  printf_yellow "5/5 Building your .prettierrc${config_extension} file... " >.prettierrc${config_extension}
   echo ${config_opening}'
   "printWidth": '${max_len_val}',
   "singleQuote": true,
   "trailingComma": "'${trailing_comma_pref}'"
 }' >>.prettierrc${config_extension}
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_green "Finished setting up!"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

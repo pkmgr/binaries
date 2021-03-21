@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="pslist"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 030420211948-git
+##@Version       : 202103201748-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
-# @License       : LICENSE.md
-# @ReadME        : README.md
+# @License       : WTFPL
+# @ReadME        : pslist --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Thursday, Mar 04, 2021 21:37 EST
+# @Created       : Saturday, Mar 20, 2021 17:48 EDT
 # @File          : pslist
 # @Description   : list processes
 # @TODO          :
@@ -42,9 +41,9 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # list processes
-[ "$1" = "" ] && __help
-
-for p in $@; do
+[ -n "$1" ] || __help
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+for p in "$@"; do
   if __cmd_exists pidof; then
     pid="$(pidof $p)"
     if [ -n "$pid" ]; then
@@ -64,4 +63,5 @@ for p in $@; do
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

@@ -1,63 +1,65 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : termbin.com
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Post text to termbin.com
-#
+##@Version       : 202103201929-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : termbin.com --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 19:29 EDT
+# @File          : termbin.com
+# @Description   : Post text to termbin.com
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-IFS=''
-
-if ! cmd_exists nc; then
-  printf_red "Command nc was not found"
-  printf_red "Please install the netcat package"
-  exit 1
-else
-
-  if [ ! -z "$1" ]; then
-    cat "$1" | devnull2 nc termbin.com 9999 >/tmp/termbin
-  else
-    devnull2 nc termbin.com 9999 >/tmp/termbin
-  fi
-
-  if [ -f /tmp/termbin ]; then
-    echo "" >>/tmp/termbin
-    devnull2 cat /tmp/termbin | printf_readline
-    devnull rm -Rf /tmp/termbin
-  else
-    devnull rm -Rf /tmp/termbin
-    printf_red "Something went wrong"
-  fi
-fi
-
+__cmd_exists nc || __cmd_exists netcat || exit 1
+__am_i_online_err || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+NETCATCMD="${nc:-nc}"
+TEMPFILE="${TMPDIR:-/tmp}/termbin"
+IFS=''
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -n "$1" ] &&
+  cat "$1" | __devnull2 $NETCATCMD termbin.com 9999 >"$TEMPFILE" ||
+  __devnull2 $NETCATCMD termbin.com 9999 >"$TEMPFILE"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$TEMPFILE" ]; then
+  echo "" >>"$TEMPFILE"
+  __devnull2 cat "$TEMPFILE" | printf_readline
+  __rm_rf "$TEMPFILE"
+else
+  __rm_rf "$TEMPFILE"
+  printf_red "Something went wrong"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

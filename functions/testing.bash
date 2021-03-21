@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="${APPNAME:-testing}"
 USER="${SUDO_USER:-${USER}}"
@@ -24,7 +23,6 @@ FUNCFILE="testing.bash"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main scripts location
 CASJAYSDEVDIR="/usr/local/share/CasjaysDev/scripts"
-
 # Fail if git, curl, wget are not installed
 for check in git curl wget; do
   if ! command -v "$check" >/dev/null 2>&1; then
@@ -32,7 +30,6 @@ for check in git curl wget; do
     exit 1
   fi
 done
-
 # Versioning Info - __required_version "VersionNumber"
 localVersion="${localVersion:-031220211739-git}"
 requiredVersion="${requiredVersion:-031220211739-git}"
@@ -43,7 +40,6 @@ else
 fi
 # Set Main Repo for dotfiles
 DOTFILESREPO="https://github.com/dfmgr"
-
 # Set other Repos
 DFMGRREPO="https://github.com/dfmgr"
 PKMGRREPO="https://github.com/pkmgr"
@@ -56,34 +52,33 @@ SYSTEMMGRREPO="https://github.com/systemmgr"
 WALLPAPERMGRREPO="https://github.com/wallpapermgr"
 WHICH_LICENSE_URL="https://github.com/devenvmgr/licenses/raw/master"
 WHICH_LICENSE_DEF="$CASJAYSDEVDIR/templates/wtfpl.md"
-
 # OS Settings
-if [ -f "$CASJAYSDEVDIR/bin/detectostype" ]; then
-  . "$CASJAYSDEVDIR/bin/detectostype"
-fi
-
+[ -f "$CASJAYSDEVDIR/bin/detectostype" ] && . "$CASJAYSDEVDIR/bin/detectostype"
 # Setup temp folders
 TMP="${TMP:-/tmp}"
 TEMP="${TMP:-/tmp}"
 TMPDIR="${TMP:-/tmp}"
-
 # Setup path
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
 TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
 PATH="$(echo "$TMPPATH" | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 unset TMPPATH
-
 # Setup sudo and user
 WHOAMI="${USER}"
 SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m\n")"
-
+# TTY Check
+is_tty() { [[ -t 1 || -p /dev/stdout ]]; }
 ###################### builtins ######################
 command() {
   [ "$1" = "-v" ] && shift 1
   type -P "$1"
 }
-
+###################### exports #######################
+#[ -n "$NOTIFY_CLIENT_NAME" ] || NOTIFY_CLIENT_NAME="${APPNAME:$PROG}"
+#[ -n "$APPNAME" ] || APPNAME="${APPNAME:$PROG}"
+#[ -n "$PROG" ] || PROG="${APPNAME:$PROG}"
+#export PROG APPNAME NOTIFY_CLIENT_NAME
 ###################### devnull/logging/error handling ######################
 # send all output to /dev/null
 __devnull() {
@@ -128,7 +123,7 @@ __runapp() {
     bash -c "${@:-$(false)}" >>"$logdir/${APPNAME:-$1}.log" 2>>"$logdir/${APPNAME:-$1}.err"
   fi
 }
-
+# exec command
 __exec() {
   local cmd="$1" && shift 1
   local args="$*" && shift $#
@@ -138,14 +133,12 @@ __exec() {
     exec "$cmd" "$args" &>/dev/null &
   fi
 }
-
-#macos fixes
+# macos fixes
 case "$(uname -s)" in
 Darwin) alias dircolors=gdircolors ;;
 esac
-
+# get version
 scripts_version() { printf_green "scripts version is $(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/version.txt)\n"; }
-
 #setup colors
 NC="$(tput sgr0 2>/dev/null)"
 RESET="$(tput sgr0 2>/dev/null)"
@@ -166,7 +159,7 @@ ICON_GOOD="[ ✔ ]"
 ICON_WARN="[ ❗ ]"
 ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
-
+# printf functions
 printf_newline() { printf "${*:-}\n"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 printf_normal() {
@@ -209,7 +202,11 @@ printf_warning() {
   printf_color "\t\t$ICON_WARN $1" 3
   printf "\n"
 }
-printf_error_stream() { while read -r line; do printf_error "↳ ERROR: $line"; done; }
+printf_error_stream() {
+  while read -r line; do
+    printf_error "↳ ERROR: $line"
+  done
+}
 printf_execute_success() {
   printf_color "\t\t$ICON_GOOD $1" 2
   printf "\n"
@@ -222,9 +219,16 @@ printf_execute_result() {
   if [ "$1" -eq 0 ]; then printf_execute_success "$2"; else printf_execute_error "${3:-$2}"; fi
   return "$1"
 }
-
-printf_not_found() { if ! __cmd_exists "$1"; then printf_exit "The $1 command is not installed"; fi; }
-printf_execute_error_stream() { while read -r line; do printf_execute_error "↳ ERROR: $line"; done; }
+printf_not_found() {
+  if ! __cmd_exists "$1"; then
+    printf_exit "The $1 command is not installed"
+  fi
+}
+printf_execute_error_stream() {
+  while read -r line; do
+    printf_execute_error "↳ ERROR: $line"
+  done
+}
 #used for printing console notifications
 printf_console() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
@@ -233,7 +237,6 @@ printf_console() {
   printf_color "\n\t\t$msg" "$color"
   printf "\n\n"
 }
-
 printf_pause() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
   local msg="${*:-Press any key to continue}"
@@ -241,12 +244,17 @@ printf_pause() {
   read -r -n 1 -s
   printf "\n"
 }
-
 print_wait() {
   printf_pause "$*"
   printf "\n"
 }
-
+#same as printf_error
+printf_return() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
+  test -n "$1" && test -z "${1//[0-9]/}" && local exitCode="$1" && shift 1 || local exitCode="1"
+  [ $# = 0 ] || printf_red "$*" "$color"
+  return ${exitCode:-2}
+}
 #printf_error "color" "exitcode" "message"
 printf_error() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
@@ -256,7 +264,6 @@ printf_error() {
   printf "\n"
   return $exitCode
 }
-
 #printf_exit "color" "exitcode" "message"
 printf_exit() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
@@ -267,7 +274,6 @@ printf_exit() {
   printf "\n\n"
   exit "$exitCode"
 }
-
 printf_single() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local COLUMNS=80
@@ -276,9 +282,9 @@ printf_single() {
   local WIDTH=$(($LEN + ($COLUMNS - $LEN) / 2))
   printf "%b" "$(tput setaf "$color" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
 }
-
 printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local filename="$()"
   local msg="$*"
   shift
   echo ""
@@ -289,7 +295,6 @@ printf_help() {
   printf "\n\n"
   exit 0
 }
-
 printf_custom() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
   local msg="$*"
@@ -297,7 +302,6 @@ printf_custom() {
   printf_color "\t\t$msg" "$color"
   printf "\n"
 }
-
 printf_read() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -307,7 +311,6 @@ printf_read() {
   printf "\n"
   set +o pipefail
 }
-
 printf_readline() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -317,7 +320,6 @@ printf_readline() {
   done
   set +o pipefail
 }
-
 printf_column() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -327,28 +329,28 @@ printf_column() {
   printf "\n"
   set +o pipefail
 }
-
 printf_cat() {
   file=${1--}
   while IFS= read -r line; do
     printf '%s\n' "$line"
   done < <(cat -- "$file")
 }
-
 printf_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
   printf_color "\t\t$ICON_QUESTION $msg? " "$color"
 }
-
 printf_custom_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
 }
-
+printf_question_term() {
+  printf_read_question "4" "$1" "1" "REPLY" "-s"
+  printf_answer_yes "$REPLY" && eval "$2" || return 1
+}
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
@@ -359,7 +361,6 @@ printf_read_question() {
   printf_color "\t\t$msg " "$color"
   read -t 20 -r $readopts -n $lines $reply
 }
-
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question_nt() {
   local readopts reply
@@ -371,18 +372,15 @@ printf_read_question_nt() {
   printf_color "\t\t$msg " "$color"
   read -r $readopts -n $lines $reply
 }
-
 printf_read_error() {
   export "$1"
   printf_newline
 }
-
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
   read -t 10 -ers -n 1 "${1:-REPLY}" || printf "\n"
   #history -s "$1"
 }
-
 #printf_answer_yes "var" "response"
 printf_answer_yes() {
   if [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]]; then
@@ -402,9 +400,6 @@ printf_answer_no() {
     return 1
   fi
 }
-
-printf_return() { return ${1:-3}; }
-
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   local msg1="$1" && shift 1
@@ -425,7 +420,6 @@ printf_head() {
   [ -z "$msg7" ] || printf_color "\t\t$msg7\n" "$color"
   [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
 }
-
 # same as printf_head but no formatting
 printf_header() {
   local msg1="$1" && shift 1
@@ -446,7 +440,6 @@ printf_header() {
   [ -z "$msg7" ] || printf "$msg7\n"
   [ -z "$msg1" ] || printf "##################################################\n"
 }
-
 printf_result() {
   PREV="$4"
   [ ! -z "$1" ] && EXIT="$1" || EXIT="$?"
@@ -525,6 +518,7 @@ __mycurrdir() {
 ###################### checks ######################
 #cmd_exists command
 __cmd_exists() {
+  [[ "$1" = *-ask ]] && __requires "$@" && return $? || true
   [ $# -eq 0 ] && return 1
   local args="$*"
   local exitTmp
@@ -627,23 +621,33 @@ __gem_exists() {
   if __cmd_exists "$package" || __devnull gem query -i -n "$package"; then return 0; else return 1; fi
   set --
 }
-
 #check_app "app"
 __check_app() {
-  local choice ARGS MISSING
-  local ARGS="$*"
+  local cmd=""
+  local choice=""
   local MISSING=""
+  local ARGS="$*"
+  export APP="${APPNAME:-$PROG}"
+  export NOTIFY_CLIENT_ICON="software"
+  export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APP}"
   for cmd in $ARGS; do __cmd_exists "$cmd" || MISSING+="$cmd "; done
   if [ -n "$MISSING" ]; then
-    printf_red "The following apps are missing: $MISSING"
-    printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
-    if printf_answer_yes "$choice"; then
-      for miss in $MISSING; do
-        __execute "pkmgr silent-install $miss" "Installing $miss" || return 1
-      done
+    notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Missing $MISSING"
+    if [ -n "$DESKTOP_SESSION" ]; then
+      ask_yes_no_question "Would you like install $MISSING" "pkmgr silent-install $MISSING" || return 1
     else
-      exit $?
+      printf_red "The following apps are missing: $MISSING"
+      printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
+      if printf_answer_yes "$choice"; then
+        for miss in $MISSING; do
+          __execute "pkmgr silent-install $miss" "Installing $miss" || return 1
+        done
+      else
+        return 1
+      fi
     fi
+  else
+    return $?
   fi
 }
 #check_pip "pipname"
@@ -700,7 +704,6 @@ __getpythonver() {
   fi
   if [ "$(__cmd_exists yay)" ] || [ "$(__cmd_exists pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
 }
-
 __getphpver() {
   if __cmd_exists php; then
     PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
@@ -780,7 +783,7 @@ vim="$(command -v /usr/local/bin/vim || command -v vim)"
 __vim() { $vim "$@"; }
 #mkd dir
 __mkd() {
-  for d in "$@"; do [ -e "$d" ] || mkdir -p "$d" >/dev/null 2>&1; done
+  for d in "$@"; do [ -e "$d" ] || mkdir -p "$d" &>/dev/null; done
   return 0
 }
 #netcat
@@ -807,8 +810,6 @@ __netcat_kill_server() {
 #file_is_emtpy return 1
 __file_not_empty() { [ -s "$1" ] && return 0 || return 1; }
 __file_is_empty() { [ ! -s "$1" ] && return 0 || return 1; }
-#Sets the title
-#__title_info() { echo -n "$USER@$HOSTNAME:$APPNAME"; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
 __sed() { "$sed" "$@"; }
@@ -1106,7 +1107,6 @@ __git_username_repo() {
     return 1
   fi
 }
-
 #usage: git_CMD gitdir
 __git_status() { git -C "${1:-.}" status -b -s 2>/dev/null && return 0 || return 1; }
 __git_log() { git -C "${1:-.}" log --pretty='%C(magenta)%h%C(red)%d %C(yellow)%ar %C(green)%s %C(yellow)(%an)' 2>/dev/null && return 0 || return 1; }
@@ -1128,7 +1128,6 @@ __removecrontab() {
   crontab -l | grep -v "${command}" | crontab -
   return $?
 }
-
 __setupcrontab() {
   [ "$1" = "--help" ] && printf_help "setupcrontab "0 0 1 * *" "echo hello""
   local frequency="$1"
@@ -1139,7 +1138,6 @@ __setupcrontab() {
   fi
   return $?
 }
-
 __addtocrontab() {
   [ "$1" = "--help" ] && printf_help "addtocrontab "0 0 1 * *" "echo hello""
   local frequency="$1"
@@ -1148,7 +1146,6 @@ __addtocrontab() {
   cat <(grep -F -i -v "$2" <(crontab -l)) <(echo "$job") | crontab - >/dev/null 2>&1
   return $?
 }
-
 __cron_updater() {
   [ "$*" = "--help" ] && shift 1 && printf_help "Usage: ${PROG:-$APPNAME} updater $APPNAME"
   if user_is_root; then
@@ -1189,7 +1186,6 @@ __cron_updater() {
     fi
   fi
 }
-
 ###################### backup functions ######################
 #backupapp "directory" "filename"
 __backupapp() {
@@ -1253,7 +1249,6 @@ __attemp_install_menus() {
     return 1
   fi
 }
-
 __custom_menus() {
   local custom
   printf_read_question "6" "Enter your custom program : " "120" "custom"
@@ -1261,7 +1256,6 @@ __custom_menus() {
   if [ "$opts" = "file" ]; then opts="$(__open_file_menus $custom)"; fi
   __start $custom "$opts" 2>/dev/null || __run_menu_failed "$custom is an invalid program"
 }
-
 #open_file_menus
 __open_file_menus() {
   local prog="$1" && shift 1
@@ -1302,7 +1296,6 @@ __run_prog_menus() {
   fi
   clear
 }
-
 __edit_menu() {
   local EDITOR="$EDITOR"
   [ -f "$1" ] && local file="$1" && shift 1 || local file="$file"
@@ -1346,7 +1339,6 @@ sudorerun() {
     fi
   else sudoreq; fi; fi
 }
-
 sudoreq() {
   if [[ $UID != 0 ]]; then
     printf_newline
@@ -1354,14 +1346,12 @@ sudoreq() {
     exit 1
   fi
 }
-
 __can_i_sudo() {
   (
     ISINDSUDO=$(sudo grep -Re "$USER" /etc/sudoers* | grep "ALL" >/dev/null)
     sudo -vn && sudo -ln
   ) 2>&1 | grep -v 'may not' >/dev/null
 }
-
 __sudoask() {
   if [ ! -f "$HOME/.sudo" ]; then
     sudo true &>/dev/null && return 0 || return 1
@@ -1374,7 +1364,6 @@ __sudoask() {
     done &>/dev/null 2>/dev/null &
   fi
 }
-
 __sudoexit() {
   if __can_i_sudo; then
     __sudoask || printf_green "Getting privileges successfull continuing"
@@ -1382,7 +1371,6 @@ __sudoexit() {
     printf_red "Failed to get privileges\n"
   fi
 }
-
 __requiresudo() {
   if __can_i_sudo; then
     __sudoask && __sudoexit && __devnull2 sudo "$@" 2>/dev/null
@@ -1391,14 +1379,15 @@ __requiresudo() {
     return 1
   fi
 }
-
 user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
 ###################### spinner and execute function ######################
 # show a spinner while executing code or zenity
-if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DESKTOP_SESSION" ] && [ -z "$SSH_TTY" ]; then
+if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
   __execute() {
     local CMD="$1"
-    $CMD | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
+    local MSG="$2"
+    $CMD | zenity --progress --no-cancel --pulsate --auto-close --title="${APPNAME:-Executing}" \
+      --text="${MSG:-Executing commands}" --height=200 --width=400 || printf_readline "5"
   }
 else
   __execute() {
@@ -1426,7 +1415,7 @@ else
       done
     }
     local -r CMDS="$1"
-    local -r MSG="${2:-$1}"
+    local -r MSG="${2:-$1} "
     local -r TMP_FILE="$(mktemp /tmp/XXXXX)"
     local exitCode=0
     local cmdsPID=""
@@ -1468,7 +1457,6 @@ __setexitstatus() {
     return 1
   fi
 }
-
 #returnexitcode $?
 __returnexitcode() {
   [ -z "$1" ] || EXIT="$1"
@@ -1486,7 +1474,6 @@ __returnexitcode() {
     return "$EXIT"
   fi
 }
-
 #getexitcode "$?" "OK Message" "Error Message"
 __getexitcode() {
   local EXITCODE="$?"
@@ -1534,36 +1521,55 @@ firefox() { __cmd_exists firefox-esr || __cmd_exists firefox || return 1; }
 gtk-2.0() { find /lib* /usr* -iname "*libgtk*2*.so*" -type f | grep -q . || return 1; }
 gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || return 1; }
 httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
-
 #connection test
 __am_i_online() {
-  local site="1.1.1.1"
-  [ -z "$FORCE_CONNECTION" ] || return 0
-  return_code() {
-    if [ "$1" = 0 ]; then
-      return 0
-    else
-      return 1
+  export NOTIFY_CLIENT_ICON=error
+  export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
+  [[ "$1" = *force ]] && return 0
+  [ -n "$FORCE_CONNECTION" ] && return 0
+  case $1 in
+  *err* | *show)
+    shift 1
+    showerror=yes
+    site="${1:-1.1.1.1}"
+    ;;
+  *console)
+    shift 1
+    console="yes"
+    site="${1:-1.1.1.1}"
+    ;;
+  *)
+    site="${1:-1.1.1.1}"
+    ;;
+  esac
+  shift
+  test_ping() {
+    timeout 1 ping -c1 "$site" &>/dev/null
+    pingExit=$?
+  }
+  test_http() {
+    timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    httpExit=$?
+  }
+  test_ping || test_http
+  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
+    [ "$console" = "yes" ] && printf_green "$site is up: you seem to be connected to the internet"
+    exitCode=0
+  else
+    if [ "$console" = "yes" ]; then
+      printf_red "$site is down: you appear to not be connected to the internet" >&2
     fi
-  }
-  __test_ping() {
-    local site="$1"
-    timeout 0.3 ping -c1 $site >/dev/null 2>&1
-    local pingExit=$?
-    return_code $pingExit
-  }
-  __test_http() {
-    local site="$1"
-    curl -q -LSsik --max-time 1 http://$site 2>/dev/null | grep -E "HTTP/[0123456789]" | grep -E "200" -n1 -q
-    local httpExit=$?
-    return_code $httpExit
-  }
-  err() { [ "$1" = "show" ] && printf_error "${3:-1}" "${2:-This requires internet, however, You appear to be offline!}" 1>&2; }
-  __test_ping "$site" || __test_http "$site" || err "$@"
+    if [ "$showerror" = "yes" ]; then
+      notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
+      printf_red "$site is down: you appear to not be connected to the internet" >&2
+    fi
+    exitCode=1
+  fi
+  return $exitCode
 }
 #am_i_online_err "Message" "color" "exitCode"
 __am_i_online_err() { __am_i_online show "$@"; }
-
+#
 notify_good() {
   local prog="${PROG:-$APPNAME}"
   local name="${1}"
@@ -1572,7 +1578,6 @@ notify_good() {
   printf_green "${prog:-$name}: $message"
   return 0
 }
-
 notify_error() {
   local prog="${PROG:-$APPNAME}"
   local name="${1}"
@@ -1613,16 +1618,6 @@ ask_confirm() {
     return ${exitCode:-$?}
   fi
 }
-
-#setup clipboard
-if [[ "$OSTYPE" =~ ^darwin ]]; then
-  printclip() { __cmd_exists pbpaste && LC_CTYPE=UTF-8 tr -d "\n" | pbpaste || return 1; }
-  putclip() { __cmd_exists pbcopy && LC_CTYPE=UTF-8 tr -d "\n" | pbcopy || return 1; }
-fi
-if [[ "$OSTYPE" =~ ^linux ]]; then
-  printclip() { __cmd_exists xclip && xclip -o -s; }
-  putclip() { __cmd_exists xclip && xclip -i -sel c || return 1; }
-fi
 #function to get network device
 __getlipaddr() {
   if __cmd_exists route || __cmd_exists ip; then
@@ -1644,7 +1639,6 @@ __getlipaddr() {
     CURRIP6="::1"
   fi
 }
-
 #os_support oses
 __os_support() {
   if [ -n "$1" ]; then
@@ -1780,7 +1774,6 @@ __if_os_id() {
   # [ -n "$codename" ] && distro_codename="$codename" || distro_codename="N/A"
   # echo $id_like $distroname $distroversion $distro_codename
 }
-
 ###################### setup folders - user ######################
 user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
@@ -2215,13 +2208,21 @@ get_installer_version() {
     printf_info "Update Available:          Yes"
   fi
 }
-
+grep_head() {
+  grep -v 'GEN_SCRIPT_REPLACE' "$2" 2>/dev/null | grep '   :' | \
+    grep -v '\$' | \
+    grep -E ^'.*#.@'${1:-*}'' | \
+    sed -E 's/..*#[#, ]@//g' | \
+    sed -E 's/.*#[#, ]@//g' | \
+    head -n14 | \
+    grep '^' || return 1
+}
 ###################### help ######################
 get_desc() {
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
-  local desc="$(grep ^"# @Description" "$appname" 2>/dev/null | grep ' : ' | sed 's#..* : ##g' | grep '^')"
-  [ -n "$desc" ] && printf '%s' "$desc" || return 1
+  local desc="$(grep_head "Description" "$appname" | head -n1 | sed 's#..* : ##g')"
+  [ -n "$desc" ] && printf '%s' "$desc" || printf '%s' "$(basename $appname) --help"
 }
 __help() {
   #----------------
@@ -2231,6 +2232,8 @@ __help() {
   }
   #----------------
   if [ -f "$CASJAYSDEVDIR/helpers/man/$APPNAME" ] && [ -s "$CASJAYSDEVDIR/helpers/man/$APPNAME" ]; then
+    printf_newline '\n'
+    printf_purple "$(get_desc)"
     source "$CASJAYSDEVDIR/helpers/man/$APPNAME"
   else
     printf_help "There is no man page for this app in: "
@@ -2318,9 +2321,9 @@ __options() {
     if [ -f "$(command -v $filename)" ]; then # check for file
       printf_newline
       printf_green "Getting info for $appname"
-      cat "$filename" | grep '^# @' | grep '  :' >/dev/null 2>&1 &&
-        cat "$filename" | grep '^# @' | grep -v '\$' | grep '  :' | sed 's/# @//g' | printf_readline "3" &&
-        printf_green "$(cat $filename | grep -v '\$' | grep "##@Version" | sed 's/##@//g')" &&
+      grep_head "Description" "$filename" &>/dev/null  &&
+        grep_head "*" "$filename" | printf_readline "3" &&
+        printf_green "$(grep_head "Version" "$filename" | head -n1)" &&
         printf_blue "Required ver  : $requiredVersion" ||
         printf_red "File was found, however, No information was provided"
     else

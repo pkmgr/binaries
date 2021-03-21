@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="check_app"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200339-git
+##@Version       : 202103200617-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : check_app --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 03:39 EDT
+# @Created       : Saturday, Mar 20, 2021 06:17 EDT
 # @File          : check_app
 # @Description   : check for app and install if missing
 # @TODO          :
@@ -41,26 +41,11 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__cmd_exists bash || exit 1 # exit 1 if not found
+__requires bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 main() {
-  local missing_apps
-  local apps="$*"
-  shift $#
-  if [ -n "$DISPLAY" ]; then
-    for f in $apps; do
-      __cmd_exists "$f" || missing_apps+="$f "
-    done
-    [ -z "$missing_apps" ] && return 0 || __attemp_install_menus "$missing_apps"
-  else
-    for f in $apps; do
-      __cmd_exists "$f" || missing_apps+="$f "
-    done
-    [ -z "$missing_apps" ] && return 0 || __check_app "$missing_apps"
-  fi
-  exitCode=$?
-  unset missing_apps apps
+  __requires "$@"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute main function
@@ -68,3 +53,4 @@ main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $exitCode
 # end
+

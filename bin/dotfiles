@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : jason@casjaysdev.com
-# @File        : dotfiles
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : dotfiles installer script
-#
+##@Version       : 202103200650-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dotfiles --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:50 EDT
+# @File          : dotfiles
+# @Description   : dotfiles installer script
+# @TODO          :
+# @Other         : This script is obsolete
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -30,9 +36,13 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 dfmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+dfmgr "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
 ARGS="$*"
 ARRAY="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/array)"
 LIST="$(cat ${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/dotfiles/list)"
@@ -47,9 +57,7 @@ HELP+="\t\trun dotfiles update to get the latest release!\n"
 HELP+="\t\tavailable options are as follows:\n"
 HELP+="\t\t$APPNAME admin --all $ADMIN\n"
 HELP+="\t\t$APPNAME install $LIST\n"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 df_update() {
   declare -a LISTARRAY=$(ls -A $HOME/.local/share/CasjaysDev/apps/dfmgr)
   for ins_upd in ${LISTARRAY[*]}; do
@@ -61,7 +69,7 @@ df_update() {
       rm_rf "$HOME/.local/share/CasjaysDev/apps/dotfiles"
     fi
   done
-  dfmgr update $LISTARRAY $ && return 0 || return 1
+  dfmgr update "$LISTARRAY" && return 0 || return 1
 
   if [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]] && [[ -d /usr/local/share/CasjaysDev/apps/dotfiles ]]; then
     sudo bash -c "declare -a LISTARRAY=$(ls -A /usr/local/share/CasjaysDev/apps/dotfiles)
@@ -80,20 +88,15 @@ df_update() {
 git_stow() {
   if [ -f "$(command -v config)" ]; then
     declare -a args="$*"
-    config add $args
+    config add "$args"
   else
     printf_help "The config command is not installed"
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ -z "$1" ] && dotfiles help && exit 1
-
 mkdir -p "$BIN" "$CONF" "$SHARE" "$LOGDIR"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 case "$1" in
 help | h | --h*)
   printf_help "$HELP"

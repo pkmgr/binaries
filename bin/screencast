@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
-
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : screencast
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Record your desktop
-#
+#set opts
+trap 'rm -f $TMPFILE' 0
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202103201839-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : screencast --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 18:39 EDT
+# @File          : screencast
+# @Description   : Record your desktop
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,36 +31,33 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-user_installdirs
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 TMPFILE="$(mktemp -t screencast-XXXXXXX).mkv"
 OUTPUT="$HOME/Pictures/Screencasts/$(date +%m-%d-%Y-%H-%M)"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __mkd "$OUTPUT"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 read -r X Y W H G ID < <(slop -f "%x %y %w %h %g %i")
 ffmpeg -f x11grab -s "$W"x"$H" -i :0.0+$X,$Y "$TMPFILE"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 notifications "Screencast:" 'generating palette'
 ffmpeg -y -i "$TMPFILE" -vf fps=10,palettegen /tmp/palette.png
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 notifications "Screencast:" 'generating gif'
 ffmpeg -i "$TMPFILE" -i /tmp/palette.png -filter_complex "paletteuse" $OUTPUT.gif
-mv "$TMPFILE" "$OUTPUT.mkv"
-
-notifications "Screencast:" "size $(du -h $OUTPUT.gif | awk '{print $1}')"
-
-eog "$OUTPUT.gif"
-
-trap 'rm -f $TMPFILE' 0
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+mv "$TMPFILE" "$OUTPUT.mkv"
+notifications "Screencast:" "size $(du -h $OUTPUT.gif | awk '{print $1}')"
+eog "$OUTPUT.gif"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

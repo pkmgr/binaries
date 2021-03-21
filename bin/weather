@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : weather
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : weather in your console
-#
+##@Version       : 202103202031-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : weather --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 20:31 EDT
+# @File          : weather
+# @Description   : weather in your console
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,19 +31,24 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+__am_i_online_err
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 LOCID="${MYLOCATIONID:-$2}"
 API="http://wttr.in"
 API2="http://v2.wttr.in"
 APIACCU="http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+__mkd "$HOME/.local/tmp"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 report() { printf_color "Weather report for $LOCID\n" "21"; }
 grep_v() { grep -v "Weather report" | grep -v "Location"; }
 wttrin() { __curl "$API/$LOCID?AFu$2" | grep_v && report; }
@@ -46,14 +58,7 @@ wttrcity() { __curl -LSsq "$API/$MYLOCATIONZIP?AFu$2" | grep -v "Weather report"
 wttrmoon() { __curl -LSs "$API/moon?AFu$2"; }
 wttrsimple() { __curl -LSs "$API/$LOCID?format=3"; }
 wttraccuweather() { __curl -s "$APIACCU?query=${*:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__mkd "$HOME/.local/tmp"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-__api_test
 
 case "$1" in
 help | -h | --help)
@@ -108,9 +113,8 @@ accu | accuweather)
   [ "$1" = "--help" ] && __help
   wttrin "$@"
   ;;
-
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

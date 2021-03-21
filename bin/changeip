@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="changeip"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200335-git
+##@Version       : 202103200616-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : changeip --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 03:35 EDT
+# @Created       : Saturday, Mar 20, 2021 06:16 EDT
 # @File          : changeip
 # @Description   : change ip script
 # @TODO          :
@@ -40,14 +40,12 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__check_app ifconfig
+__check_app ifconfig || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # sed MacOS and Linux fix
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
-
 # Get Device
 __getlipaddr
-
 # Get IP4 address
 NEWIP4="$CURRIP4"
 if [ -f "/var/lib/system-scripts/checkip/myip4.txt" ]; then
@@ -55,7 +53,6 @@ if [ -f "/var/lib/system-scripts/checkip/myip4.txt" ]; then
 else
   OLDIP4="01234567890"
 fi
-
 # Get IP6 address
 NEWIP6="$CURRIP6"
 if [ -f "/var/lib/system-scripts/checkip/mydomain.txt" ]; then
@@ -63,7 +60,6 @@ if [ -f "/var/lib/system-scripts/checkip/mydomain.txt" ]; then
 else
   OLDIP6="11:11:11:11::11"
 fi
-
 # DOMAIN
 NEWDOM="$(__domainname)"
 if [ -f "/var/lib/system-scripts/checkip/mydomain.txt" ]; then
@@ -71,7 +67,6 @@ if [ -f "/var/lib/system-scripts/checkip/mydomain.txt" ]; then
 else
   OLDDOM="myserverdomainname"
 fi
-
 # ShortHostname
 NEWSHORT="$(__hostname -s)"
 if [ -f "/var/lib/system-scripts/checkip/myhostname.txt" ]; then
@@ -79,13 +74,9 @@ if [ -f "/var/lib/system-scripts/checkip/myhostname.txt" ]; then
 else
   OLDSHORT="myhostnameshort"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __requiresudo mkdir -p /var/lib/system-scripts/checkip /etc/casjaysdev
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 #Change IPV6
 if [ -z "$NEWIP6" ]; then
   printf_red "no ipv6 address found"
@@ -107,9 +98,7 @@ else
   __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
   __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i 's#'$OLDIP6'#'$NEWIP6'#g' {} \;
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Change IPV4 address
 if [ -z "$NEWIP4" ]; then
   printf_red "no ipv4"
@@ -131,9 +120,7 @@ else
   __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
   __requiresudo find /etc/casjaysdev/system-scripts -type f -exec "$sed" -i 's#'$OLDIP4'#'$NEWIP4'#g' {} \;
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 #Change Domain
 if [ ! "$(echo $NEWDOM | grep -v none)" = "" ]; then
   __requiresudo sh -c "echo $NEWDOM > /var/lib/system-scripts/checkip/mydomain.txt"
@@ -157,9 +144,7 @@ if [ ! "$(echo $NEWDOM | grep -v none)" = "" ]; then
   __requiresudo find /etc/casjaysdev -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
   __requiresudo find /var/lib/system-scripts -type f -exec "$sed" -i 's#'$OLDDOM'#'$NEWDOM'#g' {} \;
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Change Short HostName
 if [ ! "$(echo $NEWSHORT)" = "" ]; then
   __requiresudo sh -c "echo $NEWSHORT > /var/lib/system-scripts/checkip/myhostname.txt"
@@ -168,9 +153,7 @@ if [ ! "$(echo $NEWSHORT)" = "" ]; then
   __requiresudo find /etc/httpd/conf* -type f -exec "$sed" -i 's#'$OLDSHORT'#'$NEWSHORT'#g' {} \;
   __requiresudo find /etc/crontab -type f -exec "$sed" -i 's#$(hostname -s)#'$NEWSHORT'#g' {} \;
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ ! -z "$NEWIP4" ]; then
   printf_green "Changed the IP4 from $OLDIP4 to $NEWIP4"
 fi
@@ -183,7 +166,7 @@ fi
 if [ ! -z "$NEWSHORT" ]; then
   printf_green "Changed the HOSTNAME from $OLDSHORT to $NEWSHORT"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
 # end
+

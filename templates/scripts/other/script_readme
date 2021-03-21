@@ -11,24 +11,24 @@ printf_help() {
   printf '\n'
 }
 get_desc() {
+  grep_head(){ grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | head -n${3:-12} | sed 's#..* : ##g'; }
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
-  local desc="$(grep ^"# @Description" "$appname" 2>/dev/null | grep ' : ' | sed 's#..* : ##g' | grep '^')"
-  if [ -n "$desc" ]; then printf '%s' "$desc"; else return 1; fi
+  local desc="$(grep_head "Description" "$appname" "1" | head -n1 | grep '^')"
+  [ -n "$desc" ] && printf '%s' "$desc" || return 1
 }
 printf_descr() {
-  if [ -n "${PROG:-$APPNAME}" ] && [ -n "$(get_desc)" ]; then
-    printf_color "    $(get_desc)" 6
-  else printf_help "$1" "${2:-10}"; fi
+  [ -n "${PROG:-$APPNAME}" ] && [ -n "$(get_desc)" ] && printf_color "    $(get_desc)" 6 || printf_help "$1" "${2:-10}"
 }
-printf_head() { printf_help "4" "############################" "$1"; }
+printf_head() { printf_help "1" "################## " "$2" " ##################"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
 printf_descr "    GEN_SCRIPT_REPLACE_DESC"
-printf_help "4" "Usage: "
-printf_head "4" "############################ Main options"
+printf_help "4" "Usage: GEN_SCRIPT_REPLACE_APPNAME "
+printf_head "5" "Main options"
 printf_help "4" ""
-printf_help "4" "-h, --help                  - Shows this message"
+printf_help "4" "-v, --version           - show script version"
+printf_help "4" "-h, --help              - Shows this message"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
@@ -37,3 +37,4 @@ printf '\n'
 #exit "${exitCode:-1}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

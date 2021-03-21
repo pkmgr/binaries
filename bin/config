@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : config
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : add config files to git repo - https://www.atlassian.com/git/tutorials/dotfiles
-# @TODO        :
+##@Version       : 202103200620-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : config --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:20 EDT
+# @File          : config
+# @Description   : add config files to git repo
+# @TODO          :
+# @Other         :
+# @Resource      : https://www.atlassian.com/git/tutorials/dotfiles
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,6 +36,7 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,20 +55,16 @@ backupdir="${CONFIG_HOME:-$HOME/.local/backups}/config"
 logdir="${LOGDIR:-$HOME/.local/log}/config"
 logfile="$logdir/config.log"
 mkdir -p "$logdir" "$backupdir"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "${@}"; }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _backup() {
   mkdir -p "$backupdir"
   _stow checkout 2>&1 | grep -E '^\s+' | awk '{print $1}' |
     rsync -a --remove-source-files --files-from="-" ~/ "$backupdir/"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _checkout() { _stow checkout "${@}" || _backup "${@}"; }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 git_remote() {
   if [ -z "$1" ]; then
@@ -70,9 +74,7 @@ git_remote() {
     _stow remote "$@"
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 gitconfig_local() {
   cat <<EOF >"$gitdir/config.local"
 [color "branch"]
@@ -133,7 +135,7 @@ git_init() {
   fi
   printf_read_question "4" "Do you already have a dotfiles repo: [y/N]" "1" "choice" "-s"
   if printf_answer_yes "$choice"; then
-    printf_read_question "color" "What is the repo url:" "120" "url"
+    printf_read_question "4" "What is the repo url:" "120" "url" "-e"
     git clone --bare "$url" "$gitdir" -q
     _checkout
     _stow config --local status.showUntrackedFiles no
@@ -145,13 +147,13 @@ git_init() {
     _stow config --local commit.gpgSign false
     printf_read_question "4" "Would you like to add a remote git repo: [y/N]" "1" "choice" "-s"
     if printf_answer_yes "$choice"; then
-      printf_read_question "4" "Enter the url to your git repo:" "120" "url"
+      printf_read_question "4" "Enter the url to your git repo:" "120" "url" "-e"
       _stow remote add origin "$url"
     else
       printf_green "You did not add a remote git repo"
     fi
-    printf_read_question "4" "Enter your name:" "120" "name"
-    printf_read_question "4" "Enter email address:" "120" "email"
+    printf_read_question "4" "Enter your name:" "120" "name" "-e"
+    printf_read_question "4" "Enter email address:" "120" "email" "-e"
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
     _stow config --local include.path "$gitdir/config.local"
@@ -320,3 +322,4 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
+

@@ -1,98 +1,95 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
-
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : showterm
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : A simple Linux-only pure-shell showterm client for those without Ruby
-# @TODO        :
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
-__options "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Dependencies (please let me know if you don't have them all already)
-#   mktemp (coreutils)
-#   script (util-linux)
-#   tput   (ncurses)
-#   bash
-#   curl
-#
-# To install. Just copy this file to your computer, and chmod +x showterm.
-#
-#   curl showterm.io/showterm > ~/bin/showterm
-#   chmod +x ~/bin/showterm
-#
-# Otherwise you can run this file without installing:
-#
-#   bash <(curl record.showterm.io)
-#
+#set opts
 set -e
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202103201843-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : showterm --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 18:43 EDT
+# @File          : showterm
+# @Description   : A simple Linux-only pure-shell showterm client for those without Ruby
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__cmd_exists mktemp script tput bash curl || exit 1
+__am_i_online_err || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SHOWTERM_CONFIG_DIR="$HOME/.config/showterm"
 record_base_url="showterm.io/record"
 upload_base_url="showterm.io"
-
+secret_file="$SHOWTERM_CONFIG_DIR/secret"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if ! devnull tty; then
   echo "Usage: bash <(curl $record_base_url)"
   exit 1
 fi
-
-if [ "-d" = "$1" -o "--delete" = "$1" ]; then
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ "$1" = "-d" ] || [ "$1" = "--delete" ]; then
   url="${2?-Usage showterm --delete <url>}"
-  curl --fail "$url" -X "DELETE" --data-urlencode "secret@$HOME/.showterm"
+  curl --fail "$url" -X "DELETE" --data-urlencode "secret@$secret_file"
   exit
 fi
-
-scriptfile="$(mktemp /tmp/XXXXX.script)"
-timingfile="$(mktemp /tmp/XXXXX.timing)"
-
-cols="$(tput cols)"
-lines="$(tput lines)"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 server="${SHOWTERM_SERVER-$upload_base_url}"
 url="${server%/}/scripts"
-
+scriptfile="$(mktemp /tmp/XXXXX.script)"
+timingfile="$(mktemp /tmp/XXXXX.timing)"
+cols="$(tput cols)"
+lines="$(tput lines)"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$*" ]; then
   echo "$*"
   args=-c "$*"
 fi
-
-if [ ! -f "$HOME/.showterm" ]; then
-  echo -n $(openssl rand -hex 16) >"$HOME/.showterm"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -f "$secret_file" ]; then
+  echo -n "$(openssl rand -hex 16)" >"$secret_file"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 echo "showterm recording. (Exit shell when done.)"
 script $args -q -t"$timingfile" "$scriptfile"
 echo "Uploading..."
-
-if curl --fail "$url" --data-urlencode "cols=$cols" --data-urlencode "lines=$lines" --data-urlencode "scriptfile@$scriptfile" --data-urlencode "timingfile@$timingfile" "secret@$HOME/.showterm"; then
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if curl --fail "$url" --data-urlencode "cols=$cols" --data-urlencode "lines=$lines" --data-urlencode "scriptfile@$scriptfile" --data-urlencode "timingfile@$timingfile" "secret@$secret_file"; then
   echo ""
   rm "$scriptfile" "$timingfile"
-  exit 0
+  true
 else
   echo "Uploading failed, but don't worry! Your work is safe. You can try uploading again with:"
-  echo curl "$url" --data-urlencode "cols=$cols" --data-urlencode "lines=$lines" --data-urlencode "scriptfile@$scriptfile" --data-urlencode "timingfile@$timingfile" "secret@$HOME/.showterm"
+  echo curl "$url" --data-urlencode "cols=$cols" --data-urlencode "lines=$lines" --data-urlencode "scriptfile@$scriptfile" --data-urlencode "timingfile@$timingfile" "secret@$secret_file"
+  false
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

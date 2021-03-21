@@ -1,22 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="gen-license"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 031220212321-git
+##@Version       : 202103200730-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : gen-license --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Friday, Mar 12, 2021 23:21 EST
+# @Created       : Saturday, Mar 20, 2021 07:30 EDT
 # @File          : gen-license
 # @Description   : Create a license file
 # @TODO          :
@@ -74,6 +72,7 @@ __file_failed() {
   printf_error "Failed to get the license file"
   printf_exit 1 1 "from: $1"
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 create_local_file() {
   [ -f "$1" ] || __file_failed "$1"
   cat "$1" >"$licDir/LICENSE.md" 2>/dev/null
@@ -84,6 +83,7 @@ create_local_file() {
     __file_failed "$1"
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 get_remote_file() {
   local name="$(__basename "$1")"
   __curl "$1" >"$licenseDirCustom/$name" 2>/dev/null
@@ -93,7 +93,7 @@ get_remote_file() {
     __file_failed "$1"
   fi
 }
-###
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -d "$licenseDir" ] && [ "$(__count_files "$licenseDir")" -ne 0 ]; then
   licenseURL="$licenseDir"
   get_lic() { create_local_file "$1"; }
@@ -102,7 +102,7 @@ elif [ -d "$CASJAYSDEVDIR/templates/licenses" ]; then
 else
   get_lic() { get_remote_file "$1"; }
 fi
-###
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gen_config() {
   printf_green "Generating the config file"
   printf_green "$HOME/.config/gen-license/settings"
@@ -143,7 +143,7 @@ EOF
     fi
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _modify_license_file() {
   if grep -iq 'What The Fuck Public License' "$licDir/LICENSE.md" || grep -iq 'DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE' "$licDir/LICENSE.md"; then
     if grep -iq 'CURYEAR AuthorName' "$licDir/LICENSE.md"; then

@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : cmd_exists
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : check to see if the command exists
-#
+##@Version       : 202103200618-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : cmd_exists --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:18 EDT
+# @File          : cmd_exists
+# @Description   : check to see if the command exists
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,42 +36,27 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 [ -z "$1" ] && __help
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 exitCode=""
 LISTARRAY=""
-
-case $1 in
-
-help | --help)
-  __help
-  ;;
-
-location | --location)
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [[ "$1" = location ]] || [[ "$1" = *-location ]] || [[ "$1" = *-l ]]; then
   shift 1
   for cmd in "$@"; do
-    unalias "$cmd" &>/dev/null
-    if command -v $cmd 2>/dev/null; then exitCode+=0; else exitCode+=1; fi
+    if type -P $cmd 2>/dev/null; then exitCode+=0; else exitCode+=1; fi
   done
-  exit $exitCode
-  ;;
-
-*)
+else
   for cmd in "$@"; do
-    unalias "$cmd" &>/dev/null
     if type -P "$cmd" | grep -q "/" &>/dev/null; then exitCode+=0; else exitCode+=1; fi
   done
-  exit $exitCode
-  ;;
-
-esac
-
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit ${exitCode:-$?}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

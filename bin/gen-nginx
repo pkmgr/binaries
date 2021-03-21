@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="gen-nginx"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 031220212322-git
+##@Version       : 202103200731-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : gen-nginx --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Friday, Mar 12, 2021 23:22 EST
+# @Created       : Saturday, Mar 20, 2021 07:31 EDT
 # @File          : gen-nginx
 # @Description   : Generate a nginx proxy host
-# @TODO          :
+# @TODO          : Add more config options
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,12 +40,13 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+GEN_NGINX_CONFIG_DIR="${GEN_NGINX_CONFIG_DIR:-$HOME/.config/gen-nginx}"
 NGINXDOMAIN="${1:-$(hostname -f)}"
-NGINXDOCROOT="${2:-$HOME/.config/gen-nginx/www/$(hostname -f)}"
-NGINXCONFDIR="${3:-$HOME/.config/gen-nginx/conf}"
+NGINXDOCROOT="${2:-$GEN_NGINX_CONFIG_DIR/www/$(hostname -f)}"
+NGINXCONFDIR="${3:-$GEN_NGINX_CONFIG_DIR/conf}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-mkdir -p "$HOME/.config/gen-nginx/www/$(hostname -f)"
-mkdir -p "$HOME/.config/gen-nginx/conf"
+mkdir -p "$NGINXDOCROOT"
+mkdir -p "$NGINXCONFDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __nginx_confdir() {
   if [ -d /etc/nginx/sites-enabled ]; then
@@ -82,8 +81,11 @@ __nginx_dom() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __nginx_conf() {
-  if [ -d "/etc/letsencrypt/live/domain" ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
-    echo '#Define your primary service
+  if [ -f "$GEN_NGINX_CONFIG_DIR/template.conf" ]; then
+    . "$GEN_NGINX_CONFIG_DIR/template.conf"
+  else
+    if [ -d "/etc/letsencrypt/live/domain" ] || [ -d "/etc/letsencrypt/live/$(hostname -f)" ]; then
+      echo '#Define your primary service
 # upstream '$REVPROXYNAME' { server '$REVPROXY':'$REVPROXY_PORT' fail_timeout=0; }
 
 server {
@@ -143,8 +145,8 @@ server {
     include /etc/nginx/global.d/others.conf;
 }
 ' | sudo tee "$NGINXCONFDIR/$NGINXDOMAIN.conf" &>/dev/null
-  else
-    echo '#Define your primary service
+    else
+      echo '#Define your primary service
 # upstream '$REVPROXYNAME' { server '$REVPROXY':'$REVPROXY_PORT' fail_timeout=0; }
 
 server {
@@ -204,6 +206,7 @@ server {
     include /etc/nginx/global.d/others.conf;
 }
 ' | sudo tee "$NGINXCONFDIR/$NGINXDOMAIN.conf" &>/dev/null
+    fi
   fi
   printf_newline
   printf_head 4 "Setting up $NGINXDOMAIN.conf" "in $NGINXCONFDIR"
@@ -214,7 +217,7 @@ server {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main() {
+gen_nginx() {
   NGINXDOMAIN="${NGINXDOMAIN:-$1}"
   REVPROXYNAME="${REVPROXYNAME:-$2}"
   REVPROXY="${REVPROXY:-$3}"
@@ -223,7 +226,7 @@ main() {
   __nginx_dom
   __nginx_confdir
   __nginx_conf "$@"
-  if [ "$HOME/.config/gen-nginx/conf/$NGINXDOMAIN.conf" != "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
+  if [ "$NGINXCONFDIR/$NGINXDOMAIN.conf" != "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
     if [ -d "/etc/nginx/vhosts.d" ] && __can_i_sudo; then
       __requiresudo true
       __nginx_confdir
@@ -233,7 +236,7 @@ main() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
+gen_nginx "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

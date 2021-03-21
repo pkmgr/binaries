@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
 
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : displayselect
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : A UI for detecting and selecting all displays
-
+##@Version       : 202103200630-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : displayselect --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:30 EDT
+# @File          : displayselect
+# @Description   : A UI for detecting and selecting all displays
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,7 +38,8 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 twoscreen() {
@@ -55,7 +65,7 @@ twoscreen() {
     xrandr --output "$primary" --auto --scale 1.0x1.0 --output "$secondary" --"$direction"-of "$primary" --auto --scale 1.0x1.0
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 morescreen() { # If multi-monitor is selected and there are more than two screens.
   primary=$(echo "$screens" | dmenu -i -p "Select primary display:")
   secondary=$(echo "$screens" | grep -v "$primary" | dmenu -i -p "Select secondary display:")
@@ -63,7 +73,7 @@ morescreen() { # If multi-monitor is selected and there are more than two screen
   tertiary=$(echo "$screens" | grep -v "$primary" | grep -v "$secondary" | dmenu -i -p "Select third display:")
   xrandr --output "$primary" --auto --output "$secondary" --"$direction"-of "$primary" --auto --output "$tertiary" --"$(printf "left\\nright" | grep -v "$direction")"-of "$primary" --auto
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 multimon() { # Multi-monitor handler.
   case "$(echo "$screens" | wc -l)" in
   1) xrandr $(echo "$allposs" | grep -v "$screens" | awk '{print "--output", $1, "--off"}' | tr '\n' ' ') ;;
@@ -71,13 +81,13 @@ multimon() { # Multi-monitor handler.
   *) morescreen ;;
   esac
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get all possible displays
 allposs=$(xrandr -q | grep "connected")
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get all connected screens.
 screens=$(echo "$allposs" | grep " connected" | awk '{print $1}')
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Get user choice including multi-monitor and manual selection:
 chosen=$(printf "%s\\nmulti-monitor\\nmanual selection" "$screens" | dmenu -i -p "Select display arangement:") &&
   case "$chosen" in
@@ -88,6 +98,10 @@ chosen=$(printf "%s\\nmulti-monitor\\nmanual selection" "$screens" | dmenu -i -p
   "multi-monitor") multimon ;;
   *) xrandr --output "$chosen" --auto --scale 1.0x1.0 $(echo "$allposs" | grep -v "$chosen" | awk '{print "--output", $1, "--off"}' | tr '\n' ' ') ;;
   esac
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #setbg
 #remaps
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

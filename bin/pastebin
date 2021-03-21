@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="pastebin"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200102-git
+##@Version       : 202103201739-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : pastebin --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 01:02 EDT
+# @Created       : Saturday, Mar 20, 2021 17:39 EDT
 # @File          : pastebin
 # @Description   : bash pastebin.com client
 # @TODO          :
@@ -39,6 +39,8 @@ fi
 # user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__check_app curl
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Path to config file
 config_file="${PASTEBIN_CONFIG_DIR:-$HOME/.config/pastebin}/config.conf"
@@ -79,12 +81,12 @@ Options:
 
 EOF
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # command_exists() tells if a given command exists.
 function command_exists() {
   __cmd_exists "$1"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sample_config() {
   cat <<EOF
 # Change to your API Developer Key
@@ -108,16 +110,14 @@ sample_config() {
 #api_paste_expire_date="N"
 EOF
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 auth_user() {
   if [ -z "$api_user_name" ] || [ -z "$api_user_password" ]; then
     echo "Username and/or password is undefined."
     echo "Please adjust 'api_user_name' and 'api_user_password' in the configuration file '$config_file'"
     exit 1
   fi
-
   server_reply="$(curl --silent --data "api_dev_key=$api_dev_key" --data-urlencode "api_user_name=$api_user_name" --data-urlencode "api_user_password=$api_user_password" "$api_url/api_login.php")"
-
   if [[ $server_reply == Bad* ]]; then
     echo "Username: $api_user_name"
     echo "$server_reply"
@@ -126,15 +126,13 @@ auth_user() {
     api_user_key="$server_reply"
   fi
 }
-
-printf_not_found curl
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Load configuration file if it exists.
 if [ -f "$config_file" ]; then
   # shellcheck source=/dev/null
   source "$config_file"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 while getopts "hu:p:ln:f:c:e:r:o" OPTION; do
   case $OPTION in
   h)
@@ -194,17 +192,16 @@ while getopts "hu:p:ln:f:c:e:r:o" OPTION; do
     fi
     ;;
   *) ;;
-
   esac
 done
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _cat() {
   file=${1--}
   while IFS= read -r line; do
     printf '%s\n' "$line" # Or: env POSIXLY_CORRECT=1 echo "$line"
   done < <(cat -- "$file")
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ $logintopastebin -ne 0 ] && auth_user
 api_paste_code=$(_cat "$@")
 curl -X POST -0 --show-error \
@@ -220,6 +217,7 @@ curl -X POST -0 --show-error \
   "$api_url/api_post.php"
 
 echo
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

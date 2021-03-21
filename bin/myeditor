@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="myeditor"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201723-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : myeditor --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Feb 15, 2021 14:02 EST
+# @Created       : Saturday, Mar 20, 2021 17:23 EDT
 # @File          : myeditor
 # @Description   : Open up text editor
 # @TODO          :
@@ -42,9 +41,10 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYTERMINAL_NOTIFICATIONS="no"
-[ -f "$HOME/.config/myeditor/settings" ] && . "$HOME/.config/myeditor/settings"
 MYEDITOR_NOTIFICATIONS="${MYEDITOR_NOTIFICATIONS:-yes}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.config/myeditor/settings" ] && . "$HOME/.config/myeditor/settings"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/myeditor"
@@ -119,7 +119,7 @@ fi
 EDITOR_NAME="$(basename "$EDITOR" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $EDITOR in
-nano | vim | nano | emacs)
+nano | vim | emacs)
   EDITOR="myterminal -e $EDITOR"
   ;;
 code | vscode)
@@ -149,5 +149,6 @@ case $1 in
 esac
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

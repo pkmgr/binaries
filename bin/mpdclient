@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
-
-APPNAME="mpdclient"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : mpdclient
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : A script to control a remote or local MPD daemon
-#
+##@Version       : 202103201714-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : mpdclient --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 17:14 EDT
+# @File          : mpdclient
+# @Description   : A script to control a remote or local MPD daemon
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-shopt -s extglob
-trap '' SIGINT
-trap '' SIGQUIT
-trap '' SIGTSTP # display message and pause
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -# Import functions
+# Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
 SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
@@ -30,8 +31,12 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,15 +54,20 @@ else
 fi
 export ORIG_MPDSERVER="$MPDSERVER"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [[ "$1" = *term ]]; then exec myterminal -e mpdclient & exit; fi
+if [[ "$1" = *term ]]; then
+  exec myterminal -e mpdclient &
+  exit
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__devnull() { "$@" &>/dev/null && \
-  printf_green "${cmd:-Command} sent successfully" || \
-  printf_red "Failed to send ${cmd:-command}"
+__devnull() {
+  "$@" &>/dev/null &&
+    printf_green "${cmd:-Command} sent successfully" ||
+    printf_red "Failed to send ${cmd:-command}"
 }
-__devnull2() { "$@" 2>/dev/null && \
-  printf_green "${cmd:-Command} sent successfully" || \
-  printf_red "Failed to send ${cmd:-command}"
+__devnull2() {
+  "$@" 2>/dev/null &&
+    printf_green "${cmd:-Command} sent successfully" ||
+    printf_red "Failed to send ${cmd:-command}"
 }
 __server_failed() { printf_red "$ICON_ERROR Failed to connect to the server @ $MPDSERVER" && sleep 3 && return 1; }
 __mpc() { mpc -h "$MPDSERVER" "$@" 2>/dev/null || return 1; }
@@ -90,7 +100,7 @@ mpc_status() {
     fi
   }
 
-updating_db() { __mpc status | grep -qi updating && echo -e "Database is being updated"; }
+  updating_db() { __mpc status | grep -qi updating && echo -e "Database is being updated"; }
   display() {
     status
     if __mpc status | head -n 1 | grep -iqv volume; then
@@ -133,11 +143,11 @@ volume_toggle() {
       restore="$(cat "$TEMPDIR/volume" | sed 's#%##g')"
       __mpc volume "$restore"
     else
-    __mpc volume 100
+      __mpc volume 100
     fi
     export volume=mute
   else
-    volume | awk '{print $2}' | sed 's#%##g' > "$TEMPDIR/volume"
+    volume | awk '{print $2}' | sed 's#%##g' >"$TEMPDIR/volume"
     __mpc volume 0
     export volume=unmute
   fi
@@ -157,7 +167,7 @@ client() {
     CONNECT_TO="localhost"
   fi
   if __cmd_exists ncmpcpp; then
-      ncmpcpp -q -h $CONNECT_TO
+    ncmpcpp -q -h $CONNECT_TO
   else
     clear
     printf_newline "\n\n\n\n"
@@ -178,13 +188,13 @@ __repeat_toggle() {
 
 __mpd_status() {
   #if __local_sysname "$MPDSERVER"; then
-    if is_up_mpd; then
-      MPDSTATUS=stop
-      printf_blue "local mpd server is running with pid: $(__get_pid_of mpd)"
-    else
-      MPDSTATUS=start
-      #printf_red "local mpd server is stopped"
-    fi
+  if is_up_mpd; then
+    MPDSTATUS=stop
+    printf_blue "local mpd server is running with pid: $(__get_pid_of mpd)"
+  else
+    MPDSTATUS=start
+    #printf_red "local mpd server is stopped"
+  fi
   #fi
   export MPDSTATUS
 }
@@ -210,7 +220,7 @@ __mpd_toggle() {
         is_up_mpd && printf_green "mpd is running" || printf_error "Failed to start mpd"
       fi
     fi
-  [ -n "SYSMPDSERVER" ] && MPDSERVER="$SYSMPDSERVER" || printf_exit 1 1 "Can not connect to $MPDSERVER"
+    [ -n "$SYSMPDSERVER" ] && MPDSERVER="$SYSMPDSERVER" || printf_exit 1 1 "Can not connect to $MPDSERVER"
   else
     printf_error "mpd is not installed"
     return 1
@@ -218,11 +228,11 @@ __mpd_toggle() {
 }
 
 __play_toggle() {
-if __mpc status | grep -iq playing >/dev/null 2>&1; then
-  PLAYT=pause
-else
-  PLAYT=play
-fi
+  if __mpc status | grep -iq playing >/dev/null 2>&1; then
+    PLAYT=pause
+  else
+    PLAYT=play
+  fi
 }
 
 __consume_toggle() {

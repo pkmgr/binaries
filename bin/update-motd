@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
-
-APPNAME="update-motd"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-PATH="/usr/games:$PATH"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : jason@casjaysdev.com
-# @File        : update-motd
-# @Created     : Mon, Dec 31, 2019, 00:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Update the MOTD and ISSUE files
-#
+##@Version       : 202103202008-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : update-motd --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 20:08 EDT
+# @File          : update-motd
+# @Description   : Update the MOTD and ISSUE files
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -26,15 +31,19 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 GIT_VERSION_FORMAT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __requiresudo true
 __getlipaddr
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # remove the old ones
 __requiresudo rm -Rf /etc/issue* /etc/motd*
@@ -48,17 +57,14 @@ if [ "$1" = "--force" ]; then
     __requiresudo cp -Rf "$SCRIPTSFUNCTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # sed MacOS and Linux fix
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 HOSTNAME="$(hostname -f 2>/dev/null)"
 HOSTSHORT="$(hostname -s 2>/dev/null)"
 CURRIP4=${CURRIP4}
 CURRIP6=${CURRIP6}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 dategit="$(date +"$GIT_VERSION_FORMAT")"
 datever="$(date +"%b %d, %Y at %H:%M")"
@@ -75,7 +81,6 @@ if [ -f /etc/casjaysdev/updates/versions/date.configs.txt ]; then
   configsdate="$(__devnull2 cat /etc/casjaysdev/updates/versions/date.configs.txt)"
 else configsdate="$datever"; fi
 distro_version="$distro_version"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 messages_legal() {
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/legal/*.txt | wc -l)
@@ -91,7 +96,6 @@ messages_legal() {
     cat /etc/casjaysdev/messages/legal/*.txt 2>/dev/null | "$sed" '/^$/d' | "$sed" '1i\ ' | __requiresudo tee -a /etc/issue >/dev/null 2>&1
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 messages_issue() {
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/issue/*.txt | wc -l)
@@ -100,7 +104,6 @@ messages_issue() {
     printf "\n" | __requiresudo tee -a /etc/issue >/dev/null 2>&1
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 messages_motd() {
   local messages=$(__devnull2 ls /etc/casjaysdev/messages/motd/*.txt | wc -l)
@@ -115,7 +118,6 @@ messages_motd() {
     printf "\n" | __requiresudo tee -a /etc/motd >/dev/null 2>&1
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 conf_versions() {
   if __if_os_id debian; then
@@ -139,14 +141,12 @@ conf_versions() {
   printf "scripts package was last updated on: $scriptsdate\n" | __requiresudo tee -a /etc/motd >/dev/null 2>&1
   printf "Messages were last updated on: $(date +"%b %d, %Y at %H:%M")\n\n" | __requiresudo tee -a /etc/motd >/dev/null 2>&1
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 finalize() {
   __requiresudo touch /etc/issue /etc/motd
   cat /etc/motd | __requiresudo tee -a /etc/motd.net >/dev/null 2>&1
   cat /etc/issue | __requiresudo tee -a /etc/issue.net >/dev/null 2>&1
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 display() {
   if [ "$1" = "--console" ]; then
@@ -169,7 +169,6 @@ display() {
     printf_green "current ip6    : $CURRIP6"
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main function
 main() {
@@ -179,11 +178,10 @@ main() {
   conf_versions
   display "$@"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # run app
 main "$@"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

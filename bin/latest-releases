@@ -1,52 +1,61 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
-
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : jason@casjaysdev.com
-# @File        : latest-releases
-# @Created     : Wed, Aug 23, 2020, 14:29 EST
-# @License     : MIT
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Check github for the latest release
-# @Source      : https://github.com/nickjj/latest-releases
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Set functions
-
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
-fi
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
-__options "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+#set opts
 set -e
 set -o pipefail
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202103201702-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : latest-releases --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 17:02 EDT
+# @File          : latest-releases
+# @Description   : Check github for the latest release
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__check_app jq || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 config_path="${HOME}/.config/latest-releases"
 auth_path="${config_path}/auth"
 github_path="${config_path}/github"
-
+curl_auth=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 mkdir -p "$config_path"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ! -f "${auth_path}" ]; then
   echo "GITHUB_USERNAME="yourname"" >"${auth_path}"
   echo "GITHUB_PERSONAL_ACCESS_TOKEN="youraccesstoken"" >>"${auth_path}"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ! -f "${github_path}" ]; then
   echo "
   gokcehan/lf
@@ -54,20 +63,13 @@ if [ ! -f "${github_path}" ]; then
   nodejs/node
   " >"${github_path}"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-check_app jq
-
-curl_auth=""
 if [ -f "${auth_path}" ]; then
   # shellcheck source=/dev/null
   source "${auth_path}"
   curl_auth="-u ${GITHUB_USERNAME}:${GITHUB_PERSONAL_ACCESS_TOKEN}"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ ! -f "${github_path}" ]; then
   printf_green "${github_path} not found"
   printf_green "Add your list of GitHub repos to the above file. Separate out"
@@ -77,9 +79,9 @@ if [ ! -f "${github_path}" ]; then
   printf_green "phoenixframework/phoenix"
   exit 1
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_green "Latest releases on GitHub:\n\n"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 nl=$'\n'
 out=""
 while read -r repo; do
@@ -87,7 +89,6 @@ while read -r repo; do
   tag_name=""
   tag_commit_url=""
   tag_commit_date=""
-
   set +e
   if ! tag_info="$(curl "${curl_auth}" -s "https://api.github.com/repos/${repo}/tags?per_page=1" | jq -r ".[0].name, .[0].commit.url" 2>/dev/null | paste -sd,-)"; then
     printf_green "You are API rate limited by GitHub, please authenticate by:"
@@ -100,17 +101,14 @@ while read -r repo; do
     exit "${?}"
   fi
   set -e
-
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   tag_name="$(cut -d ',' -f 1 <<<"${tag_info}")"
   tag_commit_url="$(cut -d ',' -f 2 <<<"${tag_info}")"
-  tag_commit_date="$(curl "${curl_auth}" -s "${tag_commit_url}" |
-    jq -r ".commit.author.date" | cut -d 'T' -f 1)"
-
+  tag_commit_date="$(curl "${curl_auth}" -s "${tag_commit_url}" | jq -r ".commit.author.date" | cut -d 'T' -f 1)"
   out+=$"${repo} | ${tag_name} | ${tag_commit_date}${nl}"
 done <"${github_path}"
-
 column -t <<<"${out}" | sort -t "|" -k 3 -r
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

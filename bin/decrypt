@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : decyrypt
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : perl oneliner to decrypt files
-#
+##@Version       : 202103200623-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : decrypt --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:23 EDT
+# @File          : decrypt
+# @Description   : perl oneliner to decrypt files
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,22 +36,33 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$1" ] || __help
-
+__requires perl
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ ! -t 0 ] || [ $# -ne 0 ] || __help
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# interactive
 if [ -t 0 ]; then
-  # interactive
   fname="$1"
-  shift
-  openssl aes-256-cbc -pbkdf2 -d -in "$fname" -out "${fname%\.*}" "$@"
+  shift $#
+  if openssl aes-256-cbc -pbkdf2 -d -in "$fname" -out "${fname%\.*}" "$@" 2>/dev/null; then
+    printf_green "Successfully decrypted $1"
+  else
+    printf_return "Something went wrong: check your password"
+  fi
 else
   perl -e 'use IO::Select; $ready=IO::Select->new(STDIN)->can_read();'
-  openssl aes-256-cbc -pbkdf2 -d "$@"
+  if openssl aes-256-cbc -pbkdf2 -d "$@" 2>/dev/null; then
+      printf_green "Successfully decrypted $1"
+    else
+      printf_return "Something went wrong: check your password"
+  fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

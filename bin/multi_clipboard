@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="multi_clipboard"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 031120210329-git
+##@Version       : 202103201718-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
-# @License       : MIT
+# @License       : WTFPL
 # @ReadME        : multi_clipboard --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Thursday, Mar 11, 2021 03:29 EST
+# @Created       : Saturday, Mar 20, 2021 17:18 EDT
 # @File          : multi_clipboard
 # @Description   : Utility to keep multiple clipboards
 # @TODO          :
@@ -48,28 +47,28 @@ CLIPBOARD="${CLMAXHIST:-$HOME/.clipboard}"
 CLMAXHIST="${CLMAXHIST:-20}"
 CLSEP="${CLSEP:-'\x07'}"
 if [ -z "$CLXOS" ] && [ -z "$CLX" ]; then
-if [ "$(uname -s)" = Linux ]; then
-  if command -v xsel >/dev/null 2>&1; then
-    CLXOS="xsel"
-    CLX="xsel"
-  elif command -v xclip >/dev/null 2>&1; then
-    CLXOS="xclip"
-    CLX="xclip"
+  if [ "$(uname -s)" = Linux ]; then
+    if command -v xsel >/dev/null 2>&1; then
+      CLXOS="xsel"
+      CLX="xsel"
+    elif command -v xclip >/dev/null 2>&1; then
+      CLXOS="xclip"
+      CLX="xclip"
+    fi
+  elif [ "$(uname -s)" = cygwin ]; then
+    if command -v xsel >/dev/null 2>&1; then
+      CLXOS="xsel"
+      CLX="xsel"
+    elif command -v xclip >/dev/null 2>&1; then
+      CLXOS="xclip"
+      CLX="xclip"
+    fi
+  elif [ "$(uname -s)" = Darwin ]; then
+    if command -v pbcopy >/dev/null 2>&1; then
+      CLXOS="pbcopy"
+      CLX="pbcopy"
+    fi
   fi
-elif [ "$(uname -s)" = cygwin ]; then
-  if command -v xsel >/dev/null 2>&1; then
-    CLXOS="xsel"
-    CLX="xsel"
-  elif command -v xclip >/dev/null 2>&1; then
-    CLXOS="xclip"
-    CLX="xclip"
-  fi
-elif [ "$(uname -s)" = Darwin ]; then
-  if command -v pbcopy >/dev/null 2>&1; then
-    CLXOS="pbcopy"
-    CLX="pbcopy"
-  fi
-fi
 fi
 # Help {{{
 _s_help="
@@ -248,21 +247,21 @@ nclbs=0
 if [ "$CLXOS" != "" ]; then
   clxos=${CLXOS}
 elif [[ "$OSTYPE" =~ linux ]]; then
-    if [ -f "$(command -v xsel >/dev/null 2>&1)" ]; then
+  if [ -f "$(command -v xsel >/dev/null 2>&1)" ]; then
     clxos="xsel"
-elif [ -f "$(command -v xclip >/dev/null 2>&1)" ]; then
+  elif [ -f "$(command -v xclip >/dev/null 2>&1)" ]; then
     clxos="xclip"
   fi
 elif [[ "$OSTYPE" =~ cygwin ]]; then
-    if [ -f "$(command -v putclip >/dev/null 2>&1)" ]; then
+  if [ -f "$(command -v putclip >/dev/null 2>&1)" ]; then
     clxos="putclip"
-elif [ -f "$(command -v xsel >/dev/null 2>&1)" ]; then
+  elif [ -f "$(command -v xsel >/dev/null 2>&1)" ]; then
     clxos="xsel"
-elif [ -f "$(command -v xclip >/dev/null 2>&1)" ]; then
+  elif [ -f "$(command -v xclip >/dev/null 2>&1)" ]; then
     clxos="xclip"
   fi
 elif [[ "$OSTYPE" =~ darwin ]]; then
-    if [ -f "$(command -v pbcopy >/dev/null 2>&1)" ]; then
+  if [ -f "$(command -v pbcopy >/dev/null 2>&1)" ]; then
     clxos="pbcopy"
   fi
 fi

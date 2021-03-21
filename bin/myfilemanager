@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="myfilemanager"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201726-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : myfilemanager --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Feb 15, 2021 14:02 EST
+# @Created       : Saturday, Mar 20, 2021 17:26 EDT
 # @File          : myfilemanager
 # @Description   : Open file manager
 # @TODO          :
@@ -42,16 +41,16 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYTERMINAL_NOTIFICATIONS="no"
-[ -f "$HOME/.config/myfilemanager/settings" ] && . "$HOME/.config/myfilemanager/settings"
 MYFILEMANAGER_NOTIFICATIONS="${MYFILEMANAGER_NOTIFICATIONS:-yes}"
-
+[ -f "$HOME/.config/myfilemanager/settings" ] && . "$HOME/.config/myfilemanager/settings"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/myfilemanager"
   echo -e '# Settings for myfilemanager
 MYFILEMANAGER="config"
 FILEMANAGER="'$FILEMANAGER'"
-MYFILEMANAGER_MYFILEMANAGER="'$MYFILEMANAGER_NOTIFICATIONS'"
+MYFILEMANAGER_NOTIFICATIONS="'$MYFILEMANAGER_NOTIFICATIONS'"
   ' >"$HOME/.config/myfilemanager/settings"
   if [ -f "$HOME/.config/myfilemanager/settings" ]; then
     printf_green "File saved to: $HOME/.config/myfilemanager/settings"

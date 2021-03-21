@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="trash"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 030620210509-git
+##@Version       : 202103202002-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : trash --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 06, 2021 05:09 EST
+# @Created       : Saturday, Mar 20, 2021 20:02 EDT
 # @File          : trash
 # @Description   : send files to trash
 # @TODO          :
@@ -44,13 +43,15 @@ __options "$@"
 # Doesn't support options so lets remove them
 while getopts ":*" opt; do
   case $opt in
-  *) shift;;
+  *) shift ;;
   esac
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # set variables
 TrashDir="${TRASH_DIR:-$HOME/.local/share/Trash}"
 RestoreDir="${RESTORE_DIR}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__mkd "$TrashDir/files/" "$TrashDir/info/"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # set functions
 __refuse_home() { EXIT=1 && printf_error "Refusing to delete the home folder" && return 1; }
@@ -72,6 +73,7 @@ get_name() {
     echo "$dirname/$filename"
   done
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 create_trash_file() {
   cat <<EOF >"$TrashDir/info/$(filename_trash "$1")-$(basename "$1").trashinfo"
 [Trash Info]
@@ -79,6 +81,7 @@ Path=$(get_name "$1")
 DeletionDate="$(date +'%Y-%m-%d-T%H:%M:%S')"
 EOF
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 trash-put() {
   local EXIT=0
   local args="$*"
@@ -100,6 +103,7 @@ trash-put() {
   done
   return "$EXIT"
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 trash-restore() {
   for r in "$@"; do
     local file="$(basename $(echo $r))"
@@ -122,6 +126,7 @@ trash-restore() {
     fi
   done
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 trash-list() {
   if [ "$(__count_files "$TrashDir/files/")" = 0 ]; then
     printf_green "There are no files in your Trash"
@@ -136,6 +141,7 @@ trash-list() {
     fi
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 trash-empty() {
   countfiles="$(find "$TrashDir/files"/* -type f 2>/dev/null | wc -l)"
   countfolders="$(find "$TrashDir/files"/* -type d 2>/dev/null | wc -l)"
@@ -144,6 +150,7 @@ trash-empty() {
   __mkd "$TrashDir/files/" "$TrashDir/info"
   printf_yellow "Deleted $countfiles file[s] and $countfolders folder[s] from your system"
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 trash_no_files() {
   if [ "$(__count_files "$TrashDir/files/")" = 0 ]; then
     printf_green "There are no files in your Trash"
@@ -154,7 +161,6 @@ trash_no_files() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main application
-__mkd "$TrashDir/files/" "$TrashDir/info/"
 case $1 in
 list | ls)
   shift 1
@@ -183,4 +189,5 @@ empty)
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : dmenurecord
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : Ask for recording type via dmenu
-
+##@Version       : 202103200639-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : dmenurecord --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:39 EDT
+# @File          : dmenurecord
+# @Description   : Ask for recording type via dmenu
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,15 +36,18 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+DMENU_RECORD_EXT="${DMENU_RECORD_EXT:-.mkv}"
+DMENU_RECORD_DATE="${DMENU_RECORD_DATE:-$(date '+%y%m%d-%H%M-%S')}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 updateicon() {
   echo "$1" >/tmp/recordingicon
   [ -n "${STATUSBAR:?}" ] && pkill -RTMIN+9 "${STATUSBAR:?}"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 killrecording() {
   recpid="$(cat /tmp/recordingpid)"
   # kill with SIGTERM, allowing finishing touches.
@@ -50,7 +60,7 @@ killrecording() {
   kill -9 "$recpid"
   exit
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 screencast() {
   ffmpeg -y \
     -f x11grab \
@@ -60,51 +70,51 @@ screencast() {
     -f alsa -i default \
     -r 30 \
     -c:v libx264rgb -crf 0 -preset ultrafast -c:a flac \
-    "$HOME/screencast-$(date '+%y%m%d-%H%M-%S').mkv" &
+    "$HOME/screencast-$DMENU_RECORD_DATE$DMENU_RECORD_EXT" &
   echo $! >/tmp/recordingpid
   updateicon "⏺️🎙️"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 video() {
   ffmpeg \
     -f x11grab \
     -s "$(xdpyinfo | grep dimensions | awk '{print $2;}')" \
     -i $DISPLAY \
     -c:v libx264 -qp 0 -r 30 \
-    "$HOME/video-$(date '+%y%m%d-%H%M-%S').mkv" &
+    "$HOME/video-$DMENU_RECORD_DATE$DMENU_RECORD_EXT" &
   echo $! >/tmp/recordingpid
   updateicon "⏺️"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 webcamhidef() {
   ffmpeg \
     -f v4l2 \
     -i /dev/video0 \
     -video_size 1920x1080 \
-    "$HOME/webcam-$(date '+%y%m%d-%H%M-%S').mkv" &
+    "$HOME/webcam-$DMENU_RECORD_DATE$DMENU_RECORD_EXT" &
   echo $! >/tmp/recordingpid
   updateicon "🎥"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 webcam() {
   ffmpeg \
     -f v4l2 \
     -i /dev/video0 \
     -video_size 640x480 \
-    "$HOME/webcam-$(date '+%y%m%d-%H%M-%S').mkv" &
+    "$HOME/webcam-$DMENU_RECORD_DATE$DMENU_RECORD_EXT" &
   echo $! >/tmp/recordingpid
   updateicon "🎥"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 audio() {
   ffmpeg \
     -f alsa -i default \
     -c:a flac \
-    "$HOME/audio-$(date '+%y%m%d-%H%M-%S').flac" &
+    "$HOME/audio-$DMENU_RECORD_DATE.flac" &
   echo $! >/tmp/recordingpid
   updateicon "🎙️"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 askrecording() {
   choice=$(printf "screencast\\nvideo\\naudio\\nwebcam\\nwebcam (hi-def)" | dmenu -i -p "Select recording style:")
   case "$choice" in
@@ -115,12 +125,12 @@ askrecording() {
   "webcam (hi-def)") webcamhidef ;;
   esac
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 asktoend() {
   response=$(printf "No\\nYes" | dmenu -i -p "Recording still active. End recording?") &&
     [ "$response" = "Yes" ] && killrecording
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 screencast) screencast ;;
 audio) audio ;;
@@ -128,3 +138,7 @@ video) video ;;
 kill) killrecording ;;
 *) ([ -f /tmp/recordingpid ] && asktoend && exit) || askrecording ;;
 esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end

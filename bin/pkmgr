@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="pkmgr"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201743-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : pkmgr --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Tuesday, Feb 16, 2021 18:56 EST
+# @Created       : Saturday, Mar 20, 2021 17:43 EDT
 # @File          : pkmgr
 # @Description   : Manage system packages
 # @TODO          : Refactor code/Add zenity support
@@ -55,9 +54,7 @@ __cp_rf() { sudo cp -Rf "$@"; }
 __curl() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
 __curl_sudo() { __devnull2 __am_i_online && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" || return 1; }
 __not_installed() { echo -ne "${RED}Not Installed${NC}"; }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 # Variables - Distro specific
 case "$(uname -s)" in                                                                                                             #
 Linux)                                                                                                                            #
@@ -213,32 +210,29 @@ CYGWIN* | MINGW32* | MSYS* | MINGW*)                                            
   printf_exit "Unknown OS or OS not supported"                                                                                    #
   ;;                                                                                                                              #
 esac                                                                                                                              #
-
-if [ -f "$(command -v yay)" ]; then                                                     #
-  case "$1" in                                                                          #
-  --enable-aur)                                                                         #
-    shift 1                                                                             #
-    dotfilesrepo="$REPODF/pacman"                                                       #
-    pkgmgrbin="sudo -HE -u $USER /usr/bin/yay "                                         #
-    pkgmgrbinins="$pkgmgrbin -S --cleanafter --overwrite='*' "                          #
-    pkgmgrbininssil="$pkgmgrbin -Sy --needed --noconfirm --cleanafter --overwrite='*' " #
-    pkgmgrbinremsil="$pkgmgrbin -Ry --noconfirm --needed --noconfirm"                   #
-    pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "                                     #
-    pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                                    #
-    pkgmgrbindel="$pkgmgrbin -R "                                                       #
-    pkgmgrbinsea="$pkgmgrbin -Ss "                                                      #
-    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"                            #
-    pkgmgrbincle="$pkgmgrbin -Scc --noconfirm"                                          #
-    pkgmgrbincac="$pkgmgrbin -Syy "                                                     #
-    pkmgrcheckupdates() { "$pkgmgrbin -Qum 2>/dev/null | wc -l"; }                      #
-    pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }               #
-    ;;                                                                                  #
-  esac                                                                                  #
-fi                                                                                      #
+if [ -f "$(command -v yay)" ]; then                                                                                               #
+  case "$1" in                                                                                                                    #
+  --enable-aur)                                                                                                                   #
+    shift 1                                                                                                                       #
+    dotfilesrepo="$REPODF/pacman"                                                                                                 #
+    pkgmgrbin="sudo -HE -u $USER /usr/bin/yay "                                                                                   #
+    pkgmgrbinins="$pkgmgrbin -S --cleanafter --overwrite='*' "                                                                    #
+    pkgmgrbininssil="$pkgmgrbin -Sy --needed --noconfirm --cleanafter --overwrite='*' "                                           #
+    pkgmgrbinremsil="$pkgmgrbin -Ry --noconfirm --needed --noconfirm"                                                             #
+    pkgmgrbinupdsil="$pkgmgrbin -Syyu --noconfirm "                                                                               #
+    pkgmgrbinupdcron="$pkgmgrbin -Syyu --noconfirm "                                                                              #
+    pkgmgrbindel="$pkgmgrbin -R "                                                                                                 #
+    pkgmgrbinsea="$pkgmgrbin -Ss "                                                                                                #
+    pkgmgrbinupd="$pkgmgrbin -Syyu --needed --overwrite='*'"                                                                      #
+    pkgmgrbincle="$pkgmgrbin -Scc --noconfirm"                                                                                    #
+    pkgmgrbincac="$pkgmgrbin -Syy "                                                                                               #
+    pkmgrcheckupdates() { "$pkgmgrbin -Qum 2>/dev/null | wc -l"; }                                                                #
+    pkgmgrexport() { pacman -Qqet | grep -v "$(pacman -Qqm)" | sort -u; }                                                         #
+    ;;                                                                                                                            #
+  esac                                                                                                                            #
+fi                                                                                                                                #
 pkginit="$pkgmgrbincle ; $pkgmgrbincac ; $pkgmgrbinupdsil"
-
 #---------------------------------------------------------------------------------------
-
 pipecmd() {
   if [ -n "$DISPLAY" ]; then
     [ -f "$(command -v zenity)" ] && [ -z "$SSH_TTY" ] && zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
@@ -246,7 +240,7 @@ pipecmd() {
     printf_readline "5"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cpan_run() {
   if c__md_exists cpan; then
     local cpandir="$(__devnull2 sudo find /usr/share/perl* /usr/local/share/perl* -path '*/CPAN/Version.pm' | sed 's#/Version.pm##g' | head -n1)"
@@ -261,13 +255,10 @@ cpan_run() {
     bash -c "sudo cpan notest install $*" | printf_readline
   fi
 }
-
 cpan_remove() {
   bash -c "sudo cpan --uninstall $*" | printf_readline
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 pip_run() {
   if __cmd_exists pip3; then
     __devnull2 bash -c "sudo pip3 install --upgrade $*" | printf_readline
@@ -277,7 +268,6 @@ pip_run() {
     exit 1
   fi
 }
-
 pip_remove() {
   if __cmd_exists pip3; then
     __devnull2 bash -c "sudo pip3 remove $*" | printf_readline
@@ -287,33 +277,25 @@ pip_remove() {
     exit 1
   fi
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gem_run() {
   __devnull2 bash -c "sudo gem install --no-user-install $*" | printf_readline
 }
-
 gem_remove() {
   __devnull2 bash -c "sudo gem uninstall --no-user-install --force -aIx $*" | printf_readline
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 npm_run() {
   if command -v nvm &>/dev/null; then nvm unload; fi
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
   __devnull2 bash -c "sudo npm install -g $*" | printf_readline
 }
-
 npm_remove() {
   if command -v nvm &>/dev/null; then nvm unload; fi
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
   __devnull2 bash -c "sudo npm remove -g $*" | printf_readline
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 curl_run() {
   [ -z $1 ] && printf_exit 1 0 "Usage: pkmgr curl OS filename or pkmgr curl fullurltolist "
   local os="$(echo $OS | tr '[:upper:]' '[:lower:]')"
@@ -330,9 +312,7 @@ curl_run() {
     __curl "$url" -o /tmp/pkmgr-curl.txt
   fi
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 script_run_if_is_url() {
   [ -z $1 ] && printf_exit 1 0 "Usage: pkmgr script filename or url "
   if [[ $1 =~ https?://.* ]] || [[ $1 =~ ftp?://.* ]]; then
@@ -348,9 +328,7 @@ script_run_if_is_url() {
     exit 1
   fi
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 script_run() {
   if [ "$1" = "--script" ]; then
     shift 1
@@ -366,9 +344,7 @@ script_run() {
   fi
   __rm_rf "/tmp/pkmgr-script.sh"
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __schedule() {
   local logfile="/var/log/pkmgr/cron.log"
   local loggerfile="/var/log/pkmgr/cron.err"
@@ -415,17 +391,13 @@ __schedule() {
     ;;
   esac
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 dotfiles_run() {
   [ -z $1 ] && printf_red "Usage: pkmgr dotfiles name" && exit
   local url="$dotfilesrepo/$1.list"
   __urlverify "$url" && __curl "$url" >/tmp/pkmgr-curl.txt
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __aliases() {
   echo -e "
   alias apt='sudo $APPNAME '
@@ -437,9 +409,7 @@ __aliases() {
   alias yay='sudo $APPNAME '
   "
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 show_info() {
   printf_info "         System info for $(hostname -s)"
   printf_green "Repo:                       $dotfilesrepo"
@@ -470,9 +440,7 @@ show_info() {
   fi
   printf_green "Kernel version              $(uname -r)"
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exportpkg() {
   [[ "$(uname -s)" =~ Darwin* ]] && DISTRO=MacOS
   [[ "$(uname -s)" =~ ^MING*|WIN*|MSYS* ]] && DISTRO=Windows
@@ -483,9 +451,7 @@ exportpkg() {
   printf_green "$pkglist"
   pkgmgrexport >"$pkglist"
 }
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [[ "$(__devnull2 python3 -V)" =~ "Python 3" ]]; then
   PYTHONVER="python3"
   PIP="pip3"
@@ -499,15 +465,11 @@ if cmd_exists pacman; then
   PYTHONVER="python"
   PIP="pip3"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if [ -f /tmp/pkmgr-curl.txt ]; then
   __rm_rf /tmp/pkmgr-curl.txt
 fi
-
-#---------------------------------------------------------------------------------------
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 help | --*)
   __help
@@ -897,9 +859,8 @@ version)
   shift 0
   __help
   ;;
-
 esac
-
-#---------------------------------------------------------------------------------------
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

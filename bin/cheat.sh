@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="cheat.sh"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200339-git
+##@Version       : 202103200616-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : cheat.sh --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 03:39 EDT
+# @Created       : Saturday, Mar 20, 2021 06:16 EDT
 # @File          : cheat.sh
 # @Description   : Get help with commands
 # @TODO          :
@@ -40,7 +40,8 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__am_i_online_err
+__am_i_online_err || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # [X] open section
 # [X] one shot mode
 # [X] usage info

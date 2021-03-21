@@ -1,52 +1,61 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : sudoers
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : add and remove users from sudo
-#
+##@Version       : 202103201920-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : sudoers --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 19:20 EDT
+# @File          : sudoers
+# @Description   : add and remove users from sudo
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set functions
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-SCRIPTSFUNCTDIR="${SCRIPTSAPPFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-applications.bash}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -f "$PWD/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/functions/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/functions/$SCRIPTSFUNCTFILE"
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYUSER="${SUDO_USER:-$(whoami)}"
-if [ ! -z "$2" ]; then
-  MYUSER=""
+if [ -n "$2" ]; then
   MYUSER="$2"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ $# = 0 ] && __help
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ $# -ne 0 ] && can_i_sudo; then
-  devnull sudo chmod 750 /etc/sudoers.d
+  __devnull sudo chmod 750 /etc/sudoers.d
   case "$1" in
   remove)
     shift 1
     printf_green "New password prompt"
     sudo passwd "$MYUSER" || exit 1
     printf_green "Removing $MYUSER sudoers file"
-    devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
+    __devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
     ;;
 
   pass)
@@ -54,7 +63,7 @@ if [ $# -ne 0 ] && can_i_sudo; then
     printf_green "New password prompt"
     sudo passwd "$MYUSER" || exit 1
     printf_green "Removing $MYUSER from sudoers - password now required"
-    devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
+    __devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
     ;;
 
   remuser)
@@ -63,38 +72,38 @@ if [ $# -ne 0 ] && can_i_sudo; then
     sudo passwd "$MYUSER" || exit 1
     printf_green "Removing $MYUSER from sudoers"
     if sudo grep -q -E "^sudo:" /etc/group; then
-      devnull sudo deluser "$MYUSER" sudo
+      __devnull sudo deluser "$MYUSER" sudo
     else
-      devnull sudo deluser "$MYUSER" wheel
+      __devnull sudo deluser "$MYUSER" wheel
     fi
-    devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
+    __devnull sudo rm -Rf "/etc/sudoers.d/$MYUSER"
     ;;
 
   adduser)
     shift 1
     printf_green "Adding $MYUSER to sudoers"
     if sudo grep -q -E "^sudo:" /etc/group; then
-      devnull sudo usermod -aG sudo "$MYUSER"
+      __devnull sudo usermod -aG sudo "$MYUSER"
     else
-      devnull sudo usermod -aG wheel "$MYUSER"
+      __devnull sudo usermod -aG wheel "$MYUSER"
     fi
-    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" &>/dev/null
-    devnull sudo chown -f root:root "/etc/sudoers.d/$1"
-    devnull sudo chmod -f 440 "/etc/sudoers.d/$1"
+    __devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" &>/dev/null
+    __devnull sudo chown -f root:root "/etc/sudoers.d/$1"
+    __devnull sudo chmod -f 440 "/etc/sudoers.d/$1"
     ;;
 
   nopass)
     shift 1
     printf_green "Adding $MYUSER to sudoers"
-    devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" &>/dev/null
-    devnull sudo chown -f root:root "/etc/sudoers.d/$MYUSER"
-    devnull sudo chmod -f 440 "/etc/sudoers.d/$MYUSER"
+    __devnull2 echo "$MYUSER ALL=(ALL)   NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$MYUSER" &>/dev/null
+    __devnull sudo chown -f root:root "/etc/sudoers.d/$MYUSER"
+    __devnull sudo chmod -f 440 "/etc/sudoers.d/$MYUSER"
     ;;
 
   insults)
     shift 1
     printf_green "Adding insults"
-    if devnull2 sudo bash -c '[ ! -f "/etc/sudoers.d/insults" ]'; then
+    if __devnull2 sudo bash -c '[ ! -f "/etc/sudoers.d/insults" ]'; then
       echo "Defaults    insults" | sudo tee "/etc/sudoers.d/insults" &>/dev/null
       sudo chown -f root:root "/etc/sudoers.d/insults"
     fi
@@ -105,7 +114,7 @@ else
   printf_red "You dont have access to sudo"
   printf_red "Please contact the syadmin for access"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

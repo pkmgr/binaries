@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="calc"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -9,15 +9,15 @@ SRC_DIR="${BASH_SOURCE%/*}"
 shopt -s extglob
 trap '' SIGINT
 trap '' SIGQUIT
-trap '' SIGTSTP # display message and pause
+trap '' SIGTSTP
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200331-git
+##@Version       : 202103200614-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : calc --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 03:31 EDT
+# @Created       : Saturday, Mar 20, 2021 06:14 EDT
 # @File          : calc
 # @Description   : wrapper for qalc/bc
 # @TODO          :
@@ -45,22 +45,19 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __usage() {
   printf_cyan 'Usage: "20 * 4/2 + 23 - 14"'
-  printf_red "press q or ctrl + c to exit"
+  printf_red "press q to exit"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -z "$1" ] && __help
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ $# -ne 1 ]; then
   printf_info 'You must quote your params IE: calc "2 + 4" or "2*2"'
   exit 1
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 INPUT="$*"
 OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if cmd_exists qalc; then
   calc_app() { qalc "$OUTPUT"; }
 elif cmd_exists bc; then
@@ -68,33 +65,34 @@ elif cmd_exists bc; then
 else
   printf_exit "Can't find a calculator app!"
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "--term" ]; then
   clear
-  echo -e "\n\n"
+  printf_newline "\n\n"
   __usage
   while :; do
-    printf_read_question "2" "What is it you would like to solve? " "200" "INPUT"
+    printf_read_question_nt "2" "What is it you would like to solve? " "200" "INPUT" "-e"
     if [ "$INPUT" = "q" ] || [ -z "$INPUT" ]; then
-      echo -e "\n\n"
+      printf_newline "\n"
       break
     else
       clear
-      echo -e "\n\n"
+      printf_newline "\n\n\n"
       if [ "$INPUT" = "h" ] || [ "$INPUT" = "?" ]; then
         __usage
       else
         OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
-        printf_custom "5" "Your answer is: $(calc_app "$OUTPUT")"
+        calc_app "$OUTPUT" | printf_readline "5"
       fi
-      echo -e "\n"
+      printf_newline
     fi
   done
-  echo ""
+  printf_newline
 else
-  printf_green "$(calc_app)"
+  calc_app | printf_readline "2"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="randomwallpaper"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 030820211523-git
+##@Version       : 202103201806-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : randomwallpaper --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Mar 08, 2021 15:23 EST
+# @Created       : Saturday, Mar 20, 2021 18:06 EDT
 # @File          : randomwallpaper
 # @Description   : Set a random wallpaper
 # @TODO          : Refactor the code/Add MacOS support
@@ -57,7 +56,6 @@ MANUAL=""
 [ -f "$HOME/.config/randomwallpaper/settings" ] && . "$HOME/.config/randomwallpaper/settings"
 if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { echo "$*" >/dev/null; }; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 __config() {
   printf_green "Generating the config"
   __mkd "$HOME/.config/randomwallpaper"
@@ -69,7 +67,7 @@ NOTIFICATIONS="'${NOTIFICATIONS:-enabled}'"
 ' >"$HOME/.config/randomwallpaper/settings"
   printf_exit "2" "$?" "config saved to $HOME/.config/randomwallpaper/settings"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __startup() {
   printf_green "Adding the randomwallpaper to startup"
   cat <<EOF >"$HOME/.config/autostart/randomwallpaper.desktop"
@@ -94,7 +92,7 @@ EOF
     printf_error "Failed to install randomwallpaper Daemon"
   exit $?
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __variety() {
   if [ -f "$HOME/.config/variety/variety.conf" ] &&
     grep '^change_enabled' "$HOME/.config/variety/variety.conf" 2>/dev/null | grep -iq True; then
@@ -107,10 +105,10 @@ __variety() {
     variety &>/dev/null &
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mesg_ok() { notifications "Wallpaper Changer" "Wallpaper has been changed to $SHORTNAME"; }
 __mesg_fail() { notifications "Wallpaper Changer" "Failed to change the wallpaper"; }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __kill() {
   if [ -f "$KILL_FILE" ]; then
     __rm_rf "$KILL_FILE" "$RUN_FILE"
@@ -126,9 +124,9 @@ __kill() {
     return "$exitCode"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __find_cmd() { find -L "${1:-$WALLPAPERS}" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*"; }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 init() {
   [ -d "$WALLPAPERS/system " ] || __mkd "$WALLPAPERS/system"
   if [ -d /usr/share/backgrounds ]; then
@@ -155,12 +153,11 @@ init() {
     [ -n "$SETRANDOM" ] || SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
     __make_seen_file
   fi
-
   RANDOMWALLPAPER="${WALLPAPER:-$SETRANDOM}"
   RAND="${RANDOMWALLPAPER}"
   SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __background_job() {
   __rm_rf "$RUN_FILE"
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
@@ -169,7 +166,7 @@ __background_job() {
   sleep ${ROTATE_TIME:-300}
   __kill && __background_job || return 1
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __start() {
   __getstatus && return 1
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
@@ -177,9 +174,9 @@ __start() {
   sleep 60 && sh -c "$PROG --bg --run &>/dev/null &" &
   disown
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __get_pid() { ps -ux | grep 'randomwallpaper' | grep 'run' | grep -v 'grep' | awk '{print $2}' | grep '^' || return 1; }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __getstatus() {
   MAINPID="$(__get_pid | head -n1)"
   GETTPID=$(__get_pid || return 1)
@@ -193,7 +190,9 @@ __getstatus() {
   fi
   return $exitCode
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 notify_running() { notifications "Randomwallpaper" "Already running: $MAINPID" && return 1; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __make_seen_file() {
   [ -f "$FILE_SEEN" ] || touch "$FILE_SEEN"
   [ -f "$FILE_WALLPAPER" ] || __find_cmd | sort -u >"$FILE_WALLPAPER"
@@ -201,6 +200,7 @@ __make_seen_file() {
   COUNT_ALL="$(grep -c "$WALLPAPERDIR" "$FILE_WALLPAPER")"
   [ "$COUNT_SEEN" = "$COUNT_ALL" ] && __rm_rf "$FILE_SEEN"
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __find_random() {
   __find_mtime "$FILE_WALLPAPER" "${REFRESH_TIME:-720}" && __find_cmd | sort -u >"$FILE_WALLPAPER"
   if [ "$MANUAL" != "true" ] && grep -qv "$RAND" "$FILE_SEEN" &>/dev/null; then
@@ -216,13 +216,13 @@ __find_random() {
   fi
   __seen_file
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __seen_file() {
   echo "$RAND" >>"$FILE_SEEN"
   __cp_rf "$FILE_SEEN" "$FILE_SEEN_TMP" && cat "$FILE_SEEN_TMP" | sort -u >"$FILE_SEEN"
   __rm_rf "$FILE_SEEN_TMP"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __randomwallpaper() {
   local exitCode=0
   xfce_change_wp() {
@@ -230,7 +230,6 @@ __randomwallpaper() {
       xfconf-query --channel xfce4-desktop --property "$path" --set "$1"
     done
   }
-
   [ -n "$RAND" ] || exit 1
   if [[ "$DESKTOP_SESSION" =~ "xfce" ]] && __cmd_exists xfconf-query; then
     xfce_change_wp "$RAND" &>/dev/null &
@@ -245,7 +244,7 @@ __randomwallpaper() {
   fi
   return $?
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __term() {
   local main sleeptime
   while :; do
@@ -301,6 +300,7 @@ __term() {
   done
   clear
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 main() {
   init "$@"
   __find_random "$@"
@@ -391,4 +391,5 @@ main() {
 main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

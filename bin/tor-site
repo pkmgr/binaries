@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="tor-site"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201958-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : tor-site --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Friday, Feb 19, 2021 18:50 EST
+# @Created       : Saturday, Mar 20, 2021 19:58 EDT
 # @File          : tor-site
 # @Description   : Run a tor hidden site
 # @TODO          :
@@ -38,14 +37,13 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
-system_install
+user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 test -n "$1" && test -z "${1//[0-9]/}" && TORSITEPORT="$1" && shift 1
 TORSITEDIR="${1:-TORSITEDIR}"
 TORSITEPORT="${TORSITEPORT:-8082}"
-ROOTDIR="${TORSITEDIR:-/usr/local/share/tor-site}"
-
+ROOTDIR="${TOR_SITE_DIR:-/usr/local/share/tor-site}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __test_server() { netstatg $TORSITEPORT | grep -q python && return 0 || return 1; }
 __start_py_server() {
@@ -56,7 +54,7 @@ __start_py_server() {
   sleep 10
   __test_server &>/dev/null && return 0 || return 0
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -d "$ROOTDIR" ]; then
   cd "$ROOTDIR" || printf_exit 1 1 "Failed to enter $ROOTDIR"
   if __test_server &>/dev/null; then
@@ -69,7 +67,7 @@ if [ -d "$ROOTDIR" ]; then
 else
   printf_exit 1 "2" "failed to start on port $TORSITEPORT"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

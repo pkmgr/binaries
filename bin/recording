@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+shopt -s extglob
+trap '' SIGINT
+trap '' SIGQUIT
+trap '' SIGTSTP
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : recording
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : recording menu
-#
+##@Version       : 202103201817-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : recording --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 18:17 EDT
+# @File          : recording
+# @Description   : recording menu
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,27 +35,21 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if [ -z "$DISPLAY" ]; then printf_exit "No display server found......."; fi
-
+[ -n "$DISPLAY" ] || printf_exit "No display server found......."
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-shopt -s extglob
-trap '' SIGINT
-trap '' SIGQUIT
-trap '' SIGTSTP # display message and pause
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-while :; do
-  # show menu
-  clear
+while :; do # show menu
   shift 1
+  clear
+  date="$(date +'%m-%d-%Y-%H-%M')"
   printf_newline "\n\n\n\n"
   printf_head "Recording Menu"
   printf_green "a. launch asciinema"
@@ -58,14 +63,11 @@ while :; do
   printf_green "---------------------------------"
   printf_read_question_nt "6" "Enter your choice [a-z] : " "1" "main" "-s"
   printf_newline
-
-  # take action
-  case "$main" in
+  case "$main" in # take action
 
   a)
     shift 1
-    date="$(date +'%m-%d-%Y-%H-%M')"
-    __run_command asciinema rec -i "30" --stdin -t "$date" "$HOME/Videos/record_term-${date:-$(date +'%m-%d-%Y-%H-%M')}.ogv"
+    __run_command asciinema rec -i "30" --stdin -t "$date" "$HOME/Videos/record_term-$date.ogv"
     ;;
   b)
     shift 1
@@ -89,20 +91,20 @@ while :; do
     ;;
   y)
     shift 1
-    __custom
+    __custom "$@"
     ;;
   $'\E' | z)
     clear
     break
     ;;
   *) shift ;;
-esac
-clear
-printf_newline "\n\n"
-printf_counter "5" "3" "Re-loading menu in"
+  esac
+  clear
+  printf_newline "\n\n"
+  printf_counter "5" "3" "Re-loading menu in"
 done
 clear
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

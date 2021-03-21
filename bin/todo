@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="todo"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201950-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
-# @License       : LICENSE.md
-# @ReadME        : README.md
+# @License       : WTFPL
+# @ReadME        : todo --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Tuesday, Feb 09, 2021 22:13 EST
+# @Created       : Saturday, Mar 20, 2021 19:50 EDT
 # @File          : todo
 # @Description   : Setup a console base todo
 # @TODO          : Clean up code
@@ -66,7 +65,7 @@ tmux_conf() {
     fi
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Creating $HOME/.config/todo/settings file"
   __mkd "$HOME/.config/todo"
@@ -96,6 +95,7 @@ __filename() {
   fi
   filename="${file//$tododir/$file}"
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_tmux() {
   local name="$name"
   local filename="$filename"
@@ -120,8 +120,10 @@ __delete() {
     MESG="The file $1 doesn't exist" && return 1
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "$todoeditor $1" &>/dev/null; }
 __run_git() { if [ -d "$tododir/.git" ]; then gitcommit "$tododir" todo; else gitadmin "$tododir" setup; fi; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
@@ -189,8 +191,9 @@ case "$1" in
   __run_tmux "$tododir/$filename"
   ;;
 esac
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ "$TODO_GIT" != "enabled" ] || __run_git
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

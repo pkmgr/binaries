@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : devhints.to
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : search devhints.to
-#
+##@Version       : 202103200627-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : devhints.to --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:27 EDT
+# @File          : devhints.to
+# @Description   : search devhints.to
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,34 +36,30 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __am_i_online_err
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 find_tools() { wget -qO- --server-response=no -nv "$RAW_MD_URL" | sed -e '/^{: /d' >"$LOCAL_CACHE_FILE"; }
 TOOL=${1:-bash}
 REFRESH=${2:-no}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 RAW_MD_URL="https://raw.github.com/hazeorid/devhints.io/gh-pages/${TOOL}.md"
 CACHE_DIR=$HOME/.cache/devhints/
 LOCAL_CACHE_FILE=$CACHE_DIR/${TOOL}.md
-
-if [ ! -d "$CACHE_DIR" ]; then
-  __mkd "$CACHE_DIR"
-fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -d "$CACHE_DIR" ] || __mkd "$CACHE_DIR"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_green "Finding the results for $TOOL\n\t\tThis may take a few moments............."
-if [ "$REFRESH" == "--refresh" ] || [ ! -e "$LOCAL_CACHE_FILE" ]; then
-  find_tools
-fi
-
+if [ "$REFRESH" == "--refresh" ] || [ ! -e "$LOCAL_CACHE_FILE" ]; then find_tools; fi
 if [ -s "$LOCAL_CACHE_FILE" ]; then
   mdless "$LOCAL_CACHE_FILE" 2>/dev/null
 else
   printf_error "No cheat sheet found"
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

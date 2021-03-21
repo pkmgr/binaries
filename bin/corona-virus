@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : corona-virus
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : corona-virus local stats
-#
+##@Version       : 202103200620-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : corona-virus --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 06:20 EDT
+# @File          : corona-virus
+# @Description   : corona-virus local stats
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -29,9 +36,12 @@ else
   exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-systemmgr_install
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
 __options "$@"
-__am_i_online_err
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__am_i_online_err || exit 1
+__requires curl || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [[ $1 = --force ]]; then
   shift 1
@@ -41,25 +51,23 @@ if [[ $1 = --force ]]; then
     printf_exit "Download unsuccessfull"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#if [ "$(stat -c %y "$HOME/.cache/corona-virus" 2>/dev/null | cut -d' ' -f1)" != "$(date '+%Y-%m-%d %H:%M:%S.%s')" ]; then
 if [ "$(__devnull find "$HOME/.cache/corona-virus" -type f -mmin +120 -delete)" ] || [ ! -f "$HOME/.cache/corona-virus" ]; then
   __curl_download https://corona-stats.online/us "$HOME/.cache/corona-virus"
   if [ ! -f "$HOME/.cache/corona-virus" ]; then
     printf_exit "Download unsuccessfull"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -z "$1" ]; then
-  LOCATION="$1"
-else
-  LOCATION=USA
-fi
-
+[ -n "$1" ] && LOCATION="$1" || LOCATION=USA
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_color "4" "$LOCATION: "
-grep "$LOCATION" "$HOME/.cache/corona-virus" | sed "s/\x1b\[[0-9;]*m//g" | sed "s/\s*//g ; s/║//g ; s/│/;/g" | awk -F';' '{print "😷" $3 " (" $9") 💀" $5 " 🏠("$7"%)"}'
-
+grep "$LOCATION" "$HOME/.cache/corona-virus" |
+  sed "s/\x1b\[[0-9;]*m//g" |
+  sed "s/\s*//g ; s/║//g ; s/│/;/g" |
+  awk -F';' '{print "😷" $3 " (" $9") 💀" $5 " 🏠("$7"%)"}'
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end
+

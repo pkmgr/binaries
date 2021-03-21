@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="myshell"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 022420211808-git
+##@Version       : 202103201731-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : myshell --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Monday, Feb 15, 2021 14:02 EST
+# @Created       : Saturday, Mar 20, 2021 17:31 EDT
 # @File          : myshell
 # @Description   : Change the default user shell
 # @TODO          :
@@ -81,7 +80,7 @@ __del() {
     __requiresudo true
     local tmpshell="/tmp/shells"
     if grep -q $1 /etc/shells; then
-      grep -Fv "$1" /etc/shells > "$tmpshell"
+      grep -Fv "$1" /etc/shells >"$tmpshell"
       sudo mv -f "$tmpshell" /etc/shells
       printf_exit 2 0 "$1 has been removed from /etc/shells"
     else
@@ -100,36 +99,35 @@ __add() {
       if [ -f "$cmd" ]; then
         if ! grep -q "$f" /etc/shells; then
           echo "$(command -v $f)" | sudo tee -a /etc/shells &>/dev/null &&
-          printf_green "Successfully added $cmd to /etc/shells"
+            printf_green "Successfully added $cmd to /etc/shells"
         else
           printf_yellow "$cmd is already in /etc/shells"
         fi
-    else
-      printf_red "The command $f does not exist"
-    fi
+      else
+        printf_red "The command $f does not exist"
+      fi
     done
     exit $?
   else
-  if __cmd_exists "$1"; then
-    local cmd="$(command -v $1)"
-    if ! grep -q "$1" /etc/shells; then
-      if [ "$(command -v $1 | grep -q '/' || echo 0)" = 0 ]; then
-        printf_red "/etc/shells requires full path to the shell, however,"
-        printf_exit "I couldn't determine the full path for $cmd"
+    if __cmd_exists "$1"; then
+      local cmd="$(command -v $1)"
+      if ! grep -q "$1" /etc/shells; then
+        if [ "$(command -v $1 | grep -q '/' || echo 0)" = 0 ]; then
+          printf_red "/etc/shells requires full path to the shell, however,"
+          printf_exit "I couldn't determine the full path for $cmd"
+        else
+          echo "$cmd" | sudo tee -a /etc/shells &>/dev/null &&
+            printf_exit "2" "0" "$cmd has been added to /etc/shells" ||
+            printf_red "Something went wrong"
+        fi
       else
-        echo "$cmd" | sudo tee -a /etc/shells &>/dev/null && \
-          printf_exit "2" "0" "$cmd has been added to /etc/shells" || \
-          printf_red "Something went wrong"
+        printf_exit "$cmd already exists in /etc/shells"
       fi
     else
-        printf_exit "$cmd already exists in /etc/shells"
+      printf_exit "The command $1 doesn't exist"
     fi
-  else
-    printf_exit "The command $1 doesn't exist"
-  fi
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case "$1" in
@@ -178,7 +176,7 @@ case "$1" in
       if [ -f "$newshell" ]; then
         __passwd
         echo -n "$(echo $password | chsh -s "$newshell" "$USER" &>/dev/null)" &&
-        __getuser_shell "$newshell" && __success || __failure
+          __getuser_shell "$newshell" && __success || __failure
       else
         printf_red "Invalid shell"
       fi
@@ -199,12 +197,12 @@ case "$1" in
     fi
     ;;
 
-  *) printf_exit "Unsupported OS";;
+  *) printf_exit "Unsupported OS" ;;
   esac
   ;;
 
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

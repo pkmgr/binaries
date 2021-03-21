@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="scratchpad"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
+SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 030920210100-git
+##@Version       : 202103201835-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : scratchpad --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Tuesday, Mar 09, 2021 01:00 EST
+# @Created       : Saturday, Mar 20, 2021 18:35 EDT
 # @File          : scratchpad
 # @Description   : Setup a console base scratchpad
 # @TODO          :
@@ -41,55 +40,59 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TMUX=""
-scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
-hour="$(date +"%H:%M")"
-month="$(date +"%m")"
-year="$(date +"%Y")"
-day="$(date +"%d")"
-folder="$year/$month"
-title="$(date +"%B") $(date +"%d"), $year created at $hour"
-filename="$folder/$day.md"
-editor="vim"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__mkd "$scratchdir/$folder"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-tmux_conf() {
-  if [ ! -f "$scratchdir/tmux.conf" ]; then
-    if [ -f "$HOME/.config/tmux/tmux.conf" ]; then
-      __cp_rf "$HOME/.config/tmux/tmux.conf" "$scratchdir/tmux.conf"
-    else
-      __cp_rf "$CASJAYSDEVDIR/templates/tmux.conf" "$NOTES_DIRECTORY/tmux.conf"
-    fi
-  fi
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__tmux() { tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "$editor $1" &>/dev/null; }
-__open() {
-  filepath="$(__get_full_file "$1")"
-  filename="$scratchdir/${1//$scratchdir}"
-  run_tmux "$filename"
-}
 scratchpad() {
-  run_git() {
-      if [ -d "$scratchdir/.git" ]; then
-        gitcommit "$scratchdir" scratchpad
+  TMUX=""
+  scratchdir="${SCRATCHAD_DIR:-$HOME/.local/share/editors/scratchpads}"
+  hour="$(date +"%H:%M")"
+  month="$(date +"%m")"
+  year="$(date +"%Y")"
+  day="$(date +"%d")"
+  folder="$year/$month"
+  title="$(date +"%B") $(date +"%d"), $year created at $hour"
+  filename="$folder/$day.md"
+  editor="vim"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  __mkd "$scratchdir/$folder"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  tmux_conf() {
+    if [ ! -f "$scratchdir/tmux.conf" ]; then
+      if [ -f "$HOME/.config/tmux/tmux.conf" ]; then
+        __cp_rf "$HOME/.config/tmux/tmux.conf" "$scratchdir/tmux.conf"
       else
-        git -C "$scratchdir" init &>/dev/null && \
-          gitcommit "$scratchdir" scratchpad
+        __cp_rf "$CASJAYSDEVDIR/templates/tmux.conf" "$NOTES_DIRECTORY/tmux.conf"
       fi
-      exit $?
+    fi
+  }
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  __tmux() { tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "$editor $1" &>/dev/null; }
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  __open() {
+    filepath="$(__get_full_file "$1")"
+    filename="$scratchdir/${1//$scratchdir/}"
+    run_tmux "$filename"
+  }
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  run_git() {
+    if [ -d "$scratchdir/.git" ]; then
+      gitcommit "$scratchdir" scratchpad
+    else
+      git -C "$scratchdir" init &>/dev/null &&
+        gitcommit "$scratchdir" scratchpad
+    fi
+    exit $?
   }
   run_tmux() {
     local filename="${1:-$filename}"
-    local filename="$scratchdir/${filename//$scratchdir}"
+    local filename="$scratchdir/${filename//$scratchdir/}"
     if [ ! -f "$filename" ]; then
       local title="${2:-Scratchpad for $title}"
       printf "%s\n\n" "## $title  " >"$filename"
     fi
     __tmux "$filename"
   }
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  tmux_conf
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   case "$1" in
   *new | *-n)
     shift 1
@@ -126,15 +129,11 @@ scratchpad() {
       run_tmux "$scratchdir/$filename"
     fi
     ;;
-
   esac
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main() {
-  tmux_conf
-  scratchpad "$@"
-}
+scratchpad "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
+exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end

@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version     : 022420211808-git
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : mpd-notify
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : mpd notfication script
-#
+##@Version       : 202103201718-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : mpd-notify --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Saturday, Mar 20, 2021 17:18 EDT
+# @File          : mpd-notify
+# @Description   : mpd notfication script
+# @TODO          :
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -24,8 +31,12 @@ if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
   . "$PWD/$SCRIPTSFUNCTFILE"
 elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -49,7 +60,7 @@ curPid="$(ps -ux | grep -v "$myPid" | grep 'mpd-notify run' | grep -v ' grep ' |
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$daemonDir/mpd-notify.cfg" ] && . "$daemonDir/mpd-notify.cfg"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$pidFile" ] && [ -z "$curPid"  ]; then
+if [ -f "$pidFile" ] && [ -z "$curPid" ]; then
   oldPid="$(<"$pidFile")"
 elif [ -n "$curPid" ]; then
   oldPid="$curPid"
@@ -63,8 +74,8 @@ __mpc() { mpc -h "$MPDSERVER" -p "$MPDSERVER_PORT" "$@"; }
 __mpc_status() { __mpc status && return 0 || return 1; }
 __getpid() {
   if [ -n "$curPid" ]; then
-   echo 0
-   return 0
+    echo 0
+    return 0
   else
     return 1
   fi
@@ -208,7 +219,7 @@ startDaemon() {
     printf_green " *Starting $daemonName."
     setupDaemon
     echo "$myPid" >"$pidFile"
-    log '*** '$(date +"%Y-%m-%d %H:%M")": Starting up $daemonName."
+    log '*** '"$(date +"%Y-%m-%d %H:%M")"": Starting up $daemonName."
     log '*** '"connected to $MPDSERVER"
     notifications "MPD" "Connected to $MPDSERVER\n$(__mpc status)"
     loop
@@ -218,7 +229,7 @@ startDaemon() {
 stopDaemon() {
   if checkDaemon; then
     echo "Stopping $daemonName"
-    log '*** '$(date +"%Y-%m-%d %H:%M")": $daemonName stopped."
+    log '*** '"$(date +"%Y-%m-%d %H:%M")"": $daemonName stopped."
     for pid in $oldPid $(ps -ux | grep 'mpd-notify run' | grep -v ' grep ' | awk '{print $2}'); do
       kill -s 15 "$pid" &>/dev/null
     done

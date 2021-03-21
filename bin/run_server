@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="run_server"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +8,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200121-git
+##@Version       : 202103201833-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : run_server --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 01:21 EDT
+# @Created       : Saturday, Mar 20, 2021 18:33 EDT
 # @File          : run_server
 # @Description   : Start an HTTP server from a directory
 # @TODO          :
@@ -40,10 +40,6 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
-user_install
-__options "$@"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __test_server() { netstatg $1 | grep -qi python && return 0 || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 open_url() {
@@ -54,7 +50,7 @@ open_url() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main() {
+run_server() {
   local i=0
   local port="${1:-8000}"
   local myip=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')
@@ -77,8 +73,8 @@ main() {
     printf_exit 1 1 "Failed to start the server"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-main "$@"
+run_server "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-
