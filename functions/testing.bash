@@ -1567,10 +1567,11 @@ __am_i_online() {
     if [ "$showerror" = "yes" ]; then
       if [ -n "$message" ]; then
         printf_return 1 1 "$message"
-      else
-        if [ -n "$DISPLAY" ] && [ -n "$DESKTOP_SESSION" ]; then
-          notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
+        if [ -z "$NOTIFY_DISABLED" ]; then
+          notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "$message"
         fi
+      else
+        notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
         printf_red "you appear to not be connected to the internet" >&2
       fi
     fi
