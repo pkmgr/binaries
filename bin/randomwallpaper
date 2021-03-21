@@ -171,7 +171,8 @@ __start() {
   __getstatus && return 1
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
-  sleep 60 && sh -c "$PROG --bg --run &>/dev/null &" &
+  sleep 60
+  sh -c "$APPNAME --bg --run &>/dev/null &" &
   disown
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -180,7 +181,7 @@ __get_pid() { ps -ux | grep 'randomwallpaper' | grep 'run' | grep -v 'grep' | aw
 __getstatus() {
   MAINPID="$(__get_pid | head -n1)"
   GETTPID=$(__get_pid || return 1)
-  PSPID="$(__get_pid | head -n1 || ps -ux | grep "$PROG" | grep -v 'grep' | grep "run" 2>/dev/null || return 1)"
+  PSPID="$(__get_pid | head -n1 || ps -ux | grep "$APPNAME" | grep -v 'grep' | grep "run" 2>/dev/null || return 1)"
   if [ -n "$GETTPID" ]; then
     [ -f "$KILL_FILE" ] && START_STOP_MESG="Stop is pending" || export START_STOP_MESG="Stop randomwallpaper"
     __get_status_pid "$GETTPID" && exitCode=0 || exitCode=1
@@ -331,6 +332,13 @@ main() {
   *bg) # background
     shift 1
     case $1 in
+    restart | *-restart)
+      printf_red "Attempting to restart $APPNAME"
+      notifications "$APPNAME" "Attempting to restart $APPNAME"
+      sh -c "$APPNAME" --bg --stop
+      sh -c "$APPNAME" --bg --start
+      exit $?
+      ;;
     *run)
       shift $#
       run_count="$(__start_count 'randomwallpaper' 'run')"

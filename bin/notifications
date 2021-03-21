@@ -50,6 +50,7 @@ NOTIFYD_APPNAME="${notifyAppName:-$NOTIFY_CLIENT_NAME}"
 NOTIFYD_URGENY="${notifyUrgency:-$NOTIFY_CLIENT_URGENY}"
 NOTIFYD_ICON="${NOTIFY_CLIENT_ICON}"
 NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
+notifyAppName="${NOTIFYD_APPNAME:-$PROG}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$NOTIFY_CONFIG_DIR/settings.conf" ] &&
   . "$NOTIFY_CONFIG_DIR/settings.conf" || {
