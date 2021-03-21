@@ -1526,7 +1526,7 @@ __am_i_online() {
   local show=no
   local error=no
   local console=no
-  local message="${1:-}"
+  local message=""
   export NOTIFY_CLIENT_ICON=error
   export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
   [[ "$1" = *force ]] && return 0
@@ -1534,31 +1534,32 @@ __am_i_online() {
   case $1 in
   *err* | *show)
     shift 1
-    showerror=yes
-    site="${1:-1.1.1.1}"
+    local showerror=yes
+    local site="${1:-1.1.1.1}"
+    local message="${1:-}"
     ;;
   *console)
     shift 1
-    console="yes"
-    site="${1:-1.1.1.1}"
+    local console="yes"
+    local site="${1:-1.1.1.1}"
     ;;
   *)
-    site="${1:-1.1.1.1}"
+    local site="${1:-1.1.1.1}"
     ;;
   esac
   shift
   test_ping() {
     timeout 1 ping -c1 "$site" &>/dev/null
-    pingExit=$?
+    local pingExit=$?
   }
   test_http() {
     timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
-    httpExit=$?
+    local httpExit=$?
   }
   test_ping || test_http
   if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
     [ "$console" = "yes" ] && printf_green "$site is up: you seem to be connected to the internet"
-    exitCode=0
+    local exitCode=0
   else
     if [ "$console" = "yes" ]; then
       printf_red "$site is down: you appear to not be connected to the internet" >&2
@@ -1576,7 +1577,7 @@ __am_i_online() {
   return $exitCode
 }
 #am_i_online_err "Message" "color" "exitCode"
-__am_i_online_err() { shift 1; __am_i_online show "$@"; }
+__am_i_online_err() { __am_i_online show "$@"; }
 #
 notify_good() {
   local prog="${PROG:-$APPNAME}"
