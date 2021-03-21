@@ -1523,14 +1523,14 @@ gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || retu
 httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 #connection test
 __am_i_online() {
+  [ "$1" = *force ]] && return 0
+  [ -n "$FORCE_CONNECTION" ] && return 0
   local show=no
   local error=no
   local console=no
   local message=""
   export NOTIFY_CLIENT_ICON=error
   export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
-  [[ "$1" = *force ]] && return 0
-  [ -n "$FORCE_CONNECTION" ] && return 0
   case $1 in
   *err* | *show)
     shift 1
@@ -1558,25 +1558,27 @@ __am_i_online() {
   }
   test_ping || test_http
   if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-    [ "$console" = "yes" ] && printf_green "$site is up: you seem to be connected to the internet"
+    [ "$console" = "yes" ] && printf_green "you seem to be connected to the internet"
     local exitCode=0
   else
     if [ "$console" = "yes" ]; then
-      printf_red "$site is down: you appear to not be connected to the internet" >&2
+      printf_red "you appear to not be connected to the internet" >&2
     fi
     if [ "$showerror" = "yes" ]; then
       if [ -n "$message" ]; then
         printf_return 1 1 "$message"
       else
-        notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
-      printf_red "$site is down: you appear to not be connected to the internet" >&2
+        if [ -n "$DISPLAY" ] && [ -n "$DESKTOP_SESSION" ]; then
+          notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
+        fi
+        printf_red "you appear to not be connected to the internet" >&2
       fi
     fi
     exitCode=1
   fi
   return $exitCode
 }
-#am_i_online_err "Message" "color" "exitCode"
+#am_i_online_err "Message"
 __am_i_online_err() { __am_i_online show "$@"; }
 #
 notify_good() {
