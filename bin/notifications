@@ -50,12 +50,13 @@ NOTIFYD_APPNAME="${notifyAppName:-$NOTIFY_CLIENT_NAME}"
 NOTIFYD_URGENY="${notifyUrgency:-$NOTIFY_CLIENT_URGENY}"
 NOTIFYD_ICON="${NOTIFY_CLIENT_ICON}"
 NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
+NOTIFY_CONFIG_FILE="settings.conf"
 notifyAppName="${NOTIFYD_APPNAME:-$PROG}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$NOTIFY_CONFIG_DIR/settings.conf" ] &&
-  . "$NOTIFY_CONFIG_DIR/settings.conf" || {
+[ -f "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" ] &&
+  . "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" || {
   mkdir -p "$NOTIFY_CONFIG_DIR"
-  touch "$NOTIFY_CONFIG_DIR/settings.conf"
+  touch "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(uname -s)" = "Darwin" ]; then
@@ -85,8 +86,8 @@ __nc_send() { $netcat -c "$1" "$2" 2>>"$_LOG" && true || $netcat -w 1 "$1" "$2" 
 __config() {
   printf_green "Generating the config file"
   __mkd "$NOTIFY_CONFIG_DIR"
-  __rm_rf "$NOTIFY_CONFIG_DIR/settings.conf"
-  cat <<EOF >"$NOTIFY_CONFIG_DIR/settings.conf"
+  __rm_rf "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE"
+  cat <<EOF >"$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE"
 # Settings for notifications
 NOTIFYD_PORT="${NOTIFYD_PORT:-\$NOTIFYD_PORT}"
 NOTIFYD_HOST="${NOTIFYD_HOST:-\$NOTIFYD_HOST}"
@@ -97,10 +98,10 @@ EOF
 notifyAppName="${APPNAME:-$notifyAppName}"
 notifyIconName="${notifyIconName:-com.github.timecraft.notifier}"
 notifyUrgency="${notifyUrgency:-normal}"
-' >>"$HOME/.config/notifications/settings"
+' >>"$HOME/.config/notifications/$NOTIFY_CONFIG_FILE"
 
-  if [ -f "$NOTIFY_CONFIG_DIR/settings.conf" ]; then
-    printf_green "config saved to $NOTIFY_CONFIG_DIR/settings.conf"
+  if [ -f "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" ]; then
+    printf_green "config saved to $NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE"
   else
     printf_error "Failed to save the configuration"
   fi
@@ -182,7 +183,7 @@ __notifications_all() {
 }
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -f "$NOTIFY_CONFIG_DIR/settings.conf" ] && [[ "$1" != *config ]]; then
+if [ ! -f "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" ] && [[ "$1" != *config ]]; then
   __config
 fi
 

@@ -262,7 +262,7 @@ Categories=System;GTK;X-XFCE;GNOME;
 Keywords=xfce4-notify;notify;music;player;my;
 StartupNotify=true
 EOF
-  notify-daemon --server &
+  sh -c "notify-daemon --server &"
   exit $?
 }
 
