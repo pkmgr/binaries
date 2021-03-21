@@ -40,7 +40,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-NOTIFYD_HOST="${NOTIFYD_HOST}"
+NOTIFYD_HOST="${NOTIFYD_HOST:-}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 NOTIFYD_CONFIG_DIR="$HOME/.config/notify-daemon"
 NOTIFYD_CONFIG_FILE="setting.conf"
@@ -49,12 +49,14 @@ NOTIFYD_CLIENT_PATH="$NOTIFYD_TMP_DIR/client"
 NOTIFYD_SERVER_PATH="$NOTIFYD_TMP_DIR/server"
 NOTIFYD_KILL_PATH="$NOTIFYD_SERVER_PATH/server.kill"
 NOTIFYD_LOG_FILE="$NOTIFYD_SERVER_PATH/server.log"
-NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
-NOTIFY_CLIENT_URGENY="${NOTIFY_CLIENT_URGENY:-normal}"
-NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-com.github.timecraft.notifier}"
 NOTIFYD_APPNAME="${notifyAppName:-$NOTIFY_CLIENT_NAME}"
 NOTIFYD_URGENY="${notifyUrgency:-$NOTIFY_CLIENT_URGENY}"
 NOTIFYD_ICON="${NOTIFY_CLIENT_ICON}"
+NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+NOTIFY_CLIENT_URGENY="${NOTIFY_CLIENT_URGENY:-normal}"
+NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-com.github.timecraft.notifier}"
+NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
+NOTIFY_CONFIG_FILE="settings.conf"
 notifyAppName="${NOTIFYD_APPNAME:-$PROG}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if pidof xfce4-notifyd &>/dev/null; then
@@ -71,6 +73,8 @@ else
   PROCID=
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" ] &&
+  . "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE"
 [ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] &&
   . "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -84,6 +88,8 @@ __config() {
 # Settings for notify-daemon
 NOTIFYD_HOST="${NOTIFYD_HOST}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
+NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
+NOTIFY_CONFIG_FILE="settings.conf"
 
 #Uncomment and insert this into $NOTIFYD_CONFIG_DIR/notifyd
 #if __cmd_exists pathToDaemon; then
