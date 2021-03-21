@@ -80,9 +80,10 @@ _notifications() { if [ "$NOTES_NOTIFY" = "yes" ]; then notifications "$@"; fi; 
 # Generate config file
 gen_config() {
   __mkd "$HOME/.config/notes"
-  echo 'NOTES_FOLDER="$(date +%Y)"
+  echo '# configuration for notes
+NOTES_FOLDER="$(date +%Y)"
 NOTES_FILE="$(date +%m).txt"
-NOTES_TMPDIR="'${NOTES_TMPDIR}"
+NOTES_TMPDIR="'${NOTES_TMPDIR}'"
 NOTES_DIRECTORY="'${NOTES_DIRECTORY:-$HOME/.local/share/editors/notes}'"
 NOTES_EDITOR="'${NOTES_EDITOR:-vim}'"
 NOTES_SERVER_NAME="'${NOTES_SERVER_NAME:-localhost}'"
@@ -236,7 +237,9 @@ __sync_all() {
     echo "### All Active notes as of $(date)" >"$_NOTESA" && cat "$_NOTES_TMPFILE" >>"$_NOTESA" || local exitCode=1
   fi
   __rm_rf "$_NOTES_TMPFILE" "$_NOTESA.tmp"
-  if [ "$show" = "true" ]; then [ "$exitCode" = 0 ] && printf_green "Sync completed" || printf_error 1 "Sync failed"; fi
+  if [ "$show" = "true" ]; then
+    [ "$exitCode" = 0 ] && printf_green "Sync completed" || printf_error 1 "Sync failed"
+  fi
   return "$exitCode"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

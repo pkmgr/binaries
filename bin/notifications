@@ -171,7 +171,7 @@ __notifications_all() {
       sudo -u "${NAME[0]}" DISPLAY="${DISPLAY}" \
         DBUS_SESSION_BUS_ADDRESS="${DBUS_ADDRESS}" \
         PATH="${PATH}" \
-        notify-send --app-name="${notifyAppName:-}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$title" "$msg" || return 0
+        notify-send --app-name="${notifyAppName:-$APPNAME}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$title" "$msg" || return 0
       __cmd_exists wall && echo "$title: $msg" | wall
       printf_console "3" "$title: $msg" >/dev/fd/0
     done
@@ -202,23 +202,19 @@ config | --config)
 client | --client)
   shift 1
   if [ ${#} -eq 0 ]; then
-    title="$notifyAppName"
+    title="${notifyAppName:-$APPNAME}"
     msg="$(</dev/stdin)"
     shift
   else
     if [ ${#} -eq 1 ]; then
-      title="$notifyAppName"
-      shift 1
-      msg="$(</dev/stdin)"
-      shift
+      title="${notifyAppName:-$APPNAME}"
+      msg="$*"
     else
-      title="${1}"
+      title="$1"
       shift 1
-      msg="${*}"
-      shift
+      msg="$*"
     fi
   fi
-
   if [ -n "$NOTIFYD_HOST" ]; then
     __notifications_cli "$title" "$msg"
   else
@@ -230,20 +226,24 @@ client | --client)
 --all)
   shift 1
   if [ ${#} -eq 0 ]; then
-    title="$notifyAppName"
+    title="${notifyAppName:-$APPNAME}"
     msg="$(</dev/stdin)"
     shift
   else
     if [ ${#} -eq 1 ]; then
-      title="$notifyAppName"
+      title="${notifyAppName:-$APPNAME}"
       shift 1
       msg="$(</dev/stdin)"
       shift
     else
-      title="${1}"
-      shift 1
-      msg="${*}"
-      shift
+      if [ ${#} -eq 1 ]; then
+        title="${notifyAppName:-$APPNAME}"
+        msg="$*"
+      else
+        title="$1"
+        shift 1
+        msg="$*"
+      fi
     fi
   fi
   __notifications_all "$title" "$msg"
@@ -251,26 +251,24 @@ client | --client)
 
 -)
   shift 1
-  title="$notifyAppName"
+  title="${notifyAppName:-$APPNAME}"
   msg="$(</dev/stdin)"
   __notifications "$title" "$msg"
   ;;
 
 *)
   if [ ${#} -eq 0 ]; then
-    title="$notifyAppName"
+    title="${notifyAppName:-$APPNAME}"
     msg="$(</dev/stdin)"
     shift
   else
     if [ ${#} -eq 1 ]; then
-      title="$notifyAppName"
-      msg="$1"
-      shift
+      title="${notifyAppName:-$APPNAME}"
+      msg="$*"
     else
-      title="${1}"
+      title="$1"
       shift 1
-      msg="${*}"
-      shift
+      msg="$*"
     fi
   fi
   __notifications "$title" "$msg"

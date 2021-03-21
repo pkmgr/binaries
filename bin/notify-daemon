@@ -49,6 +49,13 @@ NOTIFYD_CLIENT_PATH="$NOTIFYD_TMP_DIR/client"
 NOTIFYD_SERVER_PATH="$NOTIFYD_TMP_DIR/server"
 NOTIFYD_KILL_PATH="$NOTIFYD_SERVER_PATH/server.kill"
 NOTIFYD_LOG_FILE="$NOTIFYD_SERVER_PATH/server.log"
+NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+NOTIFY_CLIENT_URGENY="${NOTIFY_CLIENT_URGENY:-normal}"
+NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-com.github.timecraft.notifier}"
+NOTIFYD_APPNAME="${notifyAppName:-$NOTIFY_CLIENT_NAME}"
+NOTIFYD_URGENY="${notifyUrgency:-$NOTIFY_CLIENT_URGENY}"
+NOTIFYD_ICON="${NOTIFY_CLIENT_ICON}"
+notifyAppName="${NOTIFYD_APPNAME:-$PROG}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if pidof xfce4-notifyd &>/dev/null; then
   NOTIFYD=xfce4-notifyd
@@ -64,7 +71,7 @@ else
   PROCID=
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] && \
+[ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] &&
   . "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
@@ -88,7 +95,7 @@ NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 #fi
 
 EOF
-  [ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] && \
+  [ -f "$NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ] &&
     printf_green "config saved to $NOTIFYD_CONFIG_DIR/$NOTIFYD_CONFIG_FILE" ||
     printf_error "Failed to save the configuration"
 }
@@ -499,22 +506,29 @@ status)
   fi
   if [ ${#} -eq 0 ]; then
     if [ -p "/dev/stdin" ]; then
-      message="$(</dev/stdin)"
+      title="${notifyAppName:-$APPNAME}"
+      msg="$(</dev/stdin)"
     fi
   else
-    title="$1"
-    message="$2"
+    if [ ${#} -eq 1 ]; then
+      title="${notifyAppName:-$APPNAME}"
+      msg="$*"
+    else
+      title="$1"
+      shift 1
+      msg="$*"
+    fi
   fi
-  __client "$title" "$message" 2>/dev/null || notifications "Daemon" "failed to send to $NOTIFYD_HOST"
+  __client "$title" "$msg" 2>/dev/null
   ;;
 
-*)
+*start)
   _start_notifyd
   if ! __getstatus "$PROCID"; then _start_notifyd "$NOTIFYD"; fi
   ;;
+*) __help ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-
