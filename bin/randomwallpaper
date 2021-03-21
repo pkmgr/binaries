@@ -317,7 +317,12 @@ main() {
     ;;
   *disable)
     __rm_rf "$HOME/.config/autostart/randomwallpaper.desktop"
-    notifications "Wallpaper Changer" "Deleted the autostart service"
+    if [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ]; then
+      printf_red "Failed to delete the service"
+    else
+      notifications "Wallpaper Changer" "Deleted the autostart service"
+      printf_green "Deleted the autostart service"
+    fi
     ;;
   *term)
     shift 1
