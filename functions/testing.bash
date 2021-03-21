@@ -1576,7 +1576,7 @@ __am_i_online() {
   return $exitCode
 }
 #am_i_online_err "Message" "color" "exitCode"
-__am_i_online_err() { __am_i_online show "$@"; }
+__am_i_online_err() { shift 1; __am_i_online show "$@"; }
 #
 notify_good() {
   local prog="${PROG:-$APPNAME}"
