@@ -1526,6 +1526,7 @@ __am_i_online() {
   local show=no
   local error=no
   local console=no
+  local message="${1:-}"
   export NOTIFY_CLIENT_ICON=error
   export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
   [[ "$1" = *force ]] && return 0
@@ -1563,8 +1564,12 @@ __am_i_online() {
       printf_red "$site is down: you appear to not be connected to the internet" >&2
     fi
     if [ "$showerror" = "yes" ]; then
-      notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
+      if [ -n "$message" ]; then
+        printf_return 1 1 "$message"
+      else
+        notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
       printf_red "$site is down: you appear to not be connected to the internet" >&2
+      fi
     fi
     exitCode=1
   fi
