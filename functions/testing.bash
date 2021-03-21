@@ -1523,7 +1523,7 @@ gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || retu
 httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 #connection test
 __am_i_online() {
-  [ "$1" = *force ]] && return 0
+  [[ "$1" = *force ]] && return 0
   [ -n "$FORCE_CONNECTION" ] && return 0
   local show=no
   local error=no
