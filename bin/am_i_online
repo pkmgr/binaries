@@ -44,47 +44,7 @@ export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main function
 am_i_online() {
-  [[ "$1" = *force ]] && return 0
-  [ -n "$FORCE_CONNECTION" ] && return 0
-  case $1 in
-  *err* | *show)
-    shift 1
-    showerror=yes
-    site="${1:-1.1.1.1}"
-    ;;
-  *console)
-    shift 1
-    console="yes"
-    site="${1:-1.1.1.1}"
-    ;;
-  *)
-    site="${1:-1.1.1.1}"
-    ;;
-  esac
-  shift
-  test_ping() {
-    timeout 1 ping -c1 "$site" &>/dev/null
-    pingExit=$?
-  }
-  test_http() {
-    timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
-    httpExit=$?
-  }
-  test_ping || test_http
-  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-    [ "$console" = "yes" ] && printf_green "$site is up: you seem to be connected to the internet"
-    exitCode=0
-  else
-    if [ "$console" = "yes" ]; then
-      printf_red "$site is down: you appear to not be connected to the internet" >&2
-    fi
-    if [ "$showerror" = "yes" ]; then
-      notifications "${NOTIFY_CLIENT_NAME:-am_i_online}" "$site is down"
-      printf_red "$site is down: you appear to not be connected to the internet" >&2
-    fi
-    exitCode=1
-  fi
-  return $exitCode
+  __am_i_online "$@"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #execute
@@ -93,4 +53,3 @@ am_i_online "$@"
 exit "${exitCode:-$?}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

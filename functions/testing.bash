@@ -518,7 +518,7 @@ __mycurrdir() {
 ###################### checks ######################
 #cmd_exists command
 __cmd_exists() {
-  [[ "$1" = *-ask ]] && __requires "$@" && return $? || true
+  [[ "$1" = *-ask ]] && shift 1 && __requires "$@" && return $? || true
   [ $# -eq 0 ] && return 1
   local args="$*"
   local exitTmp
@@ -634,7 +634,7 @@ __check_app() {
   if [ -n "$MISSING" ]; then
     notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Missing $MISSING"
     if [ -n "$DESKTOP_SESSION" ]; then
-      ask_yes_no_question "Would you like install $MISSING" "pkmgr silent-install $MISSING" || return 1
+      __ask_confirm "Would you like install $MISSING" "pkmgr silent-install $MISSING" || return 1
     else
       printf_red "The following apps are missing: $MISSING"
       printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
@@ -1562,7 +1562,7 @@ __am_i_online() {
     local exitCode=0
   else
     if [ "$console" = "yes" ]; then
-      printf_red "you appear to not be connected to the internet" >&2
+      printf_red "you appear to be offline" >&2
     fi
     if [ -n "$message" ]; then
       local showerror=no
@@ -1580,54 +1580,61 @@ __am_i_online() {
 }
 #am_i_online_err "Message"
 __am_i_online_err() { __am_i_online show "$@"; }
-#
-notify_good() {
-  local prog="${PROG:-$APPNAME}"
-  local name="${1}"
-  local message="${*:-Command was successfull}"
-  notifications "${prog:-$name}:" "$message"
-  printf_green "${prog:-$name}: $message"
-  return 0
-}
-notify_error() {
-  local prog="${PROG:-$APPNAME}"
-  local name="${1}"
-  local message="${*:-Command has failed}"
-  notifications "${prog:-$name}:" "$message"
-  printf_red "${prog:-$name}: $message"
-  return 1
-}
 # ask question and execute
-ask_confirm() {
-  local question="${1:-Continue}"
+__ask_confirm() {
+  local appname="${PROG:-$APPNAME}"
+  local question="${1:-Would you like to proceed?}"
   local command="${2:-true}"
-  if [ "$(command -v ask_yes_no_question)" ]; then
-    ask_yes_no_question "$question" "$command" "${APPNAME:-$PROG}"
-  else
-    __zenity() { zenity --question --width=400 --text="$1" --ellipsize --default-cancel && "$2" || return 1; }
-    __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && eval "${2:-true}" || return 1; }
-    __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
-    __term() { printf_question_term "$1" && "$2" || return 1; }
-    if [ -n "$DESKTOP_SESSION" ] || [ -n "$DISPLAY" ] || [ -z "$SSH_TTY" ]; then
-      if [ -f "$(command -v zenity 2>/dev/null)" ]; then
-        __zenity "$question" "$command" && notify_good || notify_error
-      elif [ -f "$(command -v dmenu1 2>/dev/null)" ]; then
-        __dmenu "$question" "$command" && notify_good || notify_error
-      elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then
-        __dialog "$question" "$command" && notify_good || notify_error
-      else
-        __term "$question" "$command" && notify_good "$2" || notify_error "$2"
-      fi
-    else
-      if [ -t 0 ]; then
-        export -f __term notify_error
-        $TERMINAL -e "__term "$question" "$command" || notify_error"
-      else
-        __term "$question" "$command" || notify_error
-      fi
+  local name="${3:-$appname}"
+  notify_good() {
+    local prog="$name"
+    local name="${1:-$prog}"
+    local message="${command:-Command} was successfull"
+    if [ -z "$SEND_NOTIFY" ]; then
+      notifications "${prog:-$name}:" "$message" || printf_green "${prog:-$name}: $message"
+      export YN_NOTIFY=yes
     fi
-    return ${exitCode:-$?}
+    return 0
+  }
+  notify_error() {
+    local prog="$name"
+    local name="${1:-$prog}"
+    local message="${command:-Command} has failed"
+    if [ -z "$SEND_NOTIFY" ]; then
+      notifications "${prog:-$name}:" "$message" || printf_red "${prog:-$name}: $message"
+      export YN_NOTIFY=yes
+    fi
+    return 1
+  }
+  __rofi() {
+    [ "$(printf "No\\nYes" | rofi -dmenu -i -p "$1" -nb purple -sb white -sf black -nf gray)" = "Yes" ] && ${2:-true} || return 1
+  }
+  __dmenu() {
+    [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb purple -sb white -sf black -nf gray)" = "Yes" ] && ${2:-true} || return 1
+  }
+  __zenity() { zenity --question --width=400 --text="$1" --ellipsize --default-cancel && $2 || return 1; }
+  __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && $2 || return 1; }
+  __term() { printf_question_term "$1" "$2" || return 1; }
+  if [ -n "$DISPLAY" ]; then
+    if [ -n "$DESKTOP_SESSION" ]; then
+      if [ -f "$(command -v zenity 2>/dev/null)" ]; then
+        __zenity "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
+      elif [ -f "$(command -v rofi 2>/dev/null)" ]; then
+        __rofi "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
+      elif [ -f "$(command -v dmenu 2>/dev/null)" ]; then
+        __dmenu "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
+      elif [ -f "$(command -v gdialog 2>/dev/null)" ]; then
+        __dialog "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
+      else
+        __term "$question" "$command" && notify_good "${name:-$appname}" || notify_error "${name:-$appname}"
+      fi
+    elif [ -t 0 ]; then
+      __term "$question" "$command" || notify_error
+    fi
+  else
+    __term "$question" "$command" || notify_error
   fi
+  return ${exitCode:-$?}
 }
 #function to get network device
 __getlipaddr() {
@@ -2220,12 +2227,12 @@ get_installer_version() {
   fi
 }
 grep_head() {
-  grep -v 'GEN_SCRIPT_REPLACE' "$2" 2>/dev/null | grep '   :' | \
-    grep -v '\$' | \
-    grep -E ^'.*#.@'${1:-*}'' | \
-    sed -E 's/..*#[#, ]@//g' | \
-    sed -E 's/.*#[#, ]@//g' | \
-    head -n14 | \
+  grep -v 'GEN_SCRIPT_REPLACE' "$2" 2>/dev/null | grep '   :' |
+    grep -v '\$' |
+    grep -E ^'.*#.@'${1:-*}'' |
+    sed -E 's/..*#[#, ]@//g' |
+    sed -E 's/.*#[#, ]@//g' |
+    head -n14 |
     grep '^' || return 1
 }
 ###################### help ######################
@@ -2332,7 +2339,7 @@ __options() {
     if [ -f "$(command -v $filename)" ]; then # check for file
       printf_newline
       printf_green "Getting info for $appname"
-      grep_head "Description" "$filename" &>/dev/null  &&
+      grep_head "Description" "$filename" &>/dev/null &&
         grep_head "*" "$filename" | printf_readline "3" &&
         printf_green "$(grep_head "Version" "$filename" | head -n1)" &&
         printf_blue "Required ver  : $requiredVersion" ||
@@ -2621,4 +2628,3 @@ __getpythonver
 
 user_install # default type
 ###################### end application functions ######################
-

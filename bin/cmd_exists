@@ -45,18 +45,8 @@ __options "$@"
 exitCode=""
 LISTARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [[ "$1" = location ]] || [[ "$1" = *-location ]] || [[ "$1" = *-l ]]; then
-  shift 1
-  for cmd in "$@"; do
-    if type -P $cmd 2>/dev/null; then exitCode+=0; else exitCode+=1; fi
-  done
-else
-  for cmd in "$@"; do
-    if type -P "$cmd" | grep -q "/" &>/dev/null; then exitCode+=0; else exitCode+=1; fi
-  done
-fi
+__cmd_exists "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit ${exitCode:-$?}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-
