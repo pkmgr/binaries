@@ -1230,22 +1230,22 @@ __run_menu_failed() { clear && echo -e "\n\n\n\n\n\n" && printf_red "${1:-An err
 __attemp_install_menus() {
   local prog="$*"
   message() {
-    zenity --height=200 --width=400 --timeout=10 --title="install $prog" --question --text="$prog is not installed! \nshould I try to install it?" || return 1
+    zenity --width=400 --timeout=10 --title="install $prog" --question --text="$prog is not installed! \nshould I try to install it?" || return 1
   }
   __pkmgr() { __devnull pkmgr silent "$prog" && pkmgr_exitCode=0 || pkmgr_exitCode=1; }
   if message; then
     sleep 2
     clear
-    __pkmgr | zenity --height=200 --width=400 --progress --no-cancel --pulsate --text "Installing packages $prog" --auto-close
+    __pkmgr | zenity --width=400 --progress --no-cancel --pulsate --text "Installing packages $prog" --auto-close
     if [ "$pkmgr_exitCode" = 0 ]; then
-      zenity --timeout=10 --height=200 --width=400 --text-info --title="Success" --text="Successfully installed $prog"
+      zenity --timeout=10 --width=400 --text-info --title="Success" --text="Successfully installed $prog"
       return 0
     else
-      zenity --timeout=10 --height=200 --width=400 --error --title="failed" --text="$prog failed to install"
+      zenity --timeout=10 --width=400 --error --title="failed" --text="$prog failed to install"
       return 1
     fi
   else
-    zenity --timeout=10 --height=200 --width=400 --error --title="cancelled" --text="Installation of $prog has been cancelled"
+    zenity --timeout=10 --width=400 --error --title="cancelled" --text="Installation of $prog has been cancelled"
     return 1
   fi
 }
@@ -1386,8 +1386,8 @@ if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DISPLAY" ] && [ -z "$SSH_
   __execute() {
     local CMD="$1"
     local MSG="$2"
-    $CMD | zenity --progress --no-cancel --pulsate --auto-close --title="${APPNAME:-Executing}" \
-      --text="${MSG:-Executing commands}" --height=200 --width=400 || printf_readline "5"
+    $CMD | zenity --width=400 --progress --no-cancel --pulsate --auto-close --title="${APPNAME:-Executing}" \
+      --text="${MSG:-Executing commands}" || printf_readline "5"
   }
 else
   __execute() {
@@ -1604,7 +1604,7 @@ ask_confirm() {
   if [ "$(command -v ask_yes_no_question)" ]; then
     ask_yes_no_question "$question" "$command" "${APPNAME:-$PROG}"
   else
-    __zenity() { zenity --question --text="$1" --ellipsize --default-cancel && "$2" || return 1; }
+    __zenity() { zenity --question --width=400 --text="$1" --ellipsize --default-cancel && "$2" || return 1; }
     __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb darkred -sb red -sf white -nf gray)" = "Yes" ] && eval "${2:-true}" || return 1; }
     __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && "$2" || return 1; }
     __term() { printf_question_term "$1" && "$2" || return 1; }
