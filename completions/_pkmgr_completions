@@ -38,11 +38,10 @@ _pkmgr() {
 
   *)
     COMPREPLY=($(compgen -W '$LIST' -- "$cur"))
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
     ;;
 
   esac
-
-  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

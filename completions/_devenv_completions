@@ -27,10 +27,10 @@ _devenv() {
     COMPREPLY=($(compgen -W '${START}' -- "$cur"))
     return
     ;;
-
+  *)
+    COMPREPLY=($(compgen -W '${ARRAY} ${LIST}' -- "$cur"))
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '${ARRAY} ${LIST}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

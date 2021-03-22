@@ -82,7 +82,7 @@ while :; do
     shift 1
     __custom_menus
     ;;
-  $'\E' | z)
+  $'\E' | $'\e' | z)
     clear
     break
     ;;

@@ -95,10 +95,10 @@ _gitadmin() {
     COMPREPLY=($(compgen -W '${automatedOpts}' -- "$cur"))
     return 0
     ;;
-
+  *)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

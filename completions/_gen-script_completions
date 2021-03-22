@@ -48,68 +48,57 @@ _gen-script() {
 
   _init_completion || return
 
-  if [[ "$prev" = *header ]]; then
-    [ $# -eq 3 ] && COMPREPLY=($(compgen -c -- "${cur}"))
-    [ $# -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
-  fi
-
   if [ "$SHOW_COMP_OPTS" != "" ]; then
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
-    compopt -o ${SHOW_COMP_OPTS_SEP}
+    compopt -o '${SHOW_COMP_OPTS_SEP}'
   fi
-  if [[ ${cur} == --* ]]; then
+  if [[ "${cur}" == --* ]]; then
     COMPREPLY=($(compgen -W '${HEADEROPTS}' -- ${cur}))
-  elif [[ ${cur} == -* ]]; then
+  elif [[ "${cur}" == -* ]]; then
     COMPREPLY=($(compgen -W '${ARGS}' -- ${cur}))
   else
-    case $prev in
-    all)
+    if [[ "${prev}" = all ]]; then
       COMPREPLY=($(compgen -W '${ALL}' -- "${cur}"))
-      return 0
-      ;;
-    installers)
+      return
+    elif [[ "${prev}" = installers ]]; then
       COMPREPLY=($(compgen -W '${INSTALLERS}' -- "${cur}"))
-      return 0
-      ;;
-    bash)
+      return
+    elif [[ "${prev}" = bash ]]; then
       COMPREPLY=($(compgen -W '${BASH}' -- "${cur}"))
-      return 0
-      ;;
-    shell)
+      return
+    elif [[ "${prev}" = shell ]]; then
       COMPREPLY=($(compgen -W '${SHELL}' -- "${cur}"))
-      return 0
-      ;;
-    os)
+      return
+    elif [[ "${prev}" = os ]]; then
       COMPREPLY=($(compgen -W '${OS}' -- "${cur}"))
-      return 0
-      ;;
-    other)
+      return
+    elif [[ "${prev}" = other ]]; then
       COMPREPLY=($(compgen -W '${OTHER}' -- "${cur}"))
-      return 0
-      ;;
-    *)
-      if [[ "$prev" = *header ]]; then
-        [ $# -eq 3 ] && COMPREPLY=($(compgen -c -- "${cur}"))
-        [ $# -ne 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
-      elif [ "$ARRAY" = "show-commands" ]; then
+      return
+    elif [[ ${COMP_WORDS[1]} = -header ]]; then
+      COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
+      if [[ ${#COMP_WORDS[@]} = 3 ]]; then
+        COMPREPLY=($(compgen -c -- "$cur"))
+      elif [[ ${#COMP_WORDS[@]} -gt 4 ]]; then
+        COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "$(echo '')" "${cur}"))
+      fi
+    else
+      if [ "$ARRAY" = "show-commands" ]; then
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [ "$ARRAY" = "show-none" ]; then
         COMPREPLY=($(compgen -W '' -- "${cur}"))
       elif [ "$ARRAY" = "show-_filedir" ]; then
         _filedir
       elif [ "$ARRAY" != "" ]; then
-        [ "$COMP_CWORD" -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [ -n "$OPTS" ]; then
-        [ "$COMP_CWORD" -eq 1 ] && COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
+        COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       else
-        [ "$COMP_CWORD" -eq 1 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       fi
-      [ "$COMP_CWORD" -eq 3 ] && [[ "$prev" != *header ]] && COMPREPLY=($(compgen -c -- "${cur}"))
-      [ "$COMP_CWORD" -gt 3 ] && COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
-      return 0
-      ;;
-    esac
+    fi
   fi
+  return
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

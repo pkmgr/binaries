@@ -28,9 +28,10 @@ _newsboat() {
       '$(newsboat -l 2>/dev/null | tail -n +2)' -- "$cur"))
     return
     ;;
+  *)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

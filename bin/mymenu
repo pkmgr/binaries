@@ -12,15 +12,15 @@ trap '' SIGQUIT
 trap '' SIGTSTP
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103202028-git
+##@Version       : 202103201719-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @ReadME        : videos --help
+# @ReadME        : music --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 20:28 EDT
-# @File          : videos
-# @Description   : play videos
+# @Created       : Saturday, Mar 20, 2021 17:19 EDT
+# @File          : music
+# @Description   : play music
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -44,124 +44,170 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-xine-ui() { xine || xine-ui; }
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -z "$DISPLAY" ]; then printf_exit "No display server found.......exiting $(sleep 2)"; fi
+__run() {
+  printf_read_question "3" "Arguments to send" "120" "SEND" "-e" && echo
+  run_in_term "$@" "$SEND"
+  printf_pause
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 while :; do
   # show menu
   clear
   shift 1
   printf_newline "\n\n\n\n"
-  printf_head "Video applications Menu"
-  printf_green "a. launch vlc"
-  printf_green "b. launch mpv"
-  printf_green "c. launch mplayer"
-  printf_green "d. launch smtube"
-  printf_green "e. launch smplayer"
-  printf_green "f. launch xine-ui"
-  printf_green "g. launch banshee"
-  printf_green "h. launch bomi"
-  printf_green "i. launch dragonplayer"
-  printf_green "j. launch snappy"
-  printf_green "k. launch celluloid"
-  printf_green "l. launch parole"
-  printf_green "m. launch xmbc"
-  printf_green "n. launch kodi"
-  printf_green "o. launch totem"
-  printf_green "p. launch miro"
-  printf_green "q. launch asciinema"
+  printf_head "Application Menu"
+  printf_green "a. launch mybluetooth"
+  printf_green "b. launch mybrowser"
+  printf_green "c. launch mydate"
+  printf_green "d. launch myeditor"
+  printf_green "e. launch myemail"
+  printf_green "f. launch myfilemanager"
+  printf_green "g. launch myip"
+  printf_green "h. launch mylocation"
+  printf_green "i. launch myterminal"
+  printf_green "j. launch mytorrent"
+  printf_green "k. launch myvmmanager"
+  printf_green "l. launch social"
+  printf_green "m. launch multimedia"
+  printf_green "n. launch calc"
+  printf_green "o. launch define"
+  printf_green "p. launch spellcheck"
+  printf_green "q. launch thesaurus"
+  printf_green "r. launch notes"
+  printf_green "s. launch rofi"
+  printf_green "t. launch catfish"
   printf_green "y. launch custom application"
   printf_green "z. or escape to Exit"
   printf_green "---------------------------------"
   printf_read_question_nt "6" "Enter your choice [a-z] : " "1" "main" "-s"
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  case "$main" in
+  clear
+  printf_newline "\n\n\n"
 
+  # take action
+  case "$main" in
   a)
     shift 1
-    __open_file_menus vlc "$@"
+    printf_green "Loading mybluetooth"
+    __run mybluetooth
     ;;
   b)
     shift 1
-    __open_file_menus mpv "$@"
+    printf_green "Loading mybrowser"
+    __run mybrowser
     ;;
   c)
     shift 1
-    __open_file_menus mplayer "$@"
+    printf_green "Loading mydate"
+    __run mydate
     ;;
   d)
     shift 1
-    __open_file_menus smtube "$@"
+    printf_green "Loading myeditor"
+    __run myeditor
     ;;
   e)
     shift 1
-    __open_file_menus smplayer "$@"
+    printf_green "Loading myemail"
+    __run myemail
     ;;
   f)
     shift 1
-    __open_file_menus xine-ui "$@"
+    printf_green "Loading myfilemanager"
+    __run myfilemanager
     ;;
   g)
     shift 1
-    __open_file_menus banshee "$@"
+    printf_green "Loading myip"
+    __run myip
     ;;
   h)
     shift 1
-    __open_file_menus bomi "$@"
+    printf_green "Loading mylocation"
+    __run mylocation
     ;;
   i)
     shift 1
-    __open_file_menus dragonplayer "$@"
+    printf_green "Loading myterminal"
+    __run myterminal
     ;;
   j)
     shift 1
-    __open_file_menus snappy "$@"
+    printf_green "Loading mytorrent"
+    __run mytorrent
     ;;
   k)
     shift 1
-    __open_file_menus celluloid "$@"
+    printf_green "Loading myvmmanager"
+    __run myvmmanager
     ;;
   l)
     shift 1
-    __open_file_menus parole "$@"
+    printf_green "Loading social"
+    __run social
     ;;
   m)
     shift 1
-    __open_file_menus xmbc "$@"
+    printf_green "Loading multimedia"
+    __run multimedia
     ;;
   n)
     shift 1
-    __open_file_menus kodi "$@"
+    printf_green "Loading calc"
+    __run calc
     ;;
   o)
     shift 1
-    __open_file_menus totem "$@"
+    printf_green "Loading define"
+    __run define
     ;;
   p)
     shift 1
-    __open_file_menus miro "$@"
+    printf_green "Loading spellcheck"
+    __run spellcheck
     ;;
   q)
     shift 1
-    __open_file_menus asciinema play "$@"
+    printf_green "Loading thesaurus"
+    __run thesaurus
+    ;;
+  r)
+    shift 1
+    printf_green "Loading notes"
+    __run notes
+    ;;
+  s)
+    printf_green "Loading rofi"
+    __run rofi -show run
+    ;;
+  t)
+    printf_green "Loading catfish"
+    __run catfish
     ;;
   y)
     shift 1
-    __custom_menus
-    continue
+    if __cmd_exists rofi; then
+      APP="$(ls /usr/local/share/CasjaysDev/scripts/bin/ | rofi -dmenu)"
+    elif __cmd_exists dmenu; then
+      APP="$(ls /usr/local/share/CasjaysDev/scripts/bin/ | dmenu)"
+    else
+      printf_read_question "2" "What app would you like to run" "160" "APP" "-e" && echo
+    fi
+    __run "$APP"
     ;;
   $'\E' | $'\e' | z)
+    shift 1
     clear
     break
     ;;
   *) shift ;;
+
   esac
   clear
   printf_newline "\n\n"
   printf_counter "5" "3" "Re-loading menu in"
 done
 clear
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

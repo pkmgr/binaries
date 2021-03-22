@@ -25,16 +25,16 @@ _sudoers() {
   help | h | --h*)
     return
     ;;
-
   adduser | remuser)
-    COMPREPLY=($(compgen -u -- "$cur"))
+    COMPREPLY=($(compgen -u -- "${cur}"))
     ;;
-
+  *)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+    ;;
   esac
-
-  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _sudoers -o default sudoer &&
+  complete -F _sudoers -o default sudoer
   complete -F _sudoers -o default sudoers
+

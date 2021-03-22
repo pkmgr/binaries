@@ -25,9 +25,10 @@ _weather() {
   help | h | --h*)
     return
     ;;
-
+  *)
+    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
+    ;;
   esac
-  COMPREPLY=($(compgen -W '$ARRAY' -- "$cur"))
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions

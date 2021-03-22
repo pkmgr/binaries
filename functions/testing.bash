@@ -349,7 +349,7 @@ printf_custom_question() {
 }
 printf_question_term() {
   printf_read_question "4" "$1" "1" "REPLY" "-s"
-  printf_answer_yes "$REPLY" && eval "$2" || return 1
+  printf_answer_yes "$REPLY" && eval "${2:-true}" || return 1
 }
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question() {
@@ -359,7 +359,12 @@ printf_read_question() {
   reply="${1:-REPLY}" && shift 1
   readopts=${1:-} && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 20 -r $readopts -n $lines $reply
+  if [ "$(echo "$readopts" | grep -q '\-e' || return 1)" ]; then
+    printf_exit readopts
+    read -t 20 -r $readopts -n $lines $reply && echo
+  else
+    read -t 20 -r $readopts -n $lines $reply
+  fi
 }
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question_nt() {
@@ -372,14 +377,18 @@ printf_read_question_nt() {
   printf_color "\t\t$msg " "$color"
   read -r $readopts -n $lines $reply
 }
+printf_read_passwd(){
+  printf_read_question_nt  ${1:-3} "$2:" "100" "$3" "-s" && echo;
+}
+
 printf_read_error() {
   export "$1"
   printf_newline
 }
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -ers -n 1 "${1:-REPLY}" || printf "\n"
-  #history -s "$1"
+  read -t 10 -ers -n 1 "${1:-$REPLY}" || printf "\n"
+  #history -s "${1:-$REPLY}"
 }
 #printf_answer_yes "var" "response"
 printf_answer_yes() {
@@ -1327,7 +1336,8 @@ __editor() {
   return $?
 }
 ##################### sudo functions ####################
-__sudo() { sudo "$@"; }
+__sudo() { sudo $* && return 0 || return 1; }
+__sudo_group() { grep "${1:-$USER}" /etc/group | grep -Eq 'wheel|adm|sudo' || return 1; }
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null && return 0 || return 1; }
 sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
 sudorerun() {
@@ -1366,9 +1376,9 @@ __sudoask() {
 }
 __sudoexit() {
   if __can_i_sudo; then
-    __sudoask || printf_green "Getting privileges successfull continuing"
+    __sudoask || ${1:-printf_green "Getting privileges successfull continuing" && true}
   else
-    printf_red "Failed to get privileges\n"
+    ${2:-printf_red "Failed to get privileges\n" && false}
   fi
 }
 __requiresudo() {
@@ -1379,7 +1389,25 @@ __requiresudo() {
     return 1
   fi
 }
-user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
+user_is_root() {
+  if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
+    return 0; else return 1; fi
+}
+if __sudo_group "$USER"; then
+  __passwd() { sudo passwd $*; }
+else
+  __passwd() { passwd $*; }
+fi
+
+__newpasswd() {
+  printf_read_passwd "3" "Enter old password for $1" "oldpassword"
+  printf_read_passwd "3" "Enter new password for $1" "newpassword"
+  printf_read_passwd "3" "Confirm new password for $1" "newpasswordc"
+  [ "$oldpassword" = "$newpassword" ] && printf_exit "Password needs to be different"
+  [ "$newpassword" = "$newpasswordc" ] || printf_exit "Passwords don't match"
+  printf '%s\n%s\n%s' "$oldpassword" "$newpassword" "$newpasswordc" | __passwd "$1" &>/dev/null &&
+  printf_green "Password has been updated" || printf_exit "Password change has failed"
+}
 ###################### spinner and execute function ######################
 # show a spinner while executing code or zenity
 if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
