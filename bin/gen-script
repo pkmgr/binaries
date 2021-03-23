@@ -563,14 +563,13 @@ __gen_header() {
 $(. $GEN_SCRIPTS_CONFIG_DIR/templates/headerfile)
 EOF
   elif [ -n "$gen_header_user" ] && [ -z "$gen_header_raw" ]; then
-    unset showFunctions
     printf_newline
     __gen_template_user
   else
     printf_newline
     __gen_template_system
   fi
-  if [ "$showFunctions" = true ]; then __gen_functions; else printf_newline; fi
+  if [ "$showFunctions" = true ]; then __gen_functions; printf_newline; else printf_newline; fi
   [ ${exitCode:-$?} -ne 0 ] || printf_blue "Your header is ready for use"
   [ -z "$pause" ] || __print_wait "Press any key when done"
   printf_newline
@@ -585,7 +584,6 @@ EOF
   else
     cat <<EOF | tee
 #!/usr/bin/env bash
-GEN_SCRIPTS_NEWFILE() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="\$(basename \$0)"
 USER="\${SUDO_USER:-\${USER}}"

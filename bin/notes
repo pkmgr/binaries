@@ -59,9 +59,10 @@ NOTES_SERVER_PATH="${NOTES_SERVER_PATH:-$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$N
 NOTES_PREV_FILE="${NOTES_PREV_FILE:-$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$NOTES_PREV_MONTH}"
 NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
 NOTES_DEDUP_NOTIFY="${NOTES_DEDUP_NOTIFY:-no}"
+NOTES_CONFIG_FILE="${NOTES_CONFIG_FILE:-$HOME/.config/notes/settings.conf}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import settings
-[ -f "$HOME/.config/notes/config" ] && . "$HOME/.config/notes/config"
+[ -f "$NOTES_CONFIG_FILE" ] && . "$NOTES_CONFIG_FILE"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mkd "$NOTES_DIRECTORY"
 __mkd "$NOTES_TMPDIR"
@@ -96,7 +97,7 @@ NOTES_PATH="${NOTES_DIRECTORY}/${NOTES_FOLDER}/${NOTES_FILE}"
 NOTES_SERVER_PATH="${NOTES_SERVER_DIRECTORY}/${NOTES_FOLDER}/${NOTES_FILE}"
 NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
 NOTES_DEDUP_NOTIFY="${NOTES_DEDUP_NOTIFY:-no}"
-' >"$HOME/.config/notes/config"
+' >"$NOTES_CONFIG_FILE"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # SystemD service file
@@ -590,7 +591,7 @@ case "$1" in
 
 *config)
   shift 1
-  gen_config && printf_green "config file was created in ~/.config/notes/config"
+  gen_config && printf_green "config file was created in $NOTES_CONFIG_FILE"
   ;;
 
 *show)

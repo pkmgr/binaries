@@ -89,7 +89,7 @@ MY_BT_DEVICE="'${MY_BT_DEVICE}'"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case $OPTIONS in
-*config)
+config | *-config)
   if echo $MY_BT_DEVICE | grep -q ":" 2>/dev/null; then
     if [ $# = 0 ]; then
       MY_BT_DEVICE="$DEFAULT_DEVICE"
@@ -105,28 +105,28 @@ case $OPTIONS in
   exit $?
   ;;
 
-*on | -*connect)
+on | *-on | -connect)
   bluetoothctl connect "$MY_BT_DEVICE" | grep -iq "Connection successful" >/dev/null 2>&1 &&
     __ok_msg "Connected" || __fail_msg "Connection failed"
   exit $?
   ;;
 
-*off | *-disconnect)
+off | *-off | -disconnect)
   bluetoothctl disconnect "$MY_BT_DEVICE" | grep -iq "Successful disconnected" >/dev/null 2>&1 &&
     __ok_msg "Disconnected" || __fail_msg "Disconnection failed"
   exit $?
   ;;
 
-*discover)
+discover | *-discover)
   case $1 in
-  *on)
+  on | *-on)
     shift 1
     bluetoothctl discoverable on | grep -iq "on succeeded" >/dev/null 2>&1 &&
       __ok_msg "Device is now in discoverable mode" || __fail_msg "Failed to initiate discovery mode"
     exit $?
     ;;
 
-  *off)
+  off | *-off)
     shift 1
     bluetoothctl discoverable off | grep -iq "off succeeded" >/dev/null 2>&1 &&
       __ok_msg "Device has ended discoverable mode" || __fail_msg "Failed to exit discovery mode"
@@ -135,7 +135,7 @@ case $OPTIONS in
   esac
   ;;
 
-*add | pair)
+add | pair)
   printf_yellow "Scanning for device"
   timeout 20 bluetoothctl scan on &>/dev/null
   bluetoothctl pair "$MY_BT_DEVICE" &>/dev/null &&
@@ -145,19 +145,19 @@ case $OPTIONS in
   exit $?
   ;;
 
-*status)
+remove | unpair)
+bluetoothctl remove "$MY_BT_DEVICE" | grep -q 'been removed' &&
+  printf_green "$MY_BT_DEVICE has been removed"
+  exit $?
+  ;;
+
+status)
   printf_green "Bluetooth status"
   bluetoothctl info "$MY_BT_DEVICE" | printf_readline "4"
   exit $?
   ;;
 
-*remove | unpair)
-  bluetoothctl remove "$MY_BT_DEVICE" | grep -q 'been removed' &&
-    printf_green "$MY_BT_DEVICE has been removed"
-  exit $?
-  ;;
-
-*search)
+search)
   trap 'bluetoothctl scan off &>/dev/null' QUIT
   printf_green "Press control-C to cancel search"
   if [ ${#ARGS} -eq 0 ]; then
@@ -187,3 +187,4 @@ esac
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

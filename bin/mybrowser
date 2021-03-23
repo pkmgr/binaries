@@ -133,12 +133,12 @@ links | lynx)
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
-*config)
+  config | *-config)
   shift 1
   __config
   ;;
 
-*create | *link)
+create | link | *-create | *-link)
   shift 1
   __create_link "$@"
   ;;
