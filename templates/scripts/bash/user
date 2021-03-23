@@ -67,9 +67,6 @@ EOF
     fi
   }
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # Check for required applications
-  cmd_exists --error bash || exit 1
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Defaults
   local exitCode="" GEN_SCRIPTS_REPLACE_CONFFILE="" GEN_SCRIPTS_REPLACE_CONFDIR="" GEN_SCRIPTS_REPLACE_OPTIONS_DIR=""
   local GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
@@ -124,6 +121,9 @@ EOF
     shift
   done
   set -- "$SETARGS"
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Check for required applications
+  cmd_exists --error bash || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
   printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR"
