@@ -51,12 +51,12 @@ run_in_term() {
     fi
   else
     printf_newline "\n\n\n"
-    printf_read_question "2" "What command would you like to run?" "120" "CMD" "-e"
+    printf_read_input "2" "What command would you like to run?" "120" "CMD"
     printf_red "Type exit or ctrl + c to exit"
     printf_cyan "Usage: Enter the commands for $CMD"
     printf_cyan "To show this message again type: _help_"
     while :; do
-      printf_read_question "5" "What would you like to pass to $CMD?" "120" "__ANSWER" "-e"
+      printf_read_input "5" "What would you like to pass to $CMD?" "120" "__ANSWER"
       if [ "$__ANSWER" = exit ] || [ "$__ANSWER" = quit ] || [ "$__ANSWER" = !q ]; then clear && break; fi
       if [ "$__ANSWER" = _help_ ]; then
         clear
@@ -76,3 +76,4 @@ run_in_term "$@"
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

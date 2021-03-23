@@ -290,7 +290,7 @@ while :; do
   2)
     OLDMPDSERVER="$MPDSERVER"
     printf_yellow "reset for $ORIG_MPDSERVER or local for localhost"
-    printf_read_question "6" "Enter new hostname:" "120" "NEWMPDSERVER" "-e"
+    printf_read_input "6" "Enter new hostname:" "120" "NEWMPDSERVER"
     [ -n "$NEWMPDSERVER" ] || NEWMPDSERVER="$OLDMPDSERVER"
     [ "$NEWMPDSERVER" = "local" ] && NEWMPDSERVER="$(hostname -s)"
     [ "$NEWMPDSERVER" = "reset" ] && NEWMPDSERVER="$ORIG_MPDSERVER"
@@ -402,7 +402,7 @@ while :; do
     ;;
   y)
     shift 1
-    printf_read_question "6" "Enter command to send : " "120" "opts" "-e"
+    printf_read_input "6" "Enter command to send : " "120" "opts"
     if [ -n "$opts" ]; then
       printf_custom "26" "Results for $opts"
       __mpc "$opts" 2>/dev/null | printf_readline "3"

@@ -63,7 +63,7 @@ __apache_confdir() {
   elif [ -d "/etc/httpd/conf/vhosts.d" ]; then
     APACHECONFDIR="/etc/httpd/conf/vhosts.d"
   else
-    printf_read_question_nt "4" "Where are your apache server files located?" "120" "APACHECONFDIR" "-e -i $APACHECONFDIR"
+    printf_read_input "4" "Where are your apache server files located?" "120" "APACHECONFDIR" "-i $APACHECONFDIR"
     if [[ ! -d "$APACHECONFDIR" ]]; then
       if user_is_root; then
         printf_read_question_nt "4" "The directory doesn't exist should I try to create it?"
@@ -75,12 +75,12 @@ __apache_confdir() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_dom() {
-  printf_read_question_nt "4" "What is your domain name?" "120" "APACHEDOMAIN" "-e -i $(hostname -f) "
+  printf_read_input "4" "What is your domain name?" "120" "APACHEDOMAIN" "-i $(hostname -f) "
   [ -z "$APACHEDOMAIN" ] && printf_exit "domain name is required" || APACHEDOMAIN=$APACHEDOMAIN
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __apache_www() {
-  printf_read_question_nt "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-e -i $APACHEDOCROOT "
+  printf_read_input "4" "What is your DocumentRoot?" "120" "APACHEDOCROOT" "-i $APACHEDOCROOT "
   [ -z "$APACHEDOCROOT" ] && printf_exit "DocumentRoot is required" || APACHEDOCROOT=$APACHEDOCROOT
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -146,11 +146,11 @@ __term() {
     printf_newline "\n\n\n\n"
     printf_head "Backup Menu"
     printf_custom "6" "Welcome to the backup menu: type quit to exit"
-    printf_read_question_nt "2" "Enter backupname: " "120" "_APPNAME" "-e"
+    printf_read_input "2" "Enter backupname: " "120" "_APPNAME" "-e"
     if [ "$_APPNAME" = "quit" ]; then
       break
     fi
-    printf_read_question_nt "2" "Enter directories:" "140" "_APPDIRS" "-e"
+    printf_read_input "2" "Enter directories:" "140" "_APPDIRS" "-e"
     printf_newline
     if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
       main "$_APPNAME" "$_APPDIRS"

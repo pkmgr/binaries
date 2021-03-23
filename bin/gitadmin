@@ -71,11 +71,11 @@ VERSION_DATE_FORMAT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #git init
 if [ "$(git config --get user.name | wc -m)" -lt 2 ]; then
-  printf_read_question "What is you Name" "120" "NAME"
+  printf_read_input "What is you Name" "120" "NAME"
   git config --global user.name "$NAME" 2>/dev/null
 fi
 if [ "$(git config --get user.email | wc -m)" -lt 2 ]; then
-  printf_read_question "What is you Email" "120" "EMAIL"
+  printf_read_input "What is you Email" "120" "EMAIL"
   git config --global user.email "$EMAIl" 2>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -200,14 +200,14 @@ do_not_add_a_url() {
 run_git_init() {
   REPODIR="${1:-$REPODIR}"
   if [ -n "$repo" ]; then
-    git -C "$REPODIR" remote add origin "$repo"
+    git -C "$REPODIR" remote add origin "$repo" &>/dev/null
     printf_green "$repo has been added"
     printf_read_question "3" "Should I push to the new repo? [y/n]" "1" "push" "-s"
     if printf_answer_yes "$push"; then
       printf_read_question "3" "This will overwrite the repo if it exists. Continue? [y/n]" "1" "confirm_repo" "-s"
       if printf_answer_yes "$confirm_repo"; then
         if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
-        git -C "$REPODIR" push -q -f --set-upstream origin master &&
+        git -C "$REPODIR" push -q -f --set-upstream origin master &>/dev/null &&
           __git_push "$REPODIR" &&
           printf_green "Successfully pushed to $repo" || printf_red "Push to $repo has failed"
       else
@@ -260,7 +260,7 @@ run_git_setup() {
   else
     printf_read_question "3" "Should I add a remote repo? [y/n] " "1" "remote" "-s"
     if printf_answer_yes "$remote"; then
-      printf_read_question_nt "3" "Enter remote repo: " "120" "repo" "-e"
+      printf_read_input "3" "Enter remote repo: " "120" "repo"
       run_git_init "$REPODIR"
     else
       printf_yellow "You have decided not to add a remote repository"
@@ -928,7 +928,7 @@ newsite)
   newsite "$@"
   ;;
 
-setup)
+setup | reset)
   shift 1
   if [ "$1" = "--automate" ] || [ "$1" = "--automated" ]; then
     shift 1

@@ -68,7 +68,7 @@ _checkout() { _stow checkout "${@}" || _backup "${@}"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 git_remote() {
   if [ -z "$1" ]; then
-    printf_read_question "3" "Enter the url to your git repo:" 120 "url"
+    printf_read_input "3" "Enter the url to your git repo:" 120 "url"
     _stow remote add origin "$url"
   else
     _stow remote "$@"
@@ -135,7 +135,7 @@ git_init() {
   fi
   printf_read_question "4" "Do you already have a dotfiles repo: [y/N]" "1" "choice" "-s"
   if printf_answer_yes "$choice"; then
-    printf_read_question "4" "What is the repo url:" "120" "url" "-e"
+    printf_read_input "4" "What is the repo url:" "120" "url"
     git clone --bare "$url" "$gitdir" -q
     _checkout
     _stow config --local status.showUntrackedFiles no
@@ -147,13 +147,13 @@ git_init() {
     _stow config --local commit.gpgSign false
     printf_read_question "4" "Would you like to add a remote git repo: [y/N]" "1" "choice" "-s"
     if printf_answer_yes "$choice"; then
-      printf_read_question "4" "Enter the url to your git repo:" "120" "url" "-e"
+      printf_read_input "4" "Enter the url to your git repo:" "120" "url"
       _stow remote add origin "$url"
     else
       printf_green "You did not add a remote git repo"
     fi
-    printf_read_question "4" "Enter your name:" "120" "name" "-e"
-    printf_read_question "4" "Enter email address:" "120" "email" "-e"
+    printf_read_input "4" "Enter your name:" "120" "name"
+    printf_read_input "4" "Enter email address:" "120" "email"
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
     _stow config --local include.path "$gitdir/config.local"

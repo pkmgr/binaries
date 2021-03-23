@@ -77,8 +77,8 @@ __run_static_site() {
 __run_import_site() {
   local sitedir
   printf_green "Enter the full path for your imported project!"
-  printf_read_question "3" "Enter location for your new site - enter . for current:" "120" "sitedir" "-e"
-  printf_read_question "3" "Enter the url to your git repo:" "120" "import" "-e"
+  printf_read_input "3" "Enter location for your new site - enter . for current:" "120" "sitedir"
+  printf_read_input "3" "Enter the url to your git repo:" "120" "import"
   [ -n "$sitedir" ] || [ -n "$import" ] || printf_exit "Something went wrong"
   [ -d "$sitedir" ] || __mkd "$sitedir"
   if git clone "$import" "$sitedir" -q &>/dev/null; then
@@ -95,7 +95,7 @@ __run_import_site() {
 __run_new_site() {
   local sitedir
   printf_green "Enter the full path for your new project!"
-  printf_read_question "3" "Enter location for your new site - enter . for current:" "120" "sitedir" "-e"
+  printf_read_input "3" "Enter location for your new site - enter . for current:" "120" "sitedir"
   [ -n "$sitedir" ] || printf_exit "Something went wrong"
   [ -d "$sitedir" ] || __mkd "$sitedir"
   cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"

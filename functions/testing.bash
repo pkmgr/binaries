@@ -351,34 +351,47 @@ printf_question_term() {
   printf_read_question "4" "$1" "1" "REPLY" "-s"
   printf_answer_yes "$REPLY" && eval "${2:-true}" || return 1
 }
+#printf_read_input  "color" "message" "maxLines" "answerVar" "readopts"
+printf_read_input() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local msg="$1" && shift 1
+  test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
+  reply="${1:-REPLY}" && shift 1
+  readopts="${1:-}" && shift 1
+  printf_color "\t\t$msg " "$color"
+  read -r -e $readopts -n $lines $reply || echo -e ""
+}
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
-  readopts=${1:-} && shift 1
+  readopts="${1:-}" && shift 1
   printf_color "\t\t$msg " "$color"
-  if [ "$(echo "$readopts" | grep -q '\-e' || return 1)" ]; then
-    printf_exit readopts
-    read -t 20 -r $readopts -n $lines $reply && echo
-  else
+  if echo "$readopts" | grep -q '\-e' &>/dev/null; then
     read -t 20 -r $readopts -n $lines $reply
+  else
+    read -t 20 -r $readopts -n $lines $reply;echo
   fi
 }
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question_nt() {
-  local readopts reply
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
-  readopts=${1:-} && shift 1
+  readopts="${1:-}" && shift 1
   printf_color "\t\t$msg " "$color"
-  read -r $readopts -n $lines $reply
+  if echo "$readopts" | grep -q '\-e' &>/dev/null; then
+    echo grep e
+    read -r $readopts -n $lines $reply
+  else
+    read -r $readopts -n $lines $reply;echo
+  fi
 }
 printf_read_passwd(){
-  printf_read_question_nt  ${1:-3} "$2:" "100" "$3" "-s" && echo;
+  printf_read_question_nt  ${1:-3} "$2:" "100" "$3" "-s"
 }
 
 printf_read_error() {
@@ -387,27 +400,15 @@ printf_read_error() {
 }
 #printf_answer "Var" "maxNum" "Opts"
 printf_answer() {
-  read -t 10 -ers -n 1 "${1:-$REPLY}" || printf "\n"
+  read -t 10 -ers -n 1 "${1:-$REPLY}";echo
   #history -s "${1:-$REPLY}"
 }
 #printf_answer_yes "var" "response"
 printf_answer_yes() {
-  if [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]]; then
-    printf "\n"
-    return 0
-  else
-    printf "\n"
-    return 1
-  fi
+  [[ "${1:-$REPLY}" =~ ${2:-^[Yy]$} ]] && return 0 || return 1
 }
 printf_answer_no() {
-  if [[ "${1:-$REPLY}" =~ ${2:-^[Nn]$} ]]; then
-    printf "\n"
-    return 0
-  else
-    printf "\n"
-    return 1
-  fi
+  [[ "${1:-$REPLY}" =~ ${2:-^[Nn]$} ]] && return 0 || return 1
 }
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"

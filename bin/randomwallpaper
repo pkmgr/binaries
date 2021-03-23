@@ -275,7 +275,7 @@ __term() {
       if __getstatus; then
         notify_running
       else
-        printf_read_question_nt "6" "How often do you want it to change? [minutes]: " "3" "sleeptime" "-e"
+        printf_read_input "6" "How often do you want it to change? [minutes]: " "5" "sleeptime"
         counter=$(echo $((60 * $sleeptime)))
         ROTATE_TIME="$counter"
         randomwallpaper --bg --start

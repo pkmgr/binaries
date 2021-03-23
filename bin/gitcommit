@@ -331,7 +331,7 @@ custom)
   fi
   ;;
 
-setup)
+setup | reset)
   shift 1
   gitadmin "$gitdir" setup "$@"
   exit
@@ -375,3 +375,4 @@ printf_newline
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
+

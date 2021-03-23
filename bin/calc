@@ -71,7 +71,7 @@ if [ "$1" = "--term" ]; then
   printf_newline "\n\n"
   __usage
   while :; do
-    printf_read_question_nt "2" "What is it you would like to solve? " "200" "INPUT" "-e"
+    printf_read_input "2" "What is it you would like to solve? " "200" "INPUT"
     if [ "$INPUT" = "q" ] || [ -z "$INPUT" ]; then
       printf_newline "\n"
       break

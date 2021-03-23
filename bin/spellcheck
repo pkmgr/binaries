@@ -47,9 +47,8 @@ TMPFILE="${TMPDIR:-/tmp/checkspell}"
 __check_app aspell
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(__devnull2 aspell dump dicts | wc -l)" = 0 ]; then
-  printf_question "Missing dictionary files should I install them "
-  read -r -n 1 -s confirm_install && echo
-  if [[ "$confirm_install" == "y" || "$confirm_install" == "Y" ]]; then
+  printf_read_question "2" "Missing dictionary files should I install them" "1" "confirm_install" "-s"
+  if printf_answer_yes "$confirm_install"; then
     pkmgr silent-install aspell-en
   else
     exit 1

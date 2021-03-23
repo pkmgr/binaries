@@ -54,7 +54,7 @@ __nginx_confdir() {
   elif [ -d "/etc/nginx/vhosts.d" ]; then
     NGINXCONFDIR="/etc/nginx/vhosts.d"
   else
-    printf_read_question_nt "4" "Where are your nginx server files located?" "120" "NGINXCONFDIR" "-e -i $NGINXCONFDIR"
+    printf_read_input "4" "Where are your nginx server files located?" "120" "NGINXCONFDIR" "-i $NGINXCONFDIR "
     if [[ ! -d "$NGINXCONFDIR" ]]; then
       printf_exit "$NGINXCONFDIR is an invalid directory"
       exit 1
@@ -68,11 +68,11 @@ __hosts() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __nginx_dom() {
-  printf_read_question_nt "4" "What is your domain name?" "120" "NGINXDOMAIN" "-e -i $(hostname -f) " || printf_newline
-  printf_read_question_nt "4" "What is the name of the app?" "120" "REVPROXYNAME" "-e" || printf_newline
-  printf_read_question_nt "4" "What should I proxy for?" "120" "REVPROXY" "-e -i localhost " || printf_newline
-  printf_read_question_nt "4" "What is your APPs port [3000]?" "120" "REVPROXY_PORT" "-e -i 3000 " || printf_newline
-  printf_read_question_nt "4" "What is the protocol http[s]?" "120" "REVPROXY_PROTO" "-e -i http" || printf_newline
+  printf_read_input "4" "What is your domain name?" "120" "NGINXDOMAIN" "-i $(hostname -f) "
+  printf_read_input "4" "What is the name of the app?" "120" "REVPROXYNAME"
+  printf_read_input "4" "What should I proxy for?" "120" "REVPROXY" "-i localhost "
+  printf_read_input "4" "What is your APPs port [3000]?" "120" "REVPROXY_PORT" "-i 3000 "
+  printf_read_input "4" "What is the protocol http[s]?" "120" "REVPROXY_PROTO" "-i http "
   [ -n "$NGINXDOMAIN" ] && NGINXDOMAIN="$NGINXDOMAIN" || printf_exit "domain name is required"
   [ -n "$REVPROXYNAME" ] && REVPROXYNAME="$REVPROXYNAME" || printf_exit "app name is required"
   REVPROXY="${REVPROXY:-localhost}"
@@ -240,4 +240,5 @@ gen_nginx "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#End
+# end
+

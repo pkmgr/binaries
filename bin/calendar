@@ -287,23 +287,17 @@ gui_add_event() {
 
 text_add_event() {
   initialise
-  printf_custom_question "4" "[Format: YYYYMMDD] What date is the event: "
-  read -r dat
+  printf_read_input "4" "[Format: YYYYMMDD] What date is the event: " "160" dat
   dtd=$(date -d "$dat" +"%Y-%m-%d") && test "$dtd" >/dev/null 2>&1 || exit 1
-  printf_custom_question "4" "[Format: HHMM] Enter the start time: "
-  read dtt
+  printf_read_input "4" "[Format: HHMM] Enter the start time: " "160" dtt
   sdt="$dtd $dtt" && test "$sdt" >/dev/null 2>&1 || exit 1
   dtstart=$(date -d "$sdt" +"%Y%m%dT%H%M%SZ")
-  printf_custom_question "4" "Where is it (press Enter to skip)? "
-  read location
+  printf_read_input "4" "Where is it (press Enter to skip)? " "160" location
   location=${location//,/\,}
-  printf_custom_question "4" "Please give the event a title (press Enter to skip): "
-  read summary
-  printf_custom_question "4" "any tags (press Enter to skip)? "
-  read category
+  printf_read_input "4" "Please give the event a title (press Enter to skip): " "160" summary
+  printf_read_input "4" "any tags (press Enter to skip)? " "160" category
   tags=${category//,/\,}
-  printf_custom_question "4" "Write a short description (press Enter to skip): "
-  read desc
+  printf_read_input "4" "Write a short description (press Enter to skip): " "160" desc
   shell_generate_ical
   populate_ical
   printf_green "Event saved."

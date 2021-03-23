@@ -45,7 +45,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run() {
-  printf_read_question "3" "Arguments to send" "120" "SEND" "-e" && echo
+  printf_read_input "3" "Arguments to send" "120" "SEND"
   run_in_term "$@" "$SEND"
   printf_pause
 }
@@ -190,7 +190,7 @@ while :; do
     elif __cmd_exists dmenu; then
       APP="$(ls /usr/local/share/CasjaysDev/scripts/bin/ | dmenu)"
     else
-      printf_read_question "2" "What app would you like to run" "160" "APP" "-e" && echo
+      printf_read_input "2" "What app would you like to run" "160" "APP"
     fi
     __run "$APP"
     ;;
