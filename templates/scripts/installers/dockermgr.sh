@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="GEN_SCRIPT_REPLACE_APPNAME"
+APPNAME="GEN_SCRIPTS_REPLACE_APPNAME"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,18 +8,18 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : GEN_SCRIPT_REPLACE_VERSION
-# @Author        : GEN_SCRIPT_REPLACE_AUTHOR
-# @Contact       : GEN_SCRIPT_REPLACE_EMAIL
-# @License       : GEN_SCRIPT_REPLACE_LICENSE
-# @ReadME        : GEN_SCRIPT_REPLACE_FILENAME --help
-# @Copyright     : GEN_SCRIPT_REPLACE_COPYRIGHT
-# @Created       : GEN_SCRIPT_REPLACE_DATE
-# @File          : GEN_SCRIPT_REPLACE_FILENAME
-# @Description   : GEN_SCRIPT_REPLACE_DESC
-# @TODO          : GEN_SCRIPT_REPLACE_TODO
-# @Other         : GEN_SCRIPT_REPLACE_OTHER
-# @Resource      : GEN_SCRIPT_REPLACE_RES
+##@Version       : GEN_SCRIPTS_REPLACE_VERSION
+# @Author        : GEN_SCRIPTS_REPLACE_AUTHOR
+# @Contact       : GEN_SCRIPTS_REPLACE_EMAIL
+# @License       : GEN_SCRIPTS_REPLACE_LICENSE
+# @ReadME        : GEN_SCRIPTS_REPLACE_FILENAME --help
+# @Copyright     : GEN_SCRIPTS_REPLACE_COPYRIGHT
+# @Created       : GEN_SCRIPTS_REPLACE_DATE
+# @File          : GEN_SCRIPTS_REPLACE_FILENAME
+# @Description   : GEN_SCRIPTS_REPLACE_DESC
+# @TODO          : GEN_SCRIPTS_REPLACE_TODO
+# @Other         : GEN_SCRIPTS_REPLACE_OTHER
+# @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -44,7 +44,7 @@ fi
 user_installdirs
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-GEN_SCRIPT_REPLACE_FILENAME}"
+APPNAME="${APPNAME:-GEN_SCRIPTS_REPLACE_FILENAME}"
 APPDIR="${APPDIR:-$HOME/.config/$APPNAME}"
 INSTDIR="${INSTDIR}"
 DATADIR="${SHARE/docker/data/$APPNAME:-/srv/docker/$APPNAME}"
@@ -73,17 +73,17 @@ __dockermgr_main() {
   mkdir -p "$DATADIR"/{data,config}
   chmod -Rf 777 "$DATADIR"
 
-  if docker ps -a | grep "GEN_SCRIPT_REPLACE_APPNAME" >/dev/null 2>&1; then
-    docker pull GEN_SCRIPT_REPLACE_APPNAME && docker restart "GEN_SCRIPT_REPLACE_APPNAME"
+  if docker ps -a | grep "GEN_SCRIPTS_REPLACE_APPNAME" >/dev/null 2>&1; then
+    docker pull GEN_SCRIPTS_REPLACE_APPNAME && docker restart "GEN_SCRIPTS_REPLACE_APPNAME"
   else
     docker run -d \
-      --name="GEN_SCRIPT_REPLACE_APPNAME" \
-      --hostname "GEN_SCRIPT_REPLACE_APPNAME" \
+      --name="GEN_SCRIPTS_REPLACE_APPNAME" \
+      --hostname "GEN_SCRIPTS_REPLACE_APPNAME" \
       --restart=always \
       --privileged \
       -p 4040:80 \
-      -v "$DATADIR/data":/GEN_SCRIPT_REPLACE_APPNAME/data \
-      GEN_SCRIPT_REPLACE_APPNAME
+      -v "$DATADIR/data":/GEN_SCRIPTS_REPLACE_APPNAME/data \
+      GEN_SCRIPTS_REPLACE_APPNAME
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

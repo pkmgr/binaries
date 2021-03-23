@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME_README="GEN_SCRIPT_REPLACE_APPNAME"
+APPNAME_README="GEN_SCRIPTS_REPLACE_APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # This is what I use for my system scripts
 # REPLACE_THIS_WITH_HEADER_INFO
@@ -28,4 +28,3 @@ printf '\n'
 #exit "${exitCode:-1}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

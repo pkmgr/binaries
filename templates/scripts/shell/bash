@@ -8,18 +8,18 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : GEN_SCRIPT_REPLACE_VERSION
-# @Author        : GEN_SCRIPT_REPLACE_AUTHOR
-# @Contact       : GEN_SCRIPT_REPLACE_EMAIL
-# @License       : GEN_SCRIPT_REPLACE_LICENSE
-# @ReadME        : GEN_SCRIPT_REPLACE_FILENAME --help
-# @Copyright     : GEN_SCRIPT_REPLACE_COPYRIGHT
-# @Created       : GEN_SCRIPT_REPLACE_DATE
-# @File          : GEN_SCRIPT_REPLACE_FILENAME
-# @Description   : GEN_SCRIPT_REPLACE_DESC
-# @TODO          : GEN_SCRIPT_REPLACE_TODO
-# @Other         : GEN_SCRIPT_REPLACE_OTHER
-# @Resource      : GEN_SCRIPT_REPLACE_RES
+##@Version       : GEN_SCRIPTS_REPLACE_VERSION
+# @Author        : GEN_SCRIPTS_REPLACE_AUTHOR
+# @Contact       : GEN_SCRIPTS_REPLACE_EMAIL
+# @License       : GEN_SCRIPTS_REPLACE_LICENSE
+# @ReadME        : GEN_SCRIPTS_REPLACE_FILENAME --help
+# @Copyright     : GEN_SCRIPTS_REPLACE_COPYRIGHT
+# @Created       : GEN_SCRIPTS_REPLACE_DATE
+# @File          : GEN_SCRIPTS_REPLACE_FILENAME
+# @Description   : GEN_SCRIPTS_REPLACE_DESC
+# @TODO          : GEN_SCRIPTS_REPLACE_TODO
+# @Other         : GEN_SCRIPTS_REPLACE_OTHER
+# @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
@@ -45,6 +45,9 @@ __options "$@"
 __cmd_exists bash || exit 1 # exit 1 if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
+GEN_SCRIPTS_ARRAY_DIR="$HOME/.local/share/CasjaysDev/arrays/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
@@ -54,7 +57,7 @@ __cmd_exists bash || exit 1 # exit 1 if not found
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # bring in user config
-[ -f "$HOME/.config/GEN_SCRIPT_REPLACE_FILENAME/settings" ] && . "$HOME/.config/GEN_SCRIPT_REPLACE_FILENAME/settings"
+[ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] && . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 

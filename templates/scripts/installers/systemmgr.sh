@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="GEN_SCRIPT_REPLACE_APPNAME"
+APPNAME="GEN_SCRIPTS_REPLACE_APPNAME"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,18 +8,18 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : GEN_SCRIPT_REPLACE_VERSION
-# @Author        : GEN_SCRIPT_REPLACE_AUTHOR
-# @Contact       : GEN_SCRIPT_REPLACE_EMAIL
-# @License       : GEN_SCRIPT_REPLACE_LICENSE
-# @ReadME        : GEN_SCRIPT_REPLACE_FILENAME --help
-# @Copyright     : GEN_SCRIPT_REPLACE_COPYRIGHT
-# @Created       : GEN_SCRIPT_REPLACE_DATE
-# @File          : GEN_SCRIPT_REPLACE_FILENAME
-# @Description   : GEN_SCRIPT_REPLACE_DESC
-# @TODO          : GEN_SCRIPT_REPLACE_TODO
-# @Other         : GEN_SCRIPT_REPLACE_OTHER
-# @Resource      : GEN_SCRIPT_REPLACE_RES
+##@Version       : GEN_SCRIPTS_REPLACE_VERSION
+# @Author        : GEN_SCRIPTS_REPLACE_AUTHOR
+# @Contact       : GEN_SCRIPTS_REPLACE_EMAIL
+# @License       : GEN_SCRIPTS_REPLACE_LICENSE
+# @ReadME        : GEN_SCRIPTS_REPLACE_FILENAME --help
+# @Copyright     : GEN_SCRIPTS_REPLACE_COPYRIGHT
+# @Created       : GEN_SCRIPTS_REPLACE_DATE
+# @File          : GEN_SCRIPTS_REPLACE_FILENAME
+# @Description   : GEN_SCRIPTS_REPLACE_DESC
+# @TODO          : GEN_SCRIPTS_REPLACE_TODO
+# @Other         : GEN_SCRIPTS_REPLACE_OTHER
+# @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -47,7 +47,7 @@ system_installdirs
 scripts_check
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-APPNAME="${APPNAME:-GEN_SCRIPT_REPLACE_APPNAME}"
+APPNAME="${APPNAME:-GEN_SCRIPTS_REPLACE_APPNAME}"
 APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
 INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
 REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr/$APPNAME}"

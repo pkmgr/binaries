@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME_README="GEN_SCRIPT_REPLACE_APPNAME"
+APPNAME_README="GEN_SCRIPTS_REPLACE_APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # This is what I use for my user scripts
 # REPLACE_THIS_WITH_HEADER_INFO
@@ -11,7 +11,7 @@ printf_help() {
   printf '\n'
 }
 get_desc() {
-  grep_head(){ grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | head -n${3:-12} | sed 's#..* : ##g'; }
+  grep_head() { grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | head -n${3:-12} | sed 's#..* : ##g'; }
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
   local desc="$(grep_head "Description" "$appname" "1" | head -n1 | grep '^')"
@@ -23,8 +23,8 @@ printf_descr() {
 printf_head() { printf_help "1" "################## " "$2" " ##################"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
-printf_descr "    GEN_SCRIPT_REPLACE_DESC"
-printf_help "4" "Usage: GEN_SCRIPT_REPLACE_APPNAME "
+printf_descr "    GEN_SCRIPTS_REPLACE_DESC"
+printf_help "4" "Usage: GEN_SCRIPTS_REPLACE_APPNAME "
 printf_head "5" "Main options"
 printf_help "4" ""
 printf_help "4" "-v, --version           - show script version"
@@ -37,4 +37,3 @@ printf '\n'
 #exit "${exitCode:-1}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

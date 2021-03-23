@@ -17,7 +17,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Created       : Saturday, Mar 20, 2021 17:43 EDT
 # @File          : pkmgr
 # @Description   : Manage system packages
-# @TODO          : Refactor code/Add zenity support
+# @TODO          : Refactor code/Add zenity support/Add user conf file
 # @Other         : Add BSD support
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -240,6 +240,8 @@ pipecmd() {
     printf_readline "5"
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_updatechecheck() { __am_i_online && pkmgrcheckupdates; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cpan_run() {
   if c__md_exists cpan; then
@@ -476,12 +478,20 @@ help | --*)
   ;;
 
 check)
-  __am_i_online_err && pkmgrcheckupdates
+  UPDATECHECKFILE="${CACHE_DIR:-/$HOME/.cache}/updatechecheck"
+  [ "$1" = "force" ] && __rm_rf "$UPDATECHECKFILE" && run_updatechecheck
+  __find_mtime "$UPDATECHECKFILE" "3600"
+  if [ -f "$UPDATECHECKFILE" ]; then
+    cat "$UPDATECHECKFILE"
+  else
+    run_updatechecheck >"$UPDATECHECKFILE" 2>/dev/null
+    cat "$UPDATECHECKFILE"
+  fi
   ;;
 
 available)
   shift 1
-  run_install_available
+  run_install_available "$APPNAME"
   ;;
 
 aliases)
