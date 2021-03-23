@@ -85,7 +85,7 @@ _pre_inst() {
     printf_red "\t\tAUTH Token is not set"
     exit 1
   fi
-  if [ ! -f "$(which sudo 2>/dev/null)" ] && [[ $EUID -ne 0 ]]; then
+  if [ ! -f "$(type -P sudo 2>/dev/null)" ] && [[ $EUID -ne 0 ]]; then
     printf_red "\t\tSudo is needed, however its not installed installed\n"
     exit 1
   fi
@@ -122,7 +122,7 @@ _git_repo_init() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _scripts_init() {
-  for sudoconf in installer; do
+  for sudoconf in installer ssh; do
     sudo systemmgr install "$sudoconf"
   done
 
