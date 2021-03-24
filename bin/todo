@@ -121,7 +121,7 @@ __delete() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__tmux() { tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "$todoeditor $1" &>/dev/null; }
+__tmux() { unset TMUX; tmux -f "$tododir/tmux.conf" new-session -D -A -s todo "$todoeditor $1" &>/dev/null; }
 __run_git() { if [ -d "$tododir/.git" ]; then gitcommit "$tododir" todo; else gitadmin "$tododir" setup; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf

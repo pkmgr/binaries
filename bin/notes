@@ -178,7 +178,7 @@ __netcat_test() { __cmd_exists $netcat || printf_exit "The program netcat is not
 __nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE" || return 1; }
 __local() { if [ "$NOTES_SERVER_NAME" = "$(hostname -f)" ] || [ "$NOTES_SERVER_NAME" = "$(hostname -s)" ] ||
   [ "$NOTES_SERVER_NAME" = "localhost" ]; then return 1; else return 0; fi; }
-__notes() { eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "${NOTES_EDITOR:-vim} ${1:-$NOTES_PATH}" &>/dev/null || return 1; }
+__notes() { unset TMUX; eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "${NOTES_EDITOR:-vim} ${1:-$NOTES_PATH}" &>/dev/null || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __dedup() {
   local _MSG="$1"

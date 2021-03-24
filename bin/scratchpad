@@ -64,7 +64,7 @@ scratchpad() {
     fi
   }
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  __tmux() { tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "$editor $1" &>/dev/null; }
+  __tmux() { unset TMUX; tmux -f "$scratchdir/tmux.conf" new-session -D -A -s scratchpad "$editor $1" &>/dev/null; }
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   __open() {
     filepath="$(__get_full_file "$1")"
