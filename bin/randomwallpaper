@@ -42,7 +42,7 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variables
 WALLPAPERDIR="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
-WALLPAPERS="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
+WALLPAPERS="${WALLPAPERDIR:-$HOME/.local/share/wallpapers}"
 ROTATE_TIME="${ROTATE_TIME:-300}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
 RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
@@ -52,9 +52,9 @@ FILE_SEEN="${FILE_SEEN:-$CACHE_DIR/randomwallpaper.seen}"
 FILE_WALLPAPER="${FILE_WALLPAPER:-$CACHE_DIR/randomwallpaper.all}"
 FILE_SEEN_TMP="${FILE_SEEN_TMP:-$FILE_SEEN.tmp}"
 REFRESH_TIME="$((60 * "${REFRESH_TIME:-12}"))"
-MANUAL=""
 RANDOMWALLPAPER_CONFIG_DIR="$HOME/.config/randomwallpaper"
 RANDOMWALLPAPER_CONFIG_FILE="settings.conf"
+MANUAL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] && \
   . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
@@ -65,8 +65,14 @@ __config() {
   __mkd "$RANDOMWALLPAPER_CONFIG_DIR"
   echo '# Randomwallpaper Settings
 ROTATE_TIME='"${ROTATE_TIME:-300}"'
-KILL_FILE="'${TMPDIR:-/tmp}/randomwallpaper.$USER.kill'"
-RUN_FILE="'${TMPDIR:-/tmp}/randomwallpaper.$USER'"
+WALLPAPERDIR="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
+WALLPAPERS="${WALLPAPERDIR:-$HOME/.local/share/wallpapers}"
+CACHE_DIR="${CACHE_DIR:-$HOME/.cache/randomwallpaper}"
+KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
+RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
+FILE_SEEN="${FILE_SEEN:-$CACHE_DIR/randomwallpaper.seen}"
+FILE_WALLPAPER="${FILE_WALLPAPER:-$CACHE_DIR/randomwallpaper.all}"
+FILE_SEEN_TMP="${FILE_SEEN_TMP:-$FILE_SEEN.tmp}"
 NOTIFICATIONS="'${NOTIFICATIONS:-enabled}'"
 ' >"$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
   printf_exit "2" "$?" "config saved to $RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
