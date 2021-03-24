@@ -85,8 +85,8 @@ main() {
   local e err appname appdir
   local _APPNAME="${_APPNAME:-$PROJECTNAME}"
   local _APPDIRS="${_APPDIRS:-$PROJECTDIRS}"
-  local appname="${1:-$_APPNAME}" && shift 1
-  local appdir="${*:-$_APPDIRS}" && shift
+  local appname="${1:-$_APPNAME}"; shift 1
+  local appdir="${*:-$_APPDIRS}"; shift $#
   local logdir="${LOG_DIR:-$HOME/.local/log}/backups/apps"
   local datefmt="%Y-%m-%d-%H-%M-%S"
   local curdate="$(date +"${DATE_FORMAT:-$datefmt}")"
