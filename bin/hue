@@ -43,12 +43,14 @@ __options "$@"
 main() {
   unset hue_api_key hue_device hue_option
   local setopts="$1"
-  local state="${TMPDIR:-/tmp}/automate_hue"
+  local cache="${TMPDIR:-/tmp}"
+  local state="$cache/automate_hue"
   local hue_device="$(__hostname2ip ${HUE_HUB_DEVICE:-$2})"
   local hue_device_name="${HUE_HUB_DEVICE:-$2}"
   local hue_api_key="${HUE_ACCESS_TOKEN}"
   local hue_group="${HUE_GROUP:-0}"
   local api_url="${HUE_HUB_API:-http://$hue_device/api/$hue_api_key/groups/$hue_group}"
+  __mkd "$cache"
   touch "$state"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ ! -z "$hue_api_key" ] || printf_exit "Please set your hue api key"

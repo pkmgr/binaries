@@ -45,9 +45,10 @@ __requires curl || exit
 automate() {
   # variables
   local setopts="$1"
-  local state="${TMPDIR:-/tmp}/automate"
+  local cache="${TMPDIR:-/tmp}"
+  local state="$cache/automate"
+  __mkd "$cache"
   touch "$state"
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # functions
   getstate() { cat "$state"; }

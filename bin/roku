@@ -47,13 +47,15 @@ hostname2ip() { __hostname2ip "$1"; }
 roku() {
   # variables
   local setopts="$1"
-  local state="${TMPDIR:-/tmp}/automate_roku"
+  local cache="${TMPDIR:-/tmp}"
+  local state="$cache/automate_roku"
   local roku_device="$(hostname2ip ${ROKU_DEVICE:-$3})"
   local roku_device_name="${ROKU_DEVICE:-$3}"
   local roku_command="$1"
   local roku_option="$2"
   local api_url="http://$roku_device:8060"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  __mkd "$cache"
   touch "$state"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   [ -n "$roku_device" ] || printf_exit "Please enter the hostname of your roku"
