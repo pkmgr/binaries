@@ -141,7 +141,7 @@ version)
   #   exit
   # fi
   __version
-  versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
+  versionbump=" 🚀 Version Bump: $(cat "$versionfile") 🚀 "
   printf_cyan "$versionbump"
   git -C "$gitdir" add "$gitdir/version.txt" >/dev/null 2>&1
   if ! __git_porcelain "$gitdir"; then
@@ -154,14 +154,14 @@ version)
 files)
   shift 1
   files="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
-  mess="➕ $files ➕ "
+  mess=" ➕ $files ➕ "
   ;;
 
 modified)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
-    mess="🗃 $files 🗃 "
+    mess=" 🗃 Modified: $files 🗃 "
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been modified"
@@ -172,7 +172,7 @@ deleted)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'D ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'D ' | awk '{print $2}' | tr '\n' ' ')"
-    mess=":heavy_minus_sign: $files :heavy_minus_sign: "
+    mess=" :heavy_minus_sign: $files :heavy_minus_sign: "
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been deleted"
@@ -183,7 +183,7 @@ added)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F '?? ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F '?? ' | awk '{print $2}' | tr '\n' ' ')"
-    mess="❓ $files ❓"
+    mess=" ❓ $files ❓"
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been added"
@@ -192,140 +192,140 @@ added)
 
 changed)
   shift 1
-  mess="✔️🐛 Changed $1 🐛✔️"
+  mess=" ✔️🐛 Changed $1 🐛✔️"
   ;;
 
 new)
   shift 1
   ARGS="$*"
-  mess="🆕📦 NEW: $ARGS 📦🆕 "
+  mess=" 🆕📦 NEW: $ARGS 📦🆕 "
   ;;
 
 improve)
   shift 1
   ARGS="$*"
-  mess="👌 IMPROVE: $ARGS 👌 "
+  mess=" 👌 IMPROVE: $ARGS 👌 "
   ;;
 
 fixed)
   shift 1
   ARGS="$*"
-  mess="🐛 FIXED: $ARGS 🐛 "
+  mess=" 🐛 FIXED: $ARGS 🐛 "
   ;;
 
 release)
   shift 1
   ARGS="$*"
-  mess="🚀 RELEASE: $ARGS 🚀 "
+  mess=" 🚀 RELEASE: $ARGS 🚀 "
   ;;
 
 docs)
   shift 1
   ARGS="$*"
-  mess="📖 DOCS: $ARGS 📖 "
+  mess=" 📖 DOCS: $ARGS 📖 "
   ;;
 
 test)
   shift 1
   ARGS="$*"
-  mess="🤖 TEST: $ARGS 🤖 "
+  mess=" 🤖 TEST: $ARGS 🤖 "
   ;;
 
 breaking)
   shift 1
   ARGS="$*"
-  mess="⚒️ BREAKING: $ARGS ⚒️ "
+  mess=" ⚒️ BREAKING: $ARGS ⚒️ "
   ;;
 
 refactor)
   shift 1
-  mess="✔️ 〰️ Refactor Code 〰️ ✔️  "
+  mess=" ✔️ 〰️ Refactor Code 〰️ ✔️  "
   ;;
 
 permission | permissions)
   shift 1
-  mess="🏠🔥❗ Fixed Permissions ❗🔥🏠 "
+  mess=" 🏠🔥❗ Fixed Permissions ❗🔥🏠 "
   ;;
 
 bug | bugs)
   shift 1
-  mess="🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
+  mess=" 🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
   ;;
 
 alot | fixes)
   shift 1
-  mess="🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 "
+  mess=" 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 "
   ;;
 
 docker)
   shift 1
-  mess="🐜❇🦈🏠❗ Added Docker Workflow ❗🏠🦈❇🐜 "
+  mess=" 🐜❇🦈🏠❗ Added Docker Workflow ❗🏠🦈❇🐜 "
   ;;
 
 node)
   shift 1
-  mess="🐜❇🦈🏠❗ Added nodejs Workflow ❗🏠🦈❇🐜 "
+  mess=" 🐜❇🦈🏠❗ Added nodejs Workflow ❗🏠🦈❇🐜 "
   ;;
 
 ruby)
   shift 1
-  mess="🐜❇🦈🏠❗ Added ruby Workflow ❗🏠🦈❇🐜 "
+  mess=" 🐜❇🦈🏠❗ Added ruby Workflow ❗🏠🦈❇🐜 "
   ;;
 
 php)
   shift 1
-  mess="🐜❇🦈🏠❗ Added php Workflow ❗🏠🦈❇🐜 "
+  mess=" 🐜❇🦈🏠❗ Added php Workflow ❗🏠🦈❇🐜 "
   ;;
 
 perl)
   shift 1
-  mess="🐜❇🦈🏠❗ Added perl Workflow ❗🏠🦈❇🐜 "
+  mess=" 🐜❇🦈🏠❗ Added perl Workflow ❗🏠🦈❇🐜 "
   ;;
 
 python)
   shift 1
-  mess="🐜❇🦈🏠❗ Added python Workflow ❗🏠🦈❇🐜 "
+  mess=" 🐜❇🦈🏠❗ Added python Workflow ❗🏠🦈❇🐜 "
   ;;
 
 scratchpad)
   shift 1
-  mess="🐜📓❇📓 ${1:-Modified my scratchpad} 📓❇📓🐜 "
+  mess=" 🐜📓❇📓 ${1:-Modified my scratchpad} 📓❇📓🐜 "
   ;;
 
 todo)
   shift 1
-  mess="🐜📓❇📓 ${1:-Modified my todo list} 📓❇📓🐜 "
+  mess=" 🐜📓❇📓 ${1:-Modified my todo list} 📓❇📓🐜 "
   ;;
 
 notes)
   shift 1
-  mess="🐜📓❇📓 ${1:-Modified my notes} 📓❇📓🐜 "
+  mess=" 🐜📓❇📓 ${1:-Modified my notes} 📓❇📓🐜 "
   ;;
 
 blog)
   shift 1
-  mess="🐜📓❇📓 ${1:-New blog post} 📓❇📓🐜 "
+  mess=" 🐜📓❇📓 ${1:-New blog post} 📓❇📓🐜 "
   ;;
 
 init)
   shift 1
-  mess="🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
+  mess=" 🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
   ;;
 
 emj | emojy | emojify)
   shift 1
-  mess="🦈🏠🐜❗ ${1:-Well I did some things} ❗🐜🦈🏠 "
+  mess=" 🦈🏠🐜❗ ${1:-Well I did some things} ❗🐜🦈🏠 "
   ;;
 
 random)
   shift 1
-  mess="🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜"
+  mess=" 🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜 "
   ;;
 
 custom)
   shift 1
   if [ -n "$1" ]; then
-    mess="$1"
+    mess=" $1 "
   else
     printf_exit "You must specify your commit message"
   fi
@@ -342,7 +342,7 @@ setup | reset)
     [ ! "$(echo "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
     mess="${newmess:-$@}"
   else
-    mess="🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
+    mess=" 🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
   fi
   ;;
 esac
@@ -375,3 +375,4 @@ printf_newline
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
+

@@ -16,11 +16,11 @@ trap '' SIGTSTP
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @ReadME        : music --help
+# @ReadME        : mymenu --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Saturday, Mar 20, 2021 17:19 EDT
-# @File          : music
-# @Description   : play music
+# @File          : mymenu
+# @Description   : Application menu
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -45,8 +45,10 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run() {
-  printf_read_input "3" "Arguments to send" "120" "SEND"
+  printf_newline "\n\n"
+  printf_read_input "3" "${MESSAGE:-Arguments to send}" "180" "SEND"
   run_in_term "$@" "$SEND"
+  printf_newline "\n\n"
   printf_pause
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -56,6 +58,7 @@ while :; do
   shift 1
   printf_newline "\n\n\n\n"
   printf_head "Application Menu"
+  printf_green "1. Reload menu"
   printf_green "a. launch mybluetooth"
   printf_green "b. launch mybrowser"
   printf_green "c. launch mydate"
@@ -85,6 +88,7 @@ while :; do
 
   # take action
   case "$main" in
+    1) exec "$APPNAME";;
   a)
     shift 1
     printf_green "Loading mybluetooth"
@@ -192,7 +196,7 @@ while :; do
     else
       printf_read_input "2" "What app would you like to run" "160" "APP"
     fi
-    __run "$APP"
+    eval "$APP"
     ;;
   $'\E' | $'\e' | z)
     shift 1
@@ -204,7 +208,7 @@ while :; do
   esac
   clear
   printf_newline "\n\n"
-  printf_counter "5" "3" "Re-loading menu in"
+  #printf_counter "5" "3" "Re-loading menu in"
 done
 clear
 
@@ -212,3 +216,4 @@ clear
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+
