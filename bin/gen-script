@@ -93,7 +93,6 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Application functions
 __filename() { basename "$1" 2>/dev/null; }
-__fullfilename() { type -P "$(basename "$1")" 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo "$PWD"; else dirname "$1" 2>/dev/null; fi; }
 __sed() { sed -i 's|'"$1"'|'"$2"'|g' "$3" 2>/dev/null; }
 __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exit "Please provide a filename"; }
@@ -101,11 +100,18 @@ __remove_opts() { echo "$*" | tr ' ' '\n' | grep -v '^-' | head -n1 | grep '^' |
 __gen_confdir() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
 __print_wait() { printf_pause "$*" && printf_newline "\n"; }
 __prev_readme() { grep -R ^'printf_help "." ' "$1"; }
-__grep() { __grep() { grep -E ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | head -n1 | grep ${1:-} '^'; } || return 1; }
+__grep() { grep -E ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep ${1:-} '^' || return 1; }
+__fullfilename() {
+  if [ -f "$1" ]; then
+    ls -A "$1" 2>/dev/null
+  else
+    type -P "$(basename "$1")" 2>/dev/null
+  fi
+}
 __get_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "$filename")"
-  if [ -f "$command" ] && __check_header; then
+  if [ -f "$command" ] && __check_header "$command"; then
     if [ "$1" = "all" ]; then
       shift 1
       printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
@@ -117,13 +123,14 @@ __get_header() {
     else
       local search="$1"
       local command="${2:-$command}"
-      grep -E ^'.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' |
-        head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
+      grep -E ^'.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
     fi
   fi
 }
 __check_header() {
-  grep ^'.*##@Version.*:' "$(__fullfilename ${command:-$filename})" 2>/dev/null | grep '   :' | head -n1 | grep -q '^' || return 1
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
+  local command="$(__fullfilename "${command:-$filename}")"
+  grep ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep -q '^' || return 1
 }
 #__update_header "$file" "$search" "$replace"
 __update_header() {
@@ -148,8 +155,8 @@ __update_header() {
 __get_prev() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "$filename")"
-  if [ -f "$command" ] && __check_header; then
-    [ -n "$get_prev_shown" ] || printf_green "setting desc todo other and res from $command"
+  if [ -f "$command" ] && __check_header "$command"; then
+    [ -n "$get_prev_shown" ] || printf_green "setting desc todo other and res from $(basename "$command" 2>/dev/null)"
     get_desc="$(__get_header 'Description')"
     get_todo="$(__get_header 'TODO')"
     get_other="$(__get_header 'Other')"
@@ -362,7 +369,7 @@ printf_help() {
   printf '\n'
 }
 get_desc() {
-  grep_head(){ grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | head -n${12:-$3} | sed 's#..* : ##g'; }
+  grep_head(){ grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${12:-$3} | sed 's#..* : ##g'; }
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
   local desc="$(grep_head "Description" "$appname" "12" | head -n1 | grep '^')"
@@ -432,7 +439,7 @@ __makefile() {
   local new="${newfile:-$2}"
   local newdir="$(__dirname "$new")"
   local newfile="$(basename "$2")"
-  local newcmd="$(command -v "$newfile")"
+  local newcmd="$(command -v "$newfile" || type -P "$newfile" || ls -A "$newfile")"
   shift 2
   __mkd "$newdir"
   __vars "$new"
@@ -549,13 +556,13 @@ __gen_header() {
     [ -n "$gen_header_raw" ] || [ -n "${todo:-$get_todo}" ] || printf_yellow "TODO: ${todo:-None provided}"
   fi
   if [ -n "$gen_header_prev" ]; then
-    __check_header || printf_exit "No header info was found"
+    __check_header "$filename" || printf_exit "No header info was found"
     __providefilename "$filename"
     printf_blue "header from $(__fullfilename "$filename")"
     printf_newline
     __prev_header
   elif [ "$gen_header_replace" = true ]; then
-    __check_header || printf_exit "No header info was found"
+    __check_header "$filename" || printf_exit "No header info was found"
     __providefilename "$filename"
     printf_blue "header from $(__fullfilename "$filename")"
     printf_newline
