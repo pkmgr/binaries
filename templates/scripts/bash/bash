@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+PROG="$(basename "$0")"
 VERSION="GEN_SCRIPTS_REPLACE_VERSION"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
@@ -22,38 +22,6 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Other         : GEN_SCRIPTS_REPLACE_OTHER
 # @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main function file
-if [ -f "$SRC_DIR/functions.bash" ]; then
-  FUNCTIONS_DIR="$SRC_DIR"
-  . "$FUNCTIONS_DIR/functions.bash"
-elif [ -f "$HOME/.local/bin/functions.bash" ]; then
-  FUNCTIONS_DIR="$HOME/.local/bin"
-  . "$FUNCTIONS_DIR/functions.bash"
-else
-  printf "\t\t\033[0;31m%s \033[0m\n" "Couldn't source the functions file from $FUNCTIONS_DIR"
-  return 1
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Default directories
-GEN_SCRIPTS_ARRAY_DIR="$HOME/.local/share/CasjaysDev/arrays/GEN_SCRIPTS_REPLACE_FILENAME"
-GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
-GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# helper function
-__version() { app_version; }
-__list_array() { mkdir -p "$GEN_SCRIPTS_ARRAY_DIR" && __list_options >"$GEN_SCRIPTS_ARRAY_DIR/array" && exit; }
-__list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' && exit; }
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__help() {
-  app_help "Usage: GEN_SCRIPTS_REPLACE_FILENAME  -  GEN_SCRIPTS_REPLACE_FILENAME --version" \
-    "-c, --config           -  create config file" \
-    "-a, --all              -  show all options" \
-    "-l, --list             -  used by completions" \
-    "-v, --version          -  display version" \
-    "-h, --help             -  display help"
-  exit
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
@@ -66,45 +34,77 @@ __gen_config() {
 EOF
   if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
     printf_green "Your config file for GEN_SCRIPTS_REPLACE_FILENAME has been created"
-  else printf_red "Failed to create the config file"; fi
-  exit $?
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# bring in user config
-[ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] && . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+# Defaults
+exitCode=""
+GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
+GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/GEN_SCRIPTS_REPLACE_FILENAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] || __gen_config &>/dev/null
+[ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/options" ] || __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" &>/dev/null
+[ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/array" ] || __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
+  . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # options
-SETARGS="$*"
-SHORTOPTS="a,l,c,v,h"
-LONGOPTS="all,list,config,version,help"
-ARRAY=""
-setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "$PROG" -- "$@" 2>/dev/null)
-eval set -- "$setopts" 2>/dev/null
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
 while :; do
   case $1 in
-  -a | --all) __list_options ;;
-  -l | --list) __list_array ;;
-  -v | --version) __version ;;
-  -h | --help) __help ;;
-  -c | --config) __gen_config ;;
+  --options)
+    shift 1
+    __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY"
+    __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
   --)
     shift 1
     break
     ;;
-    #*) break ;;
   esac
-  shift
 done
 set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Required app check
+# Check for required applications
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-case ${ARRAY:-$1} in
-*) printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR" ;;
-esac
+printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# lets exit with code
+exit "${exitCode:-$?}"

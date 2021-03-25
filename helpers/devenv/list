@@ -1,3 +1,4 @@
+import
 static
 jekyll
 hugo
@@ -11,12 +12,5 @@ react
 express
 create-project
 mevn
-gen-shellrc
-
-express-cors-api
-express-mongodb-auth
-jekyll-simple
-nuxt-full-website-template
-php-composer
-php-simple
-vue-template
+shellcheck
+editorconfig

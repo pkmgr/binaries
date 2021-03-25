@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 GEN_SCRIPTS_REPLACE_FILENAME_main() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  PROG="$(basename $0)"
+  PROG="$(basename "$0")"
   VERSION="GEN_SCRIPTS_REPLACE_VERSION"
   USER="${SUDO_USER:-${USER}}"
   HOME="${USER_HOME:-${HOME}}"
@@ -41,10 +41,9 @@ GEN_SCRIPTS_REPLACE_FILENAME_main() {
   __help() {
     app_help "4" "Usage: GEN_SCRIPTS_REPLACE_FILENAME  -  GEN_SCRIPTS_REPLACE_FILENAME --version" \
       "-c, --config           -  create config file" \
-      "-a, --all              -  show all options" \
-      "-l, --list             -  used by completions" \
       "-v, --version          -  display version" \
-      "-h, --help             -  display help"
+      "-h, --help             -  display help" \
+      "--options              -  used by completions"
     exit $?
   }
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -68,47 +67,50 @@ EOF
   }
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Defaults
-  local exitCode="" GEN_SCRIPTS_REPLACE_CONFFILE="" GEN_SCRIPTS_REPLACE_CONFDIR="" GEN_SCRIPTS_REPLACE_OPTIONS_DIR=""
+  local exitCode=""
   local GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
   local GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/misc/configs/GEN_SCRIPTS_REPLACE_FILENAME"
   local GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/misc/options/GEN_SCRIPTS_REPLACE_FILENAME"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Argument/Option settings
   local SETARGS="${*}"
-  local SHORTOPTS="a,l,c,v,h"
-  local LONGOPTS="all,list,config,version,help"
+  local SHORTOPTS="c,v,h"
+  local LONGOPTS="options,config,version,help"
   local ARRAY=""
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Generate Files
-  [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/options" ] || __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY" &>/dev/null
-  [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/array" ] || __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" &>/dev/null
   [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] || __gen_config &>/dev/null
+  [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/options" ] || __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" &>/dev/null
+  [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/array" ] || __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY" &>/dev/null
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Import config
-  [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] && . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+  if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
+    . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+  fi
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
-  local setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "$PROG" -- "$@" 2>/dev/null)
-  eval set -- "$setopts" 2>/dev/null
+  local setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+  eval set -- "${setopts[@]}" 2>/dev/null
   while :; do
     case $1 in
-    -a | --all)
-      __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY"
-      exit $?
-      ;;
-    -l | --list)
-      __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR"
+    --options)
+      shift 1
+      __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY"
+      __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR"
       exit $?
       ;;
     -v | --version)
+      shift 1
       __version
       exit $?
       ;;
     -h | --help)
+      shift 1
       __help
       exit $?
       ;;
     -c | --config)
+      shift 1
       __gen_config
       exit $?
       ;;
@@ -118,7 +120,6 @@ EOF
       ;;
       #*) break ;;
     esac
-    shift
   done
   set -- "$SETARGS"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -138,3 +139,5 @@ GEN_SCRIPTS_REPLACE_FILENAME_main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

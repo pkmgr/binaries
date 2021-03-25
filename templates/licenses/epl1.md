@@ -6,10 +6,11 @@ THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC LICE
 ### 1. Definitions
 
 “Contribution” means:
+
 * **a)** in the case of the initial Contributor, the initial code and documentation distributed under this Agreement, and
 * **b)** in the case of each subsequent Contributor:
-	* **i)** changes to the Program, and
-	* **ii)** additions to the Program; 
+  * **i)** changes to the Program, and
+  * **ii)** additions to the Program;
 where such changes and/or additions to the Program originate from and are distributed by that particular Contributor. A Contribution 'originates' from a Contributor if it was added to the Program by such Contributor itself or anyone acting on such Contributor's behalf. Contributions do not include additions to the Program which: **(i)** are separate modules of software distributed in conjunction with the Program under their own license agreement, and **(ii)** are not derivative works of the Program.
 
 “Contributor” means any person or entity that distributes the Program.
@@ -33,16 +34,18 @@ where such changes and/or additions to the Program originate from and are distri
 ### 3. Requirements
 
 A Contributor may choose to distribute the Program in object code form under its own license agreement, provided that:
+
 * **a)** it complies with the terms and conditions of this Agreement; and
 * **b)** its license agreement:
-	* **i)** effectively disclaims on behalf of all Contributors all warranties and conditions, express and implied, including warranties or conditions of title and non-infringement, and implied warranties or conditions of merchantability and fitness for a particular purpose;
-	* **ii)** effectively excludes on behalf of all Contributors all liability for damages, including direct, indirect, special, incidental and consequential damages, such as lost profits;
-	* **iii)** states that any provisions which differ from this Agreement are offered by that Contributor alone and not by any other party; and
-	* **iv)** states that source code for the Program is available from such Contributor, and informs licensees how to obtain it in a reasonable manner on or through a medium customarily used for software exchange. 
+  * **i)** effectively disclaims on behalf of all Contributors all warranties and conditions, express and implied, including warranties or conditions of title and non-infringement, and implied warranties or conditions of merchantability and fitness for a particular purpose;
+  * **ii)** effectively excludes on behalf of all Contributors all liability for damages, including direct, indirect, special, incidental and consequential damages, such as lost profits;
+  * **iii)** states that any provisions which differ from this Agreement are offered by that Contributor alone and not by any other party; and
+  * **iv)** states that source code for the Program is available from such Contributor, and informs licensees how to obtain it in a reasonable manner on or through a medium customarily used for software exchange.
 
 When the Program is made available in source code form:
+
 * **a)** it must be made available under this Agreement; and
-* **b)** a copy of this Agreement must be included with each copy of the Program. 
+* **b)** a copy of this Agreement must be included with each copy of the Program.
 
 Contributors may not remove or alter any copyright notices contained within the Program.
 
@@ -73,4 +76,3 @@ All Recipient's rights under this Agreement shall terminate if it fails to compl
 Everyone is permitted to copy and distribute copies of this Agreement, but in order to avoid inconsistency the Agreement is copyrighted and may only be modified in the following manner. The Agreement Steward reserves the right to publish new versions (including revisions) of this Agreement from time to time. No one other than the Agreement Steward has the right to modify this Agreement. The Eclipse Foundation is the initial Agreement Steward. The Eclipse Foundation may assign the responsibility to serve as the Agreement Steward to a suitable separate entity. Each new version of the Agreement will be given a distinguishing version number. The Program (including Contributions) may always be distributed subject to the version of the Agreement under which it was received. In addition, after a new version of the Agreement is published, Contributor may elect to distribute the Program (including its Contributions) under the new version. Except as expressly stated in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to the intellectual property of any Contributor under this Agreement, whether expressly, by implication, estoppel or otherwise. All rights in the Program not expressly granted under this Agreement are reserved.
 
 This Agreement is governed by the laws of the State of New York and the intellectual property laws of the United States of America. No party to this Agreement will bring a legal action under this Agreement more than one year after the cause of action arose. Each party waives its rights to a jury trial in any resulting litigation.
-

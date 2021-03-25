@@ -8,7 +8,9 @@ date: DATE
 comments: true
 ---
 
-<h1 align=center>👋 New blog post 👋</h1>
+<h1 align=center>
+👋 New blog post 👋
+</h1>
 <p align=center>
 
 

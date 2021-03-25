@@ -33,7 +33,7 @@ done
 # Versioning Info - __required_version "VersionNumber"
 localVersion="${localVersion:-031220211739-git}"
 requiredVersion="${requiredVersion:-031220211739-git}"
-if [ $(cat "$CASJAYSDEVDIR/version.txt" | grep '^') ]; then
+if [ "$(cat "$CASJAYSDEVDIR/version.txt" | grep '^')" ]; then
   currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 else
   currentVersion="$localVersion"
@@ -128,9 +128,9 @@ __exec() {
   local cmd="$1" && shift 1
   local args="$*" && shift $#
   if [ "$cmd" = "$TERMINAL" ]; then
-    eval "$cmd "$args"" 2>/dev/null
+    eval "$cmd $args" 2>/dev/null
   else
-    exec "$cmd" "$args" &>/dev/null &
+    exec "$cmd $args" &>/dev/null &
   fi
 }
 # macos fixes
@@ -289,7 +289,7 @@ printf_help() {
   shift
   echo ""
   if [ "${PROG:-$APPNAME}" ]; then
-    printf_color "\t\t$(grep ^"# @Description" $(command -v "${PROG:-$APPNAME}") | grep ' : ' | sed 's#..* : ##g' || "${PROG:-$APPNAME}" help)\n" 2
+    printf_color "\t\t$(grep ^"# @Description" "$(command -v "${PROG:-$APPNAME}")" | grep ' : ' | sed 's#..* : ##g' || "${PROG:-$APPNAME}" help)\n" 2
   fi
   printf_color "\t\t$msg" "$color"
   printf "\n\n"
@@ -351,26 +351,26 @@ printf_question_term() {
   printf_read_question "4" "$1" "1" "REPLY" "-s"
   printf_answer_yes "$REPLY" && eval "${2:-true}" || return 1
 }
-#printf_read_input  "color" "message" "maxLines" "answerVar" "readopts"
+#printf_read_input "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_input() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
   printf_color "\t\t$msg " "$color"
-  read -r -e $readopts -n $lines $reply
+  read -re -n $lines ${readopts} ${reply}
   [ -n "$reply" ] || echo
 }
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
   printf_color "\t\t$msg " "$color"
-  read -t 30 -r $readopts -n $lines $reply
+  read -t 30 -r -n $lines ${readopts} ${reply}
   printf_newline
 }
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -381,15 +381,15 @@ printf_read_question_nt() {
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
   printf_color "\t\t$msg " "$color"
-  read -r $readopts -n $lines $reply
+  read -r -n $lines ${readopts} ${reply}
   printf_newline
 }
-printf_read_passwd(){
-  printf_read_question_nt  ${1:-3} "$2:" "100" "$3" "-s"
+printf_read_passwd() {
+  printf_read_question_nt ${1:-3} "$2:" "100" "$3" "-s"
 }
 
 printf_read_error() {
-  export "$1"
+  export "${1:-}"
   printf_newline
 }
 #printf_answer "Var" "maxNum" "Opts"
@@ -747,7 +747,7 @@ __get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && retu
 __get_pid_of() { __ps "$1" | head -n1 | awk '{print $2}' | grep '^' || return 1; }
 #basedir "file"
 __basedir() {
-  if [ $(dirname "$1" 2>/dev/null) = . ]; then
+  if [ "$(dirname "$1" 2>/dev/null)" = . ]; then
     echo $PWD
   else
     dirname "$1" | sed 's#\../##g' 2>/dev/null
@@ -758,9 +758,9 @@ __basename() { basename "${1:-.}" 2>/dev/null; }
 # dirname dir
 __dirname() { cd "$1" 2>/dev/null && echo $PWD || return 1; }
 #to_lowercase "args"
-__to_lowercase() { echo "$@" | tr [A-Z] [a-z]; }
+__to_lowercase() { echo "$@" | tr '[A-Z]' '[a-z]'; }
 #to_uppercase "args"
-__to_uppercase() { echo "$@" | tr [a-z] [A-Z]; }
+__to_uppercase() { echo "$@" | tr '[a-z]' '[A-Z]'; }
 #strip_ext "Filename"
 __strip_ext() { echo "$@" | sed 's#\..*##g'; }
 #get_full_file "file"
@@ -796,7 +796,7 @@ __mkd() {
 #netcat
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1)"
 __netcat_test() { __cmd_exists "$netcat" || printf_error "The program netcat is not installed"; }
-__netcat_pids() { netstat -tupln 2>/dev/null | grep ":$1 " | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/$(basename ${netcat:-nc})'##g'; }
+__netcat_pids() { netstat -tupln 2>/dev/null | grep ":$1" | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/"$(basename ${netcat:-nc})"'##g' | grep '^'; }
 # kill_netpid "port" "procname"
 __kill_netpid() { netstatg "$1" | grep "$(basename $2)" | awk '{print $7}' | sed 's#/'$2'##g' && netstat -taupln | grep -qv "$1" || return 1; }
 __netcat_kill() {
@@ -939,21 +939,37 @@ __urlinvalid() {
 check_local() {
   local file="${1:-$PWD}"
   if [ -d "$file" ]; then
-    type=dir && localfile=true && return 0
+    type="dir"
+    localfile="true"
+    return 0
   elif [ -f "$file" ]; then
-    type=file && localfile=true && return 0
+    type="file"
+    localfile="true"
+    return 0
   elif [ -L "$file" ]; then
-    type=symlink && localfile=true && return 0
+    type="symlink"
+    localfile="true"
+    return 0
   elif [ -S "$file" ]; then
-    type=socket && localfile=true && return 0
+    type="socket"
+    localfile="true"
+    return 0
   elif [ -b "$file" ]; then
-    type=block && localfile=true && return 0
+    type="block"
+    localfile="true"
+    return 0
   elif [ -p "$file" ]; then
-    type=pipe && localfile=true && return 0
+    type="pipe"
+    localfile="true"
+    return 0
   elif [ -c "$file" ]; then
-    type=character && localfile=true && return 0
+    type="character"
+    localfile="true"
+    return 0
   elif [ -e "$file" ]; then
-    type=file && localfile=true && return 0
+    type="file"
+    localfile="true"
+    return 0
   else
     type= && localfile=
     return 1
@@ -962,15 +978,19 @@ check_local() {
 check_uri() {
   local url="$1"
   if echo "$url" | grep -q "http.*://\S\+\.[A-Za-z]\+\S*"; then
-    uri=http && return 0
+    uri="http"
+    return 0
   elif echo "$url" | grep -q "ftp.*://\S\+\.[A-Za-z]\+\S*"; then
-    uri=ftp && return 0
+    uri="ftp"
+    return 0
   elif echo "$url" | grep -q "git.*://\S\+\.[A-Za-z]\+\S*"; then
-    uri=git && return 0
+    uri="git"
+    return 0
   elif echo "$url" | grep -q "ssh.*://\S\+\.[A-Za-z]\+\S*"; then
-    uri=ssh && return 0
+    uri="ssh"
+    return 0
   else
-    uri=
+    uri=""
     return 1
   fi
 }
@@ -1131,7 +1151,7 @@ __git_repobase() { basename "$(__git_top_dir "${1:-$PWD}")"; }
 
 ###################### crontab functions ######################
 __removecrontab() {
-  command="$(echo $* | sed 's#>/dev/null 2>&1##g')"
+  command="$(echo "$*" | sed 's#>/dev/null 2>&1##g')"
   crontab -l | grep -v "${command}" | crontab -
   return $?
 }
@@ -1161,7 +1181,7 @@ __cron_updater() {
         file="$(ls -A $SYSUPDATEDIR/$upd 2>/dev/null)"
         if [ -f "$file" ]; then
           appname="$(basename $file)"
-          sudo file=$file bash -c "$file --cron $*"
+          sudo file="$file" bash -c "$file --cron $*"
         fi
       done
     else
@@ -1169,7 +1189,7 @@ __cron_updater() {
         file="$(ls -A $SYSUPDATEDIR/$1 2>/dev/null)"
         if [ -f "$file" ]; then
           appname="$(basename $file)"
-          sudo file=$file bash -c "$file --cron $*"
+          sudo file="$file" bash -c "$file --cron $*"
         fi
       fi
     fi
@@ -1179,7 +1199,7 @@ __cron_updater() {
         file="$(ls -A $USRUPDATEDIR/$upd 2>/dev/null)"
         if [ -f "$file" ]; then
           appname="$(basename $file)"
-          file=$file bash -c "$file --cron $*"
+          file="$file" bash -c "$file --cron $*"
         fi
       done
     else
@@ -1187,7 +1207,7 @@ __cron_updater() {
         file="$(ls -A $USRUPDATEDIR/$1 2>/dev/null)"
         if [ -f "$file" ]; then
           appname="$(basename $file)"
-          file=$file bash -c "$file --cron $*"
+          file="$file" bash -c "$file --cron $*"
         fi
       fi
     fi
@@ -1257,6 +1277,7 @@ __attemp_install_menus() {
   fi
 }
 __custom_menus() {
+  local custom="" opts=""
   printf_read_input "6" "Enter your custom program : " "120" "custom"
   printf_read_input "6" "Enter any additional options [type file to choose] : " "120" "opts"
   if [ "$opts" = "file" ]; then opts="$(__open_file_menus $custom)"; fi
@@ -1333,7 +1354,7 @@ __editor() {
   return $?
 }
 ##################### sudo functions ####################
-__sudo() { sudo $* && return 0 || return 1; }
+__sudo() { sudo "$*" && return 0 || return 1; }
 __sudo_group() { grep "${1:-$USER}" /etc/group | grep -Eq 'wheel|adm|sudo' || return 1; }
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null && return 0 || return 1; }
 sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
@@ -1376,6 +1397,7 @@ __sudoexit() {
     __sudoask || ${1:-printf_green "Getting privileges successfull continuing" && true}
   else
     ${2:-printf_red "Failed to get privileges\n" && false}
+    return 1
   fi
 }
 __requiresudo() {
@@ -1388,22 +1410,24 @@ __requiresudo() {
 }
 user_is_root() {
   if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
-    return 0; else return 1; fi
+    return 0
+  else return 1; fi
 }
 if __sudo_group "$USER"; then
-  __passwd() { sudo passwd $*; }
+  __passwd() { sudo passwd "$*"; }
 else
-  __passwd() { passwd $*; }
+  __passwd() { passwd "$*"; }
 fi
 
 __newpasswd() {
+  local oldpassword newpassword newpasswordc
   printf_read_passwd "3" "Enter old password for $1" "oldpassword"
   printf_read_passwd "3" "Enter new password for $1" "newpassword"
   printf_read_passwd "3" "Confirm new password for $1" "newpasswordc"
   [ "$oldpassword" = "$newpassword" ] && printf_exit "Password needs to be different"
   [ "$newpassword" = "$newpasswordc" ] || printf_exit "Passwords don't match"
   printf '%s\n%s\n%s' "$oldpassword" "$newpassword" "$newpasswordc" | __passwd "$1" &>/dev/null &&
-  printf_green "Password has been updated" || printf_exit "Password change has failed"
+    printf_green "Password has been updated" || printf_exit "Password change has failed"
 }
 ###################### spinner and execute function ######################
 # show a spinner while executing code or zenity

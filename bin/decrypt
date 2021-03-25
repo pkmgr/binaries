@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+APPNAME="$(basename "$0")"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -56,13 +56,12 @@ if [ -t 0 ]; then
 else
   perl -e 'use IO::Select; $ready=IO::Select->new(STDIN)->can_read();'
   if openssl aes-256-cbc -pbkdf2 -d "$@" 2>/dev/null; then
-      printf_green "Successfully decrypted $1"
-    else
-      printf_return "Something went wrong: check your password"
+    printf_green "Successfully decrypted $1"
+  else
+    printf_return "Something went wrong: check your password"
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

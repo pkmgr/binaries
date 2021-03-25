@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+APPNAME="$(basename "$0")"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -155,9 +155,9 @@ _modify_license_file() {
       [ -f "$licDir/LICENSE.md" ] && __sed -i "s#sam@hocevar.net#${gitconfig_email}#g" "$licDir/LICENSE.md"
     fi
   fi
-  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_SCRIPT_REPLACE_YEAR#$(date +'%Y')#g" "$licDir/LICENSE.md"
-  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_SCRIPT_REPLACE_AUTHOR#${gitconfig_user}#g" "$licDir/LICENSE.md"
-  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_SCRIPT_REPLACE_EMAIL#${gitconfig_email}#g" "$licDir/LICENSE.md"
+  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_LICENSE_REPLACE_YEAR#$(date +'%Y')#g" "$licDir/LICENSE.md"
+  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_LICENSE_REPLACE_AUTHOR#${gitconfig_user}#g" "$licDir/LICENSE.md"
+  [ -f "$licDir/LICENSE.md" ] && __sed -i "s#GEN_LICENSE_REPLACE_EMAIL#${gitconfig_email}#g" "$licDir/LICENSE.md"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Init

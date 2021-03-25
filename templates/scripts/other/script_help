@@ -25,6 +25,7 @@ printf_help "4" "-h, --help                  - Shows this message"
 # end help
 printf '\n'
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#exit "${exitCode:-1}"
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

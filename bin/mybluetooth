@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+APPNAME="$(basename "$0")"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -146,8 +146,8 @@ add | pair)
   ;;
 
 remove | unpair)
-bluetoothctl remove "$MY_BT_DEVICE" | grep -q 'been removed' &&
-  printf_green "$MY_BT_DEVICE has been removed"
+  bluetoothctl remove "$MY_BT_DEVICE" | grep -q 'been removed' &&
+    printf_green "$MY_BT_DEVICE has been removed"
   exit $?
   ;;
 
@@ -187,4 +187,3 @@ esac
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

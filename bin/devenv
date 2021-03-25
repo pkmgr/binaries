@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+APPNAME="$(basename "$0")"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -17,7 +17,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Created       : Saturday, Mar 20, 2021 06:27 EDT
 # @File          : devenv
 # @Description   : Setup a development environment
-# @TODO          :
+# @TODO          : Create user config
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,19 +40,36 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# I'm sure there is a better way to do this
+if [ -d "$1" ]; then
+  sitedir="$(__basedir "$1/showcurdir")"
+  shift 1
+elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+  sitedir="$(__dirname "$2")"
+  shift 2
+  [ -d "$sitedir" ] || printf_exit "$sitedir doesn't seem to be a directory"
+else
+  sitedir="$(__basedir "$PWD/.")"
+fi
+if [ "$sitedir" = "." ]; then sitedir="$(__basedir ".")"; fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DEVENV_COMAND="${DEVENV_COMAND:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # What to do after creating project
-__start_new_project(){
+__start_new_project() {
   if [ -n "$DEVENV_COMAND" ] && [ -f "$(type -P "$(basename "$DEVENV_COMAND")")" ]; then
     eval "$DEVENV_COMAND"
   elif [ "$1" = "screen" ]; then
-    if [ -f "$2" ]; then eval "$1" -c "$2"
-    elif [ -f "$HOME/.config/screen/dev/singlerc" ]; then eval screen -c "$HOME/.config/screen/dev/singlerc"
+    if [ -f "$2" ]; then
+      eval "$1" -c "$2"
+    elif [ -f "$HOME/.config/screen/dev/singlerc" ]; then
+      eval screen -c "$HOME/.config/screen/dev/singlerc"
     fi
   elif [ "$1" = "tmux" ]; then
-    if [ -f "$2" ]; then tmux -f "$2"
-    elif [ -f "$HOME/.config/tmux/dev/tmux.conf" ]; then eval tmux -f "$HOME/.config/tmux/dev/tmux.conf"
+    if [ -f "$2" ]; then
+      tmux -f "$2"
+    elif [ -f "$HOME/.config/tmux/dev/tmux.conf" ]; then
+      eval tmux -f "$HOME/.config/tmux/dev/tmux.conf"
     fi
   else
     ${SHELL:-bash}
@@ -69,15 +86,16 @@ if_sample() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start a static server
 __run_static_site() {
-  run_server ${1:-20000}
-  exit
+  run_server "${1:-20000}"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import new site from git
 __run_import_site() {
-  local sitedir
+  local import=""
+  local cursite="$sitedir"
   printf_green "Enter the full path for your imported project!"
-  printf_read_input "3" "Enter location for your new site - enter . for current:" "120" "sitedir"
+  printf_read_input "3" "Enter location for your new site:" "120" "sitedir" "-i $cursite"
   printf_read_input "3" "Enter the url to your git repo:" "120" "import"
   [ -n "$sitedir" ] || [ -n "$import" ] || printf_exit "Something went wrong"
   [ -d "$sitedir" ] || __mkd "$sitedir"
@@ -93,9 +111,9 @@ __run_import_site() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Create a new site dir
 __run_new_site() {
-  local sitedir
+  local cursite="$sitedir"
   printf_green "Enter the full path for your new project!"
-  printf_read_input "3" "Enter location for your new site - enter . for current:" "120" "sitedir"
+  printf_read_input "3" "Enter location for your new site - enter . for current:" "120" "sitedir" "-i $sitedir"
   [ -n "$sitedir" ] || printf_exit "Something went wrong"
   [ -d "$sitedir" ] || __mkd "$sitedir"
   cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"
@@ -205,7 +223,7 @@ __run_vuecli() {
 __run_reactcli() {
   local appname=create-react-app
   local project=javascript
-  __requires "$appname" || printf_exit "$node is not installed"
+  __requires "$appname" || printf_exit "node is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$appname" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
@@ -247,7 +265,7 @@ __run_create-project() {
 __run_mevn() {
   local appname=mevn
   local project=javascript
-  __requires "$git" || printf_exit "$git is not installed"
+  __requires "git" || printf_exit "git is not installed"
   if_sample
   if [[ $* = "--new" ]]; then echo "$project" && exit; fi
   if [[ $* = "--help" ]]; then __help; fi
@@ -260,22 +278,31 @@ __run_mevn() {
 # Create a shellcheckrc file
 __gen_shellcheck() {
   printf_green "Generating .shellcheckrc"
-  __cp_rf "$CASJAYSDEVDIR/templates/shellcheckrc" ./.shellcheckrc
-  [ -f "./shellcheckrc" ] &&
+  __cp_rf "$CASJAYSDEVDIR/templates/shellcheckrc" "$sitedir/.shellcheckrc"
+  [ -f "$sitedir/.shellcheckrc" ] &&
     printf_green ".shellcheckrc has been generated" ||
     printf_exit 1 1 "Failed to create .shellcheckrc"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Create a editorconfig file
+__gen_editorconfig() {
+  printf_green "Generating .editorconfig"
+  __cp_rf "$CASJAYSDEVDIR/templates/editorconfig" "$sitedir/.editorconfig"
+  [ -f "$sitedir/.editorconfig" ] &&
+    printf_green ".editorconfig has been generated" ||
+    printf_exit 1 1 "Failed to create .editorconfig"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "--start" ]; then
   shift 1
   START="$1"
-
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   case "$START" in
   jekyll)
     __requires jekyll || printf_exit 1 1 "jekyll can't be found"
-    if [ -f ./_config.yml ]; then
+    if [ -f "$sitedir/_config.yml" ]; then
       if __requires watchy; then
-        watchy -w _config.yml -- jekyll serve --host=0.0.0.0
+        watchy -w "$sitedir/_config.yml" -- jekyll serve --host=0.0.0.0
       elif __requires jekyll; then
         jekyll serve --host=0.0.0.0
       else printf_exit "There was a problem staring - no config found"; fi
@@ -283,17 +310,17 @@ if [ "$1" = "--start" ]; then
       printf_exit "There was a problem starting - no config found"
     fi
     ;;
-
   *)
     printf_red "No parameters specified"
     exit
     ;;
   esac
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
-  import)
-    __run_import_site
+import)
+  __run_import_site
+  ;;
 static)
   shift 1
   __run_new_site && __run_static_site "$@"
@@ -302,73 +329,65 @@ jekyll)
   shift 1
   __run_new_site && __run_jekyll "$@"
   ;;
-
 hugo)
   shift 1
   __run_new_site && __run_hugo "$@"
   ;;
-
 ruby)
   shift 1
   __run_new_site && __run_ruby "$@"
   ;;
-
 python)
   shift 1
   __run_new_site && __run_python "$@"
   ;;
-
 perl)
   shift 1
   __run_new_site && __run_perl "$@"
   ;;
-
 php)
   shift 1
   __run_new_site && __run_php "$@"
   ;;
-
 node)
   shift 1
   __run_new_site && __run_node "$@"
   ;;
-
 vue)
   shift 1
   __run_new_site && __run_vuecli "$@"
   ;;
-
 react)
   shift 1
   __run_new_site && __run_reactcli "$@"
   ;;
-
 express)
   shift 1
   __run_new_site && __run_expresscli "$@"
   ;;
-
 create-project)
   shift 1
   __run_new_site && __run_create-project "$@"
   ;;
-
 mevn)
   shift 1
   __run_new_site && __run_mevn "$@"
   ;;
-gen-shellrc)
+shellcheck)
   shift 1
-  __run_new_site && __gen_shellcheck
+  __run_new_site && __gen_shellcheck "$@"
+  ;;
+editorconfig)
+  shift 1
+  __run_new_site && __gen_editorconfig "$@"
   ;;
 *)
   shift --
   __help "$@"
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
-
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

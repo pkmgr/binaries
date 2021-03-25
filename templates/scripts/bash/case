@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+APPNAME="$(basename "$0")"
 VERSION="GEN_SCRIPTS_REPLACE_VERSION"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
@@ -45,7 +45,7 @@ __options "$@"
 __cmd_exists bash || exit 1 # exit 1 if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
-SETARGS="$*"
+SETARGS="${*}"
 GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
 GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,40 +61,59 @@ __gen_config() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set additional variables
-
+# Defaults
+exitCode=""
+GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
+GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/GEN_SCRIPTS_REPLACE_FILENAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # bring in user config
 [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR" ] &&
   . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup application options
-SHORTOPTS="a,c,v,h"
-LONGOPTS="all,config,version,help"
 setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "$APPNAME" -- "$@" 2>/dev/null)
-eval set -- "$setopts" 2>/dev/null
+eval set -- "${setopts[@]}" 2>/dev/null
 while :; do
   case $1 in
-  -a | --all) __list_options ;;
-  -v | --version) __version ;;
-  -h | --help) __help ;;
-  -c | --config) __gen_config ;;
+  -a | --all)
+    shift 1
+    __list_options
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    ;;
   --)
     shift 1
     break
     ;;
-    #*) break ;;
   esac
-  shift
 done
 set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case $1 in
-*) echo "App" ;;
+*)
+  echo "App"
+  ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# lets exit with code
+exit "${exitCode:-$?}"

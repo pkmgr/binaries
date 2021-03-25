@@ -33,7 +33,7 @@ Mozilla Public License Version 2.0
     means any form of the work other than Source Code Form.
 
 **1.7. “Larger Work”**  
-    means a work that combines Covered Software with other material, in 
+    means a work that combines Covered Software with other material, in
     a separate file or files, that is not Covered Software.
 
 **1.8. “License”**  
@@ -353,5 +353,3 @@ You may add additional accurate notices of copyright ownership.
 
     This Source Code Form is "Incompatible With Secondary Licenses", as
     defined by the Mozilla Public License, v. 2.0.
-
-

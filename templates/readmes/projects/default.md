@@ -1,11 +1,13 @@
-<h1 align=center>👋Welcome to the ProjectName project 👋</h1>
+<h1 align=center>
+👋 Welcome to the ProjectName project 👋
+</h1>
 <p align=center>
-InsertDocumentationHere
+StartDocumentationHere
 </p>
   
 ## Author  
+
 👤 **AuthorName**  
   
   
 {%- comment -%}end readme{%- endcomment -%}
-

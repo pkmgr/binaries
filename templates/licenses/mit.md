@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-Copyright © `<GEN_SCRIPT_REPLACE_YEAR>` `<GEN_SCRIPT_REPLACE_AUTHOR>`
+Copyright © `<GEN_LICENSE_REPLACE_YEAR>` `<GEN_LICENSE_REPLACE_AUTHOR>`
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename $0)"
+APPNAME="$(basename "$0")"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -56,7 +56,7 @@ RANDOMWALLPAPER_CONFIG_DIR="$HOME/.config/randomwallpaper"
 RANDOMWALLPAPER_CONFIG_FILE="settings.conf"
 MANUAL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] && \
+[ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] &&
   . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { echo "$*" >/dev/null; }; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
