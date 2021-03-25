@@ -166,7 +166,7 @@ __get_prev() {
 }
 # Current file info
 __prev_header() {
-  __get_header "prev" #|| printf_red "No header info was found";
+  __get_header "prev" #|| __no_header
 }
 __replace_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
@@ -196,6 +196,13 @@ __replace_header() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 EOF
   fi
+}
+__no_header() {
+  unset gen_header_prev gen_header_replace exitCode
+  rerun=true
+  printf_red "No header info was found: Using defualt"
+  __gen_header "${filename:-command}"
+  exit $?
 }
 __set_header() {
   __header_opts "$@"
@@ -369,7 +376,7 @@ printf_help() {
   printf '\n'
 }
 get_desc() {
-  grep_head(){ grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${12:-$3} | sed 's#..* : ##g'; }
+  grep_head(){ grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | head -n${12:-$3} | sed 's#..* : ##g'; }
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
   local desc="$(grep_head "Description" "$appname" "12" | head -n1 | grep '^')"
@@ -556,15 +563,15 @@ __gen_header() {
     [ -n "$gen_header_raw" ] || [ -n "${todo:-$get_todo}" ] || printf_yellow "TODO: ${todo:-None provided}"
   fi
   if [ -n "$gen_header_prev" ]; then
-    __check_header "$filename" || printf_exit "No header info was found"
+    __check_header "$filename" || __no_header
     __providefilename "$filename"
-    printf_blue "header from $(__fullfilename "$filename")"
+    printf_blue "Imported header from $(__fullfilename "$filename")"
     printf_newline
     __prev_header
   elif [ "$gen_header_replace" = true ]; then
-    __check_header "$filename" || printf_exit "No header info was found"
+    __check_header "$filename" || __no_header
     __providefilename "$filename"
-    printf_blue "header from $(__fullfilename "$filename")"
+    printf_blue "Imported header from $(__fullfilename "$filename")"
     printf_newline
     __replace_header "$filename"
   elif [ -n "$gen_header_raw" ]; then
@@ -572,7 +579,7 @@ __gen_header() {
     printf_newline
     __gen_header_raw || rerun
   elif [ -f "$GEN_SCRIPTS_CONFIG_DIR/templates/headerfile" ] && [ -z "$gen_header_user" ]; then
-    printf_blue "header from $GEN_SCRIPTS_CONFIG_DIR/templates/headerfile"
+    printf_blue "Using header from $GEN_SCRIPTS_CONFIG_DIR/templates/headerfile"
     printf_newline
     cat <<EOF | tee
 $(. $GEN_SCRIPTS_CONFIG_DIR/templates/headerfile)
@@ -603,7 +610,7 @@ EOF
     cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="\$(basename \"$0")"
+PROG="\$(basename "\$0")"
 VERSION="$GEN_SCRIPTS_VERSION"
 USER="\${SUDO_USER:-\${USER}}"
 HOME="\${USER_HOME:-\${HOME}}"
@@ -637,7 +644,7 @@ EOF
     cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="\$(basename \"$0")"
+APPNAME="\$(basename "\$0")"
 VERSION="$GEN_SCRIPTS_VERSION"
 USER="\${SUDO_USER:-\${USER}}"
 HOME="\${USER_HOME:-\${HOME}}"
@@ -671,7 +678,7 @@ EOF
     cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="\$(basename \"$0")"
+PROG="\$(basename "\$0")"
 VERSION="GEN_SCRIPTS_REPLACE_VERSION"
 USER="\${SUDO_USER:-\${USER}}"
 HOME="\${USER_HOME:-\${HOME}}"
