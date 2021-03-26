@@ -5,31 +5,33 @@ APPNAME_README="GEN_SCRIPTS_REPLACE_APPNAME"
 # This is what I use for my user scripts
 # REPLACE_THIS_WITH_HEADER_INFO
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set variables
+__heading="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
-printf_help() {
-  printf "%b" "$(tput setaf "${2:-4}" 2>/dev/null)" "\t\t$1" "$(tput sgr0 2>/dev/null)"
-  printf '\n'
-}
-get_desc() {
-  sed_head() { sed 's#..* :##g;s#^ ##g'; }
-  grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$appname}" | grep "${1:-}"; }
+__sed_head() { sed 's#..* :##g;s#^ ##g'; }
+__grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$appname}" | grep "${1:-}"; }
+__version() { __grep_head 'Version' "$(type -P "GEN_SCRIPTS_REPLACE_FILENAME")" | __sed_head | head -n1 | grep '^'; }
+__printf_head() { __printf_color "\n\t\t$__heading\n\t\t$2\n\t\t$__heading\n" "$1"; }
+__printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
+__printf_help() { printf "%b" "$(tput setaf "${2:-4}" 2>/dev/null)" "\t\t$1" "$(tput sgr0 2>/dev/null)";printf '\n'; }
+__get_desc() {
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
-  local desc="$(grep_head "Description" "$appname" | head -n1 | sed_head | grep '^')"
+  local desc="$(__grep_head "Description" "$appname" | head -n1 | __sed_head | grep '^')"
   [ -n "$desc" ] && printf '%s' "$desc" || return 1
 }
-printf_descr() {
-  [ -n "${PROG:-$APPNAME}" ] && [ -n "$(get_desc)" ] && printf_color "    $(get_desc)" 6 || printf_help "$1" "${2:-10}"
+__printf_descr() {
+  [ -n "${PROG:-$APPNAME}" ] && [ -n "$(__get_desc)" ] && __printf_color "$(__get_desc)" 6 || __printf_help "$1" "${2:-10}"
 }
-printf_head() { printf_help "1" "################## " "$2" " ##################"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
-printf_descr "    GEN_SCRIPTS_REPLACE_DESC"
-printf_help "4" "Usage: GEN_SCRIPTS_REPLACE_APPNAME "
-printf_head "5" "Main options"
-printf_help "4" ""
-printf_help "4" "-v, --version           - show script version"
-printf_help "4" "-h, --help              - Shows this message"
+__printf_descr "    GEN_SCRIPTS_REPLACE_DESC"
+__printf_head "5" "Usage: GEN_SCRIPTS_REPLACE_APPNAME  "
+__printf_help "4" ""
+__printf_help "4" "-v, --version           - show script version"
+__printf_help "4" "-h, --help              - Shows this message"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
@@ -39,3 +41,4 @@ printf '\n'
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 #exit "${exitCode:-$?}"
+

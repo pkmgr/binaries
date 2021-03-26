@@ -25,24 +25,27 @@ SRC_DIR="${BASH_SOURCE%/*}"
 cmd_exists sh || exit 1 # exit if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
+__heading="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 __sed_head() { sed 's#..* :##g;s#^ ##g'; }
 __grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$appname}" | grep "${1:-}"; }
-__version() { __grep_head 'Version' "$(type -P "GEN_SCRIPTS_REPLACE_FILENAME")" | sed 's/#.@//g;s#^. ##g' | head -n1 | grep '^'; }
-printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
-printf_head() { printf_help "$1" "################## " "$2" " ##################"; }
-printf_help() {
+__version() { __grep_head 'Version' "$(type -P "GEN_SCRIPTS_REPLACE_FILENAME")" | __sed_head | head -n1 | grep '^'; }
+__printf_color() { printf "%b" "$(tput setaf "${2:-2}" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
+__printf_head() { __printf_color "\n\t\t$__heading\n\t\t$2\n\t\t$__heading\n" "$1"; }
+__printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
-  printf_color "\t\t$msg\n" "$color"
+  __printf_color "\t\t$msg\n" "$color"
 }
-__help(){
-  printf_help "6" "$(grep_head "Description" "GEN_SCRIPTS_REPLACE_FILENAME" | sed_head)"
-  printf_head "5" "Usage: GEN_SCRIPTS_REPLACE_FILENAME "
-  printf_help "4" ""
+__help() {
+  printf '\n'
+  __printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: $(__grep_head "Description" "GEN_SCRIPTS_REPLACE_FILENAME" | __sed_head)"
+  __printf_help "6" "Usage: GEN_SCRIPTS_REPLACE_FILENAME "
+  __printf_help "4" ""
+  printf '\n'
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables
@@ -66,7 +69,7 @@ case "$1" in
   exit
   ;;
 *)
-  exec ""
+  __printf_color "New App" "2"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

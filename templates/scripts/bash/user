@@ -39,7 +39,7 @@ GEN_SCRIPTS_REPLACE_FILENAME_main() {
   __version() { app_version; }
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   __help() {
-    app_help "4" "Usage: GEN_SCRIPTS_REPLACE_FILENAME  -  GEN_SCRIPTS_REPLACE_FILENAME --version" \
+    app_help "4" "Usage: GEN_SCRIPTS_REPLACE_FILENAME  " \
       "-c, --config           -  create config file" \
       "-v, --version          -  display version" \
       "-h, --help             -  display help" \

@@ -93,7 +93,7 @@ __remove_opts() { echo "$*" | tr ' ' '\n' | grep -sv '^-' | head -n1 | grep '^' 
 __gen_confdir() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
 __print_wait() { printf_pause "$*" && printf_newline "\n"; }
 __prev_readme() { grep -sR ^'printf_help "." ' "$1"; }
-__grep() { grep -sE ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep ${1:-} '^' || return 1; }
+__grep() { grep -sE ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep ${1:-} '^' || return 1; }
 __fullfilename() {
   if [ -f "$1" ]; then
     ls -A "$1" 2>/dev/null
@@ -108,22 +108,23 @@ __get_header() {
     if [ "$1" = "all" ]; then
       shift 1
       printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
-      grep -sE ^'.*#.@'*'.*  :' "$command" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${1:-14} | grep '^' || return 1
+      grep -sE ^'.*#.@'*'.*  :' "$command" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n${1:-14} | grep '^' || return 1
       printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
     elif [ "$1" = "prev" ]; then
       shift 1
-      grep -sE ^'.*#.@'*'.*  :' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep -Ev '${.*}|\$|GEN_SCRIPT_' | grep '^' || return 1
+      grep -sE ^'.*#.@'*'.*  :' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | grep '^' || return 1
     else
       local search="$1"
       local command="${2:-$command}"
-      grep -sE ^'.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
+      grep -sE ^'.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
     fi
   fi
 }
 __check_header() {
-  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
+  local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin:$PWD"
   local command="$(__fullfilename "${command:-$filename}")"
-  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep -q '^' || return 1
+  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' | \
+    grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep -q '^' || return 1
 }
 #__update_header "$file" "$search" "$replace"
 __update_header() {
@@ -509,13 +510,13 @@ __makefile() {
   local new="${newfile:-$2}"
   local newdir="$(__dirname "$new")"
   local newfile="$(basename "$2")"
-  local newcmd="$(command -v "$newfile" || type -P "$newfile" || ls -A "$newfile")"
   shift 2
   __mkd "$newdir"
   __vars "$new"
   __cp_rf "$temp" "$new" || return 1
   __get_prev "$new" || return 1
   __edit_header "$new" || return 1
+  local newcmd="$(command -v "$newfile" || type -P "$newfile" || ls -A "$newfile")"
   chmod -f 755 "$new" || return 1
   if grep -q 'local cur prev words cword opts' "$new"; then
     if [ -f "$newcmd" ]; then
