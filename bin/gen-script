@@ -916,10 +916,10 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$GEN_SCRIPTS_CONFIG_DIR" ] && __rm_rf "$GEN_SCRIPTS_CONFIG_DIR"
 [ -d "$GEN_SCRIPTS_CONFIG_DIR" ] || __mkd "$GEN_SCRIPTS_CONFIG_DIR"
-[ -f "$GEN_SCRIPTS_CONFIG_DIR/settings.conf" ] || __gen_config
 [ -f "$GEN_SCRIPTS_OPTSDIR/opt-header.txt" ] || __gen_opts "-header"
 [ -f "$GEN_SCRIPTS_OPTSDIR/optshort-header.txt" ] || __gen_opts "-short"
 [ -f "$GEN_SCRIPTS_OPTSDIR/optlong-long.txt" ] || __gen_opts "-long"
+[ -f "$GEN_SCRIPTS_CONFIG_DIR/settings.conf" ] || [ "$1" = -config ] || __gen_config
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case $1 in
