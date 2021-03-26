@@ -17,7 +17,7 @@ _gitadmin() {
   mkdir -p "$HOME/Projects" >/dev/null 2>&1
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/gitadmin/array)"
   local LIST="$(<$CASJAYSDEVDIR/helpers/gitadmin/list)"
   local gitOPTS="init clone remote"

@@ -15,8 +15,8 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _GEN_SCRIPTS_REPLACE_FILENAME() {
   local cur prev words cword opts
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  local prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
+  local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev}"
   local FUNCTIONSDIR="${HOME/.local/share/CasjaysDev/functions}"
   local CONFFILE="settings.conf"

@@ -16,8 +16,8 @@
 _config() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  local prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
+  local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/config/array)"
   local LIST="$(<$CASJAYSDEVDIR/helpers/config/list)"
   _init_completion || return
@@ -74,4 +74,4 @@ _config() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _config -o default config
-  #complete -F _git -o default config
+#complete -F _git -o default config

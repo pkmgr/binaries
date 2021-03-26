@@ -16,20 +16,20 @@
 _append_path() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
   local ARRAY="--help --version"
 
   _init_completion || return
 
-  if [[ ${cur} == -* ]] ; then
-    COMPREPLY=( $(compgen -W "${ARRAY}" -- ${cur}) )
+  if [[ ${cur} == -* ]]; then
+    COMPREPLY=($(compgen -W "${ARRAY}" -- ${cur}))
   else
-  case $prev in
-  *)
-    _filedir
-    return 0
-    ;;
-  esac
+    case $prev in
+    *)
+      _filedir
+      return 0
+      ;;
+    esac
   fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

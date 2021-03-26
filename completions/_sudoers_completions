@@ -16,7 +16,7 @@
 _sudoers() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/sudoers/array)"
 
   _init_completion || return
@@ -36,5 +36,4 @@ _sudoers() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _sudoers -o default sudoer
-  complete -F _sudoers -o default sudoers
-
+complete -F _sudoers -o default sudoers

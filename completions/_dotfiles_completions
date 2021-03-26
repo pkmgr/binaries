@@ -16,8 +16,8 @@
 _dotfiles() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  local prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
+  local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local ARRAY="$(<$CASJAYSDEVDIR/helpers/dotfiles/array)"
   local LIST="$(<$CASJAYSDEVDIR/helpers/dotfiles/list)"
   local ADMIN="$(<$CASJAYSDEVDIR/helpers/dotfiles/admin)"

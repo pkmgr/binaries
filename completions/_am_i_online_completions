@@ -16,7 +16,7 @@
 _am_i_online() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
   local ARRAY="--console --help"
 
   _init_completion || return
@@ -31,4 +31,3 @@ _am_i_online() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _am_i_online am_i_online
-

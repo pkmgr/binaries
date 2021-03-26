@@ -16,7 +16,7 @@
 _node() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur_word options
-  local cur_word="${COMP_WORDS[COMP_CWORD]}"
+  local cur_word="${COMP_WORDS[$COMP_CWORD]}"
   local options+="--max-http-header-size --experimental-specifier-resolution --inspect-brk-node "
   local options+=" --heap-prof-name --insecure-http-parser --inspect-brk --heap-prof --expose-internals "
   local options+="--prof-process --experimental-import-meta-resolve --trace-deprecation --no-force-async-hooks-checks "

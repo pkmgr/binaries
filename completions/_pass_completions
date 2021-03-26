@@ -92,7 +92,7 @@ _pass_complete_keys() {
 
 _pass() {
   COMPREPLY=()
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
   local commands="init ls find grep show insert generate edit rm mv cp git help version ${PASSWORD_STORE_EXTENSION_COMMANDS[*]}"
   if [[ $COMP_CWORD -gt 1 ]]; then
     local lastarg="${COMP_WORDS[$COMP_CWORD - 1]}"

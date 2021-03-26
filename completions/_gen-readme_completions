@@ -17,7 +17,7 @@ _gen-readme() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local readmeDir="${GEN_README_DIR:-$HOME/.config/gen-readme/files}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
   local ARRAY="all $(<$CASJAYSDEVDIR/helpers/gen-readme/array)"
   local INST="$(find $readmeDir/installers -type f 2>/dev/null | sed 's#'$readmeDir/installers/'##g' 2>/dev/null || return)"
   local PROJ="$(find $readmeDir/projects -type f 2>/dev/null | sed 's#'$readmeDir/projects/'##g' 2>/dev/null || return)"

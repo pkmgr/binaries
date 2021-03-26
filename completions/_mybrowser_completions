@@ -16,7 +16,7 @@
 _mybrowser() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
   local ARRAY='--version --help --config --link http:// localhost '$HOSTNAME''
 
   _init_completion || return
