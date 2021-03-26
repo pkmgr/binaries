@@ -89,11 +89,11 @@ __filename() { basename "$1" 2>/dev/null; }
 __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo "$PWD"; else dirname "$1" 2>/dev/null; fi; }
 __sed() { sed -i 's|'"$1"'|'"$2"'|g' "$3" 2>/dev/null; }
 __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exit "Please provide a filename"; }
-__remove_opts() { echo "$*" | tr ' ' '\n' | grep -v '^-' | head -n1 | grep '^' || return 1; }
+__remove_opts() { echo "$*" | tr ' ' '\n' | grep -sv '^-' | head -n1 | grep '^' || return 1; }
 __gen_confdir() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
 __print_wait() { printf_pause "$*" && printf_newline "\n"; }
-__prev_readme() { grep -R ^'printf_help "." ' "$1"; }
-__grep() { grep -E ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep ${1:-} '^' || return 1; }
+__prev_readme() { grep -sR ^'printf_help "." ' "$1"; }
+__grep() { grep -sE ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep ${1:-} '^' || return 1; }
 __fullfilename() {
   if [ -f "$1" ]; then
     ls -A "$1" 2>/dev/null
@@ -108,22 +108,22 @@ __get_header() {
     if [ "$1" = "all" ]; then
       shift 1
       printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
-      grep -E ^'.*#.@'*'.*  :' "$command" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${1:-14} | grep '^' || return 1
+      grep -sE ^'.*#.@'*'.*  :' "$command" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n${1:-14} | grep '^' || return 1
       printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
     elif [ "$1" = "prev" ]; then
       shift 1
-      grep -E ^'.*#.@'*'.*  :' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep -Ev '${.*}|\$|GEN_SCRIPT_' | grep '^' || return 1
+      grep -sE ^'.*#.@'*'.*  :' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep -Ev '${.*}|\$|GEN_SCRIPT_' | grep '^' || return 1
     else
       local search="$1"
       local command="${2:-$command}"
-      grep -E ^'.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
+      grep -sE ^'.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
     fi
   fi
 }
 __check_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "${command:-$filename}")"
-  grep ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep -q '^' || return 1
+  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' | grep -Ev '${.*}|\$|GEN_SCRIPT_' | head -n1 | grep -q '^' || return 1
 }
 #__update_header "$file" "$search" "$replace"
 __update_header() {
@@ -363,14 +363,24 @@ __import_readme() {
     cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME_README="GEN_SCRIPTS_REPLACE_APPNAME"
+APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# This is what I use for my user scripts
-# REPLACE_THIS_WITH_HEADER_INFO
+##@Version       : $GEN_SCRIPTS_VERSION
+# @Author        : $GEN_SCRIPTS_AUTHOR
+# @Contact       : $GEN_SCRIPTS_EMAIL
+# @License       : $GEN_SCRIPTS_DEFLICENSE
+# @ReadME        : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) --help
+# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
+# @Created       : $GEN_SCRIPTS_CREATED
+# @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
+# @Description   : ${desc:-$get_desc}
+# @TODO          : ${todo:-$get_todo}
+# @Other         : ${other:-$get_other}
+# @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 printf_help() {
-  printf "%b" "$(tput setaf "\${2:-4}" 2>/dev/null)" "\t\t\$1" "\$(tput sgr0 2>/dev/null)"
+  printf "%b" "\$(tput setaf "\${2:-4}" 2>/dev/null)" "\t\t\$1" "\$(tput sgr0 2>/dev/null)"
   printf '\n'
 }
 get_desc() {
@@ -386,13 +396,14 @@ printf_descr() {
 printf_head() { printf_help "1" "################## " "\$2" " ##################"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
+printf '\n'
 printf_descr "    GEN_SCRIPTS_REPLACE_DESC"
-printf_help "4" "Usage: GEN_SCRIPTS_REPLACE_APPNAME "
-printf_head "5" "Main options"
+printf_head "5" "$GEN_SCRIPTS_REPLACE_APPNAME main options"
+printf_help "4" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME "
 printf_help "4" ""
 printf_help "4" "-v, --version           - show script version"
 printf_help "4" "-h, --help              - Shows this message"
-
+$PREV_README
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
 printf '\n'
@@ -403,16 +414,27 @@ printf '\n'
 
 EOF
   else
-    cat <<EOF | tee
+    if [ -n "$PREV_README" ]; then
+      cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME_README="GEN_SCRIPTS_REPLACE_APPNAME"
+APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# This is what I use for my system scripts
-# REPLACE_THIS_WITH_HEADER_INFO
+##@Version       : $GEN_SCRIPTS_VERSION
+# @Author        : $GEN_SCRIPTS_AUTHOR
+# @Contact       : $GEN_SCRIPTS_EMAIL
+# @License       : $GEN_SCRIPTS_DEFLICENSE
+# @ReadME        : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) --help
+# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
+# @Created       : $GEN_SCRIPTS_CREATED
+# @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
+# @Description   : ${desc:-$get_desc}
+# @TODO          : ${todo:-$get_todo}
+# @Other         : ${other:-$get_other}
+# @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
-printf_color() { printf "%b" "$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
+printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
 printf_head() { printf_help "\$1" "################## " "\$2" " ##################"; }
 printf_help() {
   test -n "\$1" && test -z "\${1//[0-9]/}" && local color="\$1" && shift 1 || local color="4"
@@ -422,11 +444,9 @@ printf_help() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Begin help
-printf_help "4" "Usage: "
-printf_head "5" "Main options"
-printf_help "4" ""
-printf_help "4" "-h, --help                  - Shows this message"
-
+printf '\n'
+printf_head "5" "${PREV_DESCR:-$GEN_SCRIPTS_REPLACE_APPNAME main options}"
+$PREV_README
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
 printf '\n'
@@ -436,6 +456,51 @@ printf '\n'
 # end
 
 EOF
+    else
+      cat <<EOF | tee
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : $GEN_SCRIPTS_VERSION
+# @Author        : $GEN_SCRIPTS_AUTHOR
+# @Contact       : $GEN_SCRIPTS_EMAIL
+# @License       : $GEN_SCRIPTS_DEFLICENSE
+# @ReadME        : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) --help
+# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
+# @Created       : $GEN_SCRIPTS_CREATED
+# @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
+# @Description   : ${desc:-$get_desc}
+# @TODO          : ${todo:-$get_todo}
+# @Other         : ${other:-$get_other}
+# @Resource      : ${res:-$get_res}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set functions
+printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
+printf_head() { printf_help "\$1" "################## " "\$2" " ##################"; }
+printf_help() {
+  test -n "\$1" && test -z "\${1//[0-9]/}" && local color="\$1" && shift 1 || local color="4"
+  local msg="\$*"
+  shift
+  printf_color "\t\t\$msg\n" "\$color"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Begin help
+printf '\n'
+printf_head "5" "$GEN_SCRIPTS_REPLACE_APPNAME main options"
+printf_help "4" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME "
+printf_help "4" ""
+printf_help "4" "-h, --help                  - Shows this message"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end help
+printf '\n'
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#exit "\${exitCode:-1}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# end
+
+EOF
+    fi
   fi
 }
 
@@ -896,22 +961,27 @@ case $1 in
 
 -readme)
   shift 1
-  [ $# -ne 0 ] || printf_exit 1 1 "Usage: gen-script -readme template filename importfile type[system,user]"
+  if [ $# -lt 3 ]; then printf_exit 1 1 "Usage: gen-script -readme template filename importfile type[system,user]"; fi
   printf_green "Creating the readme file"
   readme_template="$GEN_SCRIPTS_CONFIG_DIR/files/other/${1:=script_help}"
   prev_filename="${3:-$2}"
   new_filename="${2:-$PWD/man/$(basename "$prev_filename")}"
   new_type="${4:-system}"
-  printf_yellow "Coping $readme_template to $new_filename"
-  [ -f "$new_filename" ] && __mv_f "$new_filename" "$new_filename.$$"
+  GEN_SCRIPTS_NEWFILE="$prev_filename"
+  PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
+  GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
+  __get_prev "$(basename "$prev_filename")"
+  desc="$(basename "$prev_filename") manual"
+  printf_yellow "Using the $new_type template and copying"
+  printf_green "from: $readme_template"
+  printf_green "to: $new_filename "
+  [ -f "$new_filename" ] && __cp_rf "$new_filename" "$GEN_SCRIPTS_CONFIG_DIR/backups/$new_filename"
   if [ -f "$readme_template" ] && [ -f "$prev_filename" ]; then
-    __prev_readme "$(__fullfilename "$prev_filename")"
     __mkd "$(dirname "$new_filename")"
     __cp_rf "$readme_template" "$new_filename"
     printf_blue "Importing from $prev_filename"
     __import_readme "${new_type:-system}" "$(__prev_readme "$prev_filename")" >"$new_filename"
     [ -f "$new_filename" ] && __sed "GEN_SCRIPTS_REPLACE_APPNAME" "$(basename "$new_filename")" "$new_filename"
-    #cat <<<"$(__prev_readme "$prev_filename")" | tee -a "$new_filename"
   elif [ -n "$new_filename" ]; then
     __mkd "$(dirname "$new_filename")"
     __cp_rf "$readme_template" "$new_filename"
