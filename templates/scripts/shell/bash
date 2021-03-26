@@ -68,3 +68,4 @@ GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+

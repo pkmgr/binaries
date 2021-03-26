@@ -28,15 +28,22 @@ cmd_exists sh || exit 1 # exit if not found
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
+__sed_head() { sed 's#..* :##g;s#^ ##g'; }
+__grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$appname}" | grep "${1:-}"; }
+__version() { __grep_head 'Version' "$(type -P "GEN_SCRIPTS_REPLACE_FILENAME")" | sed 's/#.@//g;s#^. ##g' | head -n1 | grep '^'; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
-printf_head() { printf_help "4" "############################" "$1"; }
+printf_head() { printf_help "$1" "################## " "$2" " ##################"; }
 printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
   printf_color "\t\t$msg\n" "$color"
 }
-__version() { grep ^"# @" "$(type -P GEN_SCRIPTS_REPLACE_FILENAME)" && grep ^"##@" "$(type -P GEN_SCRIPTS_REPLACE_FILENAME)" | head -n1; }
+__help(){
+  printf_help "6" "$(grep_head "Description" "GEN_SCRIPTS_REPLACE_FILENAME" | sed_head)"
+  printf_head "5" "Usage: GEN_SCRIPTS_REPLACE_FILENAME "
+  printf_help "4" ""
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables
 GEN_SCRIPTS_ARRAY_DIR="$HOME/.local/share/CasjaysDev/arrays/GEN_SCRIPTS_REPLACE_FILENAME"
@@ -51,10 +58,12 @@ case "$1" in
 --help)
   shift 1
   __help
+  exit
   ;;
 --version)
   shift 1
   __version
+  exit
   ;;
 *)
   exec ""

@@ -11,10 +11,11 @@ printf_help() {
   printf '\n'
 }
 get_desc() {
-  grep_head() { grep -E ^'.*#?@'${1:-*}'' "$2" 2>/dev/null | grep '  :' | head -n${3:-12} | sed 's#..* : ##g'; }
+  sed_head() { sed 's#..* :##g;s#^ ##g'; }
+  grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$appname}" | grep "${1:-}"; }
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
-  local desc="$(grep_head "Description" "$appname" "1" | head -n1 | grep '^')"
+  local desc="$(grep_head "Description" "$appname" | head -n1 | sed_head | grep '^')"
   [ -n "$desc" ] && printf '%s' "$desc" || return 1
 }
 printf_descr() {
