@@ -123,7 +123,7 @@ __get_header() {
 __check_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin:$PWD"
   local command="$(__fullfilename "${command:-$filename}")"
-  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' | \
+  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' |
     grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep -q '^' || return 1
 }
 #__update_header "$file" "$search" "$replace"
@@ -304,7 +304,7 @@ __gen_config() {
   printf_cyan "$GEN_SCRIPTS_CONFIG_DIR/settings.conf"
   __rm_rf "$GEN_SCRIPTS_CONFIG_DIR/settings.conf"
   cat <<EOF >>"$GEN_SCRIPTS_CONFIG_DIR/settings.conf"
-GEN_SCRIPTS_COPY_CONFIRM="yes"
+GEN_SCRIPTS_COPY_CONFIRM="$GEN_SCRIPTS_COPY_CONFIRM"
 GEN_SCRIPTS_EMAIL="$GEN_SCRIPTS_EMAIL"
 GEN_SCRIPTS_AUTHOR="$GEN_SCRIPTS_AUTHOR"
 GEN_SCRIPTS_COMPANY="$GEN_SCRIPTS_COMPANY"
@@ -379,39 +379,42 @@ APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
 # @Other         : ${other:-$get_other}
 # @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set variables
+__heading="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
-printf_help() {
-  printf "%b" "\$(tput setaf "\${2:-4}" 2>/dev/null)" "\t\t\$1" "\$(tput sgr0 2>/dev/null)"
+__sed_head() { sed 's#..* :##g;s#^ ##g'; }
+__grep_head() { grep -sE '[".#]?@[A-Z]' "\$(type -P "\${2:-\$GEN_SCRIPTS_REPLACE_FILENAME}")" | grep "\${1:-}"; }
+__version() { __grep_head 'Version' "\$(type -P "GEN_SCRIPTS_REPLACE_FILENAME")" | __sed_head | head -n1 | grep '^'; }
+__printf_head() { __printf_color "\n\t\t\$__heading\n\t\t\$2\n\t\t\$__heading\n" "\$1"; }
+__printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
+__printf_help() {
+  printf "%b" "$(tput setaf "\${2:-4}" 2>/dev/null)" "\t\t\$1" "\$(tput sgr0 2>/dev/null)"
   printf '\n'
 }
-get_desc() {
-  grep_head(){ grep -E ^'.*#?@'\${1:-*}'' "\$2" 2>/dev/null | grep '  :' | head -n\${12:-$3} | sed 's#..* : ##g'; }
+__get_desc() {
   local PATH="\$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
-  local appname="\$(type -P "\${PROG:-\$APPNAME}" 2>/dev/null || command -v "\${PROG:-\$APPNAME}" 2>/dev/null)"
-  local desc="$(grep_head "Description" "\$appname" "12" | head -n1 | grep '^')"
+  local appname="$(type -P "\${PROG:-$APPNAME}" 2>/dev/null || command -v "\${PROG:-$APPNAME}" 2>/dev/null)"
+  local desc="$(__grep_head "Description" "\$appname" | head -n1 | __sed_head | grep '^')"
   [ -n "\$desc" ] && printf '%s' "\$desc" || return 1
 }
-printf_descr() {
-  [ -n "\${PROG:-$APPNAME}" ] && [ -n "\$(get_desc)" ] && printf_color "    \$(get_desc)" 6 || printf_help "\$1" "\${2:-10}"
+__printf_descr() {
+  [ -n "\${PROG:-$APPNAME}" ] && [ -n "\$(__get_desc)" ] && __printf_color "\$(__get_desc)" 6 || __printf_help "\$1" "\${2:-10}"
 }
-printf_head() { printf_help "1" "################## " "\$2" " ##################"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
-printf '\n'
-printf_descr "    GEN_SCRIPTS_REPLACE_DESC"
-printf_head "5" "$GEN_SCRIPTS_REPLACE_APPNAME main options"
-printf_help "4" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME "
-printf_help "4" ""
-printf_help "4" "-v, --version           - show script version"
-printf_help "4" "-h, --help              - Shows this message"
-$PREV_README
+__printf_descr "    $GEN_SCRIPTS_REPLACE_DESC"
+__printf_head "5" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME  "
+__printf_help "4" ""
+__printf_help "4" "-v, --version           - show script version"
+__printf_help "4" "-h, --help              - Shows this message"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end help
-printf '\n'
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#exit "\${exitCode:-1}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+#exit "\${exitCode:-$?}"
 
 EOF
   else
@@ -434,27 +437,36 @@ APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
 # @Other         : ${other:-$get_other}
 # @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set variables
+__heading="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
-printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
-printf_head() { printf_help "\$1" "################## " "\$2" " ##################"; }
-printf_help() {
+__sed_head() { sed 's#..* :##g;s#^ ##g'; }
+__grep_head() { grep -sE '[".#]?@[A-Z]' "\$(type -P "\${2:-\$GEN_SCRIPTS_REPLACE_FILENAME}")" | grep "\${1:-}"; }
+__version() { __grep_head 'Version' "\$(type -P "$GEN_SCRIPTS_REPLACE_FILENAME")" | __sed_head | head -n1 | grep '^'; }
+__printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
+__printf_head() { __printf_color "\n\t\t\$__heading\n\t\t\$2\n\t\t\$__heading\n" "\$1"; }
+__printf_help() {
   test -n "\$1" && test -z "\${1//[0-9]/}" && local color="\$1" && shift 1 || local color="4"
   local msg="\$*"
   shift
-  printf_color "\t\t\$msg\n" "\$color"
+  __printf_color "\t\t\$msg\n" "\$color"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Begin help
 printf '\n'
-printf_head "5" "${PREV_DESCR:-$GEN_SCRIPTS_REPLACE_APPNAME main options}"
+__printf_head "5" "$GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "$GEN_SCRIPTS_REPLACE_FILENAME" | __sed_head)"
 $PREV_README
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
 printf '\n'
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#exit "\${exitCode:-1}"
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "\${exitCode:-$?}"
+
 
 EOF
     else
@@ -476,29 +488,36 @@ APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
 # @Other         : ${other:-$get_other}
 # @Resource      : ${res:-$get_res}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set variables
+__heading="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
-printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
-printf_head() { printf_help "\$1" "################## " "\$2" " ##################"; }
-printf_help() {
+__sed_head() { sed 's#..* :##g;s#^ ##g'; }
+__grep_head() { grep -sE '[".#]?@[A-Z]' "\$(type -P "\${2:-\$GEN_SCRIPTS_REPLACE_FILENAME}")" | grep "\${1:-}"; }
+__version() { __grep_head 'Version' "\$(type -P "$GEN_SCRIPTS_REPLACE_FILENAME")" | __sed_head | head -n1 | grep '^'; }
+__printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
+__printf_head() { __printf_color "\n\t\t\$__heading\n\t\t\$2\n\t\t\$__heading\n" "\$1"; }
+__printf_help() {
   test -n "\$1" && test -z "\${1//[0-9]/}" && local color="\$1" && shift 1 || local color="4"
   local msg="\$*"
   shift
-  printf_color "\t\t\$msg\n" "\$color"
+  __printf_color "\t\t\$msg\n" "\$color"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Begin help
 printf '\n'
-printf_head "5" "$GEN_SCRIPTS_REPLACE_APPNAME main options"
-printf_help "4" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME "
-printf_help "4" ""
-printf_help "4" "-h, --help                  - Shows this message"
+__printf_head "5" "$GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "$GEN_SCRIPTS_REPLACE_FILENAME" | __sed_head)"
+__printf_help "6" "Usage: $GEN_SCRIPTS_REPLACE_FILENAME "
+__printf_help "4" ""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
 printf '\n'
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#exit "\${exitCode:-1}"
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "\${exitCode:-$?}"
 
 EOF
     fi
@@ -960,19 +979,21 @@ case $1 in
   exit $?
   ;;
 
--readme)
+-readme) # This needs major work done
   shift 1
-  if [ $# -lt 3 ]; then printf_exit 1 1 "Usage: gen-script -readme template filename importfile type[system,user]"; fi
+  if [ $# -lt 2 ]; then printf_exit 1 1 "Usage: gen-script -readme template filename importfile type[system,user]"; fi
   printf_green "Creating the readme file"
-  readme_template="$GEN_SCRIPTS_CONFIG_DIR/files/other/${1:=script_help}"
-  prev_filename="${3:-$2}"
-  new_filename="${2:-$PWD/man/$(basename "$prev_filename")}"
+  readme_template="$GEN_SCRIPTS_CONFIG_DIR/files/other/$1"
+  new_filename="$(dirname "$2")/man/$(basename "$2")"
+  prev_filename="${3:-$new_filename}"
   new_type="${4:-system}"
-  GEN_SCRIPTS_NEWFILE="$prev_filename"
-  PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
-  GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
   __get_prev "$(basename "$prev_filename")"
-  desc="$(basename "$prev_filename") manual"
+  desc="${get_desc:-$(basename "$prev_filename") manual}"
+  PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
+  GEN_SCRIPTS_NEWFILE="$prev_filename"
+  GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
+  GEN_SCRIPTS_REPLACE_FILENAME="$GEN_SCRIPTS_REPLACE_APPNAME"
+  GEN_SCRIPTS_REPLACE_DESC="$desc"
   printf_yellow "Using the $new_type template and copying"
   printf_green "from: $readme_template"
   printf_green "to: $new_filename "
@@ -982,11 +1003,14 @@ case $1 in
     __cp_rf "$readme_template" "$new_filename"
     printf_blue "Importing from $prev_filename"
     __import_readme "${new_type:-system}" "$(__prev_readme "$prev_filename")" >"$new_filename"
-    [ -f "$new_filename" ] && __sed "GEN_SCRIPTS_REPLACE_APPNAME" "$(basename "$new_filename")" "$new_filename"
-  elif [ -n "$new_filename" ]; then
-    __mkd "$(dirname "$new_filename")"
-    __cp_rf "$readme_template" "$new_filename"
-    __import_readme "${new_type:-system}" "$(__prev_readme "$prev_filename")" >"$new_filename"
+    if [ -f "$new_filename" ]; then
+      __sed "GEN_SCRIPTS_REPLACE_APPNAME" "$(basename "$new_filename")" "$new_filename"
+      __sed "GEN_SCRIPTS_REPLACE_FILENAME" "$(basename "$new_filename")" "$new_filename"
+      __sed "^GEN_SCRIPTS_REPLACE_DESC " "$GEN_SCRIPTS_REPLACE_DESC " "$new_filename"
+      __sed "^printf_help " "__printf_help " "$new_filename"
+    else
+      printf_exit "Failed to create $new_filename"
+    fi
   else
     printf_exit "$readme_template doesn't exist"
   fi

@@ -60,7 +60,7 @@ _gen-script() {
     COMPREPLY=($(compgen -c -- "$cur"))
   elif [[ ${#COMP_WORDS[@]} -gt 4 ]] && [[ ${COMP_WORDS[1]} = -header ]]; then
     COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "$(echo '')" "${cur}"))
-  elif [[ ${#COMP_WORDS[@]} -eq 4 ]] && [[ ${COMP_WORDS[1]} = -readme ]]; then
+  elif [[ ${#COMP_WORDS[@]} -eq 5 ]] || [[ ${#COMP_WORDS[@]} -eq 4 ]] && [[ ${COMP_WORDS[1]} = -readme ]]; then
     _filedir
   else
     if [[ "${prev}" = all ]]; then
