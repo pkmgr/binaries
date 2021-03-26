@@ -75,11 +75,15 @@ BICON_WARN="[ ⚠️ ]"
 BICON_ERROR="[ ✖ }"
 
 ' | tee -a "$HOME/.config/backupapp/$appname.conf" &>/dev/null
-  printf_green "File saved to: $HOME/.config/backupapp/$appname.conf"
-  printf_blue "You can create per app setting by running backupapp config Name Directories"
+  if [ -f "$HOME/.config/backupapp/$appname.conf" ]; then
+    printf_green "File saved to: $HOME/.config/backupapp/$appname.conf"
+    printf_blue "You can create per app setting by running backupapp config Name Directories"
+  else
+    printf_red "Failed to generate $HOME/.config/backupapp/$appname.conf"
+  fi
 }
 __backupcmd() {
-  tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname" || return 1
+  tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname_err" || return 1
 }
 main() {
   local e err appname appdir
@@ -103,6 +107,7 @@ main() {
   local icon_error="${BICON_ERROR:-✖}"
   local filename="$appname-$filenameformate.tar.gz"
   local logname="$appname-$logfilenameformat.$logfilenameextension"
+  local logname_err="$appname-$logfilenameformat.err"
   [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Initializing backup of $appname"
   __execute "sleep 3" "Initializing"
   __mkd "$backupdir" "$logdir"
@@ -181,7 +186,7 @@ case "$1" in
     shift 1
     if [ "$(__count_files "$HOME/.config/backupapp/cron/")" -ne 0 ]; then
       for cronjob in $(ls "$HOME/.config/backupapp/cron/"); do
-        source "$HOME/.config/backupapp/cron/$cronjob"
+        . "$HOME/.config/backupapp/cron/$cronjob"
         if [ -n "${_APPNAME:-$PROJECTNAME}" ] && [ -n "${_APPNAME:-$PROJECTNAME}" ]; then
           echo "Backup up $cronjob"
           main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}" >/dev/null 2>&1
