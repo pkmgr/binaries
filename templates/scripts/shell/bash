@@ -21,7 +21,6 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Other         : GEN_SCRIPTS_REPLACE_OTHER
 # @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
@@ -68,4 +67,3 @@ GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

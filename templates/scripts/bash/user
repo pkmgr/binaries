@@ -121,7 +121,7 @@ EOF
       #*) break ;;
     esac
   done
-  set -- "$SETARGS"
+  #set -- "$SETARGS"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Check for required applications
   cmd_exists --error bash || exit 1
@@ -141,4 +141,3 @@ GEN_SCRIPTS_REPLACE_FILENAME_main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

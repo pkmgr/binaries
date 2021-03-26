@@ -45,7 +45,7 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
   elif [[ ${cur} == -* ]]; then
     COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
   else
-    case $prev in
+    case ${COMP_CWORD[1]} in
     *)
       if [ -n "$FILEDIR" ]; then _filedir; fi
       if [[ "$ARRAY" = "show-none" ]]; then
@@ -69,4 +69,3 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _GEN_SCRIPTS_REPLACE_FILENAME GEN_SCRIPTS_REPLACE_FILENAME
-

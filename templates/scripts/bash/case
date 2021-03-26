@@ -51,6 +51,7 @@ GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
 __list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' && exit; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   printf_green "Generating $GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR"
   touch "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR"
@@ -61,7 +62,7 @@ __gen_config() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Defaults
+# Defaults variables
 exitCode=""
 GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
 GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME"
@@ -73,7 +74,7 @@ SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# bring in user config
+# Bring in user config
 [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR" ] &&
   . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -104,7 +105,14 @@ while :; do
     ;;
   esac
 done
-set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Remove unsupported options
+# set -- "$SETARGS"
+# while getopts ":*" opt; do
+#   case $opt in
+#   *) shift ;;
+#   esac
+# done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case $1 in
@@ -117,4 +125,3 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

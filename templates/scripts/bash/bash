@@ -95,7 +95,7 @@ while :; do
     ;;
   esac
 done
-set -- "$SETARGS"
+#set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications
 cmd_exists --error bash || exit 1
@@ -108,4 +108,3 @@ printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

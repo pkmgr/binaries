@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 PROG="$(basename "$0")"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-SRC_DIR="${BASH_SOURCE%/*}"
+SRC_DIR="$(dirname "$PROG")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -35,7 +35,7 @@ __version() { __grep_head 'Version' "$(type -P "GEN_SCRIPTS_REPLACE_FILENAME")" 
 __printf_color() { printf "%b" "$(tput setaf "${2:-2}" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 __printf_head() { __printf_color "\n\t\t$__heading\n\t\t$2\n\t\t$__heading\n" "$1"; }
 __printf_help() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  local color="$1" && shift 1
   local msg="$*"
   shift
   __printf_color "\t\t$msg\n" "$color"
@@ -69,7 +69,7 @@ case "$1" in
   exit
   ;;
 *)
-  __printf_color "New App" "2"
+  __printf_color "\t\t$PROG\n" "2"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
