@@ -361,7 +361,7 @@ __copy_templates() {
 __import_readme() {
   type="${1:-system}"
   if [ "$type" = user ]; then
-    cat <<EOF | tee
+    cat <<EOF
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
@@ -390,22 +390,14 @@ __version() { __grep_head 'Version' "\$(type -P "GEN_SCRIPTS_REPLACE_FILENAME")"
 __printf_head() { __printf_color "\n\t\t\$__heading\n\t\t\$2\n\t\t\$__heading\n" "\$1"; }
 __printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
 __printf_help() {
-  printf "%b" "$(tput setaf "\${2:-4}" 2>/dev/null)" "\t\t\$1" "\$(tput sgr0 2>/dev/null)"
+  printf "%b" "\$(tput setaf "\${2:-4}" 2>/dev/null)" "\t\t\$1" "\$(tput sgr0 2>/dev/null)"
   printf '\n'
-}
-__get_desc() {
-  local PATH="\$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
-  local appname="$(type -P "\${PROG:-$APPNAME}" 2>/dev/null || command -v "\${PROG:-$APPNAME}" 2>/dev/null)"
-  local desc="$(__grep_head "Description" "\$appname" | head -n1 | __sed_head | grep '^')"
-  [ -n "\$desc" ] && printf '%s' "\$desc" || return 1
-}
-__printf_descr() {
-  [ -n "\${PROG:-$APPNAME}" ] && [ -n "\$(__get_desc)" ] && __printf_color "\$(__get_desc)" 6 || __printf_help "\$1" "\${2:-10}"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
-__printf_descr "    $GEN_SCRIPTS_REPLACE_DESC"
+__printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "\${GEN_SCRIPTS_REPLACE_FILENAME:-GEN_SCRIPTS_REPLACE_FILENAME help}" | __sed_head)"
 __printf_head "5" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME  "
+printf '\n'
 $PREV_README
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -416,7 +408,7 @@ $PREV_README
 
 EOF
   else
-    cat <<EOF | tee
+    cat <<EOF
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
@@ -452,9 +444,10 @@ __printf_help() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Begin help
+__printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "\${GEN_SCRIPTS_REPLACE_FILENAME:-GEN_SCRIPTS_REPLACE_FILENAME help}" | __sed_head)"
 printf '\n'
-__printf_head "5" "$GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "$GEN_SCRIPTS_REPLACE_FILENAME" | __sed_head)"
 $PREV_README
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help
 printf '\n'
@@ -934,13 +927,18 @@ case $1 in
     new_type="${3:-system}"
     __get_prev "$(basename "$prev_filename")"
     desc="${get_desc:-$(basename "$prev_filename") manual}"
-    PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
     GEN_SCRIPTS_NEWFILE="$prev_filename"
     GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
     GEN_SCRIPTS_REPLACE_FILENAME="$GEN_SCRIPTS_REPLACE_APPNAME"
     GEN_SCRIPTS_REPLACE_DESC="$desc"
     [ -f "$new_filename" ] && __cp_rf "$new_filename" "$GEN_SCRIPTS_CONFIG_DIR/backups/$new_filename"
-    [ -f "$prev_filename" ] || printf_exit "Failed to find $prev_filename"
+    if [ -f "$prev_filename" ]; then
+      PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
+    else
+      printf_error "Failed to find $prev_filename: Using ${new_type} as the default"
+      PREV_README="$(printf '\n__printf_help "5" "Usage: '$GEN_SCRIPTS_REPLACE_APPNAME'  "\n')"
+      PREV_README+="$(printf '\n__printf_help "4" "BeginHelp"\n')"
+    fi
     printf_yellow "Using the $new_type template and importing"
     printf_blue "from: $prev_filename"
     printf_blue "to: $new_filename"
