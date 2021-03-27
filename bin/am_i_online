@@ -92,6 +92,10 @@ SETARGS="${*}"
 SHORTOPTS="c,v,h,f,m:,s:"
 LONGOPTS="options,config,version,help,error,show,console,force,message:,site:,code:"
 ARRAY=""
+showerror=""
+show=""
+message=""
+console=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" ] || __gen_config &>/dev/null
