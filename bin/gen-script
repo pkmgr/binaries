@@ -63,6 +63,7 @@ GEN_SCRIPTS_COMPANY="${USER}"
 GEN_SCRIPTS_VERSIONFMT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 GEN_SCRIPTS_DEFREADME="README"
 GEN_SCRIPTS_DEFLICENSE="WTFPL"
+GEN_SCRIPTS_DEFAULT_MAN_DIR="./man"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
 GEN_SCRIPTS_CURRENT_DIR="$MYCURRDIR"
@@ -93,6 +94,10 @@ __remove_opts() { echo "$*" | tr ' ' '\n' | grep -sv '^-' | head -n1 | grep '^' 
 __gen_confdir() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
 __print_wait() { printf_pause "$*" && printf_newline "\n"; }
 __prev_readme() { grep -s '^printf_help "." ' "$1"; }
+__sed_remove_empty() { sed '/^\#/d;/^$/d;s#^ ##g'; }
+__sed_head() { sed -E 's|^.*#||g;s#^ ##g;s|^@||g' | sed 's|^..*:||g'; }
+__grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$command}" | grep "${1:-}" | __sed_head | __sed_remove_empty | grep '^' || return 1; }
+__version() { __grep_head ''${1:-Version}'' "${2:-$command}" | __sed_head | head -n1 | grep '^'; }
 __grep() { grep -sE ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep ${1:-} '^' || return 1; }
 __fullfilename() {
   found_name="$(type -P "$(basename "$1")" 2>/dev/null || command -v "$(basename "$1")" 2>/dev/null || ls -A "$1" 2>/dev/null)"
@@ -114,7 +119,7 @@ __get_header() {
       local search="$1"
       local command="${2:-$command}"
       #grep -sE '^.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
-      grep -sE '[".#]?@[A-Z]' "$command" | grep "$search" | sed -E 's/^.*#//g;s#^ ##g;s/^@//g' | awk -F': ' '{print $2}' | sed_remove_empty | grep '^' || return 1
+      __grep_head "$search" "$command" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 || return 1
     fi
   fi
 }
@@ -149,10 +154,10 @@ __get_prev() {
   local command="$(__fullfilename "$filename")"
   if [ -f "$command" ] && __check_header "$command"; then
     [ -n "$get_prev_shown" ] || printf_green "setting desc todo other and res from $(basename "$command" 2>/dev/null)"
-    get_desc="$(__get_header 'Description')"
-    get_todo="$(__get_header 'TODO')"
-    get_other="$(__get_header 'Other')"
-    get_res="$(__get_header 'Resource')"
+    get_desc="$(__get_header 'Description' || echo)"
+    get_todo="$(__get_header 'TODO' || echo)"
+    get_other="$(__get_header 'Other' || echo)"
+    get_res="$(__get_header 'Resource' || echo)"
   fi
   get_prev_shown=true
 }
@@ -192,7 +197,7 @@ EOF
 __no_header() {
   unset gen_header_prev gen_header_replace exitCode
   rerun=true
-  printf_red "No header info was found: Using defualt"
+  printf_red "No header info was found: Using default"
   __gen_header "${filename:-command}"
   exit $?
 }
@@ -317,6 +322,7 @@ GEN_SCRIPTS_REPLACE_CONFFILE="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_
 GEN_SCRIPTS_REPLACE_OPTIONS_DIR="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_OPTIONS_DIR"
 GEN_SCRIPTS_CONFIG_DIR="${GEN_SCRIPTS_CONFIG_DIR:-$GEN_SCRIPTS_CONFIG_DIR}"
 GEN_SCRIPTS_BACKUP_DIR="${GEN_SCRIPTS_BACKUP_DIR:-$GEN_SCRIPTS_CONFIG_DIR/backups}"
+GEN_SCRIPTS_DEFAULT_MAN_DIR="./man"
 # Make file options
 # Default ask
 OVERWRITE="${OVERWRITE:-A}"
@@ -474,18 +480,18 @@ __makefile() {
   chmod -f 755 "$new" || return 1
   if grep -q 'local cur prev words cword opts' "$new"; then
     if [ -f "$newcmd" ]; then
-      local GEN_SCRIPTS_REPLACE_license="$(__get_header 'License' "$new")"
-      local GEN_SCRIPTS_REPLACE_readme="$(__get_header 'ReadME' "$new")"
-      local GEN_SCRIPTS_REPLACE_desc="$(__get_header 'Description ' "$new")"
-      local GEN_SCRIPTS_REPLACE_todo="$(__get_header 'TODO ' "$new")"
-      local GEN_SCRIPTS_REPLACE_other="$(__get_header 'Other ' "$new")"
-      local GEN_SCRIPTS_REPLACE_resource="$(__get_header 'Resource ' "$new")"
-      local license="$(__get_header 'License ' "$newcmd")"
-      local readme="$(__get_header 'ReadME ' "$newcmd")"
-      local desc="$(__get_header 'Description ' "$newcmd")"
-      local todo="$(__get_header 'TODO ' "$newcmd")"
-      local other="$(__get_header 'Other ' "$newcmd")"
-      local resource="$(__get_header 'Resource' "$newcmd")"
+      local GEN_SCRIPTS_REPLACE_license="$(__get_header 'License' "$new" || echo)"
+      local GEN_SCRIPTS_REPLACE_readme="$(__get_header 'ReadME' "$new" || echo)"
+      local GEN_SCRIPTS_REPLACE_desc="$(__get_header 'Description ' "$new" || echo)"
+      local GEN_SCRIPTS_REPLACE_todo="$(__get_header 'TODO ' "$new" || echo)"
+      local GEN_SCRIPTS_REPLACE_other="$(__get_header 'Other ' "$new" || echo)"
+      local GEN_SCRIPTS_REPLACE_resource="$(__get_header 'Resource ' "$new" || echo)"
+      local license="$(__get_header 'License ' "$newcmd" || echo)"
+      local readme="$(__get_header 'ReadME ' "$newcmd" || echo)"
+      local desc="$(__get_header 'Description ' "$newcmd" || echo)"
+      local todo="$(__get_header 'TODO ' "$newcmd" || echo)"
+      local other="$(__get_header 'Other ' "$newcmd" || echo)"
+      local resource="$(__get_header 'Resource' "$newcmd" || echo)"
     fi
     [ -n "$license" ] && [ -n "$GEN_SCRIPTS_REPLACE_license" ] && __sed "$GEN_SCRIPTS_REPLACE_license" "$license" "$new"
     [ -n "$readme" ] && [ -n "$GEN_SCRIPTS_REPLACE_readme" ] && __sed "$GEN_SCRIPTS_REPLACE_readme" "$readme" "$new"
@@ -923,11 +929,11 @@ case $1 in
     shift 1
     printf_green "Importing the readme file"
     prev_filename="$1"
-    new_filename="$(dirname "$2")/man/$(basename "$2")"
+    new_filename="$(dirname "$2")/$GEN_SCRIPTS_DEFAULT_MAN_DIR/$(basename "$2")"
     new_type="${3:-system}"
     filename="$(basename "$prev_filename")"
     __get_prev "$filename" &>/dev/null
-    desc="${desc:-$filename manual}"
+    desc="filename manual"
     GEN_SCRIPTS_NEWFILE="$prev_filename"
     GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
     GEN_SCRIPTS_REPLACE_FILENAME="$GEN_SCRIPTS_REPLACE_APPNAME"
