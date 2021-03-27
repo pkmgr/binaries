@@ -52,6 +52,8 @@ __gen_config() {
 CMD_EXISTS_NOTIFY_ENABLED="yes"
 CMD_EXISTS_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
 CMD_EXISTS_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$CMD_EXISTS_NOTIFY_CLIENT_ICON}"
+CMD_EXISTS_NOTIFY_OK_MESG="Great: Nothing is missing"
+CMD_EXISTS_NOTIFY_ERROR_MESG="Error: Missing the following packages:"
 
 EOF
   if [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ]; then
@@ -71,11 +73,13 @@ CMD_EXISTS_OPTIONS_DIR="$HOME/.local/share/myscripts/options/cmd_exists"
 CMD_EXISTS_NOTIFY_ENABLED="yes"
 CMD_EXISTS_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 CMD_EXISTS_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-software}"
+CMD_EXISTS_NOTIFY_OK_MESG="Great: Nothing is missing"
+CMD_EXISTS_NOTIFY_ERROR_MESG="Error: Missing the following packages:"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h"
-LONGOPTS="options,config,version,help,ask"
+LONGOPTS="options,config,version,help,ask,show,error"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
@@ -118,6 +122,15 @@ while :; do
     shift 1
     ask="true"
     ;;
+  --show)
+    shift 1
+    show="true"
+    error="true"
+    ;;
+  --error)
+    shift 1
+    error="true"
+    ;;
   --)
     shift 1
     break
@@ -132,9 +145,11 @@ type -P bash &>/dev/null || exit 1
 # Actions based on env
 [ $# -eq 0 ] && exit
 if [ "$CMD_EXISTS_NOTIFY_ENABLED" = "yes" ]; then
-  export NOTIFY_CLIENT_NAME="${CMD_EXISTS_NOTIFY_CLIENT_NAME}"
-  export NOTIFY_CLIENT_ICON="${CMD_EXISTS_NOTIFY_CLIENT_ICON}"
-  __notifications() { notifications "$*" || return 1; }
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${CMD_EXISTS_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${CMD_EXISTS_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
 else
   __notifications() { false; }
 fi
@@ -154,6 +169,9 @@ for cmd in $args; do
   fi
   exitCode="$exitTmp"
 done
+if [ "$show" = "true" ] || [ "$error" = "true" ]; then
+  [ $exitCode -eq 0 ] && __notifications "$CMD_EXISTS_NOTIFY_OK_MESG" || __notifications "$CMD_EXISTS_NOTIFY_ERROR_MESG $missing"
+fi
 [ $exitCode -eq 0 ] && exitCode=0 || exitCode=1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$ask" = "true" ]; then

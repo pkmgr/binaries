@@ -52,13 +52,14 @@ __gen_config() {
 AM_I_ONLINE_TEST_SITE="\${AM_I_ONLINE_TEST_SITE:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_PING="\${AM_I_ONLINE_TEST_SITE_PING:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_HTTP="\${AM_I_ONLINE_TEST_SITE_HTTP:-1.1.1.1}"
-AM_I_ONLINE_TEST_SITE_HTTP_STATUS="\${AM_I_ONLINE_TEST_SITE_HTTP_STATUS:-200}"
+AM_I_ONLINE_TEST_SITE_HTTP_STATUS="\${AM_I_ONLINE_TEST_SITE_HTTP_STATUS:-[200|301]}"
 AM_I_ONLINE_NOTIFY_ENABLED="\${AM_I_ONLINE_NOTIFY_ENABLED:-yes}"
 AM_I_ONLINE_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$(basename "\$0")}"
 AM_I_ONLINE_NOTIFY_CLIENT_ICON="\${AM_I_ONLINE_NOTIFY_CLIENT_ICON:-error}"
+AM_I_ONLINE_OK_NAME="Great:"
 AM_I_ONLINE_ERROR_NAME="Error:"
 AM_I_ONLINE_ERROR_MSG="internet appears to be down and I require a working connection"
-
+AM_I_ONLINE_OK_MSG="you seem to be connected to the internet"
 EOF
   if [ -f "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" ]; then
     printf_green "Your config file for am_i_online has been created"
@@ -77,17 +78,19 @@ AM_I_ONLINE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/am_i_online"
 AM_I_ONLINE_TEST_SITE="${AM_I_ONLINE_TEST_SITE:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_PING="${AM_I_ONLINE_TEST_SITE_PING:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_HTTP="${AM_I_ONLINE_TEST_SITE_HTTP:-1.1.1.1}"
-AM_I_ONLINE_TEST_SITE_HTTP_STATUS="${AM_I_ONLINE_TEST_SITE_HTTP_STATUS:-200}"
+AM_I_ONLINE_TEST_SITE_HTTP_STATUS="${AM_I_ONLINE_TEST_SITE_HTTP_STATUS:-[200|301]}"
 AM_I_ONLINE_NOTIFY_ENABLED="${AM_I_ONLINE_NOTIFY_ENABLED:-yes}"
 AM_I_ONLINE_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
 AM_I_ONLINE_NOTIFY_CLIENT_ICON="${AM_I_ONLINE_NOTIFY_CLIENT_ICON:-error}"
-AM_I_ONLINE_ERROR_NAME="Error:"
-AM_I_ONLINE_ERROR_MSG="internet appears to be down and I require a working connection"
+AM_I_ONLINE_OK_NAME="${AM_I_ONLINE_OK_NAME:-Great:}"
+AM_I_ONLINE_ERROR_NAME="${AM_I_ONLINE_ERROR_NAME:-Error:}"
+AM_I_ONLINE_ERROR_MSG="${AM_I_ONLINE_ERROR_MSG:-internet appears to be down and I require a working connection}"
+AM_I_ONLINE_OK_MSG="${AM_I_ONLINE_OK_MSG:-you seem to be connected to the internet}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f,m:,s:"
-LONGOPTS="options,config,version,help,error,show,console,force,message:,site:"
+LONGOPTS="options,config,version,help,error,show,console,force,message:,site:,code:"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
@@ -126,6 +129,23 @@ while :; do
     __gen_config
     exit $?
     ;;
+  -f | --force)
+    shift 1
+    exit 0
+    ;;
+  --error)
+    shift 1
+    showerror="yes"
+    ;;
+  --show)
+    shift 1
+    show="yes"
+    showerror="yes"
+    ;;
+  --console)
+    shift 1
+    console="yes"
+    ;;
   -m | --message)
     shift 1
     message="$1"
@@ -136,17 +156,10 @@ while :; do
     site="$1"
     shift 1
     ;;
-  -f | --force)
+  --code)
     shift 1
-    exit 0
-    ;;
-  --error | --show)
+    status="$1"
     shift 1
-    showerror="yes"
-    ;;
-  --console)
-    shift 1
-    console="yes"
     ;;
   --)
     shift 1
@@ -162,35 +175,47 @@ cmd_exists --error bash curl ping || exit 1
 # Actions based on env
 if [ -n "$FORCE_CONNECTION" ]; then exit 0; fi
 if [ "$AM_I_ONLINE_NOTIFY_ENABLED" = "yes" ]; then
-  export NOTIFY_CLIENT_NAME="${AM_I_ONLINE_NOTIFY_CLIENT_NAME}"
-  export NOTIFY_CLIENT_ICON="${AM_I_ONLINE_NOTIFY_CLIENT_ICON}"
-  __notifications() { notifications "$*" || return 1; }
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${AM_I_ONLINE_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${AM_I_ONLINE_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
 else
   __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 test_ping() {
-  local site="${AM_I_ONLINE_TEST_SITE_PING:-$AM_I_ONLINE_TEST_SITE}"
+  local definesite="${site:-$AM_I_ONLINE_TEST_SITE_PING}"
+  local site="${definesite:-$AM_I_ONLINE_TEST_SITE}"
   timeout 1 ping -c1 "$site" &>/dev/null && true || false
   pingExit="$?"
 }
 test_http() {
-  local site="${AM_I_ONLINE_TEST_SITE_HTTP:-$AM_I_ONLINE_TEST_SITE}"
-  local status="${AM_I_ONLINE_TEST_SITE_HTTP_STATUS:-200}"
-  timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "${status}" -n1 &>/dev/null && true || false
+  local definesite="${site:-$AM_I_ONLINE_TEST_SITE_HTTP}"
+  local definestatus="${status}"
+  local site="${site:-$AM_I_ONLINE_TEST_SITE}"
+  local status="${definestatus:-$AM_I_ONLINE_TEST_SITE_HTTP_STATUS}"
+  timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep -E '${status}' -n1 &>/dev/null && true || false
   httpExit="$?"
 }
 test_ping || test_http
 if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-  [ "$console" = "yes" ] && printf_green "you seem to be connected to the internet"
+  export AM_I_ONLINE_NOTIFY_CLIENT_ICON="connect_established"
+  if [ "$show" = "yes" ]; then
+    printf_green "you seem to be connected to the internet"
+    __notifications "$AM_I_ONLINE_OK_NAME" "${message:-$AM_I_ONLINE_OK_MSG}"
+  elif [ "$console" = "yes" ]; then
+    printf_green "you seem to be connected to the internet"
+  fi
   exitCode=0
 else
   if [ "$console" = "yes" ]; then
+    showerror=no
+    printf_green "Options Used - PingSite:$AM_I_ONLINE_TEST_SITE_PING|HTTPSite:$AM_I_ONLINE_TEST_SITE_HTTP|StatusCode:$AM_I_ONLINE_TEST_SITE_HTTP_STATUS"
     printf_red "you appear to be offline" >&2
   fi
   if [ "$showerror" = "yes" ]; then
-    showerror=no
     printf_return 1 1 "${message:-$AM_I_ONLINE_ERROR_MSG}" >&2
     __notifications "$AM_I_ONLINE_ERROR_NAME" "${message:-$AM_I_ONLINE_ERROR_MSG}"
   fi

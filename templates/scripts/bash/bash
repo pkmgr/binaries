@@ -128,9 +128,11 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 if [ "$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED" = "yes" ]; then
-  export NOTIFY_CLIENT_NAME="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME}"
-  export NOTIFY_CLIENT_ICON="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
-  __notifications() { notifications "$*" || return 1; }
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
 else
   __notifications() { false; }
 fi

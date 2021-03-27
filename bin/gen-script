@@ -474,6 +474,16 @@ __makefile() {
   local new="${newfile:-$2}"
   local newdir="$(__dirname "$new")"
   local newfile="$(basename "$2")"
+  # local comptest="$(grep -q 'local cur prev words cword opts' "$new" && echo true || return 1)"
+  # local manscript=""
+  # if [ "$comptest" = "true" ]; then
+  #   newdir="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_COMPLETION_DIR"
+  #   new="_$(basename "$new")_completion"
+  # fi
+  # if [ "$manscript" = "true" ]; then
+  #   newdir="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_MAN_DIR"
+  #   new="$(basename "$new")"
+  # fi
   shift 2
   __mkd "$newdir"
   __vars "$new"
@@ -505,7 +515,8 @@ __makefile() {
     [ -n "$resource" ] && [ -n "$GEN_SCRIPTS_REPLACE_resource" ] && __sed "$GEN_SCRIPTS_REPLACE_resource" "$resource" "$new"
     local compfile="_$(basename "$new")_completion"
     local destfolder="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_COMPLETION_DIR"
-    printf_cyan "Creating the completion file: $compfile"
+    printf_cyan "Creating and moving the completion file:"
+    printf_yellow "$destfolder/$compfile"
     __mkd "$destfolder" &&
       __mv_f "$new" "$destfolder/$compfile" &&
       new="$destfolder/$compfile" &&
