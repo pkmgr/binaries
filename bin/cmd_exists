@@ -49,7 +49,8 @@ __gen_config() {
     cp -Rf "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE.$$"
   cat <<EOF >"$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE"
 # Settings for cmd_exists
-CMD_EXISTS_NOTIFY_ENABLED="yes"
+CMD_EXISTS_NOTIFY_ENABLED="${CMD_EXISTS_NOTIFY_ENABLED:-yes}"
+CMD_EXISTS_NOTIFY_OK_ENABLED="${CMD_EXISTS_NOTIFY_OK_ENABLED:-no}"
 CMD_EXISTS_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
 CMD_EXISTS_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$CMD_EXISTS_NOTIFY_CLIENT_ICON}"
 CMD_EXISTS_NOTIFY_OK_MESG="Great: Nothing is missing"
@@ -70,7 +71,8 @@ exitCode=""
 CMD_EXISTS_CONFIG_FILE="settings.conf"
 CMD_EXISTS_CONFIG_DIR="$HOME/.config/myscripts/cmd_exists"
 CMD_EXISTS_OPTIONS_DIR="$HOME/.local/share/myscripts/options/cmd_exists"
-CMD_EXISTS_NOTIFY_ENABLED="${CMD_EXISTS_NOTIFY_ENABLED:-no}"
+CMD_EXISTS_NOTIFY_ENABLED="${CMD_EXISTS_NOTIFY_ENABLED:-yes}"
+CMD_EXISTS_NOTIFY_OK_ENABLED="${CMD_EXISTS_NOTIFY_OK_ENABLED:-no}"
 CMD_EXISTS_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 CMD_EXISTS_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-software}"
 CMD_EXISTS_NOTIFY_OK_MESG="${CMD_EXISTS_NOTIFY_OK_MESG:-Great: Nothing is missing}"
@@ -84,7 +86,6 @@ ARRAY=""
 CMD_EXISTS_NOTIFY_SHOW=""
 CMD_EXISTS_NOTIFY_SHOW_ERROR=""
 CMD_EXISTS_NOTIFY_ASK=""
-printf_exit 1 2 "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -174,7 +175,8 @@ for cmd in $args; do
   exitCode="$exitTmp"
 done
 if [ "$CMD_EXISTS_NOTIFY_SHOW" = "yes" ] || [ "$CMD_EXISTS_NOTIFY_SHOW_ERROR" = "yes" ]; then
-  [ $exitCode -eq 0 ] || __notifications "$CMD_EXISTS_NOTIFY_ERROR_MESG $missing"
+  [ $exitCode -eq 0 ] && [ "$CMD_EXISTS_NOTIFY_OK_ENABLED" = "yes" ] && __notifications "$CMD_EXISTS_NOTIFY_OK_MESG"
+  [ $exitCode -ne 0 ] && __notifications "$CMD_EXISTS_NOTIFY_ERROR_MESG $missing"
 fi
 [ $exitCode -eq 0 ] && exitCode=0 || exitCode=1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
