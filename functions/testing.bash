@@ -128,9 +128,9 @@ __exec() {
   local cmd="$1" && shift 1
   local args="$*" && shift $#
   if [ "$cmd" = "$TERMINAL" ]; then
-    eval "$cmd $args" 2>/dev/null
+    eval $cmd "$args" 2>/dev/null && true || notifications "Failed to launch $cmd $args"
   else
-    exec "$cmd $args" &>/dev/null &
+    exec $cmd "$args" &>/dev/null && true || notifications "Failed to launch $cmd $args" &
   fi
 }
 # macos fixes
@@ -505,6 +505,20 @@ __local_sysname() {
     return 1
   fi
 }
+###################### Options ######################
+__list_array() {
+  local OPTSDIR="${1:-$HOME/.local/share/myscripts/options/${APPNAME:-$PROG}}"
+  mkdir -p "$OPTSDIR"
+  echo "${2:-$ARRAY}" >"$OPTSDIR/array"
+  return
+}
+__list_options() {
+  local OPTSDIR="${1:-$HOME/.local/share/myscripts/options/${APPNAME:-$PROG}}"
+  mkdir -p "$OPTSDIR"
+  echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' >"$OPTSDIR/options"
+  echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' >>"$OPTSDIR/options"
+  return
+}
 ###################### MyCurDir ######################
 #mycurrdir "$*" | returns $MyCurDir
 __mycurrdir() {
@@ -525,20 +539,24 @@ __mycurrdir() {
 ###################### checks ######################
 #cmd_exists command
 __cmd_exists() {
-  [[ "$1" = *-ask ]] && shift 1 && __requires "$@" && return $? || true
-  [ $# -eq 0 ] && return 1
-  local args="$*"
-  local exitTmp
-  local exitCode
-  for cmd in $args; do
-    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
-      local exitTmp=0
-    else
-      local exitTmp=1
-    fi
-    local exitCode+="$exitTmp"
-  done
-  [ "$exitCode" -eq 0 ] && return 0 || return 1
+  if [ -f "$(type -P cmd_exists)" ]; then
+    cmd_exists "$@"
+  else
+    [[ "$1" = *-ask ]] && shift 1 && __requires "$@" && return $? || true
+    [ $# -eq 0 ] && return 1
+    local args="$*"
+    local exitTmp
+    local exitCode
+    for cmd in $args; do
+      if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
+        local exitTmp=0
+      else
+        local exitTmp=1
+      fi
+      local exitCode+="$exitTmp"
+    done
+    [ "$exitCode" -eq 0 ] && return 0 || return 1
+  fi
 }
 #system_service_active "list of services to check"
 __system_service_active() {
@@ -1572,63 +1590,67 @@ gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || retu
 httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
 #connection test
 __am_i_online() {
-  [[ "$1" = *force ]] && return 0
-  [ -n "$FORCE_CONNECTION" ] && return 0
-  local show=no
-  local error=no
-  local console=no
-  local message=""
-  export NOTIFY_CLIENT_ICON=error
-  export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
-  case $1 in
-  *err* | *show)
-    shift 1
-    local showerror=yes
-    local site="${1:-1.1.1.1}"
-    local message="${1:-}"
-    ;;
-  *console)
-    shift 1
-    local console="yes"
-    local site="${1:-1.1.1.1}"
-    ;;
-  *)
-    local site="${1:-1.1.1.1}"
-    ;;
-  esac
-  shift
-  test_ping() {
-    timeout 1 ping -c1 "$site" &>/dev/null
-    local pingExit=$?
-  }
-  test_http() {
-    timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
-    local httpExit=$?
-  }
-  test_ping || test_http
-  if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
-    [ "$console" = "yes" ] && printf_green "you seem to be connected to the internet"
-    local exitCode=0
+  if [ -f "$(type -P am_i_online)" ]; then
+    am_i_online "$@"
   else
-    if [ "$console" = "yes" ]; then
-      printf_red "you appear to be offline" >&2
-    fi
-    if [ -n "$message" ]; then
-      local showerror=no
-      printf_return 1 1 "$message"
-      if [ -z "$NOTIFY_DISABLED" ]; then
-        notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "$message"
+    [[ "$1" = *force ]] && return 0
+    [ -n "$FORCE_CONNECTION" ] && return 0
+    local show=no
+    local error=no
+    local console=no
+    local message=""
+    export NOTIFY_CLIENT_ICON=error
+    export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
+    case $1 in
+    *err* | *show)
+      shift 1
+      local showerror=yes
+      local site="${1:-1.1.1.1}"
+      local message="${1:-}"
+      ;;
+    *console)
+      shift 1
+      local console="yes"
+      local site="${1:-1.1.1.1}"
+      ;;
+    *)
+      local site="${1:-1.1.1.1}"
+      ;;
+    esac
+    shift
+    test_ping() {
+      timeout 1 ping -c1 "$site" &>/dev/null
+      local pingExit=$?
+    }
+    test_http() {
+      timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+      local httpExit=$?
+    }
+    test_ping || test_http
+    if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
+      [ "$console" = "yes" ] && printf_green "you seem to be connected to the internet"
+      local exitCode=0
+    else
+      if [ "$console" = "yes" ]; then
+        printf_red "you appear to be offline" >&2
       fi
-    elif [ "$showerror" = "yes" ]; then
-      notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
-      printf_red "you appear to not be connected to the internet" >&2
+      if [ -n "$message" ]; then
+        local showerror=no
+        printf_return 1 1 "$message"
+        if [ -z "$NOTIFY_DISABLED" ]; then
+          notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "$message"
+        fi
+      elif [ "$showerror" = "yes" ]; then
+        notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
+        printf_red "you appear to not be connected to the internet" >&2
+      fi
+      exitCode=1
     fi
-    exitCode=1
+    return $exitCode
   fi
-  return $exitCode
 }
 #am_i_online_err "Message"
-__am_i_online_err() { __am_i_online show "$@"; }
+__am_i_online_err() { __am_i_online --show "$@"; }
 # ask question and execute
 __ask_confirm() {
   local appname="${PROG:-$APPNAME}"
@@ -2275,20 +2297,26 @@ get_installer_version() {
     printf_info "Update Available:          Yes"
   fi
 }
-grep_head() {
-  grep -v 'GEN_SCRIPT_REPLACE' "$2" 2>/dev/null | grep '   :' |
-    grep -v '\$' |
-    grep -E ^'.*#.@'${1:-*}'' |
-    sed -E 's/..*#[#, ]@//g' |
-    sed -E 's/.*#[#, ]@//g' |
-    head -n14 |
-    grep '^' || return 1
+sed_remove_empty() { sed '/^\#/d;/^$/d;s#^ ##g'; }
+sed_head() { sed -E 's/^.*#//g;s#^ ##g;s/^@//g'; }
+grep_head() { grep -sE '[".#]?@[A-Z]' "$(type -P "${2:-$APPNAME}")" | grep "${1:-}" | sed_head | sed_remove_empty | grep '^' || return 1; }
+grep_head_remove() {
+  grep -sE '[".#]?@[A-Z]' "$(type -P "${2:-$APPNAME}")" | grep "${1:-}" | sed -E 's/^.*#//g;s#^ ##g;s/^@//g' | awk -F': ' '{print $2}' | sed_remove_empty | grep '^' || return 1
 }
+# grep_head() {
+#   grep -v "$1" "$2" 2>/dev/null | grep '   :' |
+#     grep -v '\$' |
+#     grep -E ^'.*#.@'${1:-*}'' |
+#     sed -E 's/..*#[#, ]@//g' |
+#     sed -E 's/.*#[#, ]@//g' |
+#     head -n14 |
+#     grep '^' || return 1
+# }
 ###################### help ######################
 get_desc() {
   local PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/usr/sbin"
   local appname="$(type -P "${PROG:-$APPNAME}" 2>/dev/null || command -v "${PROG:-$APPNAME}" 2>/dev/null)"
-  local desc="$(grep_head "Description" "$appname" | head -n1 | sed 's#..* : ##g')"
+  local desc="$(grep_head_remove "Description" "$appname" | head -n1)"
   [ -n "$desc" ] && printf '%s' "$desc" || printf '%s' "$(basename $appname) --help"
 }
 __help() {
@@ -2299,8 +2327,6 @@ __help() {
   }
   #----------------
   if [ -f "$CASJAYSDEVDIR/helpers/man/$APPNAME" ] && [ -s "$CASJAYSDEVDIR/helpers/man/$APPNAME" ]; then
-    printf_newline '\n'
-    printf_purple "$(get_desc)"
     source "$CASJAYSDEVDIR/helpers/man/$APPNAME"
   else
     printf_help "There is no man page for this app in: "
@@ -2308,6 +2334,24 @@ __help() {
   fi
   printf "\n"
   exit 0
+}
+__version() {
+  local name="${1:-$(basename $0)}" # get from os
+  local prog="${APPNAME:-$PROG}"    # get from file
+  local appname="${prog:-$name}"    # figure out wich one
+  filename="$(type -P $appname)"    # get filename
+  if [ -f "$filename" ]; then       # check for file
+    printf_newline
+    printf_green "Getting info for $appname"
+    grep_head "Description" "$filename" &>/dev/null &&
+      grep_head '' "$filename" | printf_readline "3" &&
+      printf_green "$(grep_head "Version" "$filename" | head -n1)" &&
+      printf_blue "Required ver  : $requiredVersion" ||
+      printf_red "File was found, however, No information was provided"
+  else
+    printf_red "${1:-$appname} was not found"
+  fi
+  printf "\n"
 }
 ###################### call options ######################
 __options() {
@@ -2381,22 +2425,7 @@ __options() {
 
   --version) ###################### get info from app ######################
     shift 1
-    local prog="${APPNAME:-$PROG}"            # get from file
-    local name="$(basename $0)"               # get from os
-    local appname="${prog:-$name}"            # figure out wich one
-    filename="$(command -v $appname)"         # get filename
-    if [ -f "$(command -v $filename)" ]; then # check for file
-      printf_newline
-      printf_green "Getting info for $appname"
-      grep_head "Description" "$filename" &>/dev/null &&
-        grep_head "*" "$filename" | printf_readline "3" &&
-        printf_green "$(grep_head "Version" "$filename" | head -n1)" &&
-        printf_blue "Required ver  : $requiredVersion" ||
-        printf_red "File was found, however, No information was provided"
-    else
-      printf_red "${1:-$appname} was not found"
-    fi
-    printf "\n"
+    __version "${APPNAME:-$PROG}"
     exit
     ;;
 

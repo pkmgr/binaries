@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103262330-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,15 +9,15 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200618-git
+##@Version       : 202103262330-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : cmd_exists --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:18 EDT
+# @Created       : Friday, Mar 26, 2021 23:30 EDT
 # @File          : cmd_exists
-# @Description   : check to see if the command exists
+# @Description   : Check to see if command exists
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -40,13 +41,123 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -z "$1" ] && __help
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE"
+  [ -d "$CMD_EXISTS_CONFIG_DIR" ] || mkdir -p "$CMD_EXISTS_CONFIG_DIR"
+  [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ] &&
+    cp -Rf "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE.$$"
+  cat <<EOF >"$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE"
+# Settings for cmd_exists
+CMD_EXISTS_NOTIFY_ENABLED="yes"
+CMD_EXISTS_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+CMD_EXISTS_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$CMD_EXISTS_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ]; then
+    printf_green "Your config file for cmd_exists has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
 exitCode=""
-LISTARRAY=""
+CMD_EXISTS_CONFIG_FILE="settings.conf"
+CMD_EXISTS_CONFIG_DIR="$HOME/.config/myscripts/cmd_exists"
+CMD_EXISTS_OPTIONS_DIR="$HOME/.local/share/myscripts/options/cmd_exists"
+CMD_EXISTS_NOTIFY_ENABLED="yes"
+CMD_EXISTS_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+CMD_EXISTS_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$CMD_EXISTS_NOTIFY_CLIENT_ICON}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__cmd_exists "$@"
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help,ask"
+ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit ${exitCode:-$?}
+# Generate Files
+[ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$CMD_EXISTS_OPTIONS_DIR/options" ] || __list_options "$CMD_EXISTS_OPTIONS_DIR" &>/dev/null
+[ -f "$CMD_EXISTS_OPTIONS_DIR/array" ] || __list_array "$CMD_EXISTS_OPTIONS_DIR" "$ARRAY" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# Import config
+if [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ]; then
+  . "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$CMD_EXISTS_OPTIONS_DIR" "$ARRAY"
+    __list_options "$CMD_EXISTS_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    #__version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -ask | --ask)
+    ask=true
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+type -P bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+[ $# -eq 0 ] && exit 1
+if [ "$CMD_EXISTS_NOTIFY_ENABLED" = "yes" ]; then
+  export NOTIFY_CLIENT_NAME="${CMD_EXISTS_NOTIFY_CLIENT_NAME}"
+  export NOTIFY_CLIENT_ICON="${CMD_EXISTS_NOTIFY_CLIENT_ICON}"
+  __notifications() { notifications "$*" || return 1; }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+if [[ "$ask" = true ]]; then
+  shift 1 && __requires "$@"
+  exit $?
+else
+  args="$*"
+  exitTmp=""
+  for cmd in $args; do
+    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
+      exitTmp=0
+    else
+      exitTmp=1
+    fi
+    exitCode+="$exitTmp"
+  done
+  [ "$exitCode" -eq 0 ] && exitCode=0 || exitCode=1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

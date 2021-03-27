@@ -108,23 +108,23 @@ __get_header() {
     if [ "$1" = "all" ]; then
       shift 1
       printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
-      grep -sE ^'.*#.@'*'.*  :' "$command" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n${1:-14} | grep '^' || return 1
+      grep -sE '^.*#.@'*'.*  :' "$command" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n${1:-14} | grep '^' || return 1
       printf "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
     elif [ "$1" = "prev" ]; then
       shift 1
-      grep -sE ^'.*#.@'*'.*  :' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | grep '^' || return 1
+      grep -sE '^.*#.@'*'.*  :' -B1 -A1 "$command" 2>/dev/null | head -n${1:-14} | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | grep '^' || return 1
     else
       local search="$1"
       local command="${2:-$command}"
-      grep -sE ^'.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
+      #grep -sE '^.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
+      grep -sE '[".#]?@[A-Z]' "$command" | grep "$search" | sed -E 's/^.*#//g;s#^ ##g;s/^@//g' | awk -F': ' '{print $2}' | sed_remove_empty | grep '^' || return 1
     fi
   fi
 }
 __check_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin:$PWD"
   local command="$(__fullfilename "${command:-$filename}")"
-  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep '   :' |
-    grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep -q '^' || return 1
+  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep -q '^' || return 1
 }
 #__update_header "$file" "$search" "$replace"
 __update_header() {
@@ -517,12 +517,14 @@ __edit_header() {
   local GEN_SCRIPTS_REPLACE_CONFDIR="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")_CONFIG_DIR"
   local GEN_SCRIPTS_REPLACE_CONFFILE="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")_CONFIG_FILE"
   local GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")_OPTIONS_DIR"
+  local GEN_SCRIPTS_REPLACE_ENV="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")"
   __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
   __sed "GEN_SCRIPTS_REPLACE_APPNAME" "${GEN_SCRIPTS_NEWFILEDIR##*/}" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_CONFDIR" "$GEN_SCRIPTS_REPLACE_CONFDIR" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPTS_REPLACE_ENV" "$GEN_SCRIPTS_REPLACE_ENV" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_COPYRIGHT" "$GEN_SCRIPTS_COPYRIGHT" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_VERSION" "$GEN_SCRIPTS_VERSION" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_FILENAME" "$(__filename "$GEN_SCRIPTS_NEWFILE")" "$GEN_SCRIPTS_NEWFILE"

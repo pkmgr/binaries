@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-PROG="$(basename "$0")"
+APPNAME="$(basename "$0")"
 VERSION="GEN_SCRIPTS_REPLACE_VERSION"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
@@ -22,6 +22,25 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Other         : GEN_SCRIPTS_REPLACE_OTHER
 # @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
@@ -30,6 +49,9 @@ __gen_config() {
     cp -Rf "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE.$$"
   cat <<EOF >"$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
 # Settings for GEN_SCRIPTS_REPLACE_FILENAME
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED="yes"
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
 
 EOF
   if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
@@ -46,6 +68,10 @@ exitCode=""
 GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
 GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME"
 GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED="yes"
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
@@ -99,6 +125,15 @@ done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications
 cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED" = "yes" ]; then
+  export NOTIFY_CLIENT_NAME="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME}"
+  export NOTIFY_CLIENT_ICON="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
+  __notifications() { notifications "$*" || return 1; }
+else
+  __notifications() { false; }
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR"
