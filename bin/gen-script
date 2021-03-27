@@ -827,10 +827,16 @@ __vars() {
 }
 
 __find_file() {
+  printf_exit "$*"
   arg1=${1// /\/}
   arg2=${2// /\/}
   arg3=${3// /\/}
-  if [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/${arg3:-default}" ]; then
+  arg4=${4// /\/}
+  if [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/$arg3/${arg4:-default}" ]; then
+    template="$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/$arg3/${arg4:-default}"
+    [[ "$5" = -* ]] && dest="${newScript:-$filename}" || dest="${5:-$filename}"
+    shift 4
+  elif [ -f "$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/${arg3:-default}" ]; then
     template="$GEN_SCRIPTS_TEMPLATE_DIR/$arg1/$arg2/${arg3:-default}"
     [[ "$4" = -* ]] && dest="${newScript:-$filename}" || dest="${4:-$filename}"
     shift 3
@@ -1023,6 +1029,19 @@ case $1 in
   __gen_header "$@"
   exit $?
   ;;
+
+"$1")
+  printf_exit "$*"
+  filename="${3:-$2}"
+  __default_name "$3" "${filename}"
+  __find_file "$@"
+  ;;
+
+# completions)
+#   filename="${3:-$2}"
+#   __default_name "$3" "${filename}"
+#   __find_file "$@"
+#   ;;
 
 -i | *installers)
   filename="${3:-$2}"
