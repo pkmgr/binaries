@@ -406,9 +406,7 @@ __printf_descr() {
 # begin
 __printf_descr "    $GEN_SCRIPTS_REPLACE_DESC"
 __printf_head "5" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME  "
-__printf_help "4" ""
-__printf_help "4" "-v, --version           - show script version"
-__printf_help "4" "-h, --help              - Shows this message"
+$PREV_README
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
@@ -418,8 +416,7 @@ __printf_help "4" "-h, --help              - Shows this message"
 
 EOF
   else
-    if [ -n "$PREV_README" ]; then
-      cat <<EOF | tee
+    cat <<EOF | tee
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
@@ -467,60 +464,7 @@ printf '\n'
 # lets exit with code
 exit "\${exitCode:-$?}"
 
-
 EOF
-    else
-      cat <<EOF | tee
-#!/usr/bin/env bash
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME_README="$GEN_SCRIPTS_REPLACE_APPNAME"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : $GEN_SCRIPTS_VERSION
-# @Author        : $GEN_SCRIPTS_AUTHOR
-# @Contact       : $GEN_SCRIPTS_EMAIL
-# @License       : $GEN_SCRIPTS_DEFLICENSE
-# @ReadME        : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null) --help
-# @Copyright     : $GEN_SCRIPTS_COPYRIGHT
-# @Created       : $GEN_SCRIPTS_CREATED
-# @File          : $(__filename $GEN_SCRIPTS_NEWFILE 2>/dev/null)
-# @Description   : ${desc:-$get_desc}
-# @TODO          : ${todo:-$get_todo}
-# @Other         : ${other:-$get_other}
-# @Resource      : ${res:-$get_res}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set variables
-__heading="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set functions
-__sed_head() { sed 's#..* :##g;s#^ ##g'; }
-__grep_head() { grep -sE '[".#]?@[A-Z]' "\$(type -P "\${2:-\$GEN_SCRIPTS_REPLACE_FILENAME}")" | grep "\${1:-}"; }
-__version() { __grep_head 'Version' "\$(type -P "$GEN_SCRIPTS_REPLACE_FILENAME")" | __sed_head | head -n1 | grep '^'; }
-__printf_color() { printf "%b" "\$(tput setaf "\$2" 2>/dev/null)" "\$1" "\$(tput sgr0 2>/dev/null)"; }
-__printf_head() { __printf_color "\n\t\t\$__heading\n\t\t\$2\n\t\t\$__heading\n" "\$1"; }
-__printf_help() {
-  test -n "\$1" && test -z "\${1//[0-9]/}" && local color="\$1" && shift 1 || local color="4"
-  local msg="\$*"
-  shift
-  __printf_color "\t\t\$msg\n" "\$color"
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Begin help
-printf '\n'
-__printf_head "5" "$GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "$GEN_SCRIPTS_REPLACE_FILENAME" | __sed_head)"
-__printf_help "6" "Usage: $GEN_SCRIPTS_REPLACE_FILENAME "
-__printf_help "4" ""
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end help
-printf '\n'
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# End application
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# lets exit with code
-exit "\${exitCode:-$?}"
-
-EOF
-    fi
   fi
 }
 
@@ -981,27 +925,26 @@ case $1 in
 
 -readme) # This needs major work done
   shift 1
-  if [ $# -lt 2 ]; then printf_exit 1 1 "Usage: gen-script -readme template filename importfile type[system,user]"; fi
-  printf_green "Creating the readme file"
-  readme_template="$GEN_SCRIPTS_CONFIG_DIR/files/other/$1"
-  new_filename="$(dirname "$2")/man/$(basename "$2")"
-  prev_filename="${3:-$new_filename}"
-  new_type="${4:-system}"
-  __get_prev "$(basename "$prev_filename")"
-  desc="${get_desc:-$(basename "$prev_filename") manual}"
-  PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
-  GEN_SCRIPTS_NEWFILE="$prev_filename"
-  GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
-  GEN_SCRIPTS_REPLACE_FILENAME="$GEN_SCRIPTS_REPLACE_APPNAME"
-  GEN_SCRIPTS_REPLACE_DESC="$desc"
-  printf_yellow "Using the $new_type template and copying"
-  printf_green "from: $readme_template"
-  printf_green "to: $new_filename "
-  [ -f "$new_filename" ] && __cp_rf "$new_filename" "$GEN_SCRIPTS_CONFIG_DIR/backups/$new_filename"
-  if [ -f "$readme_template" ] && [ -f "$prev_filename" ]; then
+  if [ "$1" = "--import" ]; then
+    if [ $# -lt 2 ]; then printf_exit 1 1 "Usage: gen-script -readme -import importfile filename type[system,user]"; fi
+    shift 1
+    printf_green "Importing the readme file"
+    prev_filename="$1"
+    new_filename="$(dirname "$2")/man/$(basename "$2")"
+    new_type="${3:-system}"
+    __get_prev "$(basename "$prev_filename")"
+    desc="${get_desc:-$(basename "$prev_filename") manual}"
+    PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
+    GEN_SCRIPTS_NEWFILE="$prev_filename"
+    GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
+    GEN_SCRIPTS_REPLACE_FILENAME="$GEN_SCRIPTS_REPLACE_APPNAME"
+    GEN_SCRIPTS_REPLACE_DESC="$desc"
+    [ -f "$new_filename" ] && __cp_rf "$new_filename" "$GEN_SCRIPTS_CONFIG_DIR/backups/$new_filename"
+    [ -f "$prev_filename" ] || printf_exit "Failed to find $prev_filename"
+    printf_yellow "Using the $new_type template and importing"
+    printf_blue "from: $prev_filename"
+    printf_blue "to: $new_filename"
     __mkd "$(dirname "$new_filename")"
-    __cp_rf "$readme_template" "$new_filename"
-    printf_blue "Importing from $prev_filename"
     __import_readme "${new_type:-system}" "$(__prev_readme "$prev_filename")" >"$new_filename"
     if [ -f "$new_filename" ]; then
       __sed "GEN_SCRIPTS_REPLACE_APPNAME" "$(basename "$new_filename")" "$new_filename"
@@ -1011,14 +954,24 @@ case $1 in
     else
       printf_exit "Failed to create $new_filename"
     fi
+    if [ -f "$new_filename" ]; then
+      chmod 755 "$new_filename"
+      printf_exit 2 0 "Successfully created the new readme file"
+    else
+      printf_exit 1 1 "Creation of the readme file has failed"
+    fi
   else
-    printf_exit "$readme_template doesn't exist"
-  fi
-  if [ -f "$new_filename" ]; then
-    chmod 755 "$new_filename"
-    printf_exit 2 0 "Successfully created the new readme file"
-  else
-    printf_exit 1 1 "Creation of the readme file has failed"
+    if [ $# -lt 2 ]; then printf_exit 1 1 "Usage: gen-script -readme templatefile filename"; fi
+    readme_template="$GEN_SCRIPTS_CONFIG_DIR/files/other/$1"
+    readme_file="$2"
+    if [ -f "$readme_template" ]; then
+      printf_yellow "Using the $new_type template and copying"
+      printf_green "from: $readme_template"
+      printf_green "to: $new_filename "
+      __cp_rf "$readme_template" "$readme_file"
+    else
+      printf_exit "$readme_template doesn't exist"
+    fi
   fi
   ;;
 

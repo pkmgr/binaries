@@ -52,16 +52,21 @@ _gen-script() {
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
     compopt -o '${SHOW_COMP_OPTS_SEP}'
   fi
-  if [[ "${cur}" == --* ]]; then
+  if [[ ${#COMP_WORDS[@]} -eq 3 ]] && [[ ${COMP_WORDS[1]} = -header ]]; then
+    COMPREPLY=($(compgen -c -- "$cur"))
+  elif [[ ${#COMP_WORDS[@]} -gt 4 ]] && [[ ${COMP_WORDS[1]} = -header ]]; then
+    COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "${cur}"))
+  elif [[ ${COMP_WORDS[1]} = -readme ]]; then
+    if [[ ${COMP_WORDS[2]} = "" ]]; then
+      COMPREPLY=($(compgen -W '--import .' -- "${cur}"))
+      _filedir
+    else
+      _filedir
+    fi
+  elif [[ "${cur}" == --* ]]; then
     COMPREPLY=($(compgen -W '${HEADEROPTS}' -- ${cur}))
   elif [[ "${cur}" == -* ]]; then
     COMPREPLY=($(compgen -W '${ARGS}' -- ${cur}))
-  elif [[ ${#COMP_WORDS[@]} -eq 3 ]] && [[ ${COMP_WORDS[1]} = -header ]]; then
-    COMPREPLY=($(compgen -c -- "$cur"))
-  elif [[ ${#COMP_WORDS[@]} -gt 4 ]] && [[ ${COMP_WORDS[1]} = -header ]]; then
-    COMPREPLY=($(compgen -W '${HEADEROPTS}' -- "$(echo '')" "${cur}"))
-  elif [[ ${#COMP_WORDS[@]} -eq 5 ]] || [[ ${#COMP_WORDS[@]} -eq 4 ]] && [[ ${COMP_WORDS[1]} = -readme ]]; then
-    _filedir
   else
     if [[ "${prev}" = all ]]; then
       COMPREPLY=($(compgen -W '${ALL}' -- "${cur}"))
