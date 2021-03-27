@@ -1031,9 +1031,9 @@ case $1 in
   ;;
 
 "$1")
-  printf_exit "$*"
-  filename="${3:-$2}"
-  __default_name "$3" "${filename}"
+  shift 1
+  filename="${2:-$1}"
+  __default_name "$2" "${filename}"
   __find_file "$@"
   ;;
 
@@ -1044,20 +1044,23 @@ case $1 in
 #   ;;
 
 -i | *installers)
-  filename="${3:-$2}"
-  __default_name "$3" "${filename}"
+  shift 1
+  filename="${2:-$1}"
+  __default_name "$2" "${filename}"
   __find_file "$@"
   ;;
 
 -o | *os)
-  filename="${3:-$2}"
-  __default_name "$3" "${filename}"
+  shift 1
+  filename="${2:-$1}"
+  __default_name "$2" "${filename}"
   __find_file "$@"
   ;;
 
 -s | *shell)
-  filename="${3:-$2}"
-  __default_name "$3" "${filename}"
+  shift 1
+  filename="${2:-$1}"
+  __default_name "$2" "${filename}"
   __find_file "$@"
   ;;
 

@@ -14,7 +14,7 @@
 # @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _GEN_SCRIPTS_REPLACE_FILENAME() {
-  ___findcmd() { find -L ${1:-$CONFDIR}/ -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's|//|/|g;s#'${1:-$CONFDIR}/'##g' | grep '^' || return 1; }
+  ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
   local cur prev words cword opts
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
@@ -22,6 +22,7 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
   local CONFDIR="$HOME/.config/myscripts/settings/GEN_SCRIPTS_REPLACE_FILENAME"
   local OPTSDIR="$HOME/.local/share/myscripts/options/GEN_SCRIPTS_REPLACE_FILENAME"
   local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/settings/GEN_SCRIPTS_REPLACE_FILENAME}"
+  #local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "d" "1")"
   local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array")"
   local DEFAULTOPTS="$([ -f "$OPTSDIR/options" ] && grep -sEv '#|^$' "$OPTSDIR/options" || echo -v -h)"
   local LONGOPTS="$(grep -sEv '#|^$' "$OPTSDIR/long_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep '\--')"
