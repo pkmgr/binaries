@@ -95,9 +95,11 @@ __gen_confdir() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
 __print_wait() { printf_pause "$*" && printf_newline "\n"; }
 __prev_readme() { grep -s '^printf_help "." ' "$1"; }
 __sed_remove_empty() { sed '/^\#/d;/^$/d;s#^ ##g'; }
-__sed_head() { sed -E 's|^.*#||g;s#^ ##g;s|^@||g' | sed 's|^..*:||g'; }
-__grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$command}" | grep "${1:-}" | __sed_head | __sed_remove_empty | grep '^' || return 1; }
-__version() { __grep_head ''${1:-Version}'' "${2:-$command}" | __sed_head | head -n1 | grep '^'; }
+__sed_head_remove() { awk -F'  :' '{print $2}'; }
+__sed_head() { sed -E 's|^.*#||g;s#^ ##g;s|^@||g'; }
+__grep_head() { grep -sE '[".#]?@[A-Z]' "${2:-$command}" | grep "${1:-}" | head -n 12 | __sed_head | __sed_remove_empty | grep '^' || return 1; }
+__grep_head_remove() { grep -sE '[".#]?@[A-Z]' "${2:-$command}" | grep "${1:-}" | grep -Ev 'GEN_SCRIPTS_*|\${|\$\(' | sed_head_remove | sed '/^\#/d;/^$/d;s#^ ##g' | grep '^' || return 1; }
+__grep_version() { grep_head ''${1:-Version}'' "${2:-$command}" | __sed_head | __sed_head_remove | __sed_remove_empty | head -n1 | grep '^'; }
 __grep() { grep -sE ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep ${1:-} '^' || return 1; }
 __fullfilename() {
   found_name="$(type -P "$(basename "$1")" 2>/dev/null || command -v "$(basename "$1")" 2>/dev/null || ls -A "$1" 2>/dev/null)"
@@ -119,7 +121,7 @@ __get_header() {
       local search="$1"
       local command="${2:-$command}"
       #grep -sE '^.*#.@'$1'' "$command" 2>/dev/null | grep ' :' | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | sed 's/.*#.@'*'.*  ://g;s#^ ##g' | grep '^' || return 1
-      __grep_head "$search" "$command" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 || return 1
+      __grep_head_remove "$search" "$command" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 || return 1
     fi
   fi
 }
