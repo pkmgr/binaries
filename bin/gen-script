@@ -92,15 +92,11 @@ __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exi
 __remove_opts() { echo "$*" | tr ' ' '\n' | grep -sv '^-' | head -n1 | grep '^' || return 1; }
 __gen_confdir() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
 __print_wait() { printf_pause "$*" && printf_newline "\n"; }
-__prev_readme() { grep -sR ^'printf_help "." ' "$1"; }
+__prev_readme() { grep -s '^printf_help "." ' "$1"; }
 __grep() { grep -sE ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep ${1:-} '^' || return 1; }
 __fullfilename() {
-  if [ -f "$1" ]; then
-    found_name="$(ls -A "$1" 2>/dev/null)"
-  else
-    found_name="$(type -P "$(basename "$1")" 2>/dev/null || command -v "$(basename "$1")" 2>/dev/null)"
-  fi
-  if [ -n "$found_name" ]; then echo "$found_name"; else return 1; fi
+  found_name="$(type -P "$(basename "$1")" 2>/dev/null || command -v "$(basename "$1")" 2>/dev/null || ls -A "$1" 2>/dev/null)"
+  [ -n "$found_name" ] && echo "$found_name" || return 1
 }
 __get_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
@@ -148,6 +144,7 @@ __update_header() {
   fi
 }
 __get_prev() {
+  local filename="${1:-$filename}"
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
   local command="$(__fullfilename "$filename")"
   if [ -f "$command" ] && __check_header "$command"; then
@@ -937,14 +934,14 @@ case $1 in
     GEN_SCRIPTS_REPLACE_DESC="${get_desc:-$desc}"
     [ -f "$new_filename" ] && __cp_rf "$new_filename" "$GEN_SCRIPTS_CONFIG_DIR/backups/$new_filename"
     if [ -f "$prev_filename" ]; then
-      PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
+      PREV_README="$(cat <<<"$(__prev_readme "$prev_filename")")"
     else
       printf_error "Failed to find $prev_filename: Using ${new_type} as the default"
       PREV_README="$(printf '\n__printf_help "5" "Usage: '$GEN_SCRIPTS_REPLACE_APPNAME'  "\n')"
       PREV_README+="$(printf '\n__printf_help "4" "BeginHelp"\n')"
     fi
-    printf_yellow "Using the $new_type template and importing"
     [ -z "$GEN_SCRIPTS_REPLACE_DESC" ] || printf_yellow "Got the description from $filename"
+    printf_yellow "Using the $new_type template and importing"
     printf_blue "from: $prev_filename"
     printf_blue "to: $new_filename"
     __mkd "$(dirname "$new_filename")"
