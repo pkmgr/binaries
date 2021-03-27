@@ -81,9 +81,9 @@ SETARGS="${*}"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,ask,show,error"
 ARRAY=""
-show=""
-error=""
-ask=""
+CMD_EXISTS_NOTIFY_SHOW=""
+CMD_EXISTS_NOTIFY_SHOW_ERROR=""
+CMD_EXISTS_NOTIFY_ASK=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -123,16 +123,16 @@ while :; do
     ;;
   --ask)
     shift 1
-    ask="true"
+    CMD_EXISTS_NOTIFY_ASK="true"
     ;;
   --show)
     shift 1
-    show="true"
-    error="true"
+    CMD_EXISTS_NOTIFY_SHOW="true"
+    CMD_EXISTS_NOTIFY_SHOW_ERROR="true"
     ;;
   --error)
     shift 1
-    error="true"
+    CMD_EXISTS_NOTIFY_SHOW_ERROR="true"
     ;;
   --)
     shift 1
@@ -172,12 +172,12 @@ for cmd in $args; do
   fi
   exitCode="$exitTmp"
 done
-if [ "$show" = "true" ] || [ "$error" = "true" ]; then
+if [ "$CMD_EXISTS_NOTIFY_SHOW" = "true" ] || [ "$CMD_EXISTS_NOTIFY_SHOW_ERROR" = "true" ]; then
   [ $exitCode -eq 0 ] && __notifications "$CMD_EXISTS_NOTIFY_OK_MESG" || __notifications "$CMD_EXISTS_NOTIFY_ERROR_MESG $missing"
 fi
 [ $exitCode -eq 0 ] && exitCode=0 || exitCode=1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$ask" = "true" ]; then
+if [ "$CMD_EXISTS_NOTIFY_ASK" = "true" ]; then
   MISSING="$missing"
   if [ -n "$MISSING" ]; then
     notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Missing $MISSING"
