@@ -16,7 +16,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Saturday, Mar 20, 2021 06:11 EDT
 # @File          : append_path
-# @Description   : Append a folder to the system PATH
+# @Description   : Append a folder to the system/user PATH
 # @TODO          :
 # @Other         :
 # @Resource      :

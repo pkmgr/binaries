@@ -1678,12 +1678,8 @@ __ask_confirm() {
     fi
     return 1
   }
-  __rofi() {
-    [ "$(printf "No\\nYes" | rofi -dmenu -i -p "$1" -nb purple -sb white -sf black -nf gray)" = "Yes" ] && ${2:-true} || return 1
-  }
-  __dmenu() {
-    [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb purple -sb white -sf black -nf gray)" = "Yes" ] && ${2:-true} || return 1
-  }
+  __rofi() { [ "$(printf "No\\nYes" | rofi -dmenu -i -p "$1" -nb purple -sb white -sf black -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
+  __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb purple -sb white -sf black -nf gray)" = "Yes" ] && ${2:-true} || return 1; }
   __zenity() { zenity --question --width=400 --text="$1" --ellipsize --default-cancel && $2 || return 1; }
   __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && $2 || return 1; }
   __term() { printf_question_term "$1" "$2" || return 1; }
