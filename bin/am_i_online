@@ -92,10 +92,10 @@ SETARGS="${*}"
 SHORTOPTS="c,v,h,f,m:,s:"
 LONGOPTS="options,config,version,help,error,show,console,force,message:,site:,code:"
 ARRAY=""
-showerror=""
-show=""
-message=""
-console=""
+AM_I_ONLINE_SHOW_ERROR=""
+AM_I_ONLINE_SHOW=""
+AM_I_ONLINE_MESSAGE=""
+AM_I_ONLINE_SHOW_CONSOLE=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -139,20 +139,20 @@ while :; do
     ;;
   --error)
     shift 1
-    showerror="yes"
+    AM_I_ONLINE_SHOW_ERROR="yes"
     ;;
   --show)
     shift 1
-    show="yes"
-    showerror="yes"
+    AM_I_ONLINE_SHOW="yes"
+    AM_I_ONLINE_SHOW_ERROR="yes"
     ;;
   --console)
     shift 1
-    console="yes"
+    AM_I_ONLINE_SHOW_CONSOLE="yes"
     ;;
   -m | --message)
     shift 1
-    message="$1"
+    AM_I_ONLINE_MESSAGE="$1"
     shift 1
     ;;
   -s | --site)
@@ -206,22 +206,22 @@ test_http() {
 test_ping || test_http
 if [ "$pingExit" = 0 ] || [ "$httpExit" = 0 ]; then
   export AM_I_ONLINE_NOTIFY_CLIENT_ICON="connect_established"
-  if [ "$show" = "yes" ]; then
+  if [ "$AM_I_ONLINE_SHOW" = "yes" ]; then
     printf_green "you seem to be connected to the internet"
-    __notifications "$AM_I_ONLINE_OK_NAME" "${message:-$AM_I_ONLINE_OK_MSG}"
-  elif [ "$console" = "yes" ]; then
+    __notifications "$AM_I_ONLINE_OK_NAME" "${AM_I_ONLINE_MESSAGE:-$AM_I_ONLINE_OK_MSG}"
+  elif [ "$AM_I_ONLINE_SHOW_CONSOLE" = "yes" ]; then
     printf_green "you seem to be connected to the internet"
   fi
   exitCode=0
 else
-  if [ "$console" = "yes" ]; then
-    showerror=no
+  if [ "$AM_I_ONLINE_SHOW_CONSOLE" = "yes" ]; then
+    AM_I_ONLINE_SHOW_ERROR=no
     printf_green "Options Used - PingSite:$AM_I_ONLINE_TEST_SITE_PING|HTTPSite:$AM_I_ONLINE_TEST_SITE_HTTP|StatusCode:$AM_I_ONLINE_TEST_SITE_HTTP_STATUS"
     printf_red "you appear to be offline" >&2
   fi
-  if [ "$showerror" = "yes" ]; then
-    printf_return 1 1 "${message:-$AM_I_ONLINE_ERROR_MSG}" >&2
-    __notifications "$AM_I_ONLINE_ERROR_NAME" "${message:-$AM_I_ONLINE_ERROR_MSG}"
+  if [ "$AM_I_ONLINE_SHOW_ERROR" = "yes" ]; then
+    printf_return 1 1 "${AM_I_ONLINE_MESSAGE:-$AM_I_ONLINE_ERROR_MSG}" >&2
+    __notifications "$AM_I_ONLINE_ERROR_NAME" "${AM_I_ONLINE_MESSAGE:-$AM_I_ONLINE_ERROR_MSG}"
   fi
   exitCode=1
 fi
