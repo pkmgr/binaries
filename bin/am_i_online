@@ -56,6 +56,8 @@ AM_I_ONLINE_TEST_SITE_HTTP_STATUS="\${AM_I_ONLINE_TEST_SITE_HTTP_STATUS:-200}"
 AM_I_ONLINE_NOTIFY_ENABLED="\${AM_I_ONLINE_NOTIFY_ENABLED:-yes}"
 AM_I_ONLINE_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$(basename "\$0")}"
 AM_I_ONLINE_NOTIFY_CLIENT_ICON="\${AM_I_ONLINE_NOTIFY_CLIENT_ICON:-error}"
+AM_I_ONLINE_ERROR_NAME="Error:"
+AM_I_ONLINE_ERROR_MSG="internet appears to be down and I require a working connection"
 
 EOF
   if [ -f "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" ]; then
@@ -79,6 +81,8 @@ AM_I_ONLINE_TEST_SITE_HTTP_STATUS="${AM_I_ONLINE_TEST_SITE_HTTP_STATUS:-200}"
 AM_I_ONLINE_NOTIFY_ENABLED="${AM_I_ONLINE_NOTIFY_ENABLED:-yes}"
 AM_I_ONLINE_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$(basename "$0")}"
 AM_I_ONLINE_NOTIFY_CLIENT_ICON="${AM_I_ONLINE_NOTIFY_CLIENT_ICON:-error}"
+AM_I_ONLINE_ERROR_NAME="Error:"
+AM_I_ONLINE_ERROR_MSG="internet appears to be down and I require a working connection"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
@@ -185,13 +189,10 @@ else
   if [ "$console" = "yes" ]; then
     printf_red "you appear to be offline" >&2
   fi
-  if [ -n "$message" ]; then
+  if [ "$showerror" = "yes" ]; then
     showerror=no
-    printf_return 1 1 "$message"
-    __notifications "${AM_I_ONLINE_NOTIFY_CLIENT_NAME:-$APPNAME}" "$message"
-  elif [ "$showerror" = "yes" ]; then
-    __notifications "${AM_I_ONLINE_NOTIFY_CLIENT_NAME:-$APPNAME}" "Error: internet appears to be down and I require a working connection"
-    printf_red "you appear to not be connected to the internet" >&2
+    printf_return 1 1 "${message:-$AM_I_ONLINE_ERROR_MSG}" >&2
+    __notifications "$AM_I_ONLINE_ERROR_NAME" "${message:-$AM_I_ONLINE_ERROR_MSG}"
   fi
   exitCode=1
 fi
