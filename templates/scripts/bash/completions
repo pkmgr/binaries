@@ -40,7 +40,16 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
     compopt -o $SHOW_COMP_OPTS_SEP
   fi
 
-  case ${COMP_CWORD[1]} in
+  if [[ ${cur} == --*  ]]; then
+    COMPREPLY=($(compgen -W '${LONGOPTS}' -- ${cur}))
+  elif [[ ${cur} == -*  ]]; then
+    COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
+  else
+  case ${COMP_WORDS[1]:-$prev} in
+    --options) prev="--options" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -c | --config) prev="--config" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}"));;
+    -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
   *)
     if [ -n "$FILEDIR" ]; then _filedir; fi
     if [[ "$ARRAY" = "show-none" ]]; then
@@ -55,15 +64,15 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
     elif [[ -n "$OPTS" ]]; then
       #[ $COMP_CWORD -gt 3 ] && \
       COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
-    elif [[ ${cur} == --* ]]; then
-      COMPREPLY=($(compgen -W '${LONGOPTS}' -- ${cur}))
-    elif [[ ${cur} == -* ]]; then
-      COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
     fi
     return
     ;;
   esac
+  fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _GEN_SCRIPTS_REPLACE_FILENAME GEN_SCRIPTS_REPLACE_FILENAME
+# vim ft=shell noai
+
+
