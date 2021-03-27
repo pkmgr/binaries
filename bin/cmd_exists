@@ -81,6 +81,9 @@ SETARGS="${*}"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,ask,show,error"
 ARRAY=""
+show=""
+error=""
+ask=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ] || __gen_config &>/dev/null
