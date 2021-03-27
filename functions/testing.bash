@@ -61,7 +61,8 @@ TMPDIR="${TMP:-/tmp}"
 # Setup path
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
-TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
+TMPPATH+="/usr/local/share/CasjaysDev/scripts/bin:/usr/local/sbin:/usr/sbin:"
+TMPPATH+="/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
 PATH="$(echo "$TMPPATH" | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 unset TMPPATH
 # Setup sudo and user
@@ -539,24 +540,24 @@ __mycurrdir() {
 ###################### checks ######################
 #cmd_exists command
 __cmd_exists() {
-  if [ -f "$(type -P cmd_exists)" ]; then
-    cmd_exists "$@"
-  else
-    [[ "$1" = *-ask ]] && shift 1 && __requires "$@" && return $? || true
-    [ $# -eq 0 ] && return 1
-    local args="$*"
-    local exitTmp
-    local exitCode
-    for cmd in $args; do
-      if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
-        local exitTmp=0
-      else
-        local exitTmp=1
-      fi
-      local exitCode+="$exitTmp"
-    done
-    [ "$exitCode" -eq 0 ] && return 0 || return 1
-  fi
+  # if [ -f "$(type -P cmd_exists)" ]; then
+  #   cmd_exists "$@"
+  # else
+  [[ "$1" = *-ask ]] && shift 1 && __requires "$@" && return $? || true
+  [ $# -eq 0 ] && return 1
+  local args="$*"
+  local exitTmp
+  local exitCode
+  for cmd in $args; do
+    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
+      local exitTmp=0
+    else
+      local exitTmp=1
+    fi
+    local exitCode+="$exitTmp"
+  done
+  [ "$exitCode" -eq 0 ] && return 0 || return 1
+  # fi
 }
 #system_service_active "list of services to check"
 __system_service_active() {
@@ -709,8 +710,8 @@ __check_cpan() {
 #check_app "app"
 __require_app() { __check_app "$@" || exit 1; }
 __requires() {
-  local CMD
-  for cmd in "$@"; do
+  local ARGS="$*"
+  for cmd in $ARGS; do
     __cmd_exists "$cmd " || local CMD+="$cmd "
   done
   if [ -n "$CMD" ]; then __require_app "$CMD"; fi

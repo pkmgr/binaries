@@ -54,6 +54,15 @@ __message() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+run_requires() {
+  local ARGS="$*"
+  for cmd in $ARGS; do
+    __cmd_exists "$cmd " || local CMD+="$cmd "
+  done
+  if [ -n "$CMD" ]; then __require_app "$CMD" && exitCode=0 || exitCode=1; fi
+  [ $exitCode -eq 0 ] && return 0 || exit 1
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_pkmgr_findInstallApp() {
   __cmd_exists pkmgr || return 1
   local pkg LISTARRAY

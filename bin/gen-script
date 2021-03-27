@@ -96,10 +96,11 @@ __prev_readme() { grep -sR ^'printf_help "." ' "$1"; }
 __grep() { grep -sE ^'.*#?@'${2:-$headerfield}'.*  :' "${3:-$filename}" | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep ${1:-} '^' || return 1; }
 __fullfilename() {
   if [ -f "$1" ]; then
-    ls -A "$1" 2>/dev/null
+    found_name="$(ls -A "$1" 2>/dev/null)"
   else
-    type -P "$(basename "$1")" 2>/dev/null
+    found_name="$(type -P "$(basename "$1")" 2>/dev/null || command -v "$(basename "$1")" 2>/dev/null)"
   fi
+  if [ -n "$found_name" ]; then echo "$found_name"; else return 1; fi
 }
 __get_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin"
@@ -124,7 +125,7 @@ __get_header() {
 __check_header() {
   local PATH="/usr/local/bin:/usr/bin:/usr/sbin:/$HOME/.local/bin:$PWD"
   local command="$(__fullfilename "${command:-$filename}")"
-  grep -s ^'.*##@Version.*:' "$(__fullfilename "${command:-$filename}")" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep -q '^' || return 1
+  grep -s ^'.*##@Version.*:' "${command:-$filename}" 2>/dev/null | grep -Ev '${.*}|\$|GEN_SCRIPTS_' | head -n1 | grep -q '^' || return 1
 }
 #__update_header "$file" "$search" "$replace"
 __update_header() {
@@ -395,7 +396,7 @@ __printf_help() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin
-__printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "\${GEN_SCRIPTS_REPLACE_FILENAME:-GEN_SCRIPTS_REPLACE_FILENAME help}" | __sed_head)"
+__printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: GEN_SCRIPTS_REPLACE_DESC"
 __printf_head "5" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME  "
 printf '\n'
 $PREV_README
@@ -444,7 +445,7 @@ __printf_help() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Begin help
-__printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: \$(__grep_head "Description" "\${GEN_SCRIPTS_REPLACE_FILENAME:-GEN_SCRIPTS_REPLACE_FILENAME help}" | __sed_head)"
+__printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: GEN_SCRIPTS_REPLACE_DESC"
 printf '\n'
 $PREV_README
 
@@ -927,12 +928,13 @@ case $1 in
     prev_filename="$1"
     new_filename="$(dirname "$2")/man/$(basename "$2")"
     new_type="${3:-system}"
-    __get_prev "$(basename "$prev_filename")"
-    desc="${get_desc:-$(basename "$prev_filename") manual}"
+    filename="$(basename "$prev_filename")"
+    __get_prev "$filename" &>/dev/null
+    desc="${desc:-$filename manual}"
     GEN_SCRIPTS_NEWFILE="$prev_filename"
     GEN_SCRIPTS_REPLACE_APPNAME="$(__filename "$prev_filename")"
     GEN_SCRIPTS_REPLACE_FILENAME="$GEN_SCRIPTS_REPLACE_APPNAME"
-    GEN_SCRIPTS_REPLACE_DESC="$desc"
+    GEN_SCRIPTS_REPLACE_DESC="${get_desc:-$desc}"
     [ -f "$new_filename" ] && __cp_rf "$new_filename" "$GEN_SCRIPTS_CONFIG_DIR/backups/$new_filename"
     if [ -f "$prev_filename" ]; then
       PREV_README="$(cat <<<"$(__prev_readme "$(__fullfilename "$prev_filename")")")"
@@ -942,6 +944,7 @@ case $1 in
       PREV_README+="$(printf '\n__printf_help "4" "BeginHelp"\n')"
     fi
     printf_yellow "Using the $new_type template and importing"
+    [ -z "$GEN_SCRIPTS_REPLACE_DESC" ] || printf_yellow "Got the description from $filename"
     printf_blue "from: $prev_filename"
     printf_blue "to: $new_filename"
     __mkd "$(dirname "$new_filename")"
@@ -949,7 +952,7 @@ case $1 in
     if [ -f "$new_filename" ]; then
       __sed "GEN_SCRIPTS_REPLACE_APPNAME" "$(basename "$new_filename")" "$new_filename"
       __sed "GEN_SCRIPTS_REPLACE_FILENAME" "$(basename "$new_filename")" "$new_filename"
-      __sed "^GEN_SCRIPTS_REPLACE_DESC " "$GEN_SCRIPTS_REPLACE_DESC " "$new_filename"
+      __sed "GEN_SCRIPTS_REPLACE_DESC" "$GEN_SCRIPTS_REPLACE_DESC" "$new_filename"
       __sed "^printf_help " "__printf_help " "$new_filename"
     else
       printf_exit "Failed to create $new_filename"

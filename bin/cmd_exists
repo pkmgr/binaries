@@ -70,14 +70,18 @@ CMD_EXISTS_CONFIG_DIR="$HOME/.config/myscripts/cmd_exists"
 CMD_EXISTS_OPTIONS_DIR="$HOME/.local/share/myscripts/options/cmd_exists"
 CMD_EXISTS_NOTIFY_ENABLED="yes"
 CMD_EXISTS_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
-CMD_EXISTS_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$CMD_EXISTS_NOTIFY_CLIENT_ICON}"
-
+CMD_EXISTS_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-software}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,ask"
 ARRAY=""
+args="$*"
+exitCode=""
+exitTmp=""
+missing=""
+choice=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -115,8 +119,9 @@ while :; do
     __gen_config
     exit $?
     ;;
-  -ask | --ask)
-    ask=true
+  --ask)
+    shift 1
+    ask="true"
     ;;
   --)
     shift 1
@@ -127,7 +132,7 @@ done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications
-type -P bash || exit 1
+type -P bash &>/dev/null || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 [ $# -eq 0 ] && exit 1
@@ -140,21 +145,35 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-if [[ "$ask" = true ]]; then
-  shift 1 && __requires "$@"
-  exit $?
-else
-  args="$*"
-  exitTmp=""
-  for cmd in $args; do
-    if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
-      exitTmp=0
+for cmd in $args; do
+  if command -v "$cmd" &>/dev/null || type -P "$cmd" &>/dev/null; then
+    exitTmp+=0
+  else
+    exitTmp+=1
+    missing+="$cmd "
+  fi
+  exitCode="$exitTmp"
+done
+[ "$exitCode" -eq 0 ] && exitCode=0 || exitCode=1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ "$ask" = "true" ]; then
+  MISSING="$missing"
+  if [ -n "$MISSING" ]; then
+    notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Missing $MISSING"
+    if [ -n "$DESKTOP_SESSION" ]; then
+      __ask_confirm "Would you like install $MISSING" "pkmgr silent-install $MISSING" || return 1
     else
-      exitTmp=1
+      printf_red "The following apps are missing: $MISSING"
+      printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
+      if printf_answer_yes "$choice"; then
+        for miss in $MISSING; do
+          __execute "pkmgr silent-install $miss" "Installing $miss" && exitCode=0 || exitCode=1
+        done
+      else
+        exitCode=1
+      fi
     fi
-    exitCode+="$exitTmp"
-  done
-  [ "$exitCode" -eq 0 ] && exitCode=0 || exitCode=1
+  fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
