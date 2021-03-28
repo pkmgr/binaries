@@ -47,7 +47,6 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
     -c | --config) prev="--config" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -m | --modify)
       prev="-m"
       compopt -o nospace
@@ -83,3 +82,4 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
   # enable completions
   complete -F __GEN_SCRIPTS_REPLACE_FILENAME _GEN_SCRIPTS_REPLACE_FILENAME
 # vim ft=shell noai
+

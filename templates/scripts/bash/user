@@ -69,7 +69,7 @@ EOF
   # Defaults
   local exitCode=""
   local GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
-  local GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/misc/configs/GEN_SCRIPTS_REPLACE_FILENAME"
+  local GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPTS_REPLACE_FILENAME"
   local GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/misc/options/GEN_SCRIPTS_REPLACE_FILENAME"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Argument/Option settings
@@ -141,3 +141,4 @@ GEN_SCRIPTS_REPLACE_FILENAME_main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+
