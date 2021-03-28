@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103271625-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +9,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200614-git
+##@Version       : 202103271625-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : blog --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:14 EDT
+# @Created       : Saturday, Mar 27, 2021 16:25 EDT
 # @File          : blog
 # @Description   : Blogging script using github pages
 # @TODO          :
@@ -40,71 +41,79 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blog}"
-EDITOR="${EDITOR:-myeditor}"
-blogdir="${blogdir:-$BLOG_DIR}"
-vimoptions="${vimoptions:-"-c ':setlocal ft=notes syntax=markdown'"}"
-export GITHUB_ACCESS_TOKEN="${GITHUB_ACCESS_TOKEN:-none}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/blog/settings" ] && . "$HOME/.config/blog/settings"
-if [ "$1" = "-c" ]; then
-  shift 1
-  if [ "$1" = "default" ] || [ -z "$1" ]; then
-    conf="settings"
-  else
-    conf="$1"
-    shift 1
-  fi
-  [ -f "$HOME/.config/blog/$conf" ] && . "$HOME/.config/blog/$conf"
-  unset conf
-  [ -n "$blogdir" ] || printf_exit 1 1 "Failed to load $conf"
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__blog_init() { [ -d "${blogdir}/.git" ] && [ ! -f "${blogdir}/.nogit" ] || __git_init "${blogdir}"; }
-__blog_publish() { if [ ! -f "${blogdir}/.nogit" ]; then __cmd_exists gitcommit && gitcommit "$blogdir" "blog" "$*" || __git_commit "$blogdir" "${*:-Modified my blog}"; fi; }
-__blog_site() { __git_remote_origin "$blogdir"; }
-__blog_dir() { if [ -d "$blogdir" ]; then return 0; else return 1; fi; }
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__config() {
-  cat <<EOF >"$HOME/.config/blog/${name}"
-# Settings for $APPNAME
-unset blogdir vimoptions EDITOR
-blogdir="${curblogdir}"
-vimoptions="${curvimoptions}"
-EDITOR="${curEDITOR}"
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
+  [ -d "$BLOG_CONFIG_DIR" ] || mkdir -p "$BLOG_CONFIG_DIR"
+  [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ] &&
+    cp -Rf "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE.$$"
+  cat <<EOF >"$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
+# Settings for blog
+BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blogs/default}"
+BLOG_TEMPLATE_DIR="$CASJAYSDEVDIR/templates"
+BLOG_EDITOR="${EDITOR:-myeditor}"
+BLOG_OPTIONS_VIM="${BLOG_OPTIONS_EDITOR:-"-c ':setlocal ft=notes syntax=markdown'"}"
+GITHUB_ACCESS_TOKEN="\${GITHUB_ACCESS_TOKEN:-none}"
+BLOG_NOTIFY_ENABLED="yes"
+BLOG_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+BLOG_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$BLOG_NOTIFY_CLIENT_ICON}"
+
 EOF
+  if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
+    printf_green "Your config file for blog has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
 }
-__git_message() { [ -f "$1" ] && message="Modified: $file" || message="Added: $file"; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__git_message() { [ -f "$1" ] && message="Modified: ${file/$BLOG_DIR\//}" || message="Added: ${file/$BLOG_DIR\//}"; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__blog_init() { [ -d "${BLOG_DIR}/.git" ] && [ ! -f "${BLOG_DIR}/.nogit" ] || gitadmin "${BLOG_DIR}" setup; }
+__blog_site() { git -C "$BLOG_DIR" remote -v 2>/dev/null | grep push | head -n 1 | awk '{print $2}' 2>/dev/null | grep '^'; }
+__blog_dir() { if [ -d "$BLOG_DIR" ]; then return 0; else return 1; fi; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__blog_publish() {
+  if [ ! -f "${BLOG_DIR}/.nogit" ]; then
+    gitcommit "$BLOG_DIR" "blog" "$*"
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __edit() {
-  unset WDIR
-  export WDIR="$blogdir"
-  __edit_menu "$@" || printf_exit 1 1 "Please enter the full path of the file"
+  #unset WDIR
+  #export WDIR="$BLOG_DIR"
+  #__edit_menu "$@" || printf_exit 1 1 "Please enter the full path of the file"
+  eval $EDITOR "$1"
+  printf_pause "Press any key when done"
 }
-__init() {
-  local nogit YesNo url
-  local blogdir="${1:-blogdir}"
-  if [ ! -d "$blogdir/.git" ]; then
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__init_blog() {
+  local nogit="" YesNo="" url=""
+  local BLOG_DIR="${1:-BLOG_DIR}"
+  if [ ! -d "$BLOG_DIR/.git" ]; then
     printf_green "Initializing the repo"
     printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo" "-s"
     if printf_answer_yes "$YesNo"; then
-      printf_read_question "3" "Enter the url: " "120" "url"
-      __git_clone "$url" "$blogdir"
+      printf_read_input "3" "Enter the url: " "120" "url" "-e"
+      __git_clone "$url" "$BLOG_DIR"
     fi
-    __mkd "$blogdir/_posts" "$blogdir/_pages"
-    __blog_init "$blogdir"
+    __mkd "$BLOG_DIR/_posts" "$BLOG_DIR/_pages"
+    __blog_init "$BLOG_DIR"
     "$APPNAME" page index welcome
-    printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $blogdir"
+    printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $BLOG_DIR"
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_post_header() {
-  cat "$CASJAYSDEVDIR/templates/blog/post.md" |
+  cat "$BLOG_TEMPLATE_DIR/blog/post.md" |
     __sed "s#AuthorName#${USER}#g" |
-    __sed "s#DATE#$(date +"%Y-%m-%d %H:%M")#g" |
+    __sed "s#DATE#$(date +"$BLOG_DATE_FORMAT $BLOG_TIME_FORMAT")#g" |
     __sed "s#TITLE#${title}#g"
-
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_page_header() {
-  cat "$CASJAYSDEVDIR/templates/blog/page.md" |
+  cat "$BLOG_TEMPLATE_DIR/blog/page.md" |
     __sed "s#AuthorName#${USER}#g" |
     __sed "s#TITLE#${title}#g"
 }
@@ -112,9 +121,9 @@ __blog_page_header() {
 __newpost_template() {
   if __blog_dir; then
     local title=${1:-$title}
-    local date="$(date +"%Y-%m-%d")"
+    local date="$(date +"$BLOG_DATE_FORMAT")"
     local edit="$(echo $date-$title | __sed 's# #_#g')"
-    local file="$blogdir/_posts/$edit.md"
+    local file="$BLOG_DIR/_posts/$edit.md"
     __git_message "$file"
     __blog_post_header >"$file"
     __edit "$file"
@@ -122,10 +131,11 @@ __newpost_template() {
     printf_red "There is no blog directory"
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __newpage_template() {
   local title=${2:-$title}
   local edit="$(echo $1 | __sed 's# #_#g')"
-  local file="$blogdir/_pages/$edit.md"
+  local file="$BLOG_DIR/_pages/$edit.md"
   __git_message "$file"
   if [ ! -f "$file" ]; then
     __blog_page_header >"$file"
@@ -133,35 +143,121 @@ __newpage_template() {
   __edit "$file"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__init "$blogdir"
-[ -d "$blogdir/_posts" ] || __mkd "$blogdir/_posts"
-[ -d "$blogdir/_pages" ] || __mkd "$blogdir/_pages"
+# Defaults
+exitCode=""
+BLOG_CONFIG_FILE="settings.conf"
+BLOG_CONFIG_DIR="$HOME/.config/myscripts/blog"
+BLOG_OPTIONS_DIR="$HOME/.local/share/myscripts/options/blog"
+BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blogs/default}"
+BLOG_TEMPLATE_DIR="${BLOG_TEMPLATE_DIR:-$CASJAYSDEVDIR/templates}"
+BLOG_EDITOR="${EDITOR:-myeditor}"
+BLOG_OPTIONS_EDITOR="${BLOG_OPTIONS_EDITOR:-"-c ':setlocal ft=notes syntax=markdown'"}"
+BLOG_DATE_FORMAT="%Y-%m-%d"
+BLOG_TIME_FORMAT="%H:%M"
+BLOG_NOTIFY_ENABLED="yes"
+BLOG_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+BLOG_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$BLOG_NOTIFY_CLIENT_ICON}"
+GITHUB_ACCESS_TOKEN="${GITHUB_ACCESS_TOKEN:-none}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f:"
+LONGOPTS="options,config,version,help,file:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$BLOG_OPTIONS_DIR/options" ] || __list_options "$BLOG_OPTIONS_DIR" &>/dev/null
+[ -f "$BLOG_OPTIONS_DIR/array" ] || __list_array "$BLOG_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
+  . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$BLOG_OPTIONS_DIR" "$ARRAY"
+    __list_options "$BLOG_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --file)
+    shift 1
+    OLD_BLOG_CONFIG_FILE="$BLOG_CONFIG_FILE"
+    BLOG_CONFIG_FILE="$1"
+    shift 1
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$BLOG_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${BLOG_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${BLOG_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
+  unset BLOG_DIR
+  . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
+fi
+[ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_FILE"
+__init_blog "$BLOG_DIR"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 case "$1" in
 config)
   shift 1
-  printf_green "Generating the config and saving it to:"
-  printf_green "$HOME/.config/blog/$name"
-  name="${1:-settings}"
-  blogdir="${2:-$blogdir}"
-  curvimoptions="$vimoptions"
-  curEDITOR="$EDITOR"
-  curblogdir="$blogdir"
-  __mkd "$HOME/.config/blog"
-  __config "$name" "$curblogdir" || printf_exit "Failed"
-  __init "$curblogdir"
+  if [ "$BLOG_CONFIG_FILE" != "$OLD_BLOG_CONFIG_FILE" ]; then
+    printf_read_input "4" "Where would you like to store your blog files" "120" "BLOG_DIR" "-e -i $HOME/.local/share/blogs/$(basename "$BLOG_CONFIG_FILE")"
+  fi
+  __gen_config || printf_exit "Failed"
+  __init_blog "$BLOG_DIR"
+  exit
   ;;
 
 new)
   shift 1
   title="${1:-welcome}" && shift 1
-  date="$(date +"%Y-%m-%d")"
+  date="$(date +"$BLOG_DATE_FORMAT")"
   edit="$(echo $date-$title | __sed 's# #_#g')"
-  file="$blogdir/_posts/$edit.md"
-  [ -d "$blogdir/_posts" ] || __mkd "$blogdir/_posts"
+  file="$BLOG_DIR/_posts/$edit.md"
+  [ -d "$BLOG_DIR/_posts" ] || __mkd "$BLOG_DIR/_posts"
   __git_message "$file"
   __blog_post_header >"$file"
   __edit "$file"
-  __blog_init "$blogdir"
+  __blog_init "$BLOG_DIR"
   ;;
 
 edit)
@@ -188,11 +284,10 @@ post)
   __help
   ;;
 esac
-
 set --
 __blog_publish "$message"
-printf_newline "\n\n"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

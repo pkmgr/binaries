@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103271625-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -10,14 +11,15 @@ shopt -s extglob
 trap '' SIGINT
 trap '' SIGQUIT
 trap '' SIGTSTP
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200614-git
+##@Version       : 202103271625-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : calc --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:14 EDT
+# @Created       : Saturday, Mar 27, 2021 16:25 EDT
 # @File          : calc
 # @Description   : wrapper for qalc/bc
 # @TODO          :
@@ -43,46 +45,141 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE"
+  [ -d "$CALC_CONFIG_DIR" ] || mkdir -p "$CALC_CONFIG_DIR"
+  [ -f "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" ] &&
+    cp -Rf "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE.$$"
+  cat <<EOF >"$CALC_CONFIG_DIR/$CALC_CONFIG_FILE"
+# Settings for calc
+CALC_NOTIFY_ENABLED="yes"
+CALC_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+CALC_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$CALC_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" ]; then
+    printf_green "Your config file for calc has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __usage() {
   printf_cyan 'Usage: "20 * 4/2 + 23 - 14"'
   printf_red "press q to exit"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -z "$1" ] && __help
+calc_app() {
+  if cmd_exists qalc; then
+    local answer="$(qalc "$CALC_OUTPUT")"
+  elif cmd_exists bc; then
+    local answer="$(echo "$CALC_INPUT = $(echo "$CALC_OUTPUT" | bc -q)")"
+  else
+    printf_exit "Can't find a calculator app!"
+  fi
+  echo "$answer"
+  if [ "$CALC_NOTIFY_ENABLED" = yes ]; then __notifications "Calc" "Answer is $answer"; fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ $# -ne 1 ]; then
-  printf_info 'You must quote your params IE: calc "2 + 4" or "2*2"'
-  exit 1
+# Defaults
+exitCode=""
+CALC_CONFIG_FILE="settings.conf"
+CALC_CONFIG_DIR="$HOME/.config/myscripts/calc"
+CALC_OPTIONS_DIR="$HOME/.local/share/myscripts/options/calc"
+CALC_NOTIFY_ENABLED="yes"
+CALC_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+CALC_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$CALC_NOTIFY_CLIENT_ICON}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY="{00.99}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$CALC_OPTIONS_DIR/options" ] || __list_options "$CALC_OPTIONS_DIR" &>/dev/null
+[ -f "$CALC_OPTIONS_DIR/array" ] || __list_array "$CALC_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" ]; then
+  . "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-INPUT="$*"
-OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$CALC_OPTIONS_DIR" "$ARRAY"
+    __list_options "$CALC_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if cmd_exists qalc; then
-  calc_app() { qalc "$OUTPUT"; }
-elif cmd_exists bc; then
-  calc_app() { echo "$INPUT = $(echo "$OUTPUT" | bc -q)"; }
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+[ -n "$1" ] || __help
+#[ $# -ne 1 ] && printf_exit 'You must quote your params IE: calc "2 + 4" or "2*2"'
+if [ "$CALC_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${CALC_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${CALC_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
 else
-  printf_exit "Can't find a calculator app!"
+  __notifications() { false; }
 fi
+CALC_INPUT="$*"
+CALC_OUTPUT="$(echo "$CALC_INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 if [ "$1" = "--term" ]; then
   clear
   printf_newline "\n\n"
   __usage
   while :; do
-    printf_read_input "2" "What is it you would like to solve? " "200" "INPUT"
-    if [ "$INPUT" = "q" ] || [ -z "$INPUT" ]; then
+    printf_read_input "2" "What is it you would like to solve?" "200" "CALC_INPUT" "-e"
+    if [ "$CALC_INPUT" = "q" ] || [ -z "$CALC_INPUT" ]; then
       printf_newline "\n"
       break
     else
       clear
       printf_newline "\n\n\n"
-      if [ "$INPUT" = "h" ] || [ "$INPUT" = "?" ]; then
+      if [ "$CALC_INPUT" = "h" ] || [ "$CALC_INPUT" = "?" ]; then
         __usage
       else
-        OUTPUT="$(echo "$INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
-        calc_app "$OUTPUT" | printf_readline "5"
+        CALC_OUTPUT="$(echo "$CALC_INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
+        calc_app "$CALC_OUTPUT" | printf_readline "5"
       fi
       printf_newline
     fi
@@ -92,6 +189,7 @@ else
   calc_app | printf_readline "2"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

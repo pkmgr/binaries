@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103271625-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +9,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200613-git
+##@Version       : 202103271625-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : backupapp --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:13 EDT
+# @Created       : Saturday, Mar 27, 2021 16:25 EDT
 # @File          : backupapp
 # @Description   : Backup files and folders
 # @TODO          :
@@ -40,112 +41,38 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# check for needed applications
-__requires tar
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main application
-[ "$1" = "--yes" ] && YN="Y" && shift 1
-[ -d "$HOME/.config/backupapp" ] || __mkd "$HOME/.config/backupapp"
-[ -f "$HOME/.config/backupapp/settings" ] && . "$HOME/.config/backupapp/settings"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__config() {
-  local appname="${1:-settings}"
-  printf_green "Generating the config file for ${1:-main}"
-  echo -e '# Settings for backupapp - '${1:-main}'\nCONFIGNAME="'${1:-main}'"' >"$HOME/.config/backupapp/$appname.conf"
-  if [ -n "$1" ]; then
-    _APPNAME="$1"
-    echo PROJECTNAME="'$_APPNAME'" | tee -a "$HOME/.config/backupapp/$appname.conf" &>/dev/null
-    shift 1
-  fi
-  if [ -n "$*" ]; then
-    _APPDIRS="$*"
-    echo PROJECTDIRS="'$_APPDIRS'" | tee -a "$HOME/.config/backupapp/$appname.conf" &>/dev/null
-  fi
-  shift
-  echo 'LOG_DIR="'$HOME/.local/log/backups/apps'"
-BACKUP_DIR="'$HOME/.local/backups/apps'"
-KEEP_AMOUNT="14"
-NOTIFY_ENABLED="yes"
-LOGFILE_EXTENSION="log"
-DATE_FORMAT="%Y-%m-%d-%H_%M-%S"
-FILENAME_FORMAT="$(date +"$DATEFORMAT")"
-LOGNAME_FORMAT="$(date +"$DATEFORMAT")"
-BICON_GOOD="[ 🆗 ]"
-BICON_WARN="[ ⚠️ ]"
-BICON_ERROR="[ ✖ }"
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
+  [ -d "$BACKUPAPP_CONFIG_DIR" ] || mkdir -p "$BACKUPAPP_CONFIG_DIR"
+  [ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ] &&
+    cp -Rf "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE.$$"
+  cat <<EOF >"$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
+# Settings for backupapp
+BACKUPAPP_LOG_DIR="\$HOME/.local/log/backups/apps"
+BACKUPAPP_BACKUP_DIR="\$HOME/.local/backups/apps"
+BACKUPAPP_KEEP_AMOUNT="14"
+BACKUPAPP_NOTIFY_ENABLED="yes"
+BACKUPAPP_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-Backups}"
+BACKUPAPP_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-$BACKUPAPP_NOTIFY_CLIENT_ICON}"
+BACKUPAPP_LOGFILE_EXTENSION="log"
+BACKUPAPP_DATE_FORMAT="%Y-%m-%d-%H_%M-%S"
+BACKUPAPP_FILENAME_FORMAT="$(date +"$DATEFORMAT")"
+BACKUPAPP_LOGNAME_FORMAT="$(date +"$DATEFORMAT")"
+BACKUPAPP_BICON_GOOD="🆗"
+BACKUPAPP_BICON_WARN="⚠️"
+BACKUPAPP_BICON_ERROR="✖"
 
-' | tee -a "$HOME/.config/backupapp/$appname.conf" &>/dev/null
-  if [ -f "$HOME/.config/backupapp/$appname.conf" ]; then
-    printf_green "File saved to: $HOME/.config/backupapp/$appname.conf"
-    printf_blue "You can create per app setting by running backupapp config Name Directories"
+EOF
+  if [ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ]; then
+    printf_green "Your config file for backupapp has been created"
+    true
   else
-    printf_red "Failed to generate $HOME/.config/backupapp/$appname.conf"
+    printf_red "Failed to create the config file"
+    false
   fi
 }
-__backupcmd() {
-  tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname_err" || return 1
-}
-main() {
-  local e err appname appdir
-  local _APPNAME="${_APPNAME:-$PROJECTNAME}"
-  local _APPDIRS="${_APPDIRS:-$PROJECTDIRS}"
-  local appname="${1:-$_APPNAME}"
-  shift 1
-  local appdir="${*:-$_APPDIRS}"
-  shift $#
-  local logdir="${LOG_DIR:-$HOME/.local/log}/backups/apps"
-  local datefmt="%Y-%m-%d-%H-%M-%S"
-  local curdate="$(date +"${DATE_FORMAT:-$datefmt}")"
-  local filenameformate="${FILENAME_FORMAT:-$curdate}"
-  local logfilenameformat="${LOGNAME_FORMAT:-$curdate}"
-  local logfilenameextension="${LOGFILE_EXTENSION:-log}"
-  local backupdir="${BACKUP_DIR:-$HOME/.local/backups}/apps"
-  local notifyEnabled="${NOTIFY_ENABLED:-yes}"
-  local leaveCount="${KEEP_AMOUNT:-14}"
-  local icon_good="${BICON_GOOD:-🆗}"
-  local icon_warn="${BICON_WARN:-⚠️}"
-  local icon_error="${BICON_ERROR:-✖}"
-  local filename="$appname-$filenameformate.tar.gz"
-  local logname="$appname-$logfilenameformat.$logfilenameextension"
-  local logname_err="$appname-$logfilenameformat.err"
-  [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Initializing backup of $appname"
-  __execute "sleep 3" "Initializing"
-  __mkd "$backupdir" "$logdir"
-  for e in $appdir; do [ -e "$e" ] || err="$e"; done
-  if [ -n "$err" ]; then
-    [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Can't back up: $err doesn't exists"
-    printf_error "Can't back up: $err doesn't exists"
-    exit 1
-  fi
-  shift
-
-  printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$logname" >>"$logdir/$logname"
-  __execute "__backupcmd" "Backing up $appname to $backupdir"
-  exitCode=$?
-  printf_header " #Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$logname"
-  printf_newline "\n\n" >>"$logdir/$logname"
-  if [ "$exitCode" = 0 ]; then
-    printf_green "$icon_good The backup has completed successfully and Saved to:"
-    printf_green "$icon_good $backupdir/$filename"
-    [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has completed"
-  else
-    printf_red "$icon_error The backup has failed to complete."
-    printf_red "$icon_error More information can be found in the log file:"
-    printf_exit "$icon_warn $logdir/$logname"
-    [ "$notifyEnabled" = "yes" ] && notifications "Backupapp" "Backup of $appname has failed"
-  fi
-  logfileCount=$(ls $logdir/$appname*.$logfilenameextension 2>/dev/null | wc -l 2>/dev/null)
-  logremoveoldbackups=$(ls $logdir/$appname*.$logfilenameextension 2>/dev/null)
-  fileCount=$(ls $backupdir/$appname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)
-  removeoldbackups=$(ls $backupdir/$appname*.tar.gz 2>/dev/null)
-  tailCount=$((fileCount - leaveCount))
-  if [ "$fileCount" -gt "$leaveCount" ] && [ $leaveCount -ne 0 ]; then
-    [ -z "$leaveCount" ] || ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
-    [ -z "$leaveCount" ] || ls -t $logremoveoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
-  fi
-  return $exitCode
-}
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __term() {
   while :; do
     local _APPDIRS _APPNAME cont
@@ -160,7 +87,7 @@ __term() {
     printf_read_input "2" "Enter directories:" "140" "_APPDIRS" "-e"
     printf_newline
     if [ -n "$_APPNAME" ] && [ -n "$_APPDIRS" ]; then
-      main "$_APPNAME" "$_APPDIRS"
+      __backup "$_APPNAME" "$_APPDIRS"
     else
       [ -n "$_APPNAME" ] || printf_pause "Needs an name"
       [ -n "$_APPDIRS" ] || printf_pause "Needs a directory"
@@ -173,9 +100,156 @@ __term() {
   printf_newline "\n\n"
   exit $?
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__backup() {
+  local e err appname appdir
+  local _APPNAME="${_APPNAME:-$PROJECTNAME}"
+  local _APPDIRS="${_APPDIRS:-$PROJECTDIRS}"
+  local appname="${1:-$_APPNAME}"
+  shift 1
+  local appdir="${*:-$_APPDIRS}"
+  shift $#
+  local logdir="${BACKUPAPP_LOG_DIR:-$HOME/.local/log/backups/apps}"
+  local datefmt="%Y-%m-%d-%H-%M-%S"
+  local curdate="$(date +"${BACKUPAPP_DATE_FORMAT:-$datefmt}")"
+  local filenameformate="${BACKUPAPP_FILENAME_FORMAT:-$curdate}"
+  local logfilenameformat="${BACKUPAPP_LOGNAME_FORMAT:-$curdate}"
+  local logfilenameextension="${BACKUPAPP_LOGFILE_EXTENSION:-log}"
+  local backupdir="${BACKUPAPP_BACKUP_DIR:-$HOME/.local/backups}/apps"
+  local notifyEnabled="${BACKUPAPP_NOTIFY_ENABLED:-yes}"
+  local leaveCount="${BACKUPAPP_KEEP_AMOUNT:-14}"
+  local icon_good="${BACKUPAPP_BICON_GOOD:-🆗}"
+  local icon_warn="${BACKUPAPP_BICON_WARN:-⚠️}"
+  local icon_error="${BACKUPAPP_BICON_ERROR:-✖}"
+  local filename="$appname-$filenameformate.tar.gz"
+  local logname="$appname-$logfilenameformat.$logfilenameextension"
+  local logname_err="$appname-$logfilenameformat.err"
+  [ "$notifyEnabled" = "yes" ] && __notifications "$icon_warn" "Initializing backup of $appname"
+  __execute "sleep 3" "Initializing"
+  __mkd "$backupdir" "$logdir"
+  for e in $appdir; do [ -e "$e" ] || err="$e"; done
+  if [ -n "$err" ]; then
+    [ "$notifyEnabled" = "yes" ] && __notifications "$icon_error" "Can't back up: $err doesn't exists"
+    printf_error "Can't back up: $err doesn't exists"
+    exit 1
+  fi
+  shift
+  printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$logname" >>"$logdir/$logname"
+  __execute "__backupcmd" "Backing up $appname to $backupdir"
+  exitCode=$?
+  printf_header " #Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$logname"
+  printf_newline "\n\n" >>"$logdir/$logname"
+  if [ "$exitCode" = 0 ]; then
+    printf_green "$icon_good The backup has completed successfully and Saved to:"
+    printf_green "$icon_good $backupdir/$filename"
+    [ "$notifyEnabled" = "yes" ] && __notifications "$icon_good" "Backup of $appname has completed"
+  else
+    printf_red "$icon_error The backup has failed to complete."
+    printf_red "$icon_error More information can be found in the log file:"
+    printf_exit "$icon_warn $logdir/$logname"
+    [ "$notifyEnabled" = "yes" ] && __notifications "$icon_error" "Backup of $appname has failed"
+  fi
+  logfileCount=$(ls $logdir/$appname*.$logfilenameextension 2>/dev/null | wc -l 2>/dev/null)
+  logremoveoldbackups=$(ls $logdir/$appname*.$logfilenameextension 2>/dev/null)
+  fileCount=$(ls $backupdir/$appname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)
+  removeoldbackups=$(ls $backupdir/$appname*.tar.gz 2>/dev/null)
+  tailCount=$((fileCount - leaveCount))
+  if [ "$fileCount" -gt "$leaveCount" ] && [ $leaveCount -ne 0 ]; then
+    [ -z "$leaveCount" ] || ls -t $removeoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+    [ -z "$leaveCount" ] || ls -t $logremoveoldbackups | tail -$tailCount 2>/dev/null | xargs rm -f
+  fi
+  return $exitCode
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname_err" || return 1; }
 __local_cron_add() { __setupcrontab "${3:-0 0 * * *}" "backupapp --yes $1 $2 >/dev/null 2>&1"; }
 __local_cron_del() { __removecrontab "backupapp --yes $1 "; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+BACKUPAPP_CONFIG_FILE="settings.conf"
+BACKUPAPP_CONFIG_DIR="$HOME/.config/myscripts/backupapp"
+BACKUPAPP_OPTIONS_DIR="$HOME/.local/share/myscripts/options/backupapp"
+BACKUPAPP_NOTIFY_ENABLED="yes"
+BACKUPAPP_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+BACKUPAPP_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$BACKUPAPP_NOTIFY_CLIENT_ICON}"
+BACKUPAPP_LOG_DIR="$HOME/.local/log/backups/apps"
+BACKUPAPP_BACKUP_DIR="$HOME/.local/backups/apps"
+BACKUPAPP_KEEP_AMOUNT="14"
+BACKUPAPP_LOGFILE_EXTENSION="log"
+BACKUPAPP_DATE_FORMAT="%Y-%m-%d-%H_%M-%S"
+BACKUPAPP_FILENAME_FORMAT="$(date +"$DATEFORMAT")"
+BACKUPAPP_LOGNAME_FORMAT="$(date +"$DATEFORMAT")"
+BACKUPAPP_BICON_GOOD="🆗"
+BACKUPAPP_BICON_WARN="⚠️"
+BACKUPAPP_BICON_ERROR="✖"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$BACKUPAPP_OPTIONS_DIR/options" ] || __list_options "$BACKUPAPP_OPTIONS_DIR" &>/dev/null
+[ -f "$BACKUPAPP_OPTIONS_DIR/array" ] || __list_array "$BACKUPAPP_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ]; then
+  . "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$BACKUPAPP_OPTIONS_DIR" "$ARRAY"
+    __list_options "$BACKUPAPP_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$BACKUPAPP_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${BACKUPAPP_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${BACKUPAPP_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 case "$1" in
 *cron)
   shift 1
@@ -189,7 +263,7 @@ case "$1" in
         . "$HOME/.config/backupapp/cron/$cronjob"
         if [ -n "${_APPNAME:-$PROJECTNAME}" ] && [ -n "${_APPNAME:-$PROJECTNAME}" ]; then
           echo "Backup up $cronjob"
-          main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}" >/dev/null 2>&1
+          __backup "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}" >/dev/null 2>&1
           exitCode=$?
           sleep 3
           if [ "$exitCode" = 0 ]; then echo "Backup up of $cronjob has completed"; else echo "Backup up of $cronjob has failed"; fi
@@ -261,7 +335,7 @@ case "$1" in
     if printf_answer_yes "$YN"; then
       . "$HOME/.config/backupapp/${1}.conf"
       if [ -n "${_APPNAME:-$PROJECTNAME}" ] && [ -n "${_APPDIRS:-$PROJECTDIRS}" ]; then
-        main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
+        __backup "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
       else
         [ -n "${_APPNAME:-$PROJECTNAME}" ] || printf_return 1 1 "Could get the settings for _APPNAME/PROJECTNAME"
         [ -n "${_APPDIRS:-$PROJECTDIRS}" ] || printf_return 1 1 "Could get the settings for _APPDIRS/PROJECTDIRS"
@@ -270,20 +344,21 @@ case "$1" in
     elif [ "$#" -gt 1 ]; then
       _APPNAME="$1" && shift 1
       _APPDIRS="$*" && shift
-      main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
+      __backup "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
     else
       __help
     fi
   elif [ "$#" -gt 1 ]; then
     _APPNAME="$1" && shift 1
     _APPDIRS="$*" && shift
-    main "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
+    __backup "${_APPNAME:-$PROJECTNAME}" "${_APPDIRS:-$PROJECTDIRS}"
   else
     __help
   fi
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

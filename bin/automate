@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103271625-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +9,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200613-git
+##@Version       : 202103271625-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : automate --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:13 EDT
+# @Created       : Saturday, Mar 27, 2021 16:25 EDT
 # @File          : automate
 # @Description   : Script to control roku and hue devices
 # @TODO          :
@@ -40,82 +41,179 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__requires curl || exit
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-automate() {
-  # variables
-  local setopts="$1"
-  local cache="${TMPDIR:-/tmp}"
-  local state="$cache/automate"
-  __mkd "$cache"
-  touch "$state"
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # functions
-  getstate() { cat "$state"; }
-  roku_play() { roku play; }
-  roku_stop() { roku stop; }
-  roku_pause() { roku pause; }
-  hue_play() { hue play; }
-  hue_stop() { hue stop; }
-  automate_play() { roku_play && hue_play && echo play >$state; }
-  automate_stop() { roku_stop && hue_stop && echo stop >$state; }
-  automate_pause() { roku pause && hue toggle && echo pause >$state; }
-  automate_toggle() {
-    if [ "$(getstate)" = play ]; then
-      automate_stop
-    elif [ "$(getstate)" = stop ]; then
-      automate_play
-    elif [ "$(getstate)" = pause ] || [ "$(getstate)" = "toggle" ]; then
-      automate_pause
-    else
-      printf_exit "Can not get state"
-    fi
-  }
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE"
+  [ -d "$AUTOMATE_CONFIG_DIR" ] || mkdir -p "$AUTOMATE_CONFIG_DIR"
+  [ -f "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" ] &&
+    cp -Rf "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE.$$"
+  cat <<EOF >"$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE"
+# Settings for automate
+AUTOMATE_NOTIFY_ENABLED="yes"
+AUTOMATE_NOTIFY_MESG=""
+AUTOMATE_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+AUTOMATE_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$AUTOMATE_NOTIFY_CLIENT_ICON}"
+AUTOMATE_CACHE_DIR="\$HOME/.cache/automate"
+AUTOMATE_STATE_FILE="\$AUTOMATE_CACHE_DIR/state"
 
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # main
-  if [ ! -s "$state" ]; then echo toggle >$state; fi
-
-  case "$setopts" in
-  play)
-    shift 1
-    automate_play
-    ;;
-  stop)
-    shift 1
-    automate_stop
-    ;;
-  pause)
-    shift 1
-    automate_pause
-    ;;
-  toggle)
-    shift 1
-    automate_toggle && echo toggle >$state
-    ;;
-
-  state)
-    case "$2" in
-    text)
-      shift 2
-      echo -e "$(getstate)"
-      ;;
-    json | *)
-      shift 2
-      echo -e '{"status":"'$(getstate)'"}'
-      ;;
-    esac
-    ;;
-
-  *)
-    automate_toggle
-    ;;
-
-  esac
+EOF
+  if [ -f "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" ]; then
+    printf_green "Your config file for automate has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#execute
-automate "$@"
+getstate() { cat "$AUTOMATE_STATE_FILE"; }
+roku_play() { roku play; }
+roku_stop() { roku stop; }
+roku_pause() { roku pause; }
+hue_play() { hue play; }
+hue_stop() { hue stop; }
+automate_play() { roku_play && hue_play && echo play >$AUTOMATE_STATE_FILE || return 1; }
+automate_stop() { roku_stop && hue_stop && echo stop >$AUTOMATE_STATE_FILE || return 1; }
+automate_pause() { roku pause && hue toggle && echo pause >$AUTOMATE_STATE_FILE || return 1; }
+automate_toggle() {
+  if [ "$(getstate)" = play ]; then
+    automate_stop || exitCode=1
+  elif [ "$(getstate)" = stop ]; then
+    automate_play || exitCode=1
+  elif [ "$(getstate)" = pause ] || [ "$(getstate)" = "toggle" ]; then
+    automate_pause || exitCode=1
+  else
+    printf_exit "Can not get state from $AUTOMATE_STATE_FILE"
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
-# end
+# Defaults
+exitCode=""
+AUTOMATE_CONFIG_FILE="settings.conf"
+AUTOMATE_CONFIG_DIR="$HOME/.config/myscripts/automate"
+AUTOMATE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/automate"
+AUTOMATE_NOTIFY_ENABLED="yes"
+AUTOMATE_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+AUTOMATE_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$AUTOMATE_NOTIFY_CLIENT_ICON}"
+AUTOMATE_CACHE_DIR="$HOME/.cache/automate"
+AUTOMATE_STATE_FILE="$AUTOMATE_CACHE_DIR/state"
+AUTOMATE_NOTIFY_MESG=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$AUTOMATE_OPTIONS_DIR/options" ] || __list_options "$AUTOMATE_OPTIONS_DIR" &>/dev/null
+[ -f "$AUTOMATE_OPTIONS_DIR/array" ] || __list_array "$AUTOMATE_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" ]; then
+  . "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$AUTOMATE_OPTIONS_DIR" "$ARRAY"
+    __list_options "$AUTOMATE_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash curl || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+mkdir -p "$AUTOMATE_CACHE_DIR"
+if [ -f "$HOME/.cache/automate" ]; then
+  mv -f "$HOME/.cache/automate" "$AUTOMATE_STATE_FILE"
+else
+  touch "$AUTOMATE_STATE_FILE"
+fi
+if [ "$AUTOMATE_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${AUTOMATE_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${AUTOMATE_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+if [ ! -s "$AUTOMATE_STATE_FILE" ]; then echo toggle >$AUTOMATE_STATE_FILE; fi
+setopts="$1"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+case "$setopts" in
+play)
+  shift 1
+  state="play"
+  automate_play
+  ;;
+stop)
+  shift 1
+  state="stop"
+  automate_stop
+  ;;
+pause)
+  shift 1
+  state="pause"
+  automate_pause
+  ;;
+toggle)
+  shift 1
+  state="$(getstate)"
+  automate_toggle && echo toggle >$AUTOMATE_STATE_FILE
+  ;;
+state)
+  case "$2" in
+  text)
+    shift 2
+    echo -e "$(getstate)"
+    ;;
+  json | *)
+    shift 2
+    echo -e '{"status":"'$(getstate)'"}'
+    ;;
+  esac
+  ;;
+*)
+  automate_toggle
+  ;;
+esac
+if [ "$AUTOMATE_NOTIFY_ENABLED" = yes ]; then
+  [ -z "$AUTOMATE_NOTIFY_MESG" ] || __notifications "$AUTOMATE_NOTIFY_MESG: $state"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

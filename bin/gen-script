@@ -41,10 +41,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
-if [ -d "$1" ]; then
-  MYCURRDIR="$1"
-  shift 1
-elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
+if [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
   MYCURRDIR="$2"
   shift 2
   [ -d "$MYCURRDIR" ] || printf_exit "$MYCURRDIR doesn't seem to be a directory"
@@ -827,7 +824,6 @@ __vars() {
 }
 
 __find_file() {
-  printf_exit "$*"
   arg1=${1// /\/}
   arg2=${2// /\/}
   arg3=${3// /\/}
@@ -1030,37 +1026,27 @@ case $1 in
   exit $?
   ;;
 
-"$1")
-  shift 1
-  filename="${2:-$1}"
-  __default_name "$2" "${filename}"
-  __find_file "$@"
-  ;;
-
-# completions)
-#   filename="${3:-$2}"
-#   __default_name "$3" "${filename}"
-#   __find_file "$@"
-#   ;;
-
 -i | *installers)
-  shift 1
-  filename="${2:-$1}"
-  __default_name "$2" "${filename}"
+  filename="${3:-$2}"
+  __default_name "$3" "${filename}"
   __find_file "$@"
   ;;
 
 -o | *os)
-  shift 1
-  filename="${2:-$1}"
-  __default_name "$2" "${filename}"
+  filename="${3:-$2}"
+  __default_name "$3" "${filename}"
   __find_file "$@"
   ;;
 
 -s | *shell)
-  shift 1
-  filename="${2:-$1}"
-  __default_name "$2" "${filename}"
+  filename="${3:-$2}"
+  __default_name "$3" "${filename}"
+  __find_file "$@"
+  ;;
+
+$1)
+  filename="${3:-$2}"
+  __default_name "$3" "${filename}"
   __find_file "$@"
   ;;
 

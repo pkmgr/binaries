@@ -19,7 +19,7 @@ if [ ! -f "$HOME/.local/share/gen-script/opts.txt" ]; then
   gen-script -a -create &>/dev/null
 fi
 _gen-script() {
-  ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
+  ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${4:-$1}'##g' | grep '^' || return 1; }
   local cur prev words cword
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   if [ -d "$HOME/.config/gen-script/files" ]; then
@@ -32,15 +32,15 @@ _gen-script() {
   local OPTSDIR="$HOME/.local/share/gen-script"
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
-  local FOLDERS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/" "d" "1" | grep -v ^'templates')"
-  local OS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/os/" "f" "3")"
-  local COMPS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/completions/" "f" "3")"
-  local SHELL="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/shell/" "f" "3")"
-  local BASH="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/bash/" "f" "3")"
-  local OTHER="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/other/" "f" "3")"
-  local READMES="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/other/" "f" "3")"
-  local INSTALLERS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/installers/" "f" "3")"
-  local ALL="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/" "f" "3")"
+  local FOLDERS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/" "d" "1" "$GEN_SCRIPTS_TEMPLATE_DIR/" | grep -v ^'templates')"
+  local OS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/os/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/os")"
+  local COMPLETIONS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/completions/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/completions/")"
+  local SHELL="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/shell/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/shell/")"
+  local BASH="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/bash/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/bash/")"
+  local OTHER="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/other/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/other/")"
+  local READMES="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/other/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/other/")"
+  local INSTALLERS="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/installers/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/installers/")"
+  local ALL="$(___findcmd "$GEN_SCRIPTS_TEMPLATE_DIR/" "f" "3" "$GEN_SCRIPTS_TEMPLATE_DIR/")"
   local ARRAY="all ${FOLDERS}"
   local SHOW_COMP_OPTS=""
   local SHORTOPTS="$(<"$OPTSDIR/opts-short.txt")"
@@ -80,8 +80,8 @@ _gen-script() {
     elif [[ "${prev}" = os ]]; then
       COMPREPLY=($(compgen -W '${OS}' -- "${cur}"))
       return
-    elif [[ "${prev}" = completions ]]; then
-      COMPREPLY=($(compgen -W '${COMPS}' -- "${cur}"))
+    elif [[ "${prev}" = "completions" ]]; then
+      COMPREPLY=($(compgen -W '${COMPLETIONS}' -- "${cur}"))
       return
     elif [[ "${prev}" = other ]]; then
       COMPREPLY=($(compgen -W '${OTHER}' -- "${cur}"))
