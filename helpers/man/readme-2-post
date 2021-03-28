@@ -8,4 +8,5 @@ printf_help() {
   printf_color "\t\t$msg\n" "$color"
 }
 #----------------
-printf_help "4" "Usage: readme-2-post Title Content Author"
+printf_help "4" "Usage: readme-2-post file Title Author [--script]"
+printf_help "4" "--script                - import from a script"

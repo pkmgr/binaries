@@ -16,8 +16,8 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Saturday, Mar 20, 2021 18:08 EDT
 # @File          : readme-2-post
-# @Description   : Create a jekyll blog post from a README file
-# @TODO          :
+# @Description   : Create a markdown file from a README file
+# @TODO          : Add import of script help
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -42,34 +42,38 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -n "$1" ] || [ -n "$2" ] || [ -n "$3" ] || __help
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-README-2-POST_CONFIG_DIR="$HOME/.config/$APPNAME"
+README_2_POST_CONFIG_DIR="$HOME/.config/$APPNAME"
 TEMPLATE="${TEMPLATE:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-INPUT="$(<$3)"
+if [ "$4" = "script" ]; then
+  INPUT="$(grep -E 'printf_help "[0-9]" ' "$1" | sed -E 's|printf_help "[0-9]" ||g;s|"||g;s|$|  |g')"
+else
+  INPUT="$(<$1)"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$README-2-POST_CONFIG_DIR/template.conf" ]; then
-  . "$("$README-2-POST_CONFIG_DIR/template.conf")"
+if [ -f "$README_2_POST_CONFIG_DIR/template.conf" ]; then
+  . "$("$README_2_POST_CONFIG_DIR/template.conf")"
 elif [ -n "$TEMPLATE" ] && [ -f "$TEMPLATE" ]; then
   . "$("$TEMPLATE")"
 else
   cat <<EOF | tee
 ---
 layout: post
-title: $1
-categories: [blog]
-tags: [readmes]
+title: $2
+categories: [man]
+tags: [readmes,manuals]
 date: $(date '+%Y-%m-%d %H:%M')
 comments: true
-author: $2
+author: $3
 ---
 
 $INPUT
 
-
 ## Author
-👤 **$2**
+👤 **$3**
 ##
-</p>
+
+{%- comment -%}end readme{%- endcomment -%}
 
 EOF
 fi
@@ -77,3 +81,4 @@ fi
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+
