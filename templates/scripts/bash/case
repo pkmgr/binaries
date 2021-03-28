@@ -117,7 +117,7 @@ done
 # Main application
 case $1 in
 *)
-  echo "App"
+  echo "$APPNAME "
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -125,3 +125,4 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+

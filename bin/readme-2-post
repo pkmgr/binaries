@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103280253-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -8,13 +9,13 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201808-git
-# @Author        : Jason Hempstead
-# @Contact       : jason@casjaysdev.com
+##@Version       : 202103280253-git
+# @Author        : jason
+# @Contact       : jason
 # @License       : WTFPL
 # @ReadME        : readme-2-post --help
-# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 18:08 EDT
+# @Copyright     : Copyright: (c) 2021 jason, jason
+# @Created       : Sunday, Mar 28, 2021 02:53 EDT
 # @File          : readme-2-post
 # @Description   : Create a markdown file from a README file
 # @TODO          : Add import of script help
@@ -40,45 +41,176 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -n "$1" ] || [ -n "$2" ] || [ -n "$3" ] || __help
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE"
+  [ -d "$README_2_POST_CONFIG_DIR" ] || mkdir -p "$README_2_POST_CONFIG_DIR"
+  [ -f "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" ] &&
+    cp -Rf "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE.$$"
+  cat <<EOF >"$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE"
+# Settings for readme-2-post
+README_2_POST_AUTHOR="$USER"
+README_2_POST_DEST_FOLDER="man"
+README_2_POST_NOTIFY_ENABLED="yes"
+README_2_POST_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+README_2_POST_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$README_2_POST_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" ]; then
+    printf_green "Your config file for readme-2-post has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+__sedcmd() { sed 's|^.*printf_help "[0-9]" ||g;s|"||g;s|$|  |g'; }
+__grepcmd() { grep -E ^'?printf_help "." ' "$1"; }
+__mimetype() { file "$1" --mime-type | awk '{print $2}'; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-README_2_POST_CONFIG_DIR="$HOME/.config/$APPNAME"
-TEMPLATE="${TEMPLATE:-}"
+# Defaults
+exitCode=""
+README_2_POST_CONFIG_FILE="settings.conf"
+README_2_POST_CONFIG_DIR="$HOME/.config/myscripts/readme-2-post"
+README_2_POST_OPTIONS_DIR="$HOME/.local/share/myscripts/options/readme-2-post"
+README_2_POST_DEST_FOLDER="man"
+README_2_POST_AUTHOR="$USER"
+README_2_POST_TMPFILE="${TMPDIR:-/tmp}/2tp.tmp"
+README_2_POST_TEMPLATE="${TEMPLATE:-}"
+README_2_POST_NOTIFY_ENABLED="yes"
+README_2_POST_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+README_2_POST_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$README_2_POST_NOTIFY_CLIENT_ICON}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$4" = "script" ]; then
-  INPUT="$(grep -E 'printf_help "[0-9]" ' "$1" | sed -E 's|printf_help "[0-9]" ||g;s|"||g;s|$|  |g')"
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f:"
+LONGOPTS="options,config,version,help,script,file:"
+ARRAY="show-_filedir"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$README_2_POST_OPTIONS_DIR/options" ] || __list_options "$README_2_POST_OPTIONS_DIR" &>/dev/null
+[ -f "$README_2_POST_OPTIONS_DIR/array" ] || __list_array "$README_2_POST_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" ]; then
+  . "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$README_2_POST_OPTIONS_DIR" "$ARRAY"
+    __list_options "$README_2_POST_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --file)
+    shift 1
+    README_2_POST_DEST_FILE="$(basename "$1")"
+    README_2_POST_DEST_FOLDER="$(dirname "$1")"
+    shift 1
+    ;;
+  --script)
+    shift 1
+    SCRIPT="yes"
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$README_2_POST_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${README_2_POST_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${README_2_POST_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
 else
-  INPUT="$(<$1)"
+  __notifications() { false; }
+fi
+[ -d "$README_2_POST_DEST_FOLDER" ] || mkdir -p "$README_2_POST_DEST_FOLDER"
+README_2_POST_INPUT_FILE="$1"
+README_2_POST_DEST_FILE="${2:-$(basename "$1")}.md"
+README_2_POST_TITLE="${2:-$(basename "$1")}"
+README_2_POST_AUTHOR="${3:-$README_2_POST_AUTHOR}"
+[ "$(__mimetype "$1")" = "text/x-shellscript" ] && SCRIPT="yes"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+if [ "$SCRIPT" = "yes" ]; then
+  printf_yellow "The file seems to be a script: running script import"
+  __grepcmd "$README_2_POST_INPUT_FILE" | __sedcmd > "$README_2_POST_TMPFILE"
+  if [ -f "$README_2_POST_TMPFILE" ]; then
+    INPUT="$(<"$README_2_POST_TMPFILE")"
+    rm -Rf "$README_2_POST_TMPFILE"
+  else
+    printf_exit "Failed to create the needed temp file"
+  fi
+else
+  printf_yellow "Treating the file as a text file"
+  INPUT="$(<"$README_2_POST_INPUT_FILE")"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "$README_2_POST_CONFIG_DIR/template.conf" ]; then
   . "$("$README_2_POST_CONFIG_DIR/template.conf")"
-elif [ -n "$TEMPLATE" ] && [ -f "$TEMPLATE" ]; then
-  . "$("$TEMPLATE")"
+elif [ -n "$README_2_POST_TEMPLATE" ] && [ -f "$README_2_POST_TEMPLATE" ]; then
+  . "$("$README_2_POST_TEMPLATE")"
 else
-  cat <<EOF | tee
+  cat <<EOF | tee "$README_2_POST_DEST_FOLDER/$README_2_POST_DEST_FILE" &>/dev/null
 ---
 layout: post
-title: $2
+title: $README_2_POST_TITLE
 categories: [man]
 tags: [readmes,manuals]
 date: $(date '+%Y-%m-%d %H:%M')
 comments: true
-author: $3
+author: $README_2_POST_AUTHOR
 ---
 
 $INPUT
 
 ## Author
-👤 **$3**
+👤 **$README_2_POST_AUTHOR**
 ##
 
 {%- comment -%}end readme{%- endcomment -%}
 
 EOF
 fi
+if [ -f "$README_2_POST_DEST_FOLDER/$README_2_POST_DEST_FILE" ]; then
+  printf_green "Your file has been created and saved"
+  printf_green "to $README_2_POST_DEST_FOLDER/$README_2_POST_DEST_FILE"
+else
+  printf_error "Something went wrong"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"
 

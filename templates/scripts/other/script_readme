@@ -38,3 +38,4 @@ __printf_help "4" "-h, --help              - Shows this message"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 #exit "${exitCode:-$?}"
+

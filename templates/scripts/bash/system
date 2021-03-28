@@ -145,3 +145,4 @@ printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+

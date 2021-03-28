@@ -63,15 +63,19 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
       prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur}))
       ;;
     *)
-      if [ -n "${ARRAY}" ]; then
-        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+      if [ -n "$FILEDIR" ]; then _filedir; fi
+      if [[ "$ARRAY" = "show-none" ]]; then
+        COMPREPLY=($(compgen -W '' -- "${cur}"))
+      elif [[ "$ARRAY" = "show-_filedir" ]]; then
+        _filedir
+      elif [[ "$ARRAY" = "show-commands" ]]; then
+        COMPREPLY=($(compgen -c -- "${cur}"))
+      elif [[ -n "$ARRAY" ]]; then
+        #[ $COMP_CWORD -eq 3 ] && \
+          COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [[ -n "$OPTS" ]]; then
         #[ $COMP_CWORD -gt 3 ] && \
-        COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
-      elif [[ ${cur} == --* ]]; then
-        COMPREPLY=($(compgen -W '${LONGOPTS}' -- ${cur}))
-      elif [[ ${cur} == -* ]]; then
-        COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
+          COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       fi
       return
       ;;
@@ -80,6 +84,5 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F __GEN_SCRIPTS_REPLACE_FILENAME _GEN_SCRIPTS_REPLACE_FILENAME
-# vim ft=shell noai
+  complete -F _GEN_SCRIPTS_REPLACE_FILENAME GEN_SCRIPTS_REPLACE_FILENAME
 

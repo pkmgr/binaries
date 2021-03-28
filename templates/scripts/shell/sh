@@ -51,7 +51,7 @@ __help() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables
 exitCode=""
-GEN_SCRIPTS_ARRAY_DIR="$HOME/.local/share/CasjaysDev/arrays/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_ARRAY_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME"
 GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
 GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,3 +79,4 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+
