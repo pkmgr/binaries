@@ -63,8 +63,8 @@ EOF
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_dos2unix() { perl -pi -e 's/\r\n?/\n/g'; }
-_crlf_file() { if grep -q $'\x0D' "$1"; then echo "$1" && if [ $2 ]; then _dos2unix "$1"; fi; fi || return 1; }
+_dos2unix() { perl -pi -e 's/\r\n?/\n/g' "$1"; }
+_crlf_file() { grep -q $'\x0D' "$1" && echo "$1" && if [ "$2" = 1 ]; then _dos2unix "$1"; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
@@ -120,7 +120,7 @@ while :; do
     ;;
   -f | --force)
     shift 1
-    force=1
+    setforce=1
     ;;
   --)
     shift 1
@@ -143,7 +143,7 @@ if [ "$DOS2UNIX_NOTIFY_ENABLED" = "yes" ]; then
 else
   __notifications() { false; }
 fi
-force="${force:-0}"
+force="${setforce:-0}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 # Single file
@@ -151,7 +151,7 @@ if [ "$1" = "" ]; then
   _crlf_file $1 $force || exitcode=1
 else
   # All files
-  for file in $(find ${1:-.} -type f -not -path "*/.git/*" -not -path "*/node_modules/*" -print0 | xargs --null file | grep ASCII | cut -d: -f1); do
+  for file in $(find ${1:-.} -type f -not -path "*/.git/*" -not -path "*/node_modules/*" 2>/dev/null | xargs file | grep ASCII | cut -d: -f1); do
     _crlf_file $file $force || exitcode=1
   done
 fi
