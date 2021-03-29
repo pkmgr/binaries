@@ -121,19 +121,20 @@ if [ "$MYTORRENT" != "config" ]; then
     export TORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
   fi
 fi
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$TORRENT" ]; then
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
   printf_exit 1 1 "No bittorrent clients are installed"
 fi
+TORRENT_NAME="$(basename "$TORRENT" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $TORRENT in
+case $TORRENT_NAME in
 transmission-remote*)
   transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
-  if [ -z "$transmission_daemon" ] && [ -z "$TORRENT_SERVER" ]; then
-    transmission-daemon &>/dev/null &
-    disown
-    [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Transmission server has been started"
+  if [ -z "$transmission_daemon" ]; then
+        transmission-daemon &>/dev/null && sleep 5 && \
+          [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Transmission server has been started"
   fi
   ;;
 esac

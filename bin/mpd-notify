@@ -379,7 +379,7 @@ toggle)
   shift 1
   __toggle "${1:-run}"
   ;;
-term)
+--term | term)
   shift 1
   __term
   ;;
