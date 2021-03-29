@@ -45,9 +45,9 @@ __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE"
   [ -d "$AUTOMATE_CONFIG_DIR" ] || mkdir -p "$AUTOMATE_CONFIG_DIR"
-  [ -d "$AUTOMATE_BACKUP_DIR" ] || mkdir -p "$AUTOMATE_BACKUP_DIR"
+  [ -d "$AUTOMATE_CONFIG_BACKUP_DIR" ] || mkdir -p "$AUTOMATE_CONFIG_BACKUP_DIR"
   [ -f "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" ] &&
-    cp -Rf "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" "$AUTOMATE_BACKUP_DIR/$AUTOMATE_CONFIG_FILE.$$"
+    cp -Rf "$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE" "$AUTOMATE_CONFIG_BACKUP_DIR/$AUTOMATE_CONFIG_FILE.$$"
   cat <<EOF >"$AUTOMATE_CONFIG_DIR/$AUTOMATE_CONFIG_FILE"
 # Settings for automate
 AUTOMATE_NOTIFY_ENABLED="yes"
@@ -92,7 +92,7 @@ automate_toggle() {
 exitCode=""
 AUTOMATE_CONFIG_FILE="settings.conf"
 AUTOMATE_CONFIG_DIR="$HOME/.config/myscripts/automate"
-AUTOMATE_BACKUP_DIR="$HOME/.local/share/myscripts/automate/backups"
+AUTOMATE_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/automate/backups"
 AUTOMATE_OPTIONS_DIR="$HOME/.local/share/myscripts/automate/options"
 AUTOMATE_NOTIFY_ENABLED="yes"
 AUTOMATE_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"

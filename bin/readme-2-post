@@ -45,9 +45,9 @@ __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE"
   [ -d "$README_2_POST_CONFIG_DIR" ] || mkdir -p "$README_2_POST_CONFIG_DIR"
-  [ -d "$README_2_POST_BACKUP_DIR" ] || mkdir -p "$README_2_POST_BACKUP_DIR"
+  [ -d "$README_2_POST_CONFIG_BACKUP_DIR" ] || mkdir -p "$README_2_POST_CONFIG_BACKUP_DIR"
   [ -f "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" ] &&
-    cp -Rf "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" "$README_2_POST_BACKUP_DIR/$README_2_POST_CONFIG_FILE.$$"
+    cp -Rf "$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE" "$README_2_POST_CONFIG_BACKUP_DIR/$README_2_POST_CONFIG_FILE.$$"
   cat <<EOF >"$README_2_POST_CONFIG_DIR/$README_2_POST_CONFIG_FILE"
 # Settings for readme-2-post
 README_2_POST_AUTHOR="$USER"
@@ -73,7 +73,7 @@ __mimetype() { file "$1" --mime-type | awk '{print $2}'; }
 exitCode=""
 README_2_POST_CONFIG_FILE="settings.conf"
 README_2_POST_CONFIG_DIR="$HOME/.config/myscripts/readme-2-post"
-README_2_POST_BACKUP_DIR="$HOME/.local/share/myscripts/readme-2-post/backups"
+README_2_POST_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/readme-2-post/backups"
 README_2_POST_OPTIONS_DIR="$HOME/.local/share/myscripts/readme-2-post/options"
 README_2_POST_DEST_FOLDER="man"
 README_2_POST_AUTHOR="$USER"

@@ -49,9 +49,9 @@ __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE"
   [ -d "$CALC_CONFIG_DIR" ] || mkdir -p "$CALC_CONFIG_DIR"
-  [ -d "$CALC_BACKUP_DIR" ] || mkdir -p "$CALC_BACKUP_DIR"
+  [ -d "$CALC_CONFIG_BACKUP_DIR" ] || mkdir -p "$CALC_CONFIG_BACKUP_DIR"
   [ -f "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" ] &&
-    cp -Rf "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" "$CALC_BACKUP_DIR/$CALC_CONFIG_FILE.$$"
+    cp -Rf "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE" "$CALC_CONFIG_BACKUP_DIR/$CALC_CONFIG_FILE.$$"
   cat <<EOF >"$CALC_CONFIG_DIR/$CALC_CONFIG_FILE"
 # Settings for calc
 CALC_NOTIFY_ENABLED="yes"
@@ -89,7 +89,7 @@ calc_app() {
 exitCode=""
 CALC_CONFIG_FILE="settings.conf"
 CALC_CONFIG_DIR="$HOME/.config/myscripts/calc"
-CALC_BACKUP_DIR="$HOME/.local/share/myscripts/calc/backups"
+CALC_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/calc/backups"
 CALC_OPTIONS_DIR="$HOME/.local/share/myscripts/calc/options"
 CALC_NOTIFY_ENABLED="yes"
 CALC_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"

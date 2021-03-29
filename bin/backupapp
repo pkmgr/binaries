@@ -47,9 +47,9 @@ __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
   [ -d "$BACKUPAPP_CONFIG_DIR" ] || mkdir -p "$BACKUPAPP_CONFIG_DIR"
-  [ -d "$BACKUPAPP_BACKUP_DIR" ] || mkdir -p "$BACKUPAPP_BACKUP_DIR"
+  [ -d "$BACKUPAPP_CONFIG_BACKUP_DIR" ] || mkdir -p "$BACKUPAPP_CONFIG_BACKUP_DIR"
   [ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ] &&
-    cp -Rf "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" "$BACKUPAPP_BACKUP_DIR/$BACKUPAPP_CONFIG_FILE.$$"
+    cp -Rf "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" "$BACKUPAPP_CONFIG_BACKUP_DIR/$BACKUPAPP_CONFIG_FILE.$$"
   cat <<EOF >"$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
 # Settings for backupapp
 BACKUPAPP_CONFIGNAME="$BACKUPAPP_CONFIGNAME"
@@ -284,7 +284,7 @@ __local_cron_del() { __removecrontab "backupapp --yes $1 "; }
 exitCode=""
 BACKUPAPP_DEFAULT_CONFIG_FILE="settings.conf"
 BACKUPAPP_CONFIG_DIR="$HOME/.config/myscripts/backupapp"
-BACKUPAPP_BACKUP_DIR="$HOME/.local/share/myscripts/backupapp/backups"
+BACKUPAPP_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/backupapp/backups"
 BACKUPAPP_OPTIONS_DIR="$HOME/.local/share/myscripts/backupapp/options"
 BACKUPAPP_CONFIG_FILE="${BACKUPAPP_CONFIG_FILE:-$BACKUPAPP_DEFAULT_CONFIG_FILE}"
 BACKUPAPP_NOTIFY_ENABLED="yes"
