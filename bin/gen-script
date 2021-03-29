@@ -913,7 +913,7 @@ fi
 [ -f "$GEN_SCRIPTS_CONFIG_DIR/settings.conf" ] || [ "$1" = -config ] || __gen_config
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-case $1 in
+case ${1:-$SETOPTS} in
 -replace)
   shift 1
   [ -f "$1" ] && filename="$1" || filename="$(type -P "$(basename "$1")")"
@@ -929,7 +929,7 @@ case $1 in
   __gen_opts "$@"
   exit
   ;;
--c | *copy)
+-c | --copy)
   shift 1
   __copy_templates "$@"
   exit $?

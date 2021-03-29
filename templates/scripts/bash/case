@@ -41,9 +41,6 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for needed applications
-__cmd_exists bash || exit 1 # exit 1 if not found
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
 SETARGS="${*}"
 GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
@@ -53,12 +50,24 @@ GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
 __list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' && exit; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
-  printf_green "Generating $GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR"
-  touch "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR"
-  if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFDIR" ]; then
-    printf_green "Generation of the config file successfull"
+  printf_green "Generating the config file in"
+  printf_green "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+  [ -d "$GEN_SCRIPTS_REPLACE_CONFDIR" ] || mkdir -p "$GEN_SCRIPTS_REPLACE_CONFDIR"
+  [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] &&
+    cp -Rf "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE.$$"
+  cat <<EOF >"$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+# Settings for GEN_SCRIPTS_REPLACE_FILENAME
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED="yes"
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
+    printf_green "Your config file for GEN_SCRIPTS_REPLACE_FILENAME has been created"
+    true
   else
-    printf_red "Failed to generate the config file"
+    printf_red "Failed to create the config file"
+    false
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -70,7 +79,7 @@ GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/GEN_SCRIPT
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Argument/Option settings
 SETARGS="${*}"
-SHORTOPTS="c,v,h"
+SHORTOPTS="c,v,h,:*"
 LONGOPTS="options,config,version,help"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -107,17 +116,18 @@ while :; do
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Remove unsupported options
-# set -- "$SETARGS"
-# while getopts ":*" opt; do
-#   case $opt in
-#   *) shift ;;
-#   esac
-# done
+set -- "$SETARGS"
+while getopts ":*" opt; do
+  case $opt in *) shift ;; esac
+done
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for needed applications
+__cmd_exists bash || exit 1 # exit 1 if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-case $1 in
+case $SETOPTS in
 *)
-  echo "$APPNAME "
+  echo -e "$APPNAME: ${*}"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -125,4 +135,3 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-
