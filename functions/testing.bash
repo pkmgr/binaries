@@ -508,13 +508,13 @@ __local_sysname() {
 }
 ###################### Options ######################
 __list_array() {
-  local OPTSDIR="${1:-$HOME/.local/share/myscripts/options/${APPNAME:-$PROG}}"
+  local OPTSDIR="${1:-$HOME/.local/share/myscripts/${APPNAME:-$PROG}/options}"
   mkdir -p "$OPTSDIR"
   echo "${2:-$ARRAY}" >"$OPTSDIR/array"
   return
 }
 __list_options() {
-  local OPTSDIR="${1:-$HOME/.local/share/myscripts/options/${APPNAME:-$PROG}}"
+  local OPTSDIR="${1:-$HOME/.local/share/myscripts/${APPNAME:-$PROG}/options}"
   mkdir -p "$OPTSDIR"
   echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' >"$OPTSDIR/options"
   echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' >>"$OPTSDIR/options"

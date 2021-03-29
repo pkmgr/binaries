@@ -43,18 +43,19 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   printf_green "Generating the config file in"
-  printf_green "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
-  [ -d "$GEN_SCRIPTS_REPLACE_CONFDIR" ] || mkdir -p "$GEN_SCRIPTS_REPLACE_CONFDIR"
-  [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] &&
-    cp -Rf "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE.$$"
-  cat <<EOF >"$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+  printf_green "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
+  [ -d "$GEN_SCRIPTS_REPLACE_CONFIG_DIR" ] || mkdir -p "$GEN_SCRIPTS_REPLACE_CONFIG_DIR"
+  [ -d "$GEN_SCRIPTS_REPLACE_ENV_BACKUP_DIR" ] || mkdir -p "$GEN_SCRIPTS_REPLACE_ENV_BACKUP_DIR"
+  [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ] &&
+    cp -Rf "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE.$$"
+  cat <<EOF >"$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
 # Settings for GEN_SCRIPTS_REPLACE_FILENAME
 GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED="yes"
 GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
 GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
 
 EOF
-  if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
+  if [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ]; then
     printf_green "Your config file for GEN_SCRIPTS_REPLACE_FILENAME has been created"
     true
   else
@@ -65,9 +66,10 @@ EOF
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
-GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
-GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME"
-GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_ENV_CONFIG_FILE="settings.conf"
+GEN_SCRIPTS_REPLACE_ENV_CONFIG_DIR="$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_ENV_BACKUP_DIR="$HOME/.local/share/myscripts/GEN_SCRIPTS_REPLACE_FILENAME/backups"
+GEN_SCRIPTS_REPLACE_ENV_OPTIONS_DIR="$HOME/.local/share/myscripts/GEN_SCRIPTS_REPLACE_FILENAME/options"
 GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED="yes"
 GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
@@ -80,13 +82,13 @@ LONGOPTS="options,config,version,help"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
-[ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] || __gen_config &>/dev/null
+[ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ] || __gen_config &>/dev/null
 [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/options" ] || __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" &>/dev/null
 [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/array" ] || __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
-if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
-  . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+if [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ]; then
+  . "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # options
@@ -138,11 +140,10 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR"
+printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFIG_DIR"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

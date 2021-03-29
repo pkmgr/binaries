@@ -26,8 +26,8 @@ cmd_exists bash || exit 1 # exit 1 if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
 exitCode=""
-GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
-GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_REPLACE_CONFIG_FILE="settings.conf"
+GEN_SCRIPTS_REPLACE_CONFIG_DIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
 GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME/options"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -38,8 +38,8 @@ GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # bring in user config
-[ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] &&
-  . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+[ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ] &&
+  . "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 
@@ -48,4 +48,3 @@ GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

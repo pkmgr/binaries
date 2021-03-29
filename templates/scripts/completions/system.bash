@@ -20,7 +20,7 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
   local CONFDIR="$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME"
-  local OPTSDIR="$HOME/.local/share/myscripts/options/GEN_SCRIPTS_REPLACE_FILENAME"
+  local OPTSDIR="$HOME/.local/share/myscripts/GEN_SCRIPTS_REPLACE_FILENAME/options"
   local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/GEN_SCRIPTS_REPLACE_FILENAME}"
   #local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "d" "1")"
   local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array")"
@@ -73,10 +73,10 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [[ -n "$ARRAY" ]]; then
         #[ $COMP_CWORD -eq 3 ] && \
-          COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [[ -n "$OPTS" ]]; then
         #[ $COMP_CWORD -gt 3 ] && \
-          COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
+        COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       fi
       return
       ;;
@@ -85,5 +85,4 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-    complete -F _GEN_SCRIPTS_REPLACE_FILENAME GEN_SCRIPTS_REPLACE_FILENAME
-
+  complete -F _GEN_SCRIPTS_REPLACE_FILENAME GEN_SCRIPTS_REPLACE_FILENAME

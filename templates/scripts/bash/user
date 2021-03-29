@@ -49,15 +49,16 @@ GEN_SCRIPTS_REPLACE_FILENAME_main() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   __gen_config() {
     printf_green "Generating the config file in"
-    printf_green "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
-    [ -d "$GEN_SCRIPTS_REPLACE_CONFDIR" ] || mkdir -p "$GEN_SCRIPTS_REPLACE_CONFDIR"
-    [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] &&
-      cp -Rf "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE.$$"
-    cat <<EOF >"$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+    printf_green "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
+    [ -d "$GEN_SCRIPTS_REPLACE_CONFIG_DIR" ] || mkdir -p "$GEN_SCRIPTS_REPLACE_CONFIG_DIR"
+    [ -d "$GEN_SCRIPTS_REPLACE_ENV_BACKUP_DIR" ] || mkdir -p "$GEN_SCRIPTS_REPLACE_ENV_BACKUP_DIR"
+    [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ] &&
+      cp -Rf "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" "$GEN_SCRIPTS_REPLACE_ENV_BACKUP_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE.$$"
+    cat <<EOF >"$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
 # Settings for GEN_SCRIPTS_REPLACE_FILENAME
 
 EOF
-    if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
+    if [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ]; then
       printf_green "Your config file for GEN_SCRIPTS_REPLACE_FILENAME has been created"
       true
     else
@@ -68,9 +69,13 @@ EOF
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Defaults
   local exitCode=""
-  local GEN_SCRIPTS_REPLACE_CONFFILE="settings.conf"
-  local GEN_SCRIPTS_REPLACE_CONFDIR="$HOME/.config/misc/settings/GEN_SCRIPTS_REPLACE_FILENAME"
-  local GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/misc/options/GEN_SCRIPTS_REPLACE_FILENAME"
+  local GEN_SCRIPTS_REPLACE_ENV_CONFIG_FILE="settings.conf"
+  local GEN_SCRIPTS_REPLACE_ENV_CONFIG_DIR="$HOME/.config/misc/GEN_SCRIPTS_REPLACE_FILENAME"
+  local GEN_SCRIPTS_REPLACE_ENV_BACKUP_DIR="$HOME/.local/share/misc/GEN_SCRIPTS_REPLACE_FILENAME/backups"
+  local GEN_SCRIPTS_REPLACE_ENV_OPTIONS_DIR="$HOME/.local/share/misc/GEN_SCRIPTS_REPLACE_FILENAME/options"
+  local GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED="yes"
+  local GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+  local GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Argument/Option settings
   local SETARGS="${*}"
@@ -79,13 +84,13 @@ EOF
   local ARRAY=""
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Generate Files
-  [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ] || __gen_config &>/dev/null
+  [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ] || __gen_config &>/dev/null
   [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/options" ] || __list_options "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" &>/dev/null
   [ -f "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR/array" ] || __list_array "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$ARRAY" &>/dev/null
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Import config
-  if [ -f "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE" ]; then
-    . "$GEN_SCRIPTS_REPLACE_CONFDIR/$GEN_SCRIPTS_REPLACE_CONFFILE"
+  if [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ]; then
+    . "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
   fi
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # options
@@ -127,7 +132,7 @@ EOF
   cmd_exists --error bash || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
-  printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFDIR"
+  printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFIG_DIR"
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # lets exit with code
@@ -141,4 +146,3 @@ GEN_SCRIPTS_REPLACE_FILENAME_main "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

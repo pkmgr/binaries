@@ -45,8 +45,9 @@ __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE"
   [ -d "$AM_I_ONLINE_CONFIG_DIR" ] || mkdir -p "$AM_I_ONLINE_CONFIG_DIR"
+  [ -d "$AM_I_ONLINE_BACKUP_DIR" ] || mkdir -p "$AM_I_ONLINE_BACKUP_DIR"
   [ -f "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" ] &&
-    cp -Rf "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE.$$"
+    cp -Rf "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" "$AM_I_ONLINE_BACKUP_DIR/$AM_I_ONLINE_CONFIG_FILE.$$"
   cat <<EOF >"$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE"
 # Settings for am_i_online
 AM_I_ONLINE_TEST_SITE="\${AM_I_ONLINE_TEST_SITE:-1.1.1.1}"
@@ -74,7 +75,8 @@ EOF
 exitCode=""
 AM_I_ONLINE_CONFIG_FILE="settings.conf"
 AM_I_ONLINE_CONFIG_DIR="$HOME/.config/myscripts/am_i_online"
-AM_I_ONLINE_OPTIONS_DIR="$HOME/.local/share/myscripts/options/am_i_online"
+AM_I_ONLINE_BACKUP_DIR="$HOME/.local/share/myscripts/am_i_online/backups"
+AM_I_ONLINE_OPTIONS_DIR="$HOME/.local/share/myscripts/am_i_online/options"
 AM_I_ONLINE_TEST_SITE="${AM_I_ONLINE_TEST_SITE:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_PING="${AM_I_ONLINE_TEST_SITE_PING:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_HTTP="${AM_I_ONLINE_TEST_SITE_HTTP:-1.1.1.1}"

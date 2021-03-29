@@ -20,7 +20,7 @@ _readme-2-post() {
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
   local CONFDIR="$HOME/.config/myscripts/settings/readme-2-post"
-  local OPTSDIR="$HOME/.local/share/myscripts/options/readme-2-post"
+  local OPTSDIR="$HOME/.local/share/myscripts/readme-2-post/options"
   local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/settings/readme-2-post}"
   #local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "d" "1")"
   local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array")"
@@ -61,10 +61,10 @@ _readme-2-post() {
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [[ -n "$ARRAY" ]]; then
         #[ $COMP_CWORD -eq 3 ] && \
-          COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [[ -n "$OPTS" ]]; then
         #[ $COMP_CWORD -gt 3 ] && \
-          COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
+        COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       fi
       return
       ;;

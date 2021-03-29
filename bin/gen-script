@@ -89,7 +89,7 @@ __dirname() { if [ "$(dirname "$1" 2>/dev/null)" = . ]; then echo "$PWD"; else d
 __sed() { sed -i 's|'"$1"'|'"$2"'|g' "$3" 2>/dev/null; }
 __providefilename() { [ -f "$(__fullfilename "${1:-$filename}")" ] || printf_exit "Please provide a filename"; }
 __remove_opts() { echo "$*" | tr ' ' '\n' | grep -sv '^-' | head -n1 | grep '^' || return 1; }
-__gen_confdir() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
+__gen_env_vars() { echo "$1" | tr [a-z] [A-Z] | sed 's#-#_#g;s# #_#g;s/\./_/g'; }
 __print_wait() { printf_pause "$*" && printf_newline "\n"; }
 __prev_readme() { grep -Es '^printf_help '".."'|^printf_head '".."'' "$1"; }
 __sed_remove_empty() { sed '/^\#/d;/^$/d;s#^ ##g'; }
@@ -317,8 +317,8 @@ GEN_SCRIPTS_DEFLICENSE="WTFPL"
 GEN_SCRIPTS_DATEFMT="%A, %b %d, %Y %H:%M %Z"
 GEN_SCRIPTS_TEMPLATE_DIR="$GEN_SCRIPTS_TEMPLATE_DIR"
 GEN_SCRIPTS_COPYRIGHT="Copyright: (c) $GEN_SCRIPTS_YEAR $GEN_SCRIPTS_AUTHOR, $GEN_SCRIPTS_COMPANY"
-GEN_SCRIPTS_REPLACE_CONFDIR="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_CONFIG_DIR"
-GEN_SCRIPTS_REPLACE_CONFFILE="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_CONFIG_FILE"
+GEN_SCRIPTS_REPLACE_CONFIG_DIR="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_CONFIG_DIR"
+GEN_SCRIPTS_REPLACE_CONFIG_FILE="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_CONFIG_FILE"
 GEN_SCRIPTS_REPLACE_OPTIONS_DIR="\$(echo "\$GEN_SCRIPTS_NEWFILE" | tr [a-z] [A-Z])_OPTIONS_DIR"
 GEN_SCRIPTS_CONFIG_DIR="${GEN_SCRIPTS_CONFIG_DIR:-$GEN_SCRIPTS_CONFIG_DIR}"
 GEN_SCRIPTS_BACKUP_DIR="${GEN_SCRIPTS_BACKUP_DIR:-$GEN_SCRIPTS_CONFIG_DIR/backups}"
@@ -541,16 +541,16 @@ __edit_header() {
   local GEN_SCRIPTS_FULLPATH="$(__fullfilename "$1")"
   local GEN_SCRIPTS_NEWFILEDIR="$(__dirname $GEN_SCRIPTS_NEWFILE_FULL)"
   local GEN_SCRIPTS_NEWFILEDIR="${GEN_FILENAME:-$GEN_SCRIPTS_NEWFILEDIR}"
-  local GEN_SCRIPTS_REPLACE_CONFDIR="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")_CONFIG_DIR"
-  local GEN_SCRIPTS_REPLACE_CONFFILE="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")_CONFIG_FILE"
-  local GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")_OPTIONS_DIR"
-  local GEN_SCRIPTS_REPLACE_ENV="$(__gen_confdir "$GEN_SCRIPTS_NEWFILE_SHORT")"
+  local GEN_SCRIPTS_REPLACE_CONFIG_DIR="$(__gen_env_vars "$GEN_SCRIPTS_NEWFILE_SHORT")_CONFIG_DIR"
+  local GEN_SCRIPTS_REPLACE_CONFIG_FILE="$(__gen_env_vars "$GEN_SCRIPTS_NEWFILE_SHORT")_CONFIG_FILE"
+  local GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$(__gen_env_vars "$GEN_SCRIPTS_NEWFILE_SHORT")_OPTIONS_DIR"
+  local GEN_SCRIPTS_REPLACE_ENV="$(__gen_env_vars "$GEN_SCRIPTS_NEWFILE_SHORT")"
   __vars "$*"
   [ -f "$GEN_SCRIPTS_NEWFILE" ] && printf_green "Editing the header info" || printf_exit 1 1 "Failed to created the file"
   __sed "GEN_SCRIPTS_REPLACE_APPNAME" "${GEN_SCRIPTS_NEWFILEDIR##*/}" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$GEN_SCRIPTS_REPLACE_OPTIONS_DIR" "$GEN_SCRIPTS_NEWFILE"
-  __sed "GEN_SCRIPTS_REPLACE_CONFDIR" "$GEN_SCRIPTS_REPLACE_CONFDIR" "$GEN_SCRIPTS_NEWFILE"
-  __sed "GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_REPLACE_CONFFILE" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPTS_REPLACE_CONFIG_DIR" "$GEN_SCRIPTS_REPLACE_CONFIG_DIR" "$GEN_SCRIPTS_NEWFILE"
+  __sed "GEN_SCRIPTS_REPLACE_CONFIG_FILE" "$GEN_SCRIPTS_REPLACE_CONFIG_FILE" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_ENV" "$GEN_SCRIPTS_REPLACE_ENV" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_COPYRIGHT" "$GEN_SCRIPTS_COPYRIGHT" "$GEN_SCRIPTS_NEWFILE"
   __sed "GEN_SCRIPTS_REPLACE_VERSION" "$GEN_SCRIPTS_VERSION" "$GEN_SCRIPTS_NEWFILE"

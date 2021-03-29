@@ -43,24 +43,27 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   local BACKUPAPP_CONFIG_FILE="${1:-$BACKUPAPP_CONFIG_FILE}"
+  local NAME="{BACKUPAPP_CONFIG_FILE%.*}"
   printf_green "Generating the config file in"
   printf_green "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
   [ -d "$BACKUPAPP_CONFIG_DIR" ] || mkdir -p "$BACKUPAPP_CONFIG_DIR"
+  [ -d "$BACKUPAPP_BACKUP_DIR" ] || mkdir -p "$BACKUPAPP_BACKUP_DIR"
   [ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ] &&
-    cp -Rf "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE.$$"
+    cp -Rf "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" "$BACKUPAPP_BACKUP_DIR/$BACKUPAPP_CONFIG_FILE.$$"
   cat <<EOF >"$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
 # Settings for backupapp
 BACKUPAPP_CONFIGNAME="$BACKUPAPP_CONFIGNAME"
 BACKUPAPP_PROJECTNAME="${BACKUPAPP_PROJECTNAME%.*}"
 BACKUPAPP_PROJECTDIRS="$BACKUPAPP_PROJECTDIRS"
+BACKUPAPP_CONFIG_FILE="$BACKUPAPP_CONFIGNAME.conf"
 BACKUPAPP_LOG_DIR="\$HOME/.local/log/backups/apps"
-BACKUPAPP_BACKUP_DIR="\$HOME/.local/backups/apps"
+BACKUPAPP_BACKUPAPPS_DIR="\$HOME/.local/backups/apps"
 BACKUPAPP_KEEP_AMOUNT="14"
 BACKUPAPP_NOTIFY_ENABLED="yes"
 BACKUPAPP_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-Backups}"
 BACKUPAPP_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-$BACKUPAPP_NOTIFY_CLIENT_ICON}"
 BACKUPAPP_LOGFILE_EXTENSION="log"
-BACKUPAPP_DATE_FORMAT="%Y-%m-%d-%H_%M-%S"
+BACKUPAPP_DATE_FORMAT="%Y-%m-%d-%H-%M_%S"
 BACKUPAPP_FILENAME_FORMAT="$(date +"$DATEFORMAT")"
 BACKUPAPP_LOGNAME_FORMAT="$(date +"$DATEFORMAT")"
 BACKUPAPP_BICON_GOOD="🆗"
@@ -69,47 +72,72 @@ BACKUPAPP_BICON_ERROR="✖"
 
 EOF
   if [ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ]; then
-    printf_green "Your config file for backupapp has been created"
+    printf_green "Your config file for ${NAME:-backupapp} has been created"
     true
   else
-    printf_red "Failed to create the config file"
+    printf_red "Failed to create the config file for ${NAME:-backupapp}"
     false
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __get_name() {
-  if [ "$main" != "z" ]; then
-    printf_read_input "2" "Enter backupname or existing project name: " "120" "_APPNAME" "-e"
-    if [ -f "$BACKUPAPP_CONFIG_DIR/$_APPNAME.conf" ]; then
-      . "$BACKUPAPP_CONFIG_DIR/$_APPNAME.conf"
-    fi
+  printf_read_input "2" "Enter backupname or existing project name: " "120" "_APPNAME" "-e"
+  if [ -f "$BACKUPAPP_CONFIG_DIR/$_APPNAME.conf" ]; then
+    . "$BACKUPAPP_CONFIG_DIR/$_APPNAME.conf"
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__save_config() {
+  #[ -z "$BACKUPAPP_PROJECTNAME" ] && [ -z "$BACKUPAPP_PROJECTDIRS" ] && [ -z "$BACKUPAPP_PROJECTDIRS" ] && [ -z "$BACKUPAPP_CONFIGNAME" ]
+  if [ ! -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_PROJECTNAME.conf" ]; then
+    printf_read_input "2" "Enter project name: " "120" "_APPNAME" "-e"
+    printf_read_input "2" "Enter directories:" "140" "_APPDIRS" "-e -i $HOME/"
+    printf_read_input "2" "Enter config Name: " "120" "_CONFIGNAME" "-e -i $_APPNAME"
+    BACKUPAPP_CONFIGNAME="$_CONFIGNAME"
+    BACKUPAPP_PROJECTNAME="$_APPNAME"
+    BACKUPAPP_PROJECTDIRS="$_APPDIRS"
+    __gen_config "$_APPNAME.conf"
+  else
+    printf_pause "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_PROJECTNAME.conf already exists"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __term() {
+  local _APPDIRS="" _APPNAME="" cont="" save="" main=""
+  clear
+  printf_newline '\n\n\n\n\n'
+  __get_name
   while :; do
-    local _APPDIRS="" _APPNAME="" cont="" save="" main=""
     clear
     printf_newline "\n\n\n\n"
     printf_head "Backup Menu"
     printf_custom "6" "Welcome to the backup menu: type quit to exit"
-    printf_green "b. Backup"
-    printf_green "r. Restore"
+    printf_green "c. import config"
+    printf_green "s. save config"
+    printf_green "e. Show config"
+    printf_green "b. Backup files"
+    printf_green "r. Restore files"
     printf_green "z. or escape to Exit"
     printf_read_question_nt "6" "Enter your choice [b,r,z] : " "1" "main" "-s"
-    printf_newline "\n\n"
+    clear
+    printf_newline "\n\n\n"
 
     case $main in
+    c) __get_name ;;
+    e)
+      printf_yellow "Showing $BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
+      cat "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" | printf_readline "6"
+      printf_pause
+      ;;
+    r) __restore ;;
+    s) __save_config ;;
     $'\E' | $'\e' | z)
       shift 1
       clear
       break
       ;;
-    r) __restore ;;
     *)
-      __get_name
-      if [ -z "$BACKUPAPP_PROJECTNAME" ]; then
-        printf_read_input "2" "Enter directories:" "140" "_APPDIRS" "-e -i $HOME/"
-      fi
+      [ -n "$BACKUPAPP_PROJECTNAME" ] || printf_read_input "2" "Enter directories:" "140" "_APPDIRS" "-e -i $HOME/"
       printf_newline
       if [ -n "${_APPNAME:-$BACKUPAPP_PROJECTNAME}" ] && [ -n "${_APPDIRS:-$BACKUPAPP_PROJECTDIRS}" ]; then
         __backup "${_APPNAME:-$BACKUPAPP_PROJECTNAME}" "${_APPDIRS:-$BACKUPAPP_PROJECTDIRS}" || printf_pause
@@ -121,45 +149,59 @@ __term() {
       if [ -z "$BACKUPAPP_PROJECTNAME" ]; then
         printf_read_question_nt "6" "Should I save this for future use? [y/N]" "1" save "-s"
         if printf_answer_yes "$save"; then
-          BACKUPAPP_CONFIGNAME="$_APPNAME"
-          BACKUPAPP_PROJECTNAME="$_APPNAME"
-          BACKUPAPP_PROJECTDIRS="$_APPDIRS"
-          __gen_config "$_APPNAME.conf"
+          __save_config
         fi
       fi
       printf_newline
-      printf_read_question_nt "6" "Would you like to keep this window open? [y/N]" "1" cont "-s"
-      printf_answer_yes "$cont" && continue || break
-      printf_counter "5" "3" "Re-loading menu in"
+      if [ "$main" != "s" ]; then
+        printf_read_question_nt "6" "Would you like to keep this window open? [y/N]" "1" cont "-s"
+        printf_answer_yes "$cont" && continue || break
+        printf_counter "5" "3" "Re-loading menu in"
+      fi
       ;;
     esac
   done
+  clear
   printf_newline "\n\n"
   exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __restore() {
-  __get_name
+  #__get_name
   local restore=""
   local _APPNAME="$BACKUPAPP_PROJECTNAME"
   local _APPDIRS="$BACKUPAPP_PROJECTDIRS"
-  local _BACKUPDIR="$BACKUPAPP_BACKUP_DIR"
+  local _BACKUPDIR="$BACKUPAPP_BACKUPAPPS_DIR"
   local logdir="${BACKUPAPP_LOG_DIR:-$HOME/.local/log/backups/apps}"
-  local datefmt="%Y-%m-%d-%H-%M-%S"
+  local datefmt="%Y-%m-%d-%H-%M_%S"
   local curdate="$(date +"${BACKUPAPP_DATE_FORMAT:-$datefmt}")"
   local logfilenameformat="${BACKUPAPP_LOGNAME_FORMAT:-$curdate}"
   local logfilenameextension="${BACKUPAPP_LOGFILE_EXTENSION:-log}"
   local logname="$appname-$logfilenameformat.restore.$logfilenameextension"
-  local latest_backup="$(find "$_BACKUPDIR" -iname "$_APPNAME*" 2>/dev/null | tail -n1 | grep '^' || false)"
+  local latest_backup="$(__find "$_BACKUPDIR" "$_APPNAME*")"
   local latest_backup_short="${latest_backup/$_BACKUPDIR\//}"
   if [ -f "$latest_backup" ]; then
     printf_read_question_nt "6" "Found $latest_backup_short should i restore that [y/N]" "1" "restore" "-s"
     if printf_answer_yes "$restore"; then
-      if tar xfvz $latest_backup -C $_APPDIRS >"$logdir/$logname"; then
-        printf_pause 2 "Restore was successful"
+      if __restorecmd; then
+        printf_pause 2 "Restore of $latest_backup_short was successful"
       else
-        printf_pause 1 "Failed to restore"
+        printf_pause 1 "Failed to restore $latest_backup_short"
         false
+      fi
+    else
+      printf_blue "Found the folowing files:"
+      __find "$_BACKUPDIR" "$_APPNAME*" "head -n100" | printf_readline "2"
+      printf_read_question_nt "6" "Would you like to restore one of those [y/N]" "1" "restore" "-s"
+      if printf_answer_yes "$restore"; then
+        printf_read_input "2" "Enter backupname:" "200" "latest_backup" "-e "
+        latest_backup_short="${latest_backup/$_BACKUPDIR\//}"
+        if __restorecmd; then
+          printf_pause 2 "Restore of $latest_backup_short was successful"
+        else
+          printf_pause 1 "Failed to restore $latest_backup_short"
+          false
+        fi
       fi
     fi
   else
@@ -176,12 +218,12 @@ __backup() {
   local appdir="${*:-$_APPDIRS}"
   shift $#
   local logdir="${BACKUPAPP_LOG_DIR:-$HOME/.local/log/backups/apps}"
-  local datefmt="%Y-%m-%d-%H-%M-%S"
+  local datefmt="%Y-%m-%d-%H-%M_%S"
   local curdate="$(date +"${BACKUPAPP_DATE_FORMAT:-$datefmt}")"
   local filenameformate="${BACKUPAPP_FILENAME_FORMAT:-$curdate}"
   local logfilenameformat="${BACKUPAPP_LOGNAME_FORMAT:-$curdate}"
   local logfilenameextension="${BACKUPAPP_LOGFILE_EXTENSION:-log}"
-  local backupdir="${BACKUPAPP_BACKUP_DIR:-$HOME/.local/backups/apps}"
+  local backupdir="${BACKUPAPP_BACKUPAPPS_DIR:-$HOME/.local/backups/apps}"
   local notifyEnabled="${BACKUPAPP_NOTIFY_ENABLED:-yes}"
   local leaveCount="${BACKUPAPP_KEEP_AMOUNT:-14}"
   local icon_good="${BACKUPAPP_BICON_GOOD:-🆗}"
@@ -232,6 +274,8 @@ __backup() {
   return $exitCode
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__find() { find "${1:-$_BACKUPDIR}" -iname "${2:-2_APPNAME}*" 2>/dev/null | ${3:-tail -n1} | grep '^' || false; }
+__restorecmd() { tar xfvz $latest_backup -C $_APPDIRS >>"$logdir/$logname" 2>>"$logdir/$logname.err" || return 1; }
 __backupcmd() { tar cfzv "$backupdir/$filename" $appdir >>"$logdir/$logname" 2>>"$logdir/$logname_err" || return 1; }
 __local_cron_add() { __setupcrontab "${3:-0 0 * * *}" "backupapp --yes $1 $2 >/dev/null 2>&1"; }
 __local_cron_del() { __removecrontab "backupapp --yes $1 "; }
@@ -240,15 +284,17 @@ __local_cron_del() { __removecrontab "backupapp --yes $1 "; }
 exitCode=""
 BACKUPAPP_DEFAULT_CONFIG_FILE="settings.conf"
 BACKUPAPP_CONFIG_DIR="$HOME/.config/myscripts/backupapp"
-BACKUPAPP_OPTIONS_DIR="$HOME/.local/share/myscripts/options/backupapp"
+BACKUPAPP_BACKUP_DIR="$HOME/.local/share/myscripts/backupapp/backups"
+BACKUPAPP_OPTIONS_DIR="$HOME/.local/share/myscripts/backupapp/options"
+BACKUPAPP_CONFIG_FILE="${BACKUPAPP_CONFIG_FILE:-$BACKUPAPP_DEFAULT_CONFIG_FILE}"
 BACKUPAPP_NOTIFY_ENABLED="yes"
 BACKUPAPP_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 BACKUPAPP_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$BACKUPAPP_NOTIFY_CLIENT_ICON}"
 BACKUPAPP_LOG_DIR="$HOME/.local/log/backups/apps"
-BACKUPAPP_BACKUP_DIR="$HOME/.local/backups/apps"
+BACKUPAPP_BACKUPAPPS_DIR="$HOME/.local/backups/apps"
 BACKUPAPP_KEEP_AMOUNT="14"
 BACKUPAPP_LOGFILE_EXTENSION="log"
-BACKUPAPP_DATE_FORMAT="%Y-%m-%d-%H_%M-%S"
+BACKUPAPP_DATE_FORMAT="%Y-%m-%d-%H-%M_%S"
 BACKUPAPP_FILENAME_FORMAT="$(date +"$DATEFORMAT")"
 BACKUPAPP_LOGNAME_FORMAT="$(date +"$DATEFORMAT")"
 BACKUPAPP_BICON_GOOD="🆗"
@@ -267,8 +313,10 @@ ARRAY=""
 [ -f "$BACKUPAPP_OPTIONS_DIR/array" ] || __list_array "$BACKUPAPP_OPTIONS_DIR" "$ARRAY" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
-if [ -f "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE" ]; then
-  . "$BACKUPAPP_CONFIG_DIR/$BACKUPAPP_CONFIG_FILE"
+name="${1:-}.conf"
+if [ -f "$BACKUPAPP_CONFIG_DIR/${name:-$BACKUPAPP_CONFIG_FILE}" ]; then
+  BACKUPAPP_CONFIG_FILE="$name"
+  . "$BACKUPAPP_CONFIG_DIR/${name:-$BACKUPAPP_CONFIG_FILE}"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # options
@@ -294,7 +342,7 @@ while :; do
     ;;
   -c | --config)
     shift 1
-    __gen_config
+    __gen_config "${BACKUPAPP_CONFIG_FILE}"
     exit $?
     ;;
   -t | --term)
@@ -327,7 +375,7 @@ if [ "$BACKUPAPP_NOTIFY_ENABLED" = "yes" ]; then
 else
   __notifications() { false; }
 fi
-mkdir -p "$BACKUPAPP_LOG_DIR" "$BACKUPAPP_BACKUP_DIR"
+mkdir -p "$BACKUPAPP_LOG_DIR" "$BACKUPAPP_BACKUPAPPS_DIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 if [ -n "$TERMAIL_APP" ]; then __term; fi
