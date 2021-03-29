@@ -108,9 +108,9 @@ if [ -z "$VMMANAGER" ]; then
 fi
 VMMANAGER_NAME="$(basename "$VMMANAGER" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $MYVMMANAGER in
+case $VMMANAGER_NAME in
 docker | kubectl)
-  MYVMMANAGER="myterminal -e $MYVMMANAGER"
+  VMMANAGER="myterminal -e $VMMANAGER"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,7 +130,7 @@ create | link | *-create | *-link)
   if [ -f "$HOME/.local/bin/myvmmanager" ]; then
     __exec ~/.local/bin/myvmmanager "$@"
   else
-    __exec $MYVMMANAGER "$@"
+    __exec $VMMANAGER "$@"
   fi
   ;;
 esac

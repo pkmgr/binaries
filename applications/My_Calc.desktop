@@ -11,6 +11,6 @@ Exec=myterminal -e 'calc --term'
 Path=
 Terminal=false
 Actions=
-Categories=Utility;Calculator;GTK;X-XFCE;GNOME;
+Categories=Utility;Calculator;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=calc;my;
 StartupNotify=true

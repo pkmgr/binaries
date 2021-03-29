@@ -11,6 +11,6 @@ Exec=myterminal -e 'backupapp --term'
 Path=~
 Terminal=false
 Actions=
-Categories=System;Utility;GTK;X-XFCE;GNOME;
+Categories=System;Utility;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=backup;my;
 StartupNotify=true

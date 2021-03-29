@@ -11,6 +11,6 @@ Exec=myterminal
 Path=~
 Terminal=false
 Actions=
-Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;
+Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=terminal;my;
 StartupNotify=true

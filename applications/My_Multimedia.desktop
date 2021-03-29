@@ -12,6 +12,6 @@ Exec=myterminal -e 'multimedia'
 Path=~
 Terminal=false
 Actions=
-Categories=AudioVideo;Player;Recorder;Graphics;GTK;X-XFCE;GNOME;
+Categories=AudioVideo;Player;Recorder;Graphics;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=music;videos;images;photo;player;my;
 StartupNotify=true

@@ -12,5 +12,5 @@ Path=~
 Terminal=false
 Actions=
 Categories=System;GTK;X-XFCE;GNOME;
-Keywords=xfce4-notify;notify;music;player;my;
+Keywords=xfce4-notify;notify;music;player;my;MyScripts;
 StartupNotify=true

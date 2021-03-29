@@ -187,8 +187,8 @@ BACKUPAPP_BICON_ERROR="✖"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
-SHORTOPTS="c,v,h"
-LONGOPTS="options,config,version,help"
+SHORTOPTS="c,v,h,t"
+LONGOPTS="options,config,version,help,term"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
@@ -227,6 +227,10 @@ while :; do
     __gen_config
     exit $?
     ;;
+  -t | --term)
+    shift 1
+    TERMAIL_APP="true"
+    ;;
   --)
     shift 1
     break
@@ -250,12 +254,11 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-case "$1" in
+case $1 in
 *cron)
-  shift 1
   __mkd "$HOME/.config/backupapp/cron"
   #cron case 2
-  case "$1" in
+  case "$2" in
   *all)
     shift 1
     if [ "$(__count_files "$HOME/.config/backupapp/cron/")" -ne 0 ]; then
@@ -321,15 +324,8 @@ case "$1" in
   esac
   ;;
   # end cron
-*term)
-  shift 1
-  __term
-  ;;
-*config)
-  shift 1
-  __config "$@"
-  ;;
 *)
+  if [ -n "$TERMAIL_APP" ]; then __term; fi
   if [ -f "$HOME/.config/backupapp/${1}.conf" ] && [ "$#" -lt 2 ]; then
     [ "$YN" = "Y" ] || printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"
     if printf_answer_yes "$YN"; then

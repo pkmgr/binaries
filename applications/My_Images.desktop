@@ -12,6 +12,6 @@ Exec=myterminal -e 'images'
 Path=~
 Terminal=false
 Actions=
-Categories=Graphics;Viewer;Photography;GTK;X-XFCE;GNOME;
+Categories=Graphics;Viewer;Photography;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=images;photo;player;my;
 StartupNotify=true

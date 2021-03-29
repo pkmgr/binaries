@@ -11,7 +11,7 @@ Exec=myterminal -e 'randomwallpaper --term'
 Path=~
 Terminal=false
 Actions=Actions=Status;Stop;
-Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;
+Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=wallpaper;my;
 StartupNotify=true
 

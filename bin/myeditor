@@ -118,7 +118,7 @@ if [ -z "$EDITOR" ]; then
 fi
 EDITOR_NAME="$(basename "$EDITOR" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $EDITOR in
+case $EDITOR_NAME in
 nano | vim | emacs)
   EDITOR="myterminal -e $EDITOR"
   ;;

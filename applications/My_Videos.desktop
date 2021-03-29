@@ -11,6 +11,6 @@ Exec=myterminal -e 'videos'
 Path=~
 Terminal=false
 Actions=
-Categories=Video;Player;GTK;X-XFCE;GNOME;
+Categories=Video;Player;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=Videos;my;
 StartupNotify=true

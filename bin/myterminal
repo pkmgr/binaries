@@ -117,7 +117,8 @@ if [ -z "$TERMINAL" ]; then
 fi
 TERMINAL_NAME="$(basename "$TERMINAL" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$1" = -e ] && shift 1
+[ "$1" = "-e" ] && opt="-e" && shift 1
+echo -e "$@" | grep -q '\-term' && TERMINAL_APP="true"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 config | *-config)
@@ -131,21 +132,22 @@ create | link | *-create | *-link)
   ;;
 
 *)
+  _OPT=$#
+  _CMD="$1" && shift 1
+  _ARG="$*" && shift $#
   if [ -z "$DISPLAY" ] || [ -n "$SSH_TTY" ]; then
     eval "$*"
     exit $?
   fi
-  _OPT=$#
-  _CMD="$1" && shift 1
-  _ARG="$*" && shift $#
-  if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    exec ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
+    ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   else
-    exec $TERMINAL ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
+    echo $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG"
+    $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   fi
-  disown
+  #disown
+  sleep 3
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

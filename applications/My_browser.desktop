@@ -12,6 +12,6 @@ Exec=mybrowser
 Path=~
 Terminal=false
 Actions=
-Categories=Network;WebBrowser;GTK;X-XFCE;GNOME;
+Categories=Network;WebBrowser;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=web;browser;my;
 StartupNotify=true
