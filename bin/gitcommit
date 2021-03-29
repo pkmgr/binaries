@@ -77,6 +77,7 @@ gitversion="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 # Functions
 __git_push() {
   local push
+  am_i_online --error || exit 1
   if [ "$repo" != "localdir" ]; then
     if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
@@ -375,4 +376,3 @@ printf_newline
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
-
