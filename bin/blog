@@ -42,6 +42,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
+  local BLOG_CONFIG_FILE="${1:-$BLOG_CONFIG_FILE}"
   printf_green "Generating the config file in"
   printf_green "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
   [ -d "$BLOG_CONFIG_DIR" ] || mkdir -p "$BLOG_CONFIG_DIR"
@@ -50,14 +51,23 @@ __gen_config() {
     cp -Rf "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" "$BLOG_CONFIG_BACKUP_DIR/$BLOG_CONFIG_FILE.$$"
   cat <<EOF >"$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
 # Settings for blog
+BLOG_NAME="$BLOG_NAME"
+BLOG_AUTHOR=$USER
+BLOG_AUTHOR_EMAIL=$USER@$(hostname -f)
+BLOG_BASE_URL=""
+BLOG_PAGE_BASE_URL="$BLOG_BASE_URL"
+BLOG_POST_BASE_URL="$BLOG_BASE_URL/blog"
+BLOG_DEFAULT_EXT="md"
+BLOG_GIT_ENABLED="${BLOG_GIT_ENABLED:-yes}"
 BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blogs/default}"
 BLOG_TEMPLATE_DIR="$CASJAYSDEVDIR/templates"
 BLOG_EDITOR="${EDITOR:-myeditor}"
 BLOG_OPTIONS_VIM="${BLOG_OPTIONS_EDITOR:-"-c ':setlocal ft=notes syntax=markdown'"}"
-GITHUB_ACCESS_TOKEN="\${GITHUB_ACCESS_TOKEN:-none}"
+BLOG_PAGE_COUNT=0
 BLOG_NOTIFY_ENABLED="yes"
 BLOG_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 BLOG_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$BLOG_NOTIFY_CLIENT_ICON}"
+GITHUB_ACCESS_TOKEN="\${GITHUB_ACCESS_TOKEN:-none}"
 
 EOF
   if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
@@ -68,63 +78,123 @@ EOF
     false
   fi
 }
+__git_enabled() { if
+  [ -f "${BLOG_CONFIG_DIR}/$BLOG_NAME.nogit" ] || [ "$BLOG_GIT_ENABLED" != "yes" ]; then
+  return 1
+else
+  GIT_STATUS="ENABLED"
+  return 0
+fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__git_message() { [ -f "$1" ] && message="Modified: ${file/$BLOG_DIR\//}" || message="Added: ${file/$BLOG_DIR\//}"; }
+a__replace() { sed -i 's|'"$1"'|'"$2"'|g' "$3" 2>/dev/null; }
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__findcmd() {
+  find "${1:-$BLOG_CONFIG_DIR}" -type f ${1} -not -path "*/.git/*" 2>/dev/null | __sed 's|'${1:-$BLOG_CONFIG_DIR}/'||g' | sort -u
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__get_count() {
+  __remove() { awk -F'=' '{print $2}' | sed '#"##;s#^ ##g' | grep '^' || echo 0; }
+  if [ -f "$BLOG_CONFIG_DIR/$BLOG_NAME.cont" ]; then
+    count=$(grep -s "$BLOG_CONFIG_DIR/$BLOG_NAME.cont" | __remove)
+  elif [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
+    count=$(grep -s "$BLOG_PAGE_COUNT" "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" | __remove)
+  else
+    count=0
+  fi
+  [[ $count -gt 0 ]] && cont=$((count+1)) || count=0
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__blog_init() { [ -d "${BLOG_DIR}/.git" ] && [ ! -f "${BLOG_DIR}/.nogit" ] || gitadmin "${BLOG_DIR}" setup; }
+__git_message() {
+  if [ "$GIT_STATUS" = "ENABLED" ]; then
+    [ -f "$1" ] && message="Modified: ${file/$BLOG_DIR\//}" || message="Added: ${file/$BLOG_DIR\//}"
+  fi
+}
+ # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__git_init() { [ ! -d "${BLOG_DIR}/.git" ] && [ "$GIT_STATUS" = "ENABLED" ] && gitadmin "${BLOG_DIR}" setup; }
 __blog_site() { git -C "$BLOG_DIR" remote -v 2>/dev/null | grep push | head -n 1 | awk '{print $2}' 2>/dev/null | grep '^'; }
 __blog_dir() { if [ -d "$BLOG_DIR" ]; then return 0; else return 1; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_publish() {
-  if [ ! -f "${BLOG_DIR}/.nogit" ]; then
-    gitcommit "$BLOG_DIR" "blog" "$*"
-  fi
-}
+  [ "$GIT_STATUS" = "ENABLED" ] && gitcommit "$BLOG_DIR" "blog" "$*" || \
+  printf_red "Git is disabled for blog: $BLOG_NAME"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __edit() {
-  #unset WDIR
-  #export WDIR="$BLOG_DIR"
-  #__edit_menu "$@" || printf_exit 1 1 "Please enter the full path of the file"
-  eval $EDITOR "$1"
+  # Possible completion fix
+  if [ -f "$1" ]; then file="$1";
+  elif [ -f "$BLOG_DIR/$1"  ]; then file="$BLOG_DIR/$1";
+  elif [ -f "$HOME/.local/share/blogs/$1" ]; then file="$HOME/.local/share/blogs/$1";
+  else file="$1"; fi
+  printf_yellow "Launching $BLOG_EDITOR"
+  eval ${BLOG_EDITOR:-$EDITOR} "$file"
   printf_pause "Press any key when done"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__init_blog() {
-  local nogit="" YesNo="" url=""
+__blog_init() {
+  __git_enabled
+  local YesNo="" url=""
   local BLOG_DIR="${1:-BLOG_DIR}"
+  if [ -f "$BLOG_CONFIG_DIR/$BLOG_NAME.nogit" ] || [ "$BLOG_GIT_ENABLED" != "yes" ]; then return; fi
   if [ ! -d "$BLOG_DIR/.git" ]; then
-    printf_green "Initializing the repo"
-    printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo" "-s"
-    if printf_answer_yes "$YesNo"; then
-      printf_read_input "3" "Enter the url: " "120" "url" "-e"
-      __git_clone "$url" "$BLOG_DIR"
+    printf_read_question "2" "Would you like to keep this in a git repo?" "1" "GIT" "-s"
+    if printf_answer_yes "$GIT"; then
+      printf_green "Initializing the repo"
+      printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo" "-s"
+      if printf_answer_yes "$YesNo"; then
+        printf_read_input "3" "Enter the url: " "120" "url" "-e"
+        __git_clone "$url" "$BLOG_DIR"
+      fi
+      __git_init "$BLOG_DIR"
+      printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $BLOG_DIR"
+    else
+      printf '%s\n' "Git is disabled for $BLOG_NAME" >"$BLOG_CONFIG_DIR/$BLOG_NAME.nogit"
+      BLOG_GIT_ENABLED="no"
     fi
-    __mkd "$BLOG_DIR/_posts" "$BLOG_DIR/_pages"
-    __blog_init "$BLOG_DIR"
-    "$APPNAME" page index welcome
-    printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $BLOG_DIR"
   fi
+  __mkd "$BLOG_DIR/_posts" "$BLOG_DIR/_pages"
+  "$APPNAME" page index welcome
+}
+__make_file() {
+  file="$1" && shift 1
+  dir="$(dirname "${file/$BLOG_DIR/}" | __sed 's|^/||g;s|/$||g;s| |_|g')"
+  date="$(date +"$BLOG_DATE_FORMAT")"
+  if [ "$MAKE_DATE" = "no" ] || [ "$dir" = "_pages" ]; then
+    title="$(basename "${title:-$file}")"
+    edit="$(echo "$title" | __sed 's| |_|g').$BLOG_DEFAULT_EXT"
+  else
+    title="$(basename "${title:-$file}")"
+    edit="$(echo "$date-$title" | __sed 's| |_|g').$BLOG_DEFAULT_EXT"
+  fi
+  file="$BLOG_DIR/$dir/$edit"
+  [ -d "$BLOG_DIR/$dir" ] || __mkd "$BLOG_DIR/$dir"
+  file="$BLOG_DIR/$dir/$edit"
+  linkurl="$edit"
+  edit="$edit"
+  title="$title"
+  dir="$dir"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_post_header() {
-  cat "$BLOG_TEMPLATE_DIR/blog/post.md" |
-    __sed "s#AuthorName#${USER}#g" |
-    __sed "s#DATE#$(date +"$BLOG_DATE_FORMAT $BLOG_TIME_FORMAT")#g" |
-    __sed "s#TITLE#${title}#g"
+  cat "$BLOG_TEMPLATE_DIR/blog/post.$BLOG_DEFAULT_EXT" |
+    __sed "s|AuthorName|$BLOG_AUTHOR|g" |
+    __sed "s|DATE|$(date +"$BLOG_DATE_FORMAT $BLOG_TIME_FORMAT")|g" |
+    __sed "s|TITLE|$title|g" |
+    __sed "s|/myurl|$BLOG_POST_BASE_URL/$linkurl|g"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_page_header() {
-  cat "$BLOG_TEMPLATE_DIR/blog/page.md" |
-    __sed "s#AuthorName#${USER}#g" |
-    __sed "s#TITLE#${title}#g"
+  cat "$BLOG_TEMPLATE_DIR/blog/page.$BLOG_DEFAULT_EXT" |
+    __sed "s|AuthorName|$BLOG_AUTHOR|g" |
+    __sed "s|DATE|$(date +"$BLOG_DATE_FORMAT $BLOG_TIME_FORMAT")|g" |
+    __sed "s|TITLE|$title|g" |
+    __sed "s|/myurl|$BLOG_PAGE_BASE_URL/$linkurl|g" |
+    __sed "s|weight:.*|weight: $count|g" |
+    __sed "s|BLOG_PAGE_COUNT=.*|BLOG_PAGE_COUNT=$count|g"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __newpost_template() {
   if __blog_dir; then
-    local title=${1:-$title}
-    local date="$(date +"$BLOG_DATE_FORMAT")"
-    local edit="$(echo $date-$title | __sed 's# #_#g')"
-    local file="$BLOG_DIR/_posts/$edit.md"
+    __make_file "_posts/$1"
     __git_message "$file"
     __blog_post_header >"$file"
     __edit "$file"
@@ -134,18 +204,42 @@ __newpost_template() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __newpage_template() {
-  local title=${2:-$title}
-  local edit="$(echo $1 | __sed 's# #_#g')"
-  local file="$BLOG_DIR/_pages/$edit.md"
+  MAKE_DATE="no"
+  __make_file "_pages/$1"
+  title="$2"
   __git_message "$file"
+  __get_count
   if [ ! -f "$file" ]; then
     __blog_page_header >"$file"
   fi
   __edit "$file"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__copy_templates() {
+  if [ -d "$BLOG_CONFIG_DIR/files/.git" ]; then
+    printf_green "Updating the template files"
+    git -C "$BLOG_CONFIG_DIR/files" pull -q
+  elif [ -d "${CASJAYSDEVDIR}/templates/blog" ]; then
+    printf_green "Copying the template files"
+    mkdir -p "$BLOG_CONFIG_DIR/files"
+    printf_yellow "from: $CASJAYSDEVDIR/templates/blog"
+    printf_yellow "to: $BLOG_CONFIG_DIR/files"
+    __cp_rf "$CASJAYSDEVDIR/templates/blog/." "$BLOG_CONFIG_DIR/files/"
+    if [ "$(__count_files $BLOG_CONFIG_DIR/files)" -ne 0 ]; then
+      printf_green "Copying has succeeded"
+    else
+      printf_error "Copying of files has failed"
+    fi
+  else
+    printf_error "Can not get template files"
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
+BLOG_NAME="${BLOG_NAME:-default}"
+BLOG_AUTHOR="${BLOG_AUTHOR:-$USER}"
+BLOG_AUTHOR_EMAIL="${BLOG_AUTHOR_EMAIL:-$USER@$(hostname -f)}"
 BLOG_CONFIG_FILE="settings.conf"
 BLOG_CONFIG_DIR="$HOME/.config/myscripts/blog"
 BLOG_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/blog/backups"
@@ -160,12 +254,19 @@ BLOG_NOTIFY_ENABLED="yes"
 BLOG_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 BLOG_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$BLOG_NOTIFY_CLIENT_ICON}"
 GITHUB_ACCESS_TOKEN="${GITHUB_ACCESS_TOKEN:-none}"
+OLD_BLOG_CONFIG_FILE="${OLD_BLOG_CONFIG_FILE:-$BLOG_CONFIG_FILE}"
+DEFAULT_BLOG_NAME="default"
+BLOG_DEFAULT_EXT="${BLOG_DEFAULT_EXT:-md}"
+BLOG_BASE_URL="${BLOG_BASE_URL}"
+BLOG_PAGE_BASE_URL="${BLOG_BASE_URL}"
+BLOG_POST_BASE_URL="${BLOG_BASE_URL}/blog"
+BLOG_PAGE_COUNT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f:"
 LONGOPTS="options,config,version,help,file:"
-ARRAY=""
+ARRAY="config copy new edit page post"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -200,13 +301,14 @@ while :; do
     ;;
   -c | --config)
     shift 1
-    __gen_config
-    exit $?
+    SETOPT=config
+    OLD_BLOG_CONFIG_FILE="${OLD_BLOG_CONFIG_FILE:-$BLOG_CONFIG_FILE}"
     ;;
   -f | --file)
     shift 1
     OLD_BLOG_CONFIG_FILE="$BLOG_CONFIG_FILE"
     BLOG_CONFIG_FILE="$1"
+    BLOG_NAME="$(basename "$BLOG_CONFIG_FILE")"
     shift 1
     ;;
   --)
@@ -235,27 +337,42 @@ if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
   . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
 fi
 [ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_FILE"
-__init_blog "$BLOG_DIR"
+if [ ! -d "$BLOG_DIR" ]; then
+  BLOG_NAME="$(basename "${BLOG_DIR}")"
+  __blog_init "$BLOG_DIR"
+  ln -sf "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" "$BLOG_CONFIG_DIR/$BLOG_NAME.conf"
+  [ $# -ne 0 ] || exit 0
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-case "$1" in
+case "${SETOPT:-$1}" in
 config)
   shift 1
   if [ "$BLOG_CONFIG_FILE" != "$OLD_BLOG_CONFIG_FILE" ]; then
-    printf_read_input "4" "Where would you like to store your blog files" "120" "BLOG_DIR" "-e -i $HOME/.local/share/blogs/$(basename "$BLOG_CONFIG_FILE")"
+    printf_read_input "4" "Where would you like to store your blog files" "120" "BLOG_DIR" "-e -i $HOME/.local/share/blogs/$BLOG_NAME"
   fi
-  __gen_config || printf_exit "Failed"
-  __init_blog "$BLOG_DIR"
+  BLOG_NAME="$(basename "${BLOG_DIR}")"
+  __blog_init "$BLOG_DIR"
+  __gen_config "$BLOG_NAME.conf"
+  exit $?
+  ;;
+
+copy)
+  shift 1
+  __copy_templates
   exit
   ;;
 
 new)
   shift 1
-  title="${1:-welcome}" && shift 1
-  date="$(date +"$BLOG_DATE_FORMAT")"
-  edit="$(echo $date-$title | __sed 's# #_#g')"
-  file="$BLOG_DIR/_posts/$edit.md"
-  [ -d "$BLOG_DIR/_posts" ] || __mkd "$BLOG_DIR/_posts"
+  __make_file "$1"
+  if [ "$dir" = "$BLOG_DIR" ] || [ "$dir" = "." ]; then
+    file="$BLOG_DIR/_posts/$edit"
+    [ -d "$BLOG_DIR/_posts" ] || __mkd "$BLOG_DIR/_posts"
+  else
+    file="$file"
+    [ -d "$dir" ] || __mkd "$dir"
+  fi
   __git_message "$file"
   __blog_post_header >"$file"
   __edit "$file"
@@ -265,20 +382,18 @@ new)
 edit)
   shift 1
   __git_message "$file"
-  __edit "$@"
+  __edit "$1"
   ;;
 
 page)
   shift 1
-  [ -z "${1}" ] && printf_red "Please enter the filename" && exit 1
-  [ -z "${2}" ] && printf_red "Please enter a title" && exit 1 || title="$2"
-  __newpage_template "$1" "$2"
+  __newpage_template "${1:-index}" "${2:-Welcome to your new site}"
   ;;
 
 post)
   shift 1
-  [ -z "${1}" ] && printf_red "Please enter a title" && exit 1 || title="$1"
-  __newpost_template "$@"
+  [ -z "${1}" ] && printf_red "Please enter a title" && exit 1
+  __newpost_template "$1"
   ;;
 
 *)
@@ -293,3 +408,4 @@ __blog_publish "$message"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+

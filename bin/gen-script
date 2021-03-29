@@ -405,10 +405,10 @@ __printf_head "5" "Usage: $GEN_SCRIPTS_REPLACE_APPNAME  "
 printf '\n'
 $PREV_README
 __printf_help "4" " -  "
-__printf_help "4" "--options               - files used for completion"
 __printf_help "4" "-c, --config            - generate user config file"
 __printf_help "4" "-v, --version           - show script version"
 __printf_help "4" "-h, --help              - Shows this message"
+__printf_help "4" "--options               - files used for completion"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
@@ -458,10 +458,10 @@ __printf_head "5" "GEN_SCRIPTS_REPLACE_FILENAME: GEN_SCRIPTS_REPLACE_DESC"
 printf '\n'
 $PREV_README
 __printf_help "4" " -  "
-__printf_help "4" "--options               - files used for completion"
 __printf_help "4" "-c, --config            - generate user config file"
 __printf_help "4" "-v, --version           - show script version"
 __printf_help "4" "-h, --help              - Shows this message"
+__printf_help "4" "--options               - files used for completion"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end help

@@ -141,11 +141,11 @@ create | link | *-create | *-link)
   fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    "$HOME/.local/bin/myterminal" ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
+    "$HOME/.local/bin/myterminal" ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null &
   else
-    $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
+    $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null &
   fi
-  #disown
+  disown
   sleep 3
   ;;
 esac

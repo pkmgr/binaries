@@ -42,12 +42,23 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __check_app mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+shift $#
 SYSHOSTNAME="$(hostname -s)"
 SYSMPDSERVER="$MPDSERVER"
 MPDSTATUS="start"
 TEMPDIR="${TMP:-/tmp}/mpdclient/$USER"
-notify-daemon ask && NOTIFY="on" || NOTIFY="off"
-if mpc -h "$SYSHOSTNAME" 2>/dev/null | grep -iq playing; then
+
+if cmd_exists mpd-notify && [ "$(mpd-notify status --ask)" = "running" ]; then
+  notifications "MPD Client" "MPD-Notify enabled"
+  NOTIFY_CLI="mpd-notify"
+  NOTIFY_TOGGLE_CMD="toggle"
+  NOTIFYSCMD="toggle --ask"
+  notify_service=$NOTIFY_CLI
+else
+  notify-daemon ask && NOTIFY="on" || NOTIFY="off"
+  notify_service=local
+fi
+    if mpc -h "$SYSHOSTNAME" 2>/dev/null | grep -iq playing; then
   MPDSERVER="$SYSHOSTNAME"
 else
   MPDSERVER="${MPDSERVER:-localhost}"
@@ -123,6 +134,10 @@ notify() {
 }
 
 notify_toggle() {
+  if [ -n "$NOTIFY_CLI" ]; then
+    $NOTIFY_CLI $NOTIFY_TOGGLE_CMD &>/dev/null
+    NOTIFY="$($NOTIFY_CLI $NOTIFYSCMD 2>/dev/null)"
+  else
   if [ "$NOTIFY" = "on" ]; then
     export NOTIFY="off"
     export NOTIFYS="on"
@@ -131,6 +146,7 @@ notify_toggle() {
     export NOTIFY="on"
     export NOTIFYS="off"
     __cmd_exists notifications && notifications "MPD Client" "Notications have been enabled"
+  fi
   fi
   #printf_blue "prevSong:$prevSong\n\t\tcurrSong:$currSong\n\t\tnotification:$NOTIFY"
   printf_green "Notifications has been set to $NOTIFY"
@@ -259,6 +275,7 @@ while :; do
   __mpd_status
   mpc_status | printf_readline "6"
   printf_newline
+  printf_green "Notication service: $notify_service"
   printf_green "1. turn notifications ${NOTIFYS:-off}"
   printf_green "2. change mpd server"
   printf_green "3. ${MPDSTATUS} mpd server"

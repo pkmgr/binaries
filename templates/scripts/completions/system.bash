@@ -79,9 +79,9 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
         #[ $COMP_CWORD -gt 3 ] && \
         COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       fi
-      return
       ;;
-    esac
+  esac
+  $split && return
   fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

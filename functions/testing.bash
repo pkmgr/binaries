@@ -1373,18 +1373,23 @@ __editor() {
   return $?
 }
 ##################### sudo functions ####################
-__sudo() { sudo "$*" && return 0 || return 1; }
+__sudo() { sudo $* && return 0 || return 1; }
 __sudo_group() { grep "${1:-$USER}" /etc/group | grep -Eq 'wheel|adm|sudo' || return 1; }
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null && return 0 || return 1; }
 sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
 sudorerun() {
-  local ARGS="$ARGS"
-  if [[ $UID != 0 ]]; then if sudoif; then
-    sudo "$APPNAME" "$ARGS"
-    if [[ $? -ne 0 ]]; then
-      exit 1
+  local CMD="${1:-$APPNAME}" && shift 1
+  local ARGS="${*:-$ARGS}" && shift $#
+  if [[ $UID != 0 ]]; then
+    if sudoif; then
+      sudo "$CMD" "$ARGS"
+      if [[ $? -ne 0 ]]; then
+        return 1
+      fi
+    else
+      sudoreq
     fi
-  else sudoreq; fi; fi
+  fi
 }
 sudoreq() {
   if [[ $UID != 0 ]]; then
@@ -1393,12 +1398,7 @@ sudoreq() {
     exit 1
   fi
 }
-__can_i_sudo() {
-  (
-    ISINDSUDO=$(sudo grep -Re "$USER" /etc/sudoers* | grep "ALL" >/dev/null)
-    sudo -vn && sudo -ln
-  ) 2>&1 | grep -v 'may not' >/dev/null
-}
+__can_i_sudo() { __sudo_group "${1:-$USER}" || sudoif; }
 __sudoask() {
   if [ ! -f "$HOME/.sudo" ]; then
     sudo true &>/dev/null && return 0 || return 1
@@ -1421,7 +1421,7 @@ __sudoexit() {
 }
 __requiresudo() {
   if __can_i_sudo; then
-    __sudoask && __sudoexit && __devnull2 sudo "$@" 2>/dev/null
+    __sudoask && __sudoexit && __sudo "$@" 2>/dev/null
   else
     printf_red "You dont have access to sudo\n\t\tPlease contact the syadmin for access"
     return 1

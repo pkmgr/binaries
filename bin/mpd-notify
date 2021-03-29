@@ -40,7 +40,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__require_app mpd mpc
+cmd_exists --ask mpd mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -d "$HOME/.config/mpd/mpd-notify" ] || printf_exit "1" "1" "Please install my mpd dotfiles | dfmgr install mpd"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -73,6 +73,7 @@ log() { echo "$*" >>"$logFile"; }
 __mpc() { mpc -h "$MPDSERVER" -p "$MPDSERVER_PORT" "$@"; }
 __mpc_status() { __mpc status && return 0 || return 1; }
 __getpid() {
+  curPid="$(ps -ux | grep -v "$myPid" | grep 'mpd-notify run' | grep -v ' grep ' | awk '{print $2}' | head -n 1)"
   if [ -n "$curPid" ]; then
     echo 0
     return 0
@@ -92,8 +93,8 @@ getArtAlb() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 scrapeDiscogs() {
-  artAlb=$(getArtAlb)
-  getArt="$(python3 "$daemonDir""/cogsCover.py" "$artAlb" "$DISCOGSKEY" "$DISCOGSSECRET")"
+  artAlb=$(getArtAlb 2>/dev/null)
+  getArt="$(python3 "$daemonDir""/cogsCover.py" "$artAlb" "$DISCOGSKEY" "$DISCOGSSECRET" 2>/dev/null)"
   if [ -n "$getArt" ]; then
     log "$getArt"
     __cp_rf ${TMP:-/tmp}/image.jpg "$coverPath" >/dev/null 2>&1
@@ -210,6 +211,7 @@ setupDaemon() {
     fi
   fi
   if [ -z "$MPDSERVER" ]; then __running mpd || printf_exit "1" "1" "Failed to start mpd"; fi
+  sleep 3
 }
 
 startDaemon() {
@@ -243,9 +245,11 @@ stopDaemon() {
 statusDaemon() {
   if checkDaemon; then
     notifications "MPD" "Connected to $MPDSERVER\n$(__mpc status)"
-    printf_exit "2" "0" "$daemonName is running: $curPid."
+    export MPD_NOTIFY_STATUS="running"
+    printf_return "2" "0" "$daemonName is running: $curPid."
   else
-    printf_exit "1" "1" "$daemonName is not running."
+    export MPD_NOTIFY_STATUS="stopped"
+    printf_return "1" "1" "$daemonName is not running."
   fi
 }
 
@@ -298,29 +302,91 @@ loop() {
   notifyVolume
   loop
 }
+__toggle() {
+  checkDaemon && status="running" || status="stopped"
+  [ "$status" = "stopped" ] && action=start || action=stop
+  if [ "$1" = "--ask" ]; then
+    [ "$status" = "stopped" ] && echo off || echo on
+    exit
+  fi
+  if [ -n "$1" ]; then [ "$status" = "stopped" ] && $APPNAME run || stopDaemon; fi
+}
+__term() {
+  shift $#
+  while :; do
+    # show menu
+    checkDaemon
+    __toggle
+    clear
+    shift 1
+    printf_newline "\n\n\n\n"
+    printf_head "mpd-notify Menu"
+    printf_yellow "Current status: $status"
+    printf_green "a. Start"
+    printf_green "b. Stop"
+    printf_green "c. Restart"
+    printf_green "d. Status"
+    printf_green "e. Toggle $action"
+    printf_green "z. or escape to Exit"
+    printf_green "---------------------------------"
+    printf_read_question_nt "6" "Enter your choice [a-z] : " "1" "main" "-s"
+    printf_newline
+
+    # take action
+    case "$main" in
+    a) $APPNAME run &>/dev/null;;
+    b) stopDaemon &>/dev/null;;
+    c) restartDaemon &>/dev/null;;
+    d) statusDaemon; printf_pause ;;
+    e) toggle run;;
+    '\E' | $'\e' | z) clear && break ;;
+    *) shift ;;
+    esac
+  clear
+  printf_newline "\n\n"
+  printf_counter "2" "3" "Re-loading menu in"
+  done
+  clear
+}
 
 ##################
 #    ArgParse    #
 ##################
 case "$1" in
 start)
+  shift 1
   exec $APPNAME run
   ;;
 run)
+  shift 1
   startDaemon &
   #disown
   ;;
 stop)
+  shift 1
   stopDaemon
   ;;
 status)
+  shift 1
+  if [ "$1" = "--ask" ]; then shift $# && checkDaemon && echo "running" || echo "stopped"; exit; fi
   statusDaemon
   ;;
 restart)
+  shift 1
   restartDaemon
   ;;
+toggle)
+  shift 1
+  __toggle "${1:-run}"
+  ;;
+term)
+  shift 1
+  __term
+  ;;
 *)
-  printf_exit "Error: usage $APPNAME { start | stop | restart | status }"
+  checkDaemon && status="running" || status="stopped"
+  printf_yellow "Current status: $status"
+  printf_pause "Error: usage $APPNAME { start | stop | restart | status | term }"
   ;;
 esac
 exit 0
