@@ -298,7 +298,7 @@ case $1 in
       #fi
     else
       printf_custom "4" 'Usage: backupapp cron --add "Backupname" "BackupDir" "Frequency" | default nightly at midnight'
-      printf_custom "4" 'Example: backupapp cron --add "Documents" "~/Documents" "0 0 * * *"'
+      printf_custom "4" 'Example: backupapp cron --add "Documents" "$HOME/Documents" "0 0 * * *"'
     fi
     exit $?
     ;;

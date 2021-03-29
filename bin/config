@@ -16,7 +16,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Saturday, Mar 20, 2021 06:20 EDT
 # @File          : config
-# @Description   : add config files to git repo
+# @Description   : Add dotfiles/config files to a git repo
 # @TODO          :
 # @Other         :
 # @Resource      : https://www.atlassian.com/git/tutorials/dotfiles
@@ -46,25 +46,26 @@ HELP="$(cat ${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/config
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [[ $EUID -eq 0 ]]; then
   printf_head "You are running as root as such this will allow full system access"
-  HOME="/"
+  CONFIG_HOME="/"
 else
-  HOME=$HOME
+  CONFIG_HOME=$HOME
 fi
-gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles}/config"
-backupdir="${CONFIG_HOME:-$HOME/.local/backups}/config"
-logdir="${LOGDIR:-$HOME/.local/log}/config"
+gitdir="${CONFIG_REPO:-$HOME/.local/dotfiles/config}"
+backupdir="${CONFIG_BACKUP_DIR:-$HOME/.local/backups/config}"
+logdir="${CONFIG_LOG_DIR:-$HOME/.local/log/config}"
 logfile="$logdir/config.log"
 mkdir -p "$logdir" "$backupdir"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_stow() { eval git --git-dir="$gitdir/" --work-tree="$HOME" "${@}"; }
+_online_check() { am_i_online --error && return 0 || return 1; }
+_stow() { eval git --git-dir="$gitdir/" --work-tree="$CONFIG_HOME" "${@}"; }
+_checkout() { _stow checkout "${@}" || _backup "${@}"; }
+_symlink() { ls -ltra "$1" | grep '\->' | awk -F'-> ' '{print $2}' | sed 's#'$CONFIG_HOME'/##g'; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _backup() {
   mkdir -p "$backupdir"
-  _stow checkout 2>&1 | grep -E '^\s+' | awk '{print $1}' |
-    rsync -a --remove-source-files --files-from="-" ~/ "$backupdir/"
+  _stow checkout 2>/dev/null | awk '{print $2}' | grep -E '^' |
+    rsync -a --remove-source-files --files-from="-" $CONFIG_HOME "$backupdir/"
 }
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_checkout() { _stow checkout "${@}" || _backup "${@}"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 git_remote() {
   if [ -z "$1" ]; then
@@ -117,21 +118,22 @@ gitconfig_local() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Aliases
-g   = "!(){ git --git-dir="$gitdir/" --work-tree="$HOME" log --graph --pretty=custom; };f"
-l   = "!f(){ git --git-dir="$gitdir/" --work-tree="$HOME" log --pretty=custom; };f"
-s   = "!f(){ git --git-dir="$gitdir/" --work-tree="$HOME" status -s -b; };f"
-p   = "!f(){ git --git-dir="$gitdir/" --work-tree="$HOME" push; };f"
+g   = "!(){ git --git-dir="$gitdir/" --work-tree="$CONFIG_HOME" log --graph --pretty=custom; };f"
+l   = "!f(){ git --git-dir="$gitdir/" --work-tree="$CONFIG_HOME" log --pretty=custom; };f"
+s   = "!f(){ git --git-dir="$gitdir/" --work-tree="$CONFIG_HOME" status -s -b; };f"
+p   = "!f(){ git --git-dir="$gitdir/" --work-tree="$CONFIG_HOME" push; };f"
 
 EOF
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 git_init() {
-  if [ ! -f $HOME/.gitignore ]; then
-    echo "$gitdir" >$HOME/.gitignore
-    echo "*/.git/*" >$HOME/.gitignore
+  local choice="" email="" name=""
+  if [ ! -f $CONFIG_HOME/.gitignore ]; then
+    echo "$gitdir" >$CONFIG_HOME/.gitignore
+    echo "*/.git/*" >$CONFIG_HOME/.gitignore
   else
-    grep -q "$gitdir" $HOME/.gitignore 2>/dev/null || echo "$gitdir" >>$HOME/.gitignore
-    grep -q '/.git/' $HOME/.gitignore 2>/dev/null || echo "*/.git/*" >>$HOME/.gitignore
+    grep -q "$gitdir" $CONFIG_HOME/.gitignore 2>/dev/null || echo "$gitdir" >>$CONFIG_HOME/.gitignore
+    grep -q '/.git/' $CONFIG_HOME/.gitignore 2>/dev/null || echo "*/.git/*" >>$CONFIG_HOME/.gitignore
   fi
   printf_read_question "4" "Do you already have a dotfiles repo: [y/N]" "1" "choice" "-s"
   if printf_answer_yes "$choice"; then
@@ -157,25 +159,15 @@ git_init() {
     _stow config --local user.name "$name"
     _stow config --local user.email "$email"
     _stow config --local include.path "$gitdir/config.local"
-    _stow add -f $HOME/.gitignore
+    _stow add -f $CONFIG_HOME/.gitignore
     _stow commit -q -m "'🏠🐜❗ Added .gitignore 🏠🐜❗'"
   fi
   exit "$?"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -d "$gitdir" ] && [ -f "$gitdir/config" ] || git_init
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
-s)
-  shift 1
-  _stow status -s -b
-  exit
-  ;;
-
-l)
-  shift 1
-  _stow log --graph --pretty=custom
-  exit
-  ;;
-
 --config)
   printf_green "Regenerating the config file"
   shift 1
@@ -197,14 +189,14 @@ l)
 
 --name)
   shift 1
-  if [ -z "${CONFIG_CUSTOM_REPO:-$1}" ] || [ -z "${CONFIG_CUSTOM_HOME:-$2}" ] || [ -z "$3" ]; then
+  if [ -z "${CONFIG_CUSTOM_REPO:-$1}" ] || [ -z "${CONFIG_CUSTOM_CONFIG_HOME:-$2}" ] || [ -z "$3" ]; then
     printf_custom "41" "This allows the use of a custom git dir"
     printf_green "Usage: config --custom gitdir commands"
     printf_exit "See config help for commands"
     exit 1
   fi
   name="$1"
-  gitdir="$HOME/.local/dotfiles/system/$name"
+  gitdir="$CONFIG_HOME/.local/dotfiles/system/$name"
   if [ -d "$gitdir" ]; then
     printf_red "Error: $gitdir already in use"
     exit 1
@@ -214,23 +206,17 @@ l)
 
 --custom)
   shift 1
-  if [ -z "${CONFIG_CUSTOM_REPO:-$1}" ] || [ -z "${CONFIG_CUSTOM_HOME:-$2}" ] || [ -z "$3" ]; then
+  if [ -z "${CONFIG_CUSTOM_REPO:-$1}" ] || [ -z "${CONFIG_CUSTOM_CONFIG_HOME:-$2}" ] || [ -z "$3" ]; then
     printf_custom "41" "This allows the use of a custom git dir and home dir"
     printf_green "Usage: config --custom gitdir homedir commands"
     printf_exit "See config help for commands"
   fi
   gitdir="${CONFIG_CUSTOM_REPO:-$1}"
   shift
-  HOME="${CONFIG_CUSTOM_HOME:-$1}"
+  CONFIG_HOME="${CONFIG_CUSTOM_CONFIG_HOME:-$1}"
   shift 1
   ;;
 esac
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -d "$gitdir" ] && [ ! -f "$gitdir/config" ]; then
-  git_init
-fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 init)
@@ -245,17 +231,24 @@ local)
 
 log | l)
   shift 1
-  _stow log --pretty=custom "$@"
+  _stow log --graph --pretty=custom "$@"
+  exit
   ;;
 
 status | s)
   shift 1
-  _stow status "$@"
+  _stow status -s -b "$@"
+  exit
   ;;
 
-restore)
+restore | reset)
   shift 1
   _stow reset -- "$@"
+  ;;
+
+rm | remove)
+  shift 1
+  _stow rm -r "$@"
   ;;
 
 add | stow)
@@ -264,10 +257,10 @@ add | stow)
   declare -a args="$*"
   for f in ${args[*]}; do
     if [ -L "$f" ]; then
-      [ ! -L "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')" ] &&
-        [ -e "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')" ] &&
+      [ ! -L "$(_symlink "$f")" ] &&
+        [ -e "$(_symlink "$f")" ] &&
         _stow add "$f" &&
-        _stow add "$(ls -ltra "$f" | grep '\->' | sed 's#.*-.##g' | sed 's#'$HOME'/##g' | sed 's# ##g')"
+        _stow add "$(_symlink "$f")"
     else
       _stow add -f "$f"
     fi
@@ -289,17 +282,23 @@ checkout)
 
 remote)
   shift 1
-  git_remote "$*"
+  if _online_check; then
+    git_remote "$*"
+  fi
   ;;
 
 pull)
   shift 1
-  _stow pull "$*"
+  if _online_check; then
+    _stow pull "$*"
+  fi
   ;;
 
 push)
   shift 1
-  _stow push "$*" || _stow push --set-upstream origin master "$@"
+  if _online_check; then
+    _stow push "$*" || _stow push --set-upstream origin master "$@"
+  fi
   ;;
 
 set)
@@ -318,7 +317,6 @@ help | -h* | --h*)
   exit 0
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end

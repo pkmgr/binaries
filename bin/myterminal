@@ -141,9 +141,8 @@ create | link | *-create | *-link)
   fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
+    "$HOME/.local/bin/myterminal" ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   else
-    echo $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG"
     $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   fi
   #disown
