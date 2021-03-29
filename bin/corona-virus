@@ -48,14 +48,14 @@ if [[ $1 = --force ]]; then
   __rm_rf "$HOME/.cache/corona-virus"
   __curl_download https://corona-stats.online/us "$HOME/.cache/corona-virus"
   if [ ! -f "$HOME/.cache/corona-virus" ]; then
-    printf_exit "Download unsuccessfull"
+    printf_exit "Download unsuccessful"
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$(__devnull find "$HOME/.cache/corona-virus" -type f -mmin +120 -delete)" ] || [ ! -f "$HOME/.cache/corona-virus" ]; then
   __curl_download https://corona-stats.online/us "$HOME/.cache/corona-virus"
   if [ ! -f "$HOME/.cache/corona-virus" ]; then
-    printf_exit "Download unsuccessfull"
+    printf_exit "Download unsuccessful"
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

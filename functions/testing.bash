@@ -474,7 +474,7 @@ printf_counter() {
   message="$*" && shift
   temp_cnt=${wait_time}
   while [[ ${temp_cnt} -gt 0 ]]; do
-    printf "\r%s" "$(printf_custom $color $message: ${temp_cnt})"
+    printf "\r%s" "$(printf_custom $color $message: ${temp_cnt}) "
     sleep 1
     ((temp_cnt--))
   done

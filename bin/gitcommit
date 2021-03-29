@@ -82,13 +82,13 @@ __git_push() {
     if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
       git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
-      __getexitcode $exitCode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+      __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
     else
       printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
       if printf_answer_yes "$push"; then
         printf_green "Pushing the changes to $repo"
         git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
-        __getexitcode $exitCode "Successfully pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+        __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
       fi
     fi
   fi
@@ -148,7 +148,7 @@ version)
   if ! __git_porcelain "$gitdir"; then
     git -C "$gitdir" commit -q -S -m "$versionbump" "$gitdir/version.txt" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-  __getexitcode $exitCode "Successfully committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change in ${gitdir//$PWD/.}"
+  __getexitcode $exitCode "Successfuly committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change in ${gitdir//$PWD/.}"
   exit $?
   ;;
 
@@ -365,7 +365,7 @@ else
   else
     git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-  __getexitcode $exitCode "Successfully committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
+  __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
     printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" || exit 1
 
   if __am_i_online_err "No internet connection. Skipping push"; then

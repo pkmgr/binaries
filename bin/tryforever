@@ -17,7 +17,7 @@ trap exit SIGINT
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
 # @Created       : Saturday, Mar 20, 2021 20:04 EDT
 # @File          : tryforever
-# @Description   : Keep an app running until it successfully completes
+# @Description   : Keep an app running until it successfuly completes
 # @TODO          :
 # @Other         :
 # @Resource      :

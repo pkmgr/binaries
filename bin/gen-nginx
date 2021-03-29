@@ -211,7 +211,7 @@ server {
   printf_newline
   printf_head 4 "Setting up $NGINXDOMAIN.conf" "in $NGINXCONFDIR"
   if [ -f "$NGINXCONFDIR/$NGINXDOMAIN.conf" ]; then
-    printf_green "Successfully created $NGINXCONFDIR/$NGINXDOMAIN.conf"
+    printf_green "Successfuly created $NGINXCONFDIR/$NGINXDOMAIN.conf"
   else
     print_error "Failed to create $NGINXCONFDIR/$NGINXDOMAIN.conf"
   fi

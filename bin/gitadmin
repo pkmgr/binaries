@@ -209,7 +209,7 @@ run_git_init() {
         if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
         git -C "$REPODIR" push -q -f --set-upstream origin master &>/dev/null &&
           __git_push "$REPODIR" &&
-          printf_green "Successfully pushed to $repo" || printf_red "Push to $repo has failed"
+          printf_green "Successfuly pushed to $repo" || printf_red "Push to $repo has failed"
       else
         printf_yellow "Not pushing due to user canceling"
       fi
@@ -300,7 +300,7 @@ run_git_setup_automated() {
     __devnull2 git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
     __git_push "$REPODIR" --set-upstream origin master &&
     __git_push "$REPODIR" &&
-    printf_green "Successfully pushed to: $PREVREPO" ||
+    printf_green "Successfuly pushed to: $PREVREPO" ||
     printf_red "Push to $PREVREPO has failed"
   echo ""
   exit $?
@@ -376,7 +376,7 @@ ghdelete() {
   local USERNAME="$1"
   local REPONAME="$2"
   local ERROR="Deletion of $REPONAME failed"
-  local SUCCES="Deletion of $REPONAME successfull"
+  local SUCCES="Deletion of $REPONAME successful"
   printf_green "Deleting $REPONAME for user $USERNAME\n"
   __devnull curl -q -H "Authorization: token $TOKEN" -i -XDELETE "https://api.github.com/repos/$USERNAME/$REPONAME"
   sleep 3
@@ -402,7 +402,7 @@ ghcreate() {
   local REPONAME="$2"
   local DESCR="$3"
   local ERROR="Creation of $REPONAME failed"
-  local SUCCES="Creation of $REPONAME successfull"
+  local SUCCES="Creation of $REPONAME successful"
   printf_green "Creating $REPONAME for user $USERNAME"
   __devnull curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/orgs/$USERNAME/repos" -d "{\"name\": \"$REPONAME\", \"description\": \"$DESCR\"}"
   sleep 1

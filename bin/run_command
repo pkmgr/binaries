@@ -59,7 +59,7 @@ run_command() {
   if [ -f "$(command -v $APP 2>/dev/null)" ]; then
     eval "$command" && sleep 5 && EXIT=0 || EXIT=1
     if [ "$EXIT" -eq 0 ]; then
-      printf_success "$APP started successfully"
+      printf_success "$APP started successfuly"
     else
       printf_exit "$APP has failed: Check $logdir/$logname.err for details"
     fi

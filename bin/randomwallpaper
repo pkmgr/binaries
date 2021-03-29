@@ -98,7 +98,7 @@ Hidden=false
 
 EOF
   [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ] &&
-    printf_green "Successfully installed randomwallpaper Daemon" ||
+    printf_green "Successfuly installed randomwallpaper Daemon" ||
     printf_error "Failed to install randomwallpaper Daemon"
   exit $?
 }

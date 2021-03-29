@@ -2066,7 +2066,7 @@ collect_cpu() { #? Collects cpu stats from /proc/stat and compares with previous
 		cpu[no_cpu_info]=1
 	fi
 
-	#* If getting cpu frequency from "proc/cpuinfo" was unsuccessfull try "/sys/devices/../../scaling_cur_freq"
+	#* If getting cpu frequency from "proc/cpuinfo" was unsuccessful try "/sys/devices/../../scaling_cur_freq"
 	if [[ $use_psutil == false && -n ${cpu[no_cpu_info]} && -e "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq" ]]; then
 		get_value -v 'cpu[freq]' -sf "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq" -i
 		printf -v 'cpu[freq]' "%.0f0" "${cpu[freq]}e-4"

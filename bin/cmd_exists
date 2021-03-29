@@ -145,7 +145,7 @@ done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications
-type -P bash &>/dev/null || exit 1
+command -v bash &>/dev/null || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 [ $# -eq 0 ] && exit
@@ -164,6 +164,7 @@ exitTmp=""
 missing=""
 choice=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -n "$1" ] || exit 0
 # begin main app
 for cmd in $args; do
   if command -v "$cmd" &>/dev/null || type -P "$cmd" &>/dev/null; then

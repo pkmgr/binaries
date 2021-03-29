@@ -129,14 +129,14 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$exitCode" = 0 ]; then
   if [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
-    zenity --timeout=10 --height=200 --width=400 --info --title="Install successfull" --text="Successfully installed $*"
+    zenity --timeout=10 --height=200 --width=400 --info --title="Install successful" --text="Successfuly installed $*"
   else
-    printf_green "Successfully installed $*"
+    printf_green "Successfuly installed $*"
   fi
   exitCode=0
 else
   if [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
-    zenity --timeout=10 --height=200 --width=400 --error --title="Install unsuccessfull" --text="Failed to install $*"
+    zenity --timeout=10 --height=200 --width=400 --error --title="Install unsuccessful" --text="Failed to install $*"
   else
     printf_error "Failed to install $*"
   fi

@@ -264,7 +264,7 @@ EOF
       echo "See $LOG for more"
       fatal Could not install python dependencies into the virtual environment
     }
-  echo "$(ve/bin/"$pip" freeze | wc -l) dependencies were successfully installed"
+  echo "$(ve/bin/"$pip" freeze | wc -l) dependencies were successfuly installed"
 
   _say_what_i_do Fetching the upstream cheat sheets repositories
   ve/bin/python lib/fetch.py fetch-all | tee -a "$LOG"
@@ -299,7 +299,7 @@ EOF
   cat <<EOF | sed "s/{/$v1/; s/}/$v2/"
 
 {      _      }
-{     \\ \\   }     The installation is successfully finished.
+{     \\ \\   }     The installation is successfuly finished.
 {      \\ \\  }
 {      / /    }   Now you can use cheat.sh in the standalone mode,
 {     /_/     }   or you can start your own cheat.sh server.

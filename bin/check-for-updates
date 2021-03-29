@@ -98,7 +98,7 @@ fi
 #if [ ! -f "$HOME/.cache/update_nag" ] && [ -n "$DISPLAY" ]; then
 #DISPLAY=$DISPLAY xmessage -buttons Yes:0,No:1 -default Yes $xmessageopts --title "You have updates" "$updatemess" && \
 #sleep 20 && #pkmgr silent update && \
-#DISPLAY=$DISPLAY xmessage -buttons OK:0 -default Ok $xmessageopts --title "Done updating" "Update completed successfully" && \
+#DISPLAY=$DISPLAY xmessage -buttons OK:0 -default Ok $xmessageopts --title "Done updating" "Update completed successfuly" && \
 #sleep 20
 #DISPLAY=$DISPLAY xmessage -buttons Yes:0,No:1 -default Yes $xmessageopts --title "message" "Show this again?" && \
 #sleep 20 ; ret=$? ; if [ "$ret" -ne 0 ]; then touch $HOME/.cache/update_nag ; fi

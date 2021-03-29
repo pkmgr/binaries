@@ -991,7 +991,7 @@ case ${1:-$SETOPTS} in
     fi
     if [ -f "$new_filename" ]; then
       chmod 755 "$new_filename"
-      printf_exit 2 0 "Successfully created the new readme file"
+      printf_exit 2 0 "Successfuly created the new readme file"
     else
       printf_exit 1 1 "Creation of the readme file has failed"
     fi

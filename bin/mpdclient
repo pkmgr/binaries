@@ -61,12 +61,12 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __devnull() {
   "$@" &>/dev/null &&
-    printf_green "${cmd:-Command} sent successfully" ||
+    printf_green "${cmd:-Command} sent successfuly" ||
     printf_red "Failed to send ${cmd:-command}"
 }
 __devnull2() {
   "$@" 2>/dev/null &&
-    printf_green "${cmd:-Command} sent successfully" ||
+    printf_green "${cmd:-Command} sent successfuly" ||
     printf_red "Failed to send ${cmd:-command}"
 }
 __server_failed() { printf_red "$ICON_ERROR Failed to connect to the server @ $MPDSERVER" && sleep 3 && return 1; }
@@ -313,7 +313,7 @@ while :; do
     __mpc() { mpc -h "$NEWMPDSERVER" "$@" || return 1; }
     if is_up &>/dev/null; then
       MPDSERVER="$NEWMPDSERVER"
-      printf_green "Successfully changed hostname to $MPDSERVER"
+      printf_green "Successfuly changed hostname to $MPDSERVER"
     else
       __mpc() { mpc -h "$OLDMPDSERVER" "$@" || return 1; }
       printf_red "Failed to change hostname to $NEWMPDSERVER"
