@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="${APPNAME:-app-installer}"
 FUNCFILE="app-installer.bash"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 
@@ -24,30 +22,30 @@ HOME="${USER_HOME:-${HOME}}"
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CASJAYSDEVDIR="/usr/local/share/CasjaysDev/scripts"
-
 # Versioning Info - __required_version "VersionNumber"
 localVersion="${localVersion:-020920211703-git}"
 requiredVersion="${requiredVersion:-020920211703-git}"
 currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
 TMPPATH+="/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:$PATH:."
 export PATH="$(echo "$TMPPATH" | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 unset TMPPATH
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export SUDO_PROMPT="$(printf "\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 export TMP="${TMP:-/tmp}"
 export TEMP="${TEMP:-/tmp}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export WHOAMI="${SUDO_USER:-$USER}"
 export HOME="${USER_HOME:-$HOME}"
 export LOGDIR="${LOGDIR:-$HOME/.local/log}"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 command() {
   [ "$1" = "-v" ] && shift 1
   type -P "$1"
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sudo_root() {
   local SUDOBIN="$(command -v sudo)"
   local SUDOARG="-HE"
@@ -101,7 +99,6 @@ if [ ! -f "$(type -P git 2>/dev/null)" ]; then
     exit 1
   fi
 fi
-
 ##################################################################################################
 # Set Main Repo for dotfiles
 export DOTFILESREPO="${DOTFILESREPO:-https://github.com/dfmgr}"
@@ -114,7 +111,6 @@ export FONTMGRREPO="${FONTMGRREPO:-https://github.com/fontmgr}"
 export THEMEMGRREPO="${THEMEMGRREPO:-https://github.com/thememgr}"
 export SYSTEMMGRREPO="${SYSTEMMGRREPO:-https://github.com/systemmgr}"
 export WALLPAPERMGRREPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}"
-
 ##################################################################################################
 # Colors
 NC="$(tput sgr0 2>/dev/null)"
@@ -136,7 +132,6 @@ ICON_GOOD="[ ✔ ]"
 ICON_WARN="[ ❗ ]"
 ICON_ERROR="[ ✖ ]"
 ICON_QUESTION="[ ❓ ]"
-
 ##################################################################################################
 printf_newline() { printf "${*:-}\n"; }
 printf_color() { printf "%b" "$(tput setaf "$2" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
@@ -158,18 +153,14 @@ printf_execute_result() {
   if [ "$1" -eq 0 ]; then printf_execute_success "$2"; else printf_execute_error "${3:-$2}"; fi
   return "$1"
 }
-
 ##################################################################################################
-
 printf_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
   printf_color "\t\t$ICON_QUESTION $msg? " "$color"
 }
-
 ##################################################################################################
-
 #printf_error "color" "exitcode" "message"
 printf_error() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
@@ -178,9 +169,7 @@ printf_error() {
   printf_color "\t\t$ICON_ERROR $msg\n" "$color"
   return $exitCode
 }
-
 ##################################################################################################
-
 #printf_exit "color" "exitcode" "message"
 printf_exit() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
@@ -191,9 +180,8 @@ printf_exit() {
   echo ""
   exit "$exitCode"
 }
-
 ##################################################################################################
-
+# #printf_newline
 printf_readline() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
@@ -202,9 +190,7 @@ printf_readline() {
   done
   set +o pipefail
 }
-
 ##################################################################################################
-
 printf_custom() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
   local msg="$*"
@@ -212,18 +198,14 @@ printf_custom() {
   printf_color "\t\t$msg" "$color"
   echo ""
 }
-
 ##################################################################################################
-
 printf_custom_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
   printf_color "\t\t$msg " "$color"
 }
-
 ##################################################################################################
-
 printf_question_timeout() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$1" && shift 1
@@ -233,9 +215,7 @@ printf_question_timeout() {
   printf_color "\t\t$msg " "$color"
   read -t 20 -er -n 1 answer
 }
-
 ##################################################################################################
-
 printf_head() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   local msg1="$1" && shift 1
@@ -256,9 +236,7 @@ printf_head() {
   [ -z "$msg7" ] || printf_color "\t\t$msg7\n" "$color"
   [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
 }
-
 ##################################################################################################
-
 printf_result() {
   PREV="$4"
   [ ! -z "$1" ] && EXIT="$1" || EXIT="$?"
@@ -277,37 +255,30 @@ printf_result() {
     return 1
   fi
 }
-
 ##################################################################################################
 get_answer() { printf "%s" "$REPLY"; }
 answer_is_yes() { [[ "$REPLY" =~ ^[Yy]$ ]] && return 0 || return 1; }
-
 ask_for_input() {
   history -s
   printf_question "$1"
   read -re "REPLY"
 }
-
 ask_question() {
   printf_question "$1 (y/N) "
   read -re -n 1 "REPLY"
 }
-
 ##################################################################################################
 __curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
-
 __start() {
   sleep .2 && "$@" &>/dev/null &
   disown
 }
-
 die() { echo -e "$1" exit ${2:9999}; }
 killpid() { devnull kill -9 "$(pidof "$1")"; }
 running() { ps ux | grep "$1" | grep -vq 'grep ' &>/dev/null && return 1 || return 0; }
 hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1 || nslookup "$1" 2>/dev/null | grep Address: | awk '{print $2}' | grep -vE '#|:' | grep ^ || return 1; }
 set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
 getuser() { [ -z "$1" ] && cut -d: -f1 /etc/passwd | grep "$USER" || cut -d: -f1 /etc/passwd | grep "$1"; }
-
 #system_service_active "list of services to check"
 system_service_active() {
   for service in "$@"; do
@@ -376,7 +347,6 @@ system_service_restart() {
   done
   set --
 }
-
 run_post() {
   local e="$1"
   local m="${e//devnull//}"
@@ -385,9 +355,7 @@ run_post() {
   setexitstatus
   set --
 }
-
 ##################################################################################################
-
 #transmission-remote-cli() { cmd_exists transmission-remote-cli || cmd_exists transmission-remote ;}
 mlocate() { cmd_exists locate || cmd_exists mlocate || return 1; }
 xfce4() { cmd_exists xfce4-about || return 1; }
@@ -399,11 +367,8 @@ chromium() { cmd_exists chromium || cmd_exists chromium-browser || return 1; }
 firefox() { cmd_exists firefox-esr || cmd_exists firefox || return 1; }
 gtk-2.0() { find /lib* /usr* -iname "*libgtk*2*.so*" -type f | grep -q . || return 0; }
 gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || return 0; }
-
 export -f mlocate xfce4 imagemagick fdfind speedtest neovim chromium firefox gtk-2.0 gtk-3.0
-
 ##################################################################################################
-
 backupapp() {
   local filename count backupdir rmpre4vbackup
   [ -n "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
@@ -429,9 +394,7 @@ backupapp() {
   fi
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
 }
-
 ##################################################################################################
-
 broken_symlinks() { devnull find "$@" -xtype l -exec rm {} \;; }
 rm_rf() { if [ -e "$1" ]; then devnull rm -Rf "$@"; else return 0; fi; }
 cp_rf() { if [ -e "$1" ]; then devnull cp -Rfa "$@"; else return 0; fi; }
@@ -465,7 +428,6 @@ urlinvalid() {
 urlverify() { urlcheck "$1" || urlinvalid "$1"; }
 symlink() { ln_sf "$1" "$2"; }
 rm_link() { unlink "$1"; }
-
 ##################################################################################################
 __am_i_online() {
   site="1.1.1.1"
@@ -488,7 +450,6 @@ __am_i_online() {
   return $__AM_I_ONLINE
 }
 ##################################################################################################
-
 cmd_exists() {
   local args="$*"
   for cmd in $args; do
@@ -498,12 +459,10 @@ cmd_exists() {
   done
   exit $exitCode
 }
-
 gem_exists() {
   local package="$1"
   if devnull gem query -i -n "$package"; then return 0; else return 1; fi
 }
-
 perl_exists() {
   local package="$1"
   if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}' || devnull perl -M$package -le 'print $INC{"$package.pm"}' || devnull perl -M$package -le 'print $INC{"$package"}'; then
@@ -512,14 +471,11 @@ perl_exists() {
     return 1
   fi
 }
-
 pthon_exists() {
   local package="$1"
   if devnull $PYTHONVER -c "import $package"; then return 0; else return 1; fi
 }
-
 ##################################################################################################
-
 retry_cmd() {
   retries="${1:-}"
   shift
@@ -537,9 +493,7 @@ retry_cmd() {
     fi
   done
 }
-
 ##################################################################################################
-
 returnexitcode() {
   local RETVAL="$?"
   EXIT="$RETVAL"
@@ -547,9 +501,7 @@ returnexitcode() {
     exit "$EXIT"
   fi
 }
-
 ##################################################################################################
-
 getexitcode() {
   local EXITCODE="$?"
   test -n "$1" && test -z "${1//[0-9]/}" && local EXITCODE="$1" && shift 1
@@ -576,7 +528,6 @@ getexitcode() {
   return "$EXITCODE"
 }
 ##################################################################################################
-
 failexitcode() {
   local RETVAL="$?"
   test -n "$1" && test -z "${1//[0-9]/}" && local RETVAL="$1" && shift 1
@@ -591,9 +542,7 @@ failexitcode() {
     [ -z "$success" ] || printf_custom "42" "$success"
   fi
 }
-
 ##################################################################################################
-
 setexitstatus() {
   [ -z "$EXIT" ] && local EXIT="$?" || local EXIT="$EXIT"
   local EXITSTATUS+="$EXIT"
@@ -605,9 +554,7 @@ setexitstatus() {
     return 0
   fi
 }
-
 ##################################################################################################
-
 __getip() {
   if cmd_exists route || cmd_exists ip; then
     if [[ "$OSTYPE" =~ ^darwin ]]; then
@@ -629,9 +576,7 @@ __getip() {
   fi
 }
 __getip 2>/dev/null
-
 ##################################################################################################
-
 __getpythonver() {
   if [[ "$(python3 -V 2>/dev/null)" =~ "Python 3" ]]; then
     PYTHONVER="python3"
@@ -645,9 +590,7 @@ __getpythonver() {
   if [ "$(cmd_exists yay)" ] || [ "$(cmd_exists pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
 }
 __getpythonver
-
 ##################################################################################################
-
 __getphpver() {
   if cmd_exists php; then
     PHPVER="$(php -v | grep --only-matching --perl-regexp "(PHP )\d+\.\\d+\.\\d+" | cut -c 5-7)"
@@ -656,9 +599,7 @@ __getphpver() {
   fi
   echo $PHPVER
 }
-
 ##################################################################################################
-
 sudoif() { (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; }
 sudorun() { if sudoif; then sudo "$@"; else "$@"; fi; }
 sudorerun() {
@@ -672,19 +613,15 @@ sudoreq() {
     exit 1
   fi
 }
-
 user_is_root() { if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then return 0; else return 1; fi; }
 ######################
-
 can_i_sudo() {
   (
     ISINDSUDO=$(sudo grep -Re "$MYUSER" /etc/sudoers* | grep "ALL" >/dev/null)
     sudo -vn && sudo -ln
   ) 2>&1 | grep -v 'may not' >/dev/null
 }
-
 ######################
-
 sudoask() {
   if [ ! -f "$HOME/.sudo" ]; then
     sudo true &>/dev/null
@@ -697,20 +634,17 @@ sudoask() {
     done &>/dev/null &
   fi
 }
-
 ######################
-
 sudoexit() {
   if [ $? -eq 0 ]; then
     sudoask || printf_green "Getting privileges successfull continuing" &&
       sudo -n true
   else
-    printf_red "Failed to get privileges"
+    printf_red "${1:-Failed to get privileges}"
+    return 1
   fi
 }
-
 ######################
-
 requiresudo() {
   if [ -f "$(command -v sudo 2>/dev/null)" ]; then
     if (sudo -vn && sudo -ln) 2>&1 | grep -v 'may not' >/dev/null; then
@@ -722,9 +656,7 @@ requiresudo() {
     exit 1
   fi
 }
-
 ##################################################################################################
-
 addtocrontab() {
   [ "$1" = "--help" ] && printf_help 'addtocrontab "frequency" "command" | IE: addtocrontab "0 4 * * *" "echo hello"'
   local frequency="$1"
@@ -733,7 +665,6 @@ addtocrontab() {
   local job="$frequency $command $additional"
   cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab - &>/dev/null
 }
-
 crontab_add() {
   local appname="${APPNAME:-$1}"
   local action="${action:-$1}"
@@ -795,9 +726,7 @@ crontab_add() {
     ;;
   esac
 }
-
 ##################################################################################################
-
 versioncheck() {
   if [ -f "$INSTDIR/version.txt" ]; then
     printf_green "Checking for updates"
@@ -823,9 +752,7 @@ versioncheck() {
   fi
   exit $?
 }
-
 ##################################################################################################
-
 scripts_check() {
   if __am_i_online; then
     if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
@@ -842,26 +769,20 @@ scripts_check() {
     fi
   fi
 }
-
 ##################################################################################################
-
 #is_url() { echo "$1" | grep -q http; }
 #strip_url() { echo "$1" | sed 's#git+##g' | awk -F//*/ '{print $2}' | sed 's#.*./##g' | sed 's#python-##g'; }
-
 cmd_missing() { cmd_exists "$1" && return 0 || MISSING+="$1 " && return 1; }
 cpan_missing() { perl_exists "$1" && return 0 || MISSING+="$1" && return 1; }
 gem_missing() { gem_exists "$1" && return 0 || MISSING+="$1 " && return 1; }
 perl_missing() { perl_exists "$1" && return 0 || MISSING+="$(echo perl-$1 | sed 's#::#-#g') " && return 1; }
 pip_missing() { pthon_exists "$1" && return 0 || MISSING+="$1 " && return 1; }
-
 if cmd_exists pacman; then
   python_missing() { pthon_exists "$1" && return 0 || MISSING+="python-$1 " && return 1; }
 else
   python_missing() { pthon_exists "$1" && return 0 || MISSING+="$PYTHONVER-$1 " && return 1; }
 fi
-
 ##################################################################################################
-
 git_clone() {
   if __am_i_online; then
     local repo="$1"
@@ -870,9 +791,7 @@ git_clone() {
     devnull git clone --depth=1 -q --recursive "$@"
   fi
 }
-
 ##################################################################################################
-
 git_update() {
   if __am_i_online; then
     local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
@@ -886,27 +805,23 @@ git_update() {
     fi
   fi
 }
-
 ##################################################################################################
 
 dotfilesreqcmd() {
   if __am_i_online; then
     local gitrepo="$REPO"
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
+      sudo_user bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
 }
-
 dotfilesreqadmincmd() {
   if __am_i_online; then
     local gitrepo="$REPO"
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      sudo bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
+      sudo_root bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
 }
-
 ##################################################################################################
-
 dotfilesreq() {
   if __am_i_online; then
     if cmd_exists pkmgr; then
@@ -923,7 +838,6 @@ dotfilesreq() {
     fi
   fi
 }
-
 dotfilesreqadmin() {
   if __am_i_online; then
     if cmd_exists pkmgr; then
@@ -940,9 +854,7 @@ dotfilesreqadmin() {
     fi
   fi
 }
-
 ##################################################################################################
-
 install_required() {
   if __am_i_online; then
     [[ $# -eq 0 ]] && return 0
@@ -962,9 +874,7 @@ install_required() {
   fi
   # unset MISSING
 }
-
 ##################################################################################################
-
 install_packages() {
   if __am_i_online; then
     local MISSING=""
@@ -1008,9 +918,7 @@ install_packages() {
   fi
   unset MISSING
 }
-
 ##################################################################################################
-
 install_python() {
   if __am_i_online; then
     local MISSING=""
@@ -1031,9 +939,7 @@ install_python() {
   fi
   unset MISSING
 }
-
 ##################################################################################################
-
 install_perl() {
   if __am_i_online; then
     local MISSING=""
@@ -1054,9 +960,7 @@ install_perl() {
   fi
   unset MISSING
 }
-
 ##################################################################################################
-
 install_pip() {
   if __am_i_online; then
     local MISSING=""
@@ -1073,9 +977,7 @@ install_pip() {
   fi
   unset MISSING
 }
-
 ##################################################################################################
-
 install_cpan() {
   if __am_i_online; then
     local MISSING=""
@@ -1092,9 +994,7 @@ install_cpan() {
     unset MISSING
   fi
 }
-
 ##################################################################################################
-
 install_gem() {
   if __am_i_online; then
     local MISSING=""
@@ -1111,17 +1011,13 @@ install_gem() {
   fi
   unset MISSING
 }
-
 ##################################################################################################
-
 trim() {
   local IFS=' '
   local trimmed="${*//[[:space:]]/}"
   echo "$trimmed"
 }
-
 ##################################################################################################
-
 kill_all_subprocesses() {
   local i=""
   for i in $(jobs -p); do
@@ -1129,9 +1025,7 @@ kill_all_subprocesses() {
     wait "$i" &>/dev/null
   done
 }
-
 ##################################################################################################
-
 execute() {
   local -r CMDS="$1"
   local -r MSG="${2:-$1} "
@@ -1151,9 +1045,7 @@ execute() {
   rm -rf "$TMP_FILE"
   return $exitCode
 }
-
 ##################################################################################################
-
 show_spinner() {
   local -r FRAMES='/-\|'
   local -r NUMBER_OR_FRAMES=${#FRAMES}
@@ -1169,16 +1061,12 @@ show_spinner() {
     printf "\r"
   done
 }
-
 ##################################################################################################
-
 git_repo_urls() {
   REPO="${REPO:-https://github.com/dfmgr}"
   REPORAW="${REPORAW:-$REPO/$APPNAME/raw}"
 }
-
 ##################################################################################################
-
 os_support() {
   if [ -n "$1" ]; then
     OSTYPE="$(echo $1 | tr '[:upper:]' '[:lower:]')"
@@ -1290,7 +1178,6 @@ if_os_id() {
     fi
   done
 }
-
 ###################### setup folders - user ######################
 user_installdirs() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
@@ -1347,7 +1234,6 @@ user_installdirs() {
   installtype="user_installdirs"
   git_repo_urls
 }
-
 ###################### setup folders - system ######################
 system_installdirs() {
   APPNAME="${APPNAME:-installer}"
@@ -1404,9 +1290,7 @@ system_installdirs() {
   installtype="system_installdirs"
   git_repo_urls
 }
-
 ##################################################################################################
-
 ensure_dirs() {
   if [[ $EUID -ne 0 ]] || [[ "$WHOAMI" != "root" ]]; then
     mkd "$BIN"
@@ -1435,9 +1319,7 @@ ensure_dirs() {
   fi
   return 0
 }
-
 ##################################################################################################
-
 ensure_perms() {
   # chown -Rf "$WHOAMI":"$WHOAMI" "$LOGDIR"
   # chown -Rf "$WHOAMI":"$WHOAMI" "$BACKUPDIR"
@@ -1454,9 +1336,7 @@ ensure_perms() {
   # chmod -Rf 755 "$HOME/.local/share/CasjaysDev"
   return 0
 }
-
 ##################################################################################################
-
 get_app_version() {
   if [ -f "$INSTDIR/version.txt" ]; then
     local version="$(cat "$INSTDIR/version.txt" | grep -v "#" | tail -n 1)"
@@ -1481,9 +1361,7 @@ get_app_version() {
     printf_info "Update Available:          Yes"
   fi
 }
-
 ##################################################################################################
-
 app_uninstall() {
   if [ -d "$APPDIR" ]; then
     printf_yellow "Removing $APPNAME from your system"
@@ -1498,9 +1376,7 @@ app_uninstall() {
     return 1
   fi
 }
-
 ##################################################################################################
-
 show_optvars() {
   if [ "$1" = "--debug" ]; then
     shift 1
@@ -1621,11 +1497,8 @@ show_optvars() {
     ls -l $CASJAYSDEVSAPPDIR/dotfiles | tr -s ' ' | cut -d' ' -f3,4,9 | sed 's# #                               #g' | grep -v "total." | printf_readline "5"
     exit $?
   fi
-
 }
-
 ##################################################################################################
-
 installer_noupdate() {
   if [ "$1" != "--force" ]; then
     if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d "$APPDIR" ] || [ -d "$INSTDIR" ]; then
@@ -1635,9 +1508,7 @@ installer_noupdate() {
     fi
   fi
 }
-
 ##################################################################################################
-
 __install_fonts() {
   if [ -d "$INSTDIR/fontconfig" ]; then
     local fontconfdir="$FONTCONF"
@@ -1655,7 +1526,6 @@ __install_fonts() {
     cmd_exists fc-cache && fc-cache -f "$FONTDIR"
   fi
 }
-
 __install_icons() {
   if [ -d "$INSTDIR/icons" ]; then
     local icondir="$ICONDIR"
@@ -1677,7 +1547,6 @@ __install_icons() {
   cmd_exists gtk-update-icon-cache && devnull gtk-update-icon-cache -q -t -f "$ICONDIR"
   return 0
 }
-
 __install_theme() {
   if [ -d "$INSTDIR/theme" ]; then
     local themedir="$THEMEDIR"
@@ -1702,7 +1571,6 @@ __install_theme() {
   done
   return 0
 }
-
 __install_wallpapers() {
   if [ -d "$INSTDIR/images" ]; then
     local wallpapers="$(ls $INSTDIR/images/ 2>/dev/null | wc -l)"
@@ -1717,7 +1585,6 @@ __install_wallpapers() {
   fi
   return 0
 }
-
 ##################################################################################################
 ###################### devenv settings ######################
 devenvmgr_install() {
@@ -1746,13 +1613,11 @@ devenvmgr_install() {
 devenvmgr_run_init() {
   run_install_init "dev enviroment"
 }
-
 devenvmgr_run_post() {
   devenvmgr_install
   run_postinst_global
   [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
 }
-
 devenvmgr_install_version() {
   devenvmgr_install
   install_version
@@ -1760,7 +1625,6 @@ devenvmgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ###################### dfmgr settings ######################
 dfmgr_install() {
   user_installdirs
@@ -1788,14 +1652,12 @@ dfmgr_install() {
 dfmgr_run_init() {
   run_install_init "configurations"
 }
-
 dfmgr_run_post() {
   dfmgr_install
   run_postinst_global
   [ -d "$APPDIR" ] && replace "$APPDIR" "replacehome" "$HOME"
   [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
 }
-
 dfmgr_install_version() {
   dfmgr_install
   install_version
@@ -1803,9 +1665,7 @@ dfmgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ##################################################################################################
-
 dockermgr_install() {
   user_installdirs
   cmd_exists docker || printf_exit 1 1 "This requires docker, however docker wasn't found"
@@ -1834,13 +1694,11 @@ dockermgr_install() {
 dockermgr_run_init() {
   run_install_init "docker configurations"
 }
-
 dockermgr_run_post() {
   dockermgr_install
   run_postinst_global
   [ -d "$APPDIR" ] && replace "$APPDIR" "/home/jason" "$HOME"
 }
-
 dockermgr_install_version() {
   dockermgr_install
   install_version
@@ -1848,9 +1706,7 @@ dockermgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ##################################################################################################
-
 fontmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="fontmgr"
@@ -1878,13 +1734,11 @@ fontmgr_install() {
 fontmgr_run_init() {
   run_install_init "fonts"
 }
-
 fontmgr_run_post() {
   fontmgr_install
   run_postinst_global
   __install_fonts
 }
-
 fontmgr_install_version() {
   fontmgr_install
   install_version
@@ -1892,9 +1746,7 @@ fontmgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ##################################################################################################
-
 iconmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="iconmgr"
@@ -1922,13 +1774,11 @@ iconmgr_install() {
 iconmgr_run_init() {
   run_install_init "icons"
 }
-
 iconmgr_run_post() {
   iconmgr_install
   run_postinst_global
   __install_icons
 }
-
 iconmgr_install_version() {
   iconmgr_install
   install_version
@@ -1936,15 +1786,12 @@ iconmgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 generate_icon_index() {
   iconmgr_install
   ICONDIR="${ICONDIR:-$SHARE/icons}"
   cmd_exists fc-cache && fc-cache -f "$ICONDIR"
 }
-
 ##################################################################################################
-
 pkmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="pkmgr"
@@ -1972,12 +1819,10 @@ pkmgr_install() {
 pkmgr_run_init() {
   run_install_init "packages"
 }
-
 pkmgr_run_post() {
   pkmgr_install
   run_postinst_global
 }
-
 pkmgr_install_version() {
   pkmgr_install
   install_version
@@ -1985,9 +1830,7 @@ pkmgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ##################################################################################################
-
 systemmgr_install() {
   requiresudo "true"
   system_installdirs
@@ -2025,7 +1868,6 @@ systemmgr_run_post() {
   systemmgr_install
   run_postinst_global
 }
-
 systemmgr_install_version() {
   systemmgr_install
   install_version
@@ -2033,9 +1875,7 @@ systemmgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ##################################################################################################
-
 thememgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="thememgr"
@@ -2059,7 +1899,6 @@ thememgr_install() {
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="thememgr_install"
 }
-
 generate_theme_index() {
   thememgr_install
 }
@@ -2073,7 +1912,6 @@ thememgr_run_post() {
   __install_theme
   generate_theme_index
 }
-
 thememgr_install_version() {
   thememgr_install
   install_version
@@ -2081,9 +1919,7 @@ thememgr_install_version() {
   #   ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"
   # fi
 }
-
 ##################################################################################################
-
 wallpapermgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="wallpapermgr"
@@ -2115,7 +1951,6 @@ wallpapermgr_run_post() {
   run_postinst_global
   __install_wallpapers
 }
-
 wallpapermgr_install_version() {
   wallpapermgr_install
   install_version
@@ -2334,14 +2169,16 @@ systemmgr_req_version() { __required_version "$1"; }
 thememgr_req_version() { __required_version "$1"; }
 #[ "$installtype" = "wallpapermgr_install" ] &&
 wallpapermgr_req_version() { __required_version "$1"; }
-
 ##################################################################################################
 vdebug() {
   echo -e "VAR - "ARGS:$*""
-  for path in "USER:$USER" "HOME:$HOME" "PREFIX:$SCRIPTS_PREFIX" "REPO:$REPO" "REPORAW:$REPORAW" "CONF:$CONF" "SHARE:$SHARE" "INSTDIR:$INSTDIR" \
-    "APPDIR:$APPDIR" "USRUPDATEDIR:$USRUPDATEDIR" "SYSUPDATEDIR:$SYSUPDATEDIR" "FONTDIR:$FONTDIR " "ICONDIR:$ICONDIR" "THEMEDIR:$THEMEDIR" \
-    "$INSTDIR/version.txt:$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" "$INSTDIR/install.sh:$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" \
-    "$APPDIR/version.txt:$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" "$APPDIR/install.sh:$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"; do
+  for path in "USER:$USER" "HOME:$HOME" "PREFIX:$SCRIPTS_PREFIX" "REPO:$REPO" "REPORAW:$REPORAW" \
+    "CONF:$CONF" "SHARE:$SHARE" "INSTDIR:$INSTDIR" "APPDIR:$APPDIR" "USRUPDATEDIR:$USRUPDATEDIR" \
+    "SYSUPDATEDIR:$SYSUPDATEDIR" "FONTDIR:$FONTDIR " "ICONDIR:$ICONDIR" "THEMEDIR:$THEMEDIR" \
+    "$INSTDIR/version.txt:$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" \
+    "$INSTDIR/install.sh:$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" \
+    "$APPDIR/version.txt:$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" \
+    "$APPDIR/install.sh:$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME"; do
     echo -e "VAR - $path"
   done
 }
@@ -2370,3 +2207,4 @@ __debugger() {
 #set_trap "EXIT" "install_cpan"
 #set_trap "EXIT" "install_gem"
 # end
+

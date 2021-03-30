@@ -43,7 +43,6 @@ run_post() {
   setexitstatus
   set --
 }
-
 system_service_exists() {
   if systemctl status "$1" >/dev/null 2>&1; then return 0; else return 1; fi
   setexitstatus
@@ -59,7 +58,6 @@ system_service_disable() {
   setexitstatus
   set --
 }
-
 detect_selinux() {
   selinuxenabled
   if [ $? -ne 0 ]; then return 0; else return 1; fi
@@ -68,17 +66,14 @@ disable_selinux() {
   selinuxenabled
   devnull setenforce 0
 }
-
 grab_remote_file() { urlverify "$1" && curl -sSLq "$@" || exit 1; }
 run_external() { printf_green "Executing $*" && "$@" >/dev/null 2>&1; }
-
 retrieve_version_file() { grab_remote_file https://github.com/casjay-base/centos/raw/master/version.txt | head -n1 || echo "Unknown version"; }
 run_grub() {
   printf_green "Setting up grub"
   rm -Rf /boot/*rescue*
   devnull grub2-mkconfig -o /boot/grub2/grub.cfg
 }
-
 #### OS Specific
 test_pkg() {
   devnull sudo rpm -q $1 && printf_success "$1 is installed" && return 1 || return 0
@@ -95,40 +90,27 @@ install_pkg() {
   setexitstatus
   set --
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-[ ! -z "$1" ] && printf_exit 'To many options provided'
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+[ -n "$1" ] || printf_exit 'To many options provided'
 ##################################################################################################################
 printf_head "Initializing the setup script"
 ##################################################################################################################
-
-sudoask && sudoexit
-execute "sudo PKMGR"
-
+user_is_root && sudoexit "This scripts requires root/sudo"
 ##################################################################################################################
 printf_head "Configuring cores for compiling"
 ##################################################################################################################
-
 if [ -f /etc/makepkg.conf ]; then
   numberofcores=$(grep -c ^processor /proc/cpuinfo)
   printf_info "Total cores avaliable: $numberofcores"
-
   if [ $numberofcores -gt 1 ]; then
     sed -i 's/#MAKEFLAGS="-j2"/MAKEFLAGS="-j'$(($numberofcores + 1))'"/g' /etc/makepkg.conf
     sed -i 's/COMPRESSXZ=(xz -c -z -)/COMPRESSXZ=(xz -c -T '"$numberofcores"' -z -)/g' /etc/makepkg.conf
   fi
 fi
-
 ##################################################################################################################
-printf_head "Installing the packages for TEMPLATE"
+printf_head "Installing the packages for GEN_SCRIPTS_REPLACE_APPNAME"
 ##################################################################################################################
-
 install_pkg listofpkgs
-
 ##################################################################################################################
 printf_head "Fixing packages"
 ##################################################################################################################
@@ -136,17 +118,13 @@ printf_head "Fixing packages"
 ##################################################################################################################
 printf_head "setting up config files"
 ##################################################################################################################
-
 run_post "cp -rT /etc/skel $HOME"
 run_post "dotfilesreq bash"
 run_post "dotfilesreq misc"
-
-run_post dotfilesreqadmin samba
-
+run_post "dotfilesreqadmin samba ssl"
 ##################################################################################################################
 printf_head "Enabling services"
 ##################################################################################################################
-
 system_service_enable lightdm.service
 system_service_enable bluetooth.service
 system_service_enable smb.service
@@ -157,20 +135,15 @@ system_service_enable org.cups.cupsd.service
 system_service_disable mpd
 
 run_post "devnull systemctl set-default graphical.target"
-
 run_post "devnull grub-mkconfig -o /boot/grub/grub.cfg"
-
 ##################################################################################################################
 printf_head "Cleaning up"
 ##################################################################################################################
-
 remove_pkg xfce4-artwork
-
 ##################################################################################################################
 printf_head "Finished "
-echo""
+printf_newline
 ##################################################################################################################
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 set --
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
