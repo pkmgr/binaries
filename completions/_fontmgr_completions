@@ -13,7 +13,7 @@
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-fontmgr --options &>/dev/null
+[ -f "$HOME/.local/share/myscripts/fontmgr/options/array" ] || fontmgr --options &>/dev/null
 _fontmgr() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
   local cur prev words cword opts

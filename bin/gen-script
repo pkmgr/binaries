@@ -485,7 +485,7 @@ __makefile() {
   # local manscript=""
   # if [ "$comptest" = "true" ]; then
   #   newdir="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_COMPLETION_DIR"
-  #   new="_$(basename "$new")_completion"
+  #   new="_$(basename "$new")_completions"
   # fi
   # if [ "$manscript" = "true" ]; then
   #   newdir="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_MAN_DIR"
@@ -520,7 +520,7 @@ __makefile() {
     [ -n "$todo" ] && [ -n "$GEN_SCRIPTS_REPLACE_todo" ] && __sed "$GEN_SCRIPTS_REPLACE_todo" "$todo" "$new"
     [ -n "$other" ] && [ -n "$GEN_SCRIPTS_REPLACE_other" ] && __sed "$GEN_SCRIPTS_REPLACE_other" "$other" "$new"
     [ -n "$resource" ] && [ -n "$GEN_SCRIPTS_REPLACE_resource" ] && __sed "$GEN_SCRIPTS_REPLACE_resource" "$resource" "$new"
-    local compfile="_$(basename "$new")_completion"
+    local compfile="_$(basename "$new")_completions"
     local destfolder="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_COMPLETION_DIR"
     printf_cyan "Creating and moving the completion file:"
     printf_yellow "$destfolder/$compfile"

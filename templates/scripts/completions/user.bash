@@ -13,7 +13,7 @@
 # @Other         : GEN_SCRIPTS_REPLACE_OTHER
 # @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-GEN_SCRIPTS_REPLACE_FILENAME --options &>/dev/null
+[ -f "$HOME/.local/share/misc/GEN_SCRIPTS_REPLACE_FILENAME/options/array" ] || GEN_SCRIPTS_REPLACE_FILENAME --options &>/dev/null
 _GEN_SCRIPTS_REPLACE_FILENAME() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
   local cur prev words cword opts
