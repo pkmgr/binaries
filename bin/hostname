@@ -65,6 +65,7 @@ EOF
     printf_red "Failed to create the config file"
     false
   fi
+  __hostname
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __hostname() {
@@ -94,7 +95,7 @@ __hostname() {
     [ -f "$HOSTNAME_CACHE_DIR/name" ] || $hostnamecmd >"$HOSTNAME_CACHE_DIR/name"
     [ -f "$HOSTNAME_CACHE_DIR/full" ] || $hostnamescmd >$HOSTNAME_CACHE_DIR/full
     [ -f "$HOSTNAME_CACHE_DIR/short" ] || $hostnamefcmd >"$HOSTNAME_CACHE_DIR/short"
-    $hostnamecli 2>/dev/null | grep 'hostname:' | awk '{print $3}' | grep '^'
+    $hostnamecli 2>/dev/null | grep 'hostname:' | grep -v '^n/a' | awk '{print $3}' | grep '^'
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -109,15 +110,15 @@ HOSTNAME_TEMP_FILE="${TMPDIR:-/tmp}/hostname"
 HOSTNAME_NOTIFY_ENABLED="yes"
 HOSTNAME_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 HOSTNAME_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$HOSTNAME_NOTIFY_CLIENT_ICON}"
-if user_is_root; then
+if user_is_root || [ -f "/etc/hostname.d/settings.conf" ]; then
   HOSTNAME_CONFIG_DIR="/etc/hostname.d"
   HOSTNAME_CACHE_DIR="/etc/hostname.d/files"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
-SHORTOPTS="c,v,h,r"
-LONGOPTS="options,config,version,help,remove"
+SHORTOPTS="c,v,h,r,f,s,d"
+LONGOPTS="options,config,version,help,remove,full,domain,short"
 ARRAY="$LONGOPTS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
@@ -126,9 +127,7 @@ ARRAY="$LONGOPTS"
 [ -f "$HOSTNAME_OPTIONS_DIR/array" ] || __list_array "$HOSTNAME_OPTIONS_DIR" "$ARRAY" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
-if [ -f "/etc/hostname.d/settings.conf" ]; then
-  . "/etc/hostname.d/settings.conf"
-elif [ -f "$HOSTNAME_CONFIG_DIR/$HOSTNAME_CONFIG_FILE" ]; then
+if [ -f "$HOSTNAME_CONFIG_DIR/$HOSTNAME_CONFIG_FILE" ]; then
   . "$HOSTNAME_CONFIG_DIR/$HOSTNAME_CONFIG_FILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -165,6 +164,9 @@ while :; do
       { [ -f "$HOSTNAME_CACHE_DIR/domain" ] && rm -Rf "$HOSTNAME_CACHE_DIR/domain"; } &&
       printf_exit 2 0 "Removed the files from $HOSTNAME_CACHE_DIR" || printf_exit 1 1 "failed to remove the cache files"
     ;;
+  -d | domain) shift 1 && OPTS=domain ;;
+  -s | short) shift 1 && OPTS=short ;;
+  -f | full) shift 1 && OPTS=full ;;
   --)
     shift 1
     break
@@ -199,16 +201,16 @@ fi
 [ -f "$HOSTNAME_CACHE_DIR/domain" ] && hostnamed="$(<"$HOSTNAME_CACHE_DIR/domain")" || hostnamed=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-case "$1" in
--f | --full)
+case "${1:-$OPTS}" in
+full)
   shift 1
   [ -n "$hostnamef" ] && printf '%s\n' "$hostnamef" || __hostname "-f"
   ;;
--s | --short)
+short)
   shift 1
   [ -n "$hostnames" ] && printf '%s\n' "$hostnames" || __hostname "-s"
   ;;
--d | --domain)
+domain)
   shift 1
   [ -n "$hostnamed" ] && printf '%s\n' "$hostnamed" || __hostname "-d"
   ;;
