@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103302146-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap 'rm $SPELLCHECK_TMP_FILE &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201900-git
+##@Version       : 202103302146-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : spellcheck --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 19:00 EDT
+# @Created       : Tuesday, Mar 30, 2021 21:46 EDT
 # @File          : spellcheck
 # @Description   : Script to check spelling
 # @TODO          : Add function to keep open/Add notification support
@@ -40,27 +42,134 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -n "$1" ] || __help
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-TMPFILE="${TMPDIR:-/tmp}/checkspell"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__check_app aspell
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$(__devnull2 aspell dump dicts | wc -l)" = 0 ]; then
-  printf_read_question "2" "Missing dictionary files should I install them" "1" "confirm_install" "-s"
-  if printf_answer_yes "$confirm_install"; then
-    pkmgr silent-install aspell-en
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE"
+  [ -d "$SPELLCHECK_CONFIG_DIR" ] || mkdir -p "$SPELLCHECK_CONFIG_DIR"
+  [ -d "$SPELLCHECK_CONFIG_BACKUP_DIR" ] || mkdir -p "$SPELLCHECK_CONFIG_BACKUP_DIR"
+  [ -f "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE" ] &&
+    cp -Rf "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE" "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE.$$"
+  cat <<EOF >"$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE"
+# Settings for spellcheck
+SPELLCHECK_TMP_FILE="${TMPDIR:-/tmp}/checkspell"
+SPELLCHECK_NOTIFY_ENABLED="yes"
+SPELLCHECK_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+SPELLCHECK_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$SPELLCHECK_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE" ]; then
+    printf_green "Your config file for spellcheck has been created"
+    true
   else
-    exit 1
+    printf_red "Failed to create the config file"
+    false
   fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+SPELLCHECK_CONFIG_FILE="settings.conf"
+SPELLCHECK_CONFIG_DIR="$HOME/.config/myscripts/spellcheck"
+SPELLCHECK_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/spellcheck/backups"
+SPELLCHECK_OPTIONS_DIR="$HOME/.local/share/myscripts/spellcheck/options"
+SPELLCHECK_TMP_FILE="${TMPDIR:-/tmp}/checkspell"
+SPELLCHECK_NOTIFY_ENABLED="yes"
+SPELLCHECK_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+SPELLCHECK_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$SPELLCHECK_NOTIFY_CLIENT_ICON}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f:"
+LONGOPTS="options,config,version,help,file:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$SPELLCHECK_OPTIONS_DIR/options" ] || __list_options "$SPELLCHECK_OPTIONS_DIR" &>/dev/null
+[ -f "$SPELLCHECK_OPTIONS_DIR/array" ] || __list_array "$SPELLCHECK_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE" ]; then
+  . "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-echo "$1" | aspell -a list | grep -v "@(#) " >"$TMPFILE"
-grep -q '^\*$' "$TMPFILE" &&
-  printf_green "\n\t\tYou have spelled $1 correctly\n" ||
-  printf_blue "$(cat $TMPFILE | sed 's#,# :#g')"
-rm -f "$TMPFILE"
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$SPELLCHECK_OPTIONS_DIR" "$ARRAY"
+    __list_options "$SPELLCHECK_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --file)
+    shift 1
+    FILE_CHECK="yes"
+    FILE_TO_CHECK="$1"
+    shift 1
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# Check for required applications
+cmd_exists aspell bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# Actions based on env
+if [ "$SPELLCHECK_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${SPELLCHECK_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${SPELLCHECK_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+if [ "$(aspell dump dicts | wc -l)" = 0 ]; then
+  ask_yes_no_question "Missing dictionary files should I install them" "pkmgr silent-install aspell-en" || exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$FILE_TO_CHECK" ]; then
+  aspell -c "$FILE_TO_CHECK"
+else
+  echo "$1" | aspell -a list | grep -v "@(#) " >"$SPELLCHECK_TMP_FILE"
+  if grep -q '^\*$' "$SPELLCHECK_TMP_FILE"; then
+    correct="You have spelled $1 correctly"
+    printf_green "\n\t\t$correct"
+    __notifications "SpellCheck:" "$correct"
+  else
+    fix="$(sed 's|^& ||g;s|,| :|g' <"$SPELLCHECK_TMP_FILE")"
+    printf_blue "\n\t\t$fix\n"
+    __notifications "SpellCheck:" "$fix"
+  fi
+fi
+rm -f "$SPELLCHECK_TMP_FILE"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

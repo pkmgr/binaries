@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103302221-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap 'rm $DEFINE_TMP_FILE &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200624-git
+##@Version       : 202103302221-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : define --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:24 EDT
+# @Created       : Tuesday, Mar 30, 2021 22:21 EDT
 # @File          : define
-# @Description   : script to lookup words using dict
+# @Description   : Script to lookup definition of words using dict
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -40,17 +42,120 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__am_i_online_err || exit 1
-__requires dict || exit 1
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE"
+  [ -d "$DEFINE_CONFIG_DIR" ] || mkdir -p "$DEFINE_CONFIG_DIR"
+  [ -d "$DEFINE_CONFIG_BACKUP_DIR" ] || mkdir -p "$DEFINE_CONFIG_BACKUP_DIR"
+  [ -f "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE" ] &&
+    cp -Rf "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE" "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE.$$"
+  cat <<EOF >"$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE"
+# Settings for define
+DEFINE_SERVER_HOST="dict.org"
+DEFINE_SERVER_PORT="2628"
+DEFINE_TEMP_FILE="${TMPDIR:-/tmp}/thesaurus"
+DEFINE_NOTIFY_ENABLED="yes"
+DEFINE_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+DEFINE_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$DEFINE_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE" ]; then
+    printf_green "Your config file for define has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -n "$1" ] || __help
+# Defaults
+exitCode=""
+DEFINE_CONFIG_FILE="settings.conf"
+DEFINE_CONFIG_DIR="$HOME/.config/myscripts/define"
+DEFINE_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/define/backups"
+DEFINE_OPTIONS_DIR="$HOME/.local/share/myscripts/define/options"
+DEFINE_TEMP_FILE="${TMPDIR:-/tmp}/thesaurus"
+DEFINE_SERVER_HOST="dict.org"
+DEFINE_SERVER_PORT="2628"
+DEFINE_NOTIFY_ENABLED="yes"
+DEFINE_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+DEFINE_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DEFINE_NOTIFY_CLIENT_ICON}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__check_app dict
-dict -d gcide "$1" |
-  sed '/^$/d' |
-  sed 's#From The Collaborative International.*##g' |
-  printf_readline "2"
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# Generate Files
+[ -f "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$DEFINE_OPTIONS_DIR/options" ] || __list_options "$DEFINE_OPTIONS_DIR" &>/dev/null
+[ -f "$DEFINE_OPTIONS_DIR/array" ] || __list_array "$DEFINE_OPTIONS_DIR" "$ARRAY" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# Import config
+if [ -f "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE" ]; then
+  . "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$DEFINE_OPTIONS_DIR" "$ARRAY"
+    __list_options "$DEFINE_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error dict bash || exit 1
+am_i_online --error || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$DEFINE_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${DEFINE_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${DEFINE_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+dict -h ${DEFINE_SERVER_HOST} -p ${DEFINE_SERVER_PORT} -d gcide "$1" | sed '/^$/d' | sed 's#From The Collaborative International.*##g' >"$DEFINE_TEMP_FILE"
+definition="$(<"$DEFINE_TEMP_FILE")"
+printf_readline "2" <"$definition"
+__notifications "$definition"
+rm -f "$THESAURUS_TEMP_FILE"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

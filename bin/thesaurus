@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103302139-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap 'rm $THESAURUS_TEMP_FILE &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201940-git
+##@Version       : 202103302139-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : thesaurus --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 19:40 EDT
+# @Created       : Tuesday, Mar 30, 2021 21:39 EDT
 # @File          : thesaurus
-# @Description   : thesaurus
+# @Description   : Thesaurus
 # @TODO          :
 # @Other         :
 # @Resource      :
@@ -40,13 +42,118 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__check_app dict || exit 1
-__am_i_online_err || exit 1
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE"
+  [ -d "$THESAURUS_CONFIG_DIR" ] || mkdir -p "$THESAURUS_CONFIG_DIR"
+  [ -d "$THESAURUS_CONFIG_BACKUP_DIR" ] || mkdir -p "$THESAURUS_CONFIG_BACKUP_DIR"
+  [ -f "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE" ] &&
+    cp -Rf "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE" "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE.$$"
+  cat <<EOF >"$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE"
+# Settings for thesaurus
+THESAURUS_SERVER_HOST="dict.org"
+THESAURUS_SERVER_PORT="2628"
+THESAURUS_TEMP_FILE="${TMPDIR:-/tmp}/thesaurus"
+THESAURUS_NOTIFY_ENABLED="yes"
+THESAURUS_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+THESAURUS_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$THESAURUS_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE" ]; then
+    printf_green "Your config file for thesaurus has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -z "$1" ] && __help
+# Defaults
+exitCode=""
+THESAURUS_CONFIG_FILE="settings.conf"
+THESAURUS_CONFIG_DIR="$HOME/.config/myscripts/thesaurus"
+THESAURUS_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/thesaurus/backups"
+THESAURUS_OPTIONS_DIR="$HOME/.local/share/myscripts/thesaurus/options"
+THESAURUS_TEMP_FILE="${TMPDIR:-/tmp}/thesaurus"
+THESAURUS_SERVER_HOST="dict.org"
+THESAURUS_SERVER_PORT="2628"
+THESAURUS_NOTIFY_ENABLED="yes"
+THESAURUS_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+THESAURUS_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$THESAURUS_NOTIFY_CLIENT_ICON}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-dict -d moby-thesaurus "$1" | sed '/^$/d' | sed 's#From Moby Thesaurus.*##g' | printf_readline "2"
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# Generate Files
+[ -f "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$THESAURUS_OPTIONS_DIR/options" ] || __list_options "$THESAURUS_OPTIONS_DIR" &>/dev/null
+[ -f "$THESAURUS_OPTIONS_DIR/array" ] || __list_array "$THESAURUS_OPTIONS_DIR" "$ARRAY" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# Import config
+if [ -f "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE" ]; then
+  . "$THESAURUS_CONFIG_DIR/$THESAURUS_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$THESAURUS_OPTIONS_DIR" "$ARRAY"
+    __list_options "$THESAURUS_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+am_i_online --error || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$THESAURUS_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${THESAURUS_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${THESAURUS_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+dict -h ${DEFINE_SERVER_HOST} -p ${DEFINE_SERVER_PORT} -d moby-thesaurus "$1" | sed '/^$/d' | sed 's#From Moby Thesaurus.*##g' >"$THESAURUS_TEMP_FILE"
+printf_readline "4" <"$THESAURUS_TEMP_FILE"
+__notifications "Thesaurus" "$THESAURUS_TEMP_FILE"
+rm -f "$THESAURUS_TEMP_FILE"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"
