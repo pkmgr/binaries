@@ -162,6 +162,7 @@ while :; do
       { [ -f "$HOSTNAME_CACHE_DIR/full" ] && rm -Rf "$HOSTNAME_CACHE_DIR/full"; } &&
       { [ -f "$HOSTNAME_CACHE_DIR/short" ] && rm -Rf "$HOSTNAME_CACHE_DIR/short"; } &&
       { [ -f "$HOSTNAME_CACHE_DIR/domain" ] && rm -Rf "$HOSTNAME_CACHE_DIR/domain"; } &&
+      __hostname &>/dev/null &&
       printf_exit 2 0 "Removed the files from $HOSTNAME_CACHE_DIR" || printf_exit 1 1 "failed to remove the cache files"
     ;;
   -d | domain) shift 1 && OPTS=domain ;;
@@ -180,6 +181,7 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 mkdir -p "$HOSTNAME_CACHE_DIR" &>/dev/null
+find "$HOSTNAME_CACHE_DIR" -mtime 0 -type f -print0 | xargs -0 /bin/rm -f
 if [ "$HOSTNAME_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
     export NOTIFY_CLIENT_NAME="${HOSTNAME_NOTIFY_CLIENT_NAME}"
