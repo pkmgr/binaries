@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'rm $THESAURUS_TEMP_FILE &>/dev/null' EXIT
+trap '[ -f "$THESAURUS_TEMP_FILE" ] && rm -Rf "$THESAURUS_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103302139-git
@@ -134,7 +134,7 @@ done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications
 cmd_exists --error bash || exit 1
-am_i_online --error || exit 1
+am_i_online -s "$THESAURUS_SERVER_HOST" --error || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 if [ "$THESAURUS_NOTIFY_ENABLED" = "yes" ]; then
@@ -151,7 +151,7 @@ fi
 dict -h ${DEFINE_SERVER_HOST} -p ${DEFINE_SERVER_PORT} -d moby-thesaurus "$1" | sed '/^$/d' | sed 's#From Moby Thesaurus.*##g' >"$THESAURUS_TEMP_FILE"
 printf_readline "4" <"$THESAURUS_TEMP_FILE"
 __notifications "Thesaurus" "$THESAURUS_TEMP_FILE"
-rm -f "$THESAURUS_TEMP_FILE"
+[ -f "$THESAURUS_TEMP_FILE" ] && rm -Rf "$THESAURUS_TEMP_FILE" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

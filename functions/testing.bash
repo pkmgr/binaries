@@ -499,6 +499,14 @@ __counter() {
     ((temp_cnt--))
   done
 }
+__local_network() {
+  if [ "$1" = "localhost" ] || [ "$1" = "$(hostname -s)" ] || [ "$1" = "$(hostname -f)" ] ||
+    [[ "$1" = 10.*.*.* ]] || [[ "$1" = 192.168.*.* ]] || [[ "$1" = 172.16.*.* ]] || [[ "$1" = 127.*.*.* ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
 __local_sysname() {
   if [ "$1" = "localhost" ] || [ "$1" = "$(hostname -s)" ] || [ "$1" = "$(hostname -f)" ]; then
     return 0

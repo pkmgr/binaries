@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'rm $GEN_SCRIPTS_REPLACE_ENV_TMP_FILE &>/dev/null' EXIT
+trap '[ -f "$GEN_SCRIPTS_REPLACE_ENV_TMP_FILE" ] && rm -Rf "$GEN_SCRIPTS_REPLACE_ENV_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : GEN_SCRIPTS_REPLACE_VERSION

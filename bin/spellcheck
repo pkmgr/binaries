@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'rm $SPELLCHECK_TMP_FILE &>/dev/null' EXIT
+trap '[ -f "$SPELLCHECK_TMP_FILE" ] && rm -Rf "$SPELLCHECK_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103302146-git
@@ -167,7 +167,7 @@ else
     __notifications "SpellCheck:" "$fix"
   fi
 fi
-rm -f "$SPELLCHECK_TMP_FILE"
+[ -f "$SPELLCHECK_TMP_FILE" ] && rm -Rf "$SPELLCHECK_TMP_FILE" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

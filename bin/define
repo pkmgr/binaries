@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'rm $DEFINE_TMP_FILE &>/dev/null' EXIT
+trap '[ -f "$DEFINE_TEMP_FILE" ] && rm -Rf "$DEFINE_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103302221-git
@@ -134,7 +134,7 @@ done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications
 cmd_exists --error dict bash || exit 1
-am_i_online --error || exit 1
+am_i_online - "$DEFINE_SERVER_HOST" --error || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 if [ "$DEFINE_NOTIFY_ENABLED" = "yes" ]; then
@@ -153,7 +153,7 @@ dict -h ${DEFINE_SERVER_HOST} -p ${DEFINE_SERVER_PORT} -d gcide "$1" | sed '/^$/
 definition="$(<"$DEFINE_TEMP_FILE")"
 printf_readline "2" <"$definition"
 __notifications "$definition"
-rm -f "$THESAURUS_TEMP_FILE"
+[ -f "$DEFINE_TEMP_FILE" ] && rm -Rf "$DEFINE_TEMP_FILE" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
