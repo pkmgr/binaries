@@ -40,6 +40,8 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ARGS="$*"
+#relaunch_sudo() { if ! user_is_root; then printf_red "Relaunching $APPNAME with sudo"; sudo $APPNAME $ARGS; exit $?; fi; }
 preupdate() {
   if __am_i_online && [ -d "$CASJAYSDEVDIR" ]; then
     sudo git -C $CASJAYSDEVDIR pull -q
@@ -84,6 +86,7 @@ available)
 
 remove)
   shift 1
+  #relaunch_sudo
   sudoreq true || exit 1
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
@@ -93,8 +96,9 @@ remove)
   ;;
 
 update)
-  sudoreq true || exit 1
   shift 1
+  #relaunch_sudo
+  sudoreq true || exit 1
   unset APPNAME
   printf_green "Updating the configurations in $SYSCONF"
   if [ $# -ne 0 ]; then
@@ -113,8 +117,9 @@ update)
   ;;
 
 install)
-  sudoreq true || exit 1
   shift 1
+  #relaunch_sudo
+  sudoreq true || exit 1
   unset APPNAME
   if [ $# -eq 0 ]; then
     sudo systemmgr update
@@ -130,6 +135,7 @@ install)
 
 cron)
   shift 1
+  relaunch_sudo
   sudoreq true || exit 1
   cron_updater "$*"
   ;;
@@ -148,3 +154,4 @@ esac
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

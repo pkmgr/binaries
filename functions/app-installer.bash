@@ -23,8 +23,8 @@ HOME="${USER_HOME:-${HOME}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CASJAYSDEVDIR="/usr/local/share/CasjaysDev/scripts"
 # Versioning Info - __required_version "VersionNumber"
-localVersion="${localVersion:-020920211703-git}"
-requiredVersion="${requiredVersion:-020920211703-git}"
+localVersion="${localVersion:-202103310525-git}"
+requiredVersion="${requiredVersion:-202103310525-git}"
 currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
@@ -1504,6 +1504,7 @@ installer_noupdate() {
     if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d "$APPDIR" ] || [ -d "$INSTDIR" ]; then
       ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
       printf_warning "Updating of $APPNAME has been disabled"
+      printf_newline
       exit 0
     fi
   fi
@@ -1608,6 +1609,7 @@ devenvmgr_install() {
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   user_is_root && mkd "$SYSUPDATEDIR"
   export installtype="devenvmgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 devenvmgr_run_init() {
@@ -1647,6 +1649,7 @@ dfmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="dfmgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 dfmgr_run_init() {
@@ -1689,6 +1692,7 @@ dockermgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="dockermgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 dockermgr_run_init() {
@@ -1729,6 +1733,7 @@ fontmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="fontmgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 fontmgr_run_init() {
@@ -1769,6 +1774,7 @@ iconmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="iconmgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 iconmgr_run_init() {
@@ -1814,6 +1820,7 @@ pkmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="pkmgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 pkmgr_run_init() {
@@ -1859,6 +1866,7 @@ systemmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="systemmgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 systemmgr_run_init() {
@@ -1898,6 +1906,7 @@ thememgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="thememgr_install"
+  __main_installer_info
 }
 generate_theme_index() {
   thememgr_install
@@ -1941,6 +1950,7 @@ wallpapermgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="wallpapermgr_install"
+  __main_installer_info
 }
 ######## Installer Functions ########
 wallpapermgr_run_init() {
@@ -1959,7 +1969,16 @@ wallpapermgr_install_version() {
   # fi
 }
 ##################################################################################################
+__main_installer_info() {
+  if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
+    APPNAME="scripts"
+    APPDIR="/usr/local/share/CasjaysDev/scripts"
+    INSTDIR="/usr/local/share/CasjaysDev/scripts"
+  fi
+}
+##################################################################################################
 run_install_init() {
+  __main_installer_info
   printf ""
   printf_yellow "Initializing the installer from"
   if [ -f "$INSTDIR/install.sh" ]; then
@@ -2143,14 +2162,13 @@ __required_version() {
     local currentVersion="${APPVERSION:-$currentVersion}"
     local rVersion="${requiredVersion//-git/}"
     local cVersion="${currentVersion//-git/}"
-    if [ "$cVersion" -lt "$rVersion" ]; then
-      set -Ee
-      printf_exit 1 2 "Requires version higher than $rVersion"
-      exit 1
+    if [ "$cVersion" -lt "$rVersion" ] && [ "$APPNAME" != "scripts" ] && [ "$SCRIPTS_PREFIX" != "systemmgr" ]; then
+      printf_yellow "Requires version higher than $rVersion"
+      printf_yellow "You will need to update for new features"
     fi
   fi
 }
-__required_version "020920211625-git"
+__required_version "$requiredVersion"
 #[ "$installtype" = "devenvmgr_install" ] &&
 devenvmgr_req_version() { __required_version "$1"; }
 #[ "$installtype" = "dfmgr_install" ] &&
@@ -2199,6 +2217,8 @@ __debugger() {
     execute() { $1 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0 && set --; }
   fi
 }
+
+__main_installer_info
 #set_trap "EXIT" "install_packages"
 #set_trap "EXIT" "install_required"
 #set_trap "EXIT" "install_python"

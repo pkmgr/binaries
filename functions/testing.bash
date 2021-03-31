@@ -31,8 +31,8 @@ for check in git curl wget; do
   fi
 done
 # Versioning Info - __required_version "VersionNumber"
-localVersion="${localVersion:-031220211739-git}"
-requiredVersion="${requiredVersion:-031220211739-git}"
+localVersion="${localVersion:-202103310525-git}"
+requiredVersion="${requiredVersion:-202103310525-git}"
 if [ "$(cat "$CASJAYSDEVDIR/version.txt" | grep '^')" ]; then
   currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
 else
@@ -2008,10 +2008,10 @@ devenvmgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="devenvmgr_install"
+__main_installer_info
 }
 
 ###################### dfmgr settings ######################
@@ -2033,10 +2033,10 @@ dfmgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dfmgr_install"
+  __main_installer_info
 }
 
 ###################### dockermgr settings ######################
@@ -2059,10 +2059,10 @@ dockermgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dockermgr_install"
+  __main_installer_info
 }
 
 ###################### fontmgr settings ######################
@@ -2085,12 +2085,11 @@ fontmgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   __mkd "$FONTDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="fontmgr_install"
-
+  __main_installer_info
   ######## Installer Functions ########
   generate_font_index() {
     printf_green "Updating the fonts in $FONTDIR"
@@ -2119,12 +2118,11 @@ iconmgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   __mkd "$ICONDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="iconmgr_install"
-
+  __main_installer_info
   ######## Installer Functions ########
   generate_icon_index() {
     printf_green "Updating the icon cache in $ICONDIR"
@@ -2153,10 +2151,10 @@ pkmgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="pkmgr_install"
+  __main_installer_info
 }
 
 ###################### systemmgr settings ######################
@@ -2180,10 +2178,10 @@ systemmgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="systemmgr_install"
+  __main_installer_info
 }
 
 ###################### thememgr settings ######################
@@ -2200,11 +2198,10 @@ thememgr_install() {
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
-  __main_installer_info
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="thememgr_install"
-
+  __main_installer_info
   ######## Installer Functions ########
   generate_theme_index() {
     printf_green "Updating the theme index in $THEMEDIR"
@@ -2235,11 +2232,11 @@ wallpapermgr_install() {
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
-  __main_installer_info
   __mkd "$WALLPAPERS"
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="wallpapermgr_install"
+  __main_installer_info
 }
 
 ###################### create directories ######################
@@ -2276,6 +2273,7 @@ ensure_dirs() {
 ##
 __main_installer_info() {
   if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
+    printf_yellow "Installing $APPNAME as the scripts installer"
     APPDIR="/usr/local/share/CasjaysDev/scripts"
     INSTDIR="/usr/local/share/CasjaysDev/scripts"
   fi
@@ -2461,6 +2459,7 @@ run_install_init() {
   local exitCode
   local -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
+    __main_installer_info
     local REPORAW="$REPO/$ins/raw"
     if user_is_root; then
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
@@ -2640,15 +2639,15 @@ __appversion() {
 }
 
 __required_version() {
+    __main_installer_info
   if [ -f "$CASJAYSDEVDIR/version.txt" ]; then
     local requiredVersion="${1:-$requiredVersion}"
     local currentVersion="${APPVERSION:-$currentVersion}"
     local rVersion="${requiredVersion//-git/}"
     local cVersion="${currentVersion//-git/}"
-    if [ "$cVersion" -lt "$rVersion" ]; then
-      set -Ee
-      printf_exit 1 2 "Requires version higher than $rVersion\n"
-      exit 1
+    if [ "$cVersion" -lt "$rVersion" ] && [ "$APPNAME" != "scripts" ] && [ "$SCRIPTS_PREFIX" != "systemmgr" ]; then
+      printf_yellow "Requires version higher than $rVersion"
+      printf_yellow "You will need to update for new features"
     fi
   fi
 }
@@ -2711,4 +2710,5 @@ __getpythonver
 # }
 
 user_install # default type
+__main_installer_info
 ###################### end application functions ######################
