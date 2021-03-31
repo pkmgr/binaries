@@ -84,7 +84,6 @@ remove)
 update)
   shift 1
   unset APPNAME
-  printf_green "Updating fonts in $FONTDIR"
   if [ $# -ne 0 ]; then
     if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
@@ -105,7 +104,6 @@ install)
   if [ $# -eq 0 ]; then
     fontmgr update
   else
-    printf_green "Installing fonts to $FONTDIR"
     [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       run_install_init "$ins"

@@ -98,7 +98,6 @@ personal)
 update)
   shift 1
   unset APPNAME
-  printf_green "Updating the configurations in $CONF"
   if [ $# -ne 0 ]; then
     if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
@@ -120,7 +119,6 @@ install)
   if [ $# -eq 0 ]; then
     dfmgr update
   else
-    printf_green "Installing configurations to $CONF"
     [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       APPNAME="$ins"

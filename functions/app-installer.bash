@@ -1609,7 +1609,6 @@ devenvmgr_install() {
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   user_is_root && mkd "$SYSUPDATEDIR"
   export installtype="devenvmgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 devenvmgr_run_init() {
@@ -1649,7 +1648,6 @@ dfmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="dfmgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 dfmgr_run_init() {
@@ -1692,7 +1690,6 @@ dockermgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="dockermgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 dockermgr_run_init() {
@@ -1733,7 +1730,6 @@ fontmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="fontmgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 fontmgr_run_init() {
@@ -1774,7 +1770,6 @@ iconmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="iconmgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 iconmgr_run_init() {
@@ -1820,7 +1815,6 @@ pkmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="pkmgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 pkmgr_run_init() {
@@ -1866,7 +1860,6 @@ systemmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="systemmgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 systemmgr_run_init() {
@@ -1906,7 +1899,6 @@ thememgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="thememgr_install"
-  __main_installer_info
 }
 generate_theme_index() {
   thememgr_install
@@ -1950,7 +1942,6 @@ wallpapermgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="wallpapermgr_install"
-  __main_installer_info
 }
 ######## Installer Functions ########
 wallpapermgr_run_init() {
@@ -1971,15 +1962,17 @@ wallpapermgr_install_version() {
 ##################################################################################################
 __main_installer_info() {
   if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
+    printf_yellow "Installing $APPNAME as the scripts installer"
     APPNAME="scripts"
     APPDIR="/usr/local/share/CasjaysDev/scripts"
     INSTDIR="/usr/local/share/CasjaysDev/scripts"
+    PLUGDIR="/usr/local/share/CasjaysDev/apps/systemmgr/scripts"
   fi
 }
 ##################################################################################################
 run_install_init() {
-  __main_installer_info
   printf ""
+  __main_installer_info
   printf_yellow "Initializing the installer from"
   if [ -f "$INSTDIR/install.sh" ]; then
     printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
@@ -2217,8 +2210,6 @@ __debugger() {
     execute() { $1 2>>"$LOGDIR_DEBUG/$APPNAME.err" >>"$LOGDIR_DEBUG/$APPNAME.log" >&0 && set --; }
   fi
 }
-
-__main_installer_info
 #set_trap "EXIT" "install_packages"
 #set_trap "EXIT" "install_required"
 #set_trap "EXIT" "install_python"

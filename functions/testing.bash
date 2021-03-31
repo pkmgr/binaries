@@ -6,7 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 FUNCFILE="testing.bash"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-
+set -Ex
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 020920211625-git
 # @Author        : Jason Hempstead
@@ -2011,7 +2011,6 @@ devenvmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="devenvmgr_install"
-__main_installer_info
 }
 
 ###################### dfmgr settings ######################
@@ -2036,7 +2035,6 @@ dfmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dfmgr_install"
-  __main_installer_info
 }
 
 ###################### dockermgr settings ######################
@@ -2062,7 +2060,6 @@ dockermgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dockermgr_install"
-  __main_installer_info
 }
 
 ###################### fontmgr settings ######################
@@ -2089,7 +2086,6 @@ fontmgr_install() {
   __mkd "$FONTDIR" "$HOMEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="fontmgr_install"
-  __main_installer_info
   ######## Installer Functions ########
   generate_font_index() {
     printf_green "Updating the fonts in $FONTDIR"
@@ -2122,7 +2118,6 @@ iconmgr_install() {
   __mkd "$ICONDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="iconmgr_install"
-  __main_installer_info
   ######## Installer Functions ########
   generate_icon_index() {
     printf_green "Updating the icon cache in $ICONDIR"
@@ -2154,7 +2149,6 @@ pkmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="pkmgr_install"
-  __main_installer_info
 }
 
 ###################### systemmgr settings ######################
@@ -2181,7 +2175,6 @@ systemmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="systemmgr_install"
-  __main_installer_info
 }
 
 ###################### thememgr settings ######################
@@ -2201,7 +2194,6 @@ thememgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="thememgr_install"
-  __main_installer_info
   ######## Installer Functions ########
   generate_theme_index() {
     printf_green "Updating the theme index in $THEMEDIR"
@@ -2236,7 +2228,6 @@ wallpapermgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="wallpapermgr_install"
-  __main_installer_info
 }
 
 ###################### create directories ######################
@@ -2276,6 +2267,7 @@ __main_installer_info() {
     printf_yellow "Installing $APPNAME as the scripts installer"
     APPDIR="/usr/local/share/CasjaysDev/scripts"
     INSTDIR="/usr/local/share/CasjaysDev/scripts"
+    PLUGDIR="/usr/local/share/CasjaysDev/apps/systemmgr/scripts"
   fi
 }
 ###################### get installer versions ######################
@@ -2710,5 +2702,4 @@ __getpythonver
 # }
 
 user_install # default type
-__main_installer_info
 ###################### end application functions ######################
