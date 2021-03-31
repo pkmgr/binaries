@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103310710-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$SYSTEMMGR_TMP_FILE" ] && rm -Rf "$SYSTEMMGR_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201921-git
+##@Version       : 202103310710-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : systemmgr --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 19:21 EDT
+# @Created       : Wednesday, Mar 31, 2021 07:10 EDT
 # @File          : systemmgr
 # @Description   : System Management script
 # @TODO          :
@@ -40,8 +42,32 @@ fi
 systemmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-ARGS="$*"
-#relaunch_sudo() { if ! user_is_root; then printf_red "Relaunching $APPNAME with sudo"; sudo $APPNAME $ARGS; exit $?; fi; }
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE"
+  [ -d "$SYSTEMMGR_CONFIG_DIR" ] || mkdir -p "$SYSTEMMGR_CONFIG_DIR"
+  [ -d "$SYSTEMMGR_CONFIG_BACKUP_DIR" ] || mkdir -p "$SYSTEMMGR_CONFIG_BACKUP_DIR"
+  [ -f "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" ] &&
+    cp -Rf "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE.$$"
+  cat <<EOF >"$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE"
+# Settings for systemmgr
+SYSTEMMGR_INSTALLDIR="$INSTDIR"
+SYSTEMMGR_FORCE_INSTALL="false"
+SYSTEMMGR_TEMP_FILE="${TMPDIR:-/tmp}/systemmgr"
+SYSTEMMGR_NOTIFY_ENABLED="yes"
+SYSTEMMGR_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+SYSTEMMGR_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$SYSTEMMGR_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" ]; then
+    printf_green "Your config file for systemmgr has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 preupdate() {
   if __am_i_online && [ -d "$CASJAYSDEVDIR" ]; then
     sudo git -C $CASJAYSDEVDIR pull -q
@@ -51,9 +77,9 @@ preupdate() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 app_uninstall() {
   [ -z "$1" ] && APPNAME="$APPNAME" || APPNAME="$1"
-  if [ -d "$HOMEDIR" ]; then
-    printf_yellow "Removing $APPNAME from $HOMEDIR"
-    __devnull sudo rm -Rf "$HOMEDIR" &&
+  if [ -d "$INSTDIR" ]; then
+    printf_yellow "Removing $APPNAME from $INSTDIR"
+    __devnull sudo rm -Rf "$INSTDIR" &&
       __devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
       __devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
       __devnull sudo find $BIN $SHARE $COMPDIR -xtype l -exec rm {} \;
@@ -64,11 +90,89 @@ app_uninstall() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+SYSTEMMGR_CONFIG_FILE="settings.conf"
+SYSTEMMGR_CONFIG_DIR="$HOME/.config/myscripts/systemmgr"
+SYSTEMMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/systemmgr/backups"
+SYSTEMMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/systemmgr/options"
+SYSTEMMGR_TEMP_FILE="${TMPDIR:-/tmp}/systemmgr"
+SYSTEMMGR_NOTIFY_ENABLED="yes"
+SYSTEMMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+SYSTEMMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$SYSTEMMGR_NOTIFY_CLIENT_ICON}"
+SYSTEMMGR_FORCE_INSTALL="false"
+SYSTEMMGR_INSTALLDIR="$INSTDIR"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f"
+LONGOPTS="options,config,version,help,force"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$SYSTEMMGR_OPTIONS_DIR/options" ] || __list_options "$SYSTEMMGR_OPTIONS_DIR" &>/dev/null
+[ -f "$SYSTEMMGR_OPTIONS_DIR/array" ] || __list_array "$SYSTEMMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" ]; then
+  . "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$SYSTEMMGR_OPTIONS_DIR" "$ARRAY"
+    __list_options "$SYSTEMMGR_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --force)
+    shift 1
+    export FORCE_INSTALL="true"
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$SYSTEMMGR_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${SYSTEMMGR_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${SYSTEMMGR_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 case "$1" in
-help | -*)
-  __help
-  ;;
-
 list)
   shift 1
   run_install_list "$@"
@@ -86,7 +190,6 @@ available)
 
 remove)
   shift 1
-  #relaunch_sudo
   sudoreq true || exit 1
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
@@ -97,17 +200,16 @@ remove)
 
 update)
   shift 1
-  #relaunch_sudo
   sudoreq true || exit 1
   unset APPNAME
   if [ $# -ne 0 ]; then
     if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
-      run_install_update "$ins"
+      run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
     done
   elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
     for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
-      run_install_update "$upd"
+      run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
     done
   else
     printf_yellow "There doesn't seem to be any packages installed"
@@ -117,7 +219,6 @@ update)
 
 install)
   shift 1
-  #relaunch_sudo
   sudoreq true || exit 1
   unset APPNAME
   if [ $# -eq 0 ]; then
@@ -125,7 +226,7 @@ install)
   else
     [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
-      run_install_init "$ins"
+      run_install_init "$ins" && __notifications "Installed $ins" || __notifications "Installation of $ins has failed"
     done
   fi
   exit $?
@@ -133,7 +234,6 @@ install)
 
 cron)
   shift 1
-  relaunch_sudo
   sudoreq true || exit 1
   cron_updater "$*"
   ;;
@@ -142,14 +242,10 @@ version)
   shift 1
   run_install_version "$@"
   ;;
-
-*)
-  __help
-  ;;
-
+*) __help ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
-
+# lets exit with code
+exit "${exitCode:-$?}"

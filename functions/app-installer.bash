@@ -1378,6 +1378,10 @@ app_uninstall() {
 }
 ##################################################################################################
 show_optvars() {
+  if [ "$1" = "--force" ]; then
+    shift 1
+    export FORCE_INSTALL=true
+  fi
   if [ "$1" = "--debug" ]; then
     shift 1
     __debugger "debug"
@@ -1494,16 +1498,21 @@ show_optvars() {
 
   if [ "$1" = "--installed" ]; then
     printf_green "User                               Group                              AppName"
-    ls -l $CASJAYSDEVSAPPDIR/dotfiles | tr -s ' ' | cut -d' ' -f3,4,9 | sed 's# #                               #g' | grep -v "total." | printf_readline "5"
+    ls -l $CASJAYSDEVSAPPDIR/dotfiles | tr -s ' ' | cut -d' ' -f3,4,9 | \
+      sed 's# #                               #g' | grep -v "total." | printf_readline "5"
     exit $?
   fi
 }
 ##################################################################################################
 installer_noupdate() {
-  if [ "$1" != "--force" ]; then
-    if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] || [ -d "$APPDIR" ] || [ -d "$INSTDIR" ]; then
-      ln_sf "$APPDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
-      printf_warning "Updating of $APPNAME has been disabled"
+  if [ "$FORCE_INSTALL" != "true" ] || [ "$1" != "--force" ]; then
+    if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] ||
+      [ -f "$APPDIR/.installed" ] || [ -f "$INSTDIR/.installed" ]; then
+      APPDIR="$INSTDIR"
+      ln_sf "$INSTDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
+      printf_newline
+      printf_yellow "Updating of $APPNAME has been disabled"
+      printf_yellow "This can be changed with the --force flag"
       printf_newline
       exit 0
     fi
@@ -1669,11 +1678,11 @@ dfmgr_install_version() {
 ##################################################################################################
 dockermgr_install() {
   user_installdirs
-  cmd_exists docker || printf_exit 1 1 "This requires docker, however docker wasn't found"
+  #cmd_exists docker || printf_exit 1 1 "This requires docker, however, docker wasn't found"
   SCRIPTS_PREFIX="dockermgr"
   REPO="$DOCKERMGRREPO"
   REPORAW="$DOCKERMGRREPO/$APPNAME/raw"
-  APPDIR="$SHARE/$APPNAME"
+  APPDIR="$SHARE/docker/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   DATADIR="${SHARE/docker/data/$APPNAME:-/srv/docker/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -2218,4 +2227,3 @@ __debugger() {
 #set_trap "EXIT" "install_cpan"
 #set_trap "EXIT" "install_gem"
 # end
-

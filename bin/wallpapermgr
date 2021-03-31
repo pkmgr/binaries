@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103310710-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$WALLPAPERMGR_TMP_FILE" ] && rm -Rf "$WALLPAPERMGR_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103202029-git
+##@Version       : 202103310710-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : wallpapermgr --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 20:29 EDT
+# @Created       : Wednesday, Mar 31, 2021 07:10 EDT
 # @File          : wallpapermgr
 # @Description   : Wallpaper installer and manager
 # @TODO          : Refactor Code
@@ -40,7 +42,113 @@ fi
 wallpapermgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# main program
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE"
+  [ -d "$WALLPAPERMGR_CONFIG_DIR" ] || mkdir -p "$WALLPAPERMGR_CONFIG_DIR"
+  [ -d "$WALLPAPERMGR_CONFIG_BACKUP_DIR" ] || mkdir -p "$WALLPAPERMGR_CONFIG_BACKUP_DIR"
+  [ -f "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" ] &&
+    cp -Rf "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE.$$"
+  cat <<EOF >"$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE"
+# Settings for wallpapermgr
+WALLPAPERMGR_FORCE_INSTALL="false"
+WALLPAPERMGR_TEMP_FILE="${TMPDIR:-/tmp}/wallpapermgr"
+WALLPAPERMGR_NOTIFY_ENABLED="yes"
+WALLPAPERMGR_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+WALLPAPERMGR_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$WALLPAPERMGR_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" ]; then
+    printf_green "Your config file for wallpapermgr has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+WALLPAPERMGR_CONFIG_FILE="settings.conf"
+WALLPAPERMGR_CONFIG_DIR="$HOME/.config/myscripts/wallpapermgr"
+WALLPAPERMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/wallpapermgr/backups"
+WALLPAPERMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/wallpapermgr/options"
+WALLPAPERMGR_TEMP_FILE="${TMPDIR:-/tmp}/wallpapermgr"
+WALLPAPERMGR_NOTIFY_ENABLED="yes"
+WALLPAPERMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+WALLPAPERMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$WALLPAPERMGR_NOTIFY_CLIENT_ICON}"
+WALLPAPERMGR_FORCE_INSTALL="false"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f"
+LONGOPTS="options,config,version,help,force"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$WALLPAPERMGR_OPTIONS_DIR/options" ] || __list_options "$WALLPAPERMGR_OPTIONS_DIR" &>/dev/null
+[ -f "$WALLPAPERMGR_OPTIONS_DIR/array" ] || __list_array "$WALLPAPERMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" ]; then
+  . "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$WALLPAPERMGR_OPTIONS_DIR" "$ARRAY"
+    __list_options "$WALLPAPERMGR_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --force)
+    shift 1
+    export FORCE_INSTALL="true"
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$WALLPAPERMGR_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${WALLPAPERMGR_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${WALLPAPERMGR_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 case "$1" in
 *help | -*)
   __help
@@ -131,6 +239,7 @@ version)
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

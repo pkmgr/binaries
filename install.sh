@@ -148,7 +148,6 @@ run_postinst() {
     ln_sf "$CASJAYSDEVDIR/applications/$app" "$SYSSHARE/applications/$app"
   done
   ln_rm "$SHARE/applications/"
-  ln_sf "$INSTDIR" "$SYSSHARE/CasjaysDev/installer"
   mkd /etc/casjaysdev/messages/motd
   mkd /etc/casjaysdev/messages/issue
   mkd /etc/casjaysdev/messages/legal
@@ -165,6 +164,7 @@ run_postinst() {
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
   cmd_exists update-motd && update-ip && update-motd
   echo 'for f in '$CASJAYSDEVDIR/completions/*'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
+  ln_sf "$INSTDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
 }
 #
 execute "run_postinst" "Running post install scripts"

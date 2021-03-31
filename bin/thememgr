@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103310710-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$THEMEMGR_TMP_FILE" ] && rm -Rf "$THEMEMGR_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201939-git
+##@Version       : 202103310710-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : thememgr --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 19:39 EDT
+# @Created       : Wednesday, Mar 31, 2021 07:10 EDT
 # @File          : thememgr
 # @Description   : Theme manager for linux
 # @TODO          :
@@ -40,13 +42,117 @@ fi
 thememgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE"
+  [ -d "$THEMEMGR_CONFIG_DIR" ] || mkdir -p "$THEMEMGR_CONFIG_DIR"
+  [ -d "$THEMEMGR_CONFIG_BACKUP_DIR" ] || mkdir -p "$THEMEMGR_CONFIG_BACKUP_DIR"
+  [ -f "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE" ] &&
+    cp -Rf "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE" "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE.$$"
+  cat <<EOF >"$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE"
+# Settings for thememgr
+THEMEMGR_DATA_DIR="${THEMEDIR:-$SHARE/themes}"
+THEMEMGR_FORCE_INSTALL="false"
+THEMEMGR_TEMP_FILE="${TMPDIR:-/tmp}/thememgr"
+THEMEMGR_NOTIFY_ENABLED="yes"
+THEMEMGR_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+THEMEMGR_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$THEMEMGR_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE" ]; then
+    printf_green "Your config file for thememgr has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+THEMEMGR_CONFIG_FILE="settings.conf"
+THEMEMGR_CONFIG_DIR="$HOME/.config/myscripts/thememgr"
+THEMEMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/thememgr/backups"
+THEMEMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/thememgr/options"
+THEMEMGR_TEMP_FILE="${TMPDIR:-/tmp}/thememgr"
+THEMEMGR_NOTIFY_ENABLED="yes"
+THEMEMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+THEMEMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$THEMEMGR_NOTIFY_CLIENT_ICON}"
+THEMEMGR_DATA_DIR="${THEMEDIR:-$SHARE/themes}"
+THEMEMGR_FORCE_INSTALL="false"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f"
+LONGOPTS="options,config,version,help,force"
+ARRAY="makecache list search available remove update install cron version"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$THEMEMGR_OPTIONS_DIR/options" ] || __list_options "$THEMEMGR_OPTIONS_DIR" &>/dev/null
+[ -f "$THEMEMGR_OPTIONS_DIR/array" ] || __list_array "$THEMEMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE" ]; then
+  . "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$THEMEMGR_OPTIONS_DIR" "$ARRAY"
+    __list_options "$THEMEMGR_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --force)
+    shift 1
+    export FORCE_INSTALL="true"
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$THEMEMGR_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${THEMEMGR_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${THEMEMGR_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+THEMEDIR="${THEMEMGR_DATA_DIR:-$THEMEDIR}"
 __mkd "$THEMEDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 case "$1" in
-help | -*)
-  __help
-  ;;
-
 makecache)
   shift 1
   generate_theme_index "$*"
@@ -73,7 +179,7 @@ remove)
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
     printf_yellow "Removing $rmf theme from your system"
-    removetheme "$rmf"
+    removetheme "$rmf" && __notifications "Removed $rmf" || __notifications "Removal of $rmf has failed"
     getexitcode "$rmf has been removed"
     echo ""
   done
@@ -85,11 +191,11 @@ update)
   if [ $# -ne 0 ]; then
     if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
-      run_install_update "$ins"
+      run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
     done
   elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
     for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
-      run_install_update "$upd"
+      run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
     done
   else
     printf_yellow "There doesn't seem to be any packages installed"
@@ -105,7 +211,7 @@ install)
   else
     [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
-      run_install_init "$ins"
+      run_install_init "$ins" && __notifications "Installed $ins" || __notifications "Installation of $ins has failed"
     done
   fi
   exit $?
@@ -121,11 +227,10 @@ version)
   run_install_version "$@"
   ;;
 
-*)
-  __help
-  ;;
+*) __help ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

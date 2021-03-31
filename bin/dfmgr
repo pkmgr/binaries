@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103310710-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$DFMGR_TMP_FILE" ] && rm -Rf "$DFMGR_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200629-git
+##@Version       : 202103310710-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : dfmgr --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:29 EDT
+# @Created       : Wednesday, Mar 31, 2021 07:10 EDT
 # @File          : dfmgr
 # @Description   : DotFiles ManaGeR
 # @TODO          :
@@ -40,6 +42,32 @@ fi
 dfmgr_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE"
+  [ -d "$DFMGR_CONFIG_DIR" ] || mkdir -p "$DFMGR_CONFIG_DIR"
+  [ -d "$DFMGR_CONFIG_BACKUP_DIR" ] || mkdir -p "$DFMGR_CONFIG_BACKUP_DIR"
+  [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] &&
+    cp -Rf "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE.$$"
+  cat <<EOF >"$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE"
+# Settings for dfmgr
+DFMGR_DOTFILES_DIR="${PERSONAL_DOTFILES_DIR:-$HOME/.local/dotfiles/personal}"
+DFMGR_FORCE_INSTALL="false"
+DFMGR_NOTIFY_ENABLED="yes"
+DFMGR_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+DFMGR_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$DFMGR_NOTIFY_CLIENT_ICON}"
+DFMGR_TEMP_FILE="${TMPDIR:-/tmp}/dfmgr"
+
+EOF
+  if [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ]; then
+    printf_green "Your config file for dfmgr has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gpg_import() {
   gpg --import "$1"/*.gpg 2>/dev/null
   gpg --import "$1"/*.sec 2>/dev/null
@@ -47,11 +75,10 @@ __gpg_import() {
   gpg --import-ownertrust "$1"/*.trust 2>/dev/null
   return 0
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 df_personal() {
   shift 1
-  dir="$HOME/.local/dotfiles/personal"
+  local dir="${PERSONAL_DOTFILES_DIR:-$DFMGR_DOTFILES_DIR}"
   if [ -f "$dir/install.sh" ]; then
     bash -c "$dir/install.sh"
     __getexitcode "Personal dotfiles has been updated"
@@ -68,13 +95,103 @@ df_personal() {
     printf_red "Can't install your personal dotfiles"
   fi
 }
+__list_available() {
+  echo -e 'alacritty asciinema awesome bash bashtop bspwm byobu caja castero chromium cmus deadbeef deadd dircolors
+  dunst easytag emacs firefox fish geany git gtk-2.0 gtk-3.0 guake htop i3 jgmenu lemonbar lf misc mpd mutt nano
+  neofetch neovim newsboat nitrogen nodejs openbox personal pianobar picard polybar qterminal qtile ranger remmina rofi
+  ruby sakura screen smplayer smtube sway sxhkd template terminology termite thunar tig tint2 tmux transmission variety
+  vifm vim volumeicon xfce4 xfce4-terminal xmonad youtube-dl youtube-viewer ytmdl zsh' | tr ' ' '\n'
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+DFMGR_CONFIG_FILE="settings.conf"
+DFMGR_CONFIG_DIR="$HOME/.config/myscripts/dfmgr"
+DFMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/dfmgr/backups"
+DFMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/dfmgr/options"
+DFMGR_TEMP_FILE="${TMPDIR:-/tmp}/dfmgr"
+DFMGR_NOTIFY_ENABLED="yes"
+DFMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+DFMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DFMGR_NOTIFY_CLIENT_ICON}"
+DFMGR_DOTFILES_DIR="${PERSONAL_DOTFILES_DIR:-$HOME/.local/dotfiles/personal}"
+DFMGR_FORCE_INSTALL="false"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f,l"
+LONGOPTS="options,config,version,help,force,list"
+ARRAY="personal search available update install cron"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$DFMGR_OPTIONS_DIR/options" ] || __list_options "$DFMGR_OPTIONS_DIR" &>/dev/null
+[ -f "$DFMGR_OPTIONS_DIR/array" ] || __list_array "$DFMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+[ -f "$DFMGR_OPTIONS_DIR/available" ] || __list_available >"$DFMGR_OPTIONS_DIR/available" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ]; then
+  . "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$DFMGR_OPTIONS_DIR" "$ARRAY"
+    __list_options "$DFMGR_OPTIONS_DIR"
+    __list_available >"$DFMGR_OPTIONS_DIR/available"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --force)
+    shift 1
+    export FORCE_INSTALL="true"
+    ;;
+  -l | --list)
+    shift 1
+    __list_available
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$DFMGR_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${DFMGR_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${DFMGR_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 case "$1" in
-help | -*)
-  shift 1
-  __help
-  ;;
-
 list)
   shift 1
   run_install_list "$@"
@@ -92,7 +209,7 @@ available)
 
 personal)
   shift 1
-  df_personal
+  df_personal && __notifications "Install/Update of personal dotfiles completed" || __notifications "Install/Update of personal dotfiles has failed"
   ;;
 
 update)
@@ -101,14 +218,15 @@ update)
   if [ $# -ne 0 ]; then
     if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
-      run_install_update "$ins"
+      run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
     done
   elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
-    for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
-      run_install_update "$upd"
+    for upd in $(find "$USRUPDATEDIR" 2>/dev/null | sed 's|'$USRUPDATEDIR/'||g'); do
+      run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
     done
   else
     printf_yellow "There doesn't seem to be any packages installed"
+    __notifications "There doesn't seem to be any packages installed"
   fi
   exit $?
   ;;
@@ -122,7 +240,7 @@ install)
     [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       APPNAME="$ins"
-      run_install_init "$APPNAME"
+      run_install_init "$APPNAME" && __notifications "Installation of $APPNAME has finished" || __notifications "Installation of $APPNAME has failed"
     done
   fi
   exit $?
@@ -148,12 +266,10 @@ version)
   done
   ;;
 
-*)
-  __help
-  ;;
-
+*) __help ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# end
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

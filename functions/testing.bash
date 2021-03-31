@@ -6,7 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 FUNCFILE="testing.bash"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-set -Ex
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 020920211625-git
 # @Author        : Jason Hempstead
@@ -873,7 +873,7 @@ __count_lines() { wc -l "$1" | awk '${print $1}'; }
 #count_files "dir"
 __count_files() { __devnull2 find -L "${1:-./}" -maxdepth "${2:-1}" -not -path "${1:-./}/.git/*" -type l,f | wc -l; }
 #count_dir "dir"
-__count_dir() { __devnull2 find -L "${1:-./}" -mindepth 1 -maxdepth "${2:-1}" -not -path "${1:-./}/.git/*" -type d | wc -l; }
+__count_dir() { __devnull2 find -L "${1:-./}" -maxdepth "${2:-1}" -not -path "${1:-./}/.git/*" -type d | wc -l; }
 __touch() { touch "$@" 2>/dev/null || return 0; }
 #symlink "file" "dest"
 __symlink() { if [ -e "$1" ]; then __devnull __ln_sf "${1}" "${2}" || return 0; fi; }
@@ -2043,7 +2043,7 @@ dockermgr_install() {
   SCRIPTS_PREFIX="dockermgr"
   REPO="$DOCKERMGRREPO"
   REPORAW="$DOCKERMGRREPO/raw"
-  APPDIR="$SHARE"
+  APPDIR="$SHARE/docker/$APPNAME"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   DATADIR="${APPDIR:-/srv/docker/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -2083,7 +2083,7 @@ fontmgr_install() {
     APPVERSION="$currentVersion"
   fi
   __mkd "$USRUPDATEDIR"
-  __mkd "$FONTDIR" "$HOMEDIR"
+  __mkd "$FONTDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="fontmgr_install"
   ######## Installer Functions ########
@@ -2353,6 +2353,12 @@ __version() {
 __options() {
   $installtype
   case $1 in
+  --force)
+    shift 1
+    export FORCE_INSTALL=true
+    echo "Setting FORCE_INSTALL to true"
+    ;;
+
   --update) ###################### Update check ######################
     shift 1
     printf_error "Not enabled in apps: See the installer"
@@ -2365,7 +2371,7 @@ __options() {
     DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
     printf_debug 'APP:'$APPNAME' - ARGS:'$*''
     printf_debug "USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX REPO:$REPO REPORAW:$REPORAW CONF:$CONF SHARE:$SHARE"
-    printf_debug "HOMEDIR:$HOMEDIR APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR"
+    printf_debug "APPDIR:$APPDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR"
     printf_custom "4" "FUNCTIONSDir:$DIR"
     exit
     ;;
@@ -2513,7 +2519,7 @@ run_install_update() {
 }
 
 run_install_list() {
-  echo ""
+  local installed=""
   if [ "$#" -ne 0 ]; then
     local args="$*"
     for f in $args; do
@@ -2535,18 +2541,22 @@ run_install_list() {
     done
   else
     if [ "$(__count_dir "$USRUPDATEDIR")" -ne 0 ]; then
-      declare -a LSINST="$(ls "$USRUPDATEDIR" 2>/dev/null)"
+      local -a LSINST="$(ls "$USRUPDATEDIR/")"
       if [ -n "$LSINST" ]; then
-        for df in ${LSINST[*]}; do
-          printf_single "4" "$df"
+        for df in ${LSINST[@]}; do
+          installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
         done
+        printf_single 4 "$installed"
+        printf_newline
       fi
     elif [ "$(__count_dir "$SYSUPDATEDIR")" -ne 0 ]; then
-      declare -a LSINST="$(ls "$SYSUPDATEDIR" 2>/dev/null)"
+      declare -a LSINST="$(ls "$SYSUPDATEDIR/")"
       if [ -n "$LSINST" ]; then
-        for df in ${LSINST[*]}; do
-          printf_single "$df"
+        for df in ${LSINST[@]}; do
+        installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
         done
+        printf_single 4 "$installed"
+        printf_newline
       fi
     else
       printf_red "Nothing was found"
@@ -2558,12 +2568,19 @@ run_install_list() {
 
 run_install_search() {
   [ $# = 0 ] && printf_exit "Nothing to search for"
-  declare -a LSINST="$*"
-  for search in ${LSINST[*]}; do
-    echo -n "$LIST" | grep -Fiq "$search" || printf_exit "Your seach produced no results"
-    echo -n "$LIST" | tr ' ' '\n' | grep -Fi "$search" 2>/dev/null | printf_read "2"
+  local results=""
+  local -a LSINST="$@"
+  for df in ${LSINST[@]}; do
+    local -a results+="$(echo -e "$LIST" | grep -Fi "$df" | sed 's| ||g' | grep -sv '^$') "
   done
-  unset search
+  results="$(echo "$results" | sort -u | tr '\n' ' ' | sed 's| | |g' | grep '^')"
+  if [ -z "$results" ]; then
+    printf_exit "Your seach produced no results"
+  else
+    printf_single '4' "$results"
+    printf_newline
+  fi
+  unset results
   exit $?
 }
 
@@ -2631,7 +2648,7 @@ __appversion() {
 }
 
 __required_version() {
-    __main_installer_info
+  __main_installer_info
   if [ -f "$CASJAYSDEVDIR/version.txt" ]; then
     local requiredVersion="${1:-$requiredVersion}"
     local currentVersion="${APPVERSION:-$currentVersion}"
@@ -2674,7 +2691,7 @@ __getpythonver
 #   printf_custom "4" "ARGS: $DEBUGARGS"
 #   printf_custom "4" "FUNCTIONSDir: $DIR"
 #   for path in USER:$USER HOME:$HOME PREFIX:$SCRIPTS_PREFIX CONF:$CONF SHARE:$SHARE \
-#     HOMEDIR:$HOMEDIR USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
+#     USRUPDATEDIR:$USRUPDATEDIR SYSUPDATEDIR:$SYSUPDATEDIR; do
 #     [ -z "$path" ] || printf_custom "4" $path
 #   done
 #   __devnull() {
@@ -2696,7 +2713,7 @@ __getpythonver
 ###################### unload variables ######################
 # unload_var_path() {
 #   unset APPDIR APPVERSION ARRAY BACKUPDIR BIN CASJAYSDEVSAPPDIR CASJAYSDEVSHARE COMPDIR CONF DEVENVMGR
-#   unset DFMGRREPO DOCKERMGRREPO FONTCONF FONTDIR FONTMGRREPO HOMEDIR ICONDIR ICONMGRREPO INSTALL_TYPE
+#   unset DFMGRREPO DOCKERMGRREPO FONTCONF FONTDIR FONTMGRREPO ICONDIR ICONMGRREPO INSTALL_TYPE
 #   unset LIST PKMGRREPO SCRIPTS_PREFIX REPO REPODF REPORAW SHARE STARTUP SYSBIN SYSCONF SYSLOGDIR SYSSHARE SYSTEMMGRREPO
 #   unset SYSSHARE SYSTEMMGRREPO SYSUPDATEDIR THEMEDIR THEMEMGRREPO USRUPDATEDIR WALLPAPERMGRREPO WALLPAPERS
 # }

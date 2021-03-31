@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103310710-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$PASSMGR_TMP_FILE" ] && rm -Rf "$PASSMGR_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201738-git
+##@Version       : 202103310710-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : passmgr --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 17:38 EDT
+# @Created       : Wednesday, Mar 31, 2021 07:10 EDT
 # @File          : passmgr
 # @Description   : wrapper for the pass command
 # @TODO          :
@@ -40,24 +42,149 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE"
+  [ -d "$PASSMGR_CONFIG_DIR" ] || mkdir -p "$PASSMGR_CONFIG_DIR"
+  [ -d "$PASSMGR_CONFIG_BACKUP_DIR" ] || mkdir -p "$PASSMGR_CONFIG_BACKUP_DIR"
+  [ -f "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE" ] &&
+    cp -Rf "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE" "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE.$$"
+  cat <<EOF >"$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE"
+# Settings for passmgr
+PASSMGR_GIT_URL=""
 PASSWORD_STORE_KEY="${PASSWORD_STORE_KEY}"
 PASSWORD_STORE_UMASK="${PASSWORD_STORE_UMASK:-077}"
 PASSWORD_STORE_CLIP_TIME="${PASSWORD_STORE_CLIP_TIME:-60}"
 PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.local/share/pass-store}"
-PASSWORD_STORE_ENABLE_EXTENSIONS="{PASSWORD_STORE_ENABLE_EXTENSIONS:-true}"
+PASSWORD_STORE_ENABLE_EXTENSIONS="${PASSWORD_STORE_ENABLE_EXTENSIONS:-true}"
+PASSWORD_STORE_EXTENSIONS_DIR="${PASSWORD_STORE_EXTENSIONS_DIR:-$PASSWORD_STORE_DIR/.extensions}"
+PASSWORD_STORE_BACKUP="${PASSWORD_STORE_BACKUP:-$HOME/.local/backups/passmgr/$(hostname).$(date +%F).tar}"
+PASSMGR_FORCE_INSTALL="false"
+PASSMGR_TEMP_FILE="${TMPDIR:-/tmp}/passmgr"
+PASSMGR_NOTIFY_ENABLED="yes"
+PASSMGR_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+PASSMGR_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$PASSMGR_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE" ]; then
+    printf_green "Your config file for passmgr has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+PASSMGR_CONFIG_FILE="settings.conf"
+PASSMGR_CONFIG_DIR="$HOME/.config/myscripts/passmgr"
+PASSMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/passmgr/backups"
+PASSMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/passmgr/options"
+PASSMGR_TEMP_FILE="${TMPDIR:-/tmp}/passmgr"
+PASSMGR_NOTIFY_ENABLED="yes"
+PASSMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+PASSMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$PASSMGR_NOTIFY_CLIENT_ICON}"
+PASSWORD_STORE_KEY="${PASSWORD_STORE_KEY}"
+PASSWORD_STORE_UMASK="${PASSWORD_STORE_UMASK:-077}"
+PASSWORD_STORE_CLIP_TIME="${PASSWORD_STORE_CLIP_TIME:-60}"
+PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.local/share/pass-store}"
+PASSWORD_STORE_ENABLE_EXTENSIONS="${PASSWORD_STORE_ENABLE_EXTENSIONS:-true}"
+PASSWORD_STORE_EXTENSIONS_DIR="${PASSWORD_STORE_EXTENSIONS_DIR:-$PASSWORD_STORE_DIR/.extensions}"
+PASSWORD_STORE_BACKUP="${PASSWORD_STORE_BACKUP:-$HOME/.local/backups/passmgr/$(hostname).$(date +%F).tar}"
+PASSMGR_FORCE_INSTALL="false"
+PASSMGR_GIT_URL=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,f,i:"
+LONGOPTS="options,config,version,help,force,import:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$PASSMGR_OPTIONS_DIR/options" ] || __list_options "$PASSMGR_OPTIONS_DIR" &>/dev/null
+[ -f "$PASSMGR_OPTIONS_DIR/array" ] || __list_array "$PASSMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE" ]; then
+  . "$PASSMGR_CONFIG_DIR/$PASSMGR_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$PASSMGR_OPTIONS_DIR" "$ARRAY"
+    __list_options "$PASSMGR_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -f | --force)
+    shift 1
+    export FORCE_INSTALL="true"
+    ;;
+  -i | --import)
+    shift 1
+    URL=${1:-$PASSMGR_GIT_URL}
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$PASSMGR_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${PASSMGR_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${PASSMGR_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+PASSWORD_STORE_KEY="${PASSWORD_STORE_KEY}"
+PASSWORD_STORE_UMASK="${PASSWORD_STORE_UMASK:-077}"
+PASSWORD_STORE_CLIP_TIME="${PASSWORD_STORE_CLIP_TIME:-60}"
+PASSWORD_STORE_DIR="${PASSWORD_STORE_DIR:-$HOME/.local/share/pass-store}"
+PASSWORD_STORE_ENABLE_EXTENSIONS="${PASSWORD_STORE_ENABLE_EXTENSIONS:-true}"
 PASSWORD_STORE_EXTENSIONS_DIR="${PASSWORD_STORE_EXTENSIONS_DIR:-$PASSWORD_STORE_DIR/.extensions}"
 PASSWORD_STORE_BACKUP="${PASSWORD_STORE_BACKUP:-$HOME/.local/backups/passmgr/$(hostname).$(date +%F).tar}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if __cmd_exists pass; then
+# begin main app
+if cmd_exists pass; then
   pass "$@"
 else
-  __am_i_online_err || exit 1
-  printf_custom "1" "The pass program was not found - attemping install "
-  pkmgr install pass || pkmgr install password-store ||
-    printf_red "Install failed please try a manual install"
-  printf_custom "11" "See site at https://git.zx2c4.com/password-store/about/"
+  # am_i_online --error || exit 1
+  ask_yes_no_question "Would you like to install the pass program?" "pkmgr install pass || pkmgr install password-store" ||
+    { printf_red "Install failed please try a manual install" && printf_custom "11" "See site at https://git.zx2c4.com/password-store/about/"; }
 fi
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

@@ -69,8 +69,8 @@ notify_good() {
   local name="${1:-$prog}"
   local message="${command:-Command} was successful"
   if [ -z "$SEND_NOTIFY" ]; then
-    notifications "${prog:-$name}:" "$message" || printf_green "${prog:-$name}: $message"
-    export ASK_YES_NO_QUESTION_NOTIFY_ENABLED=yes
+    __notifications "${prog:-$name}:" "$message" || printf_green "${prog:-$name}: $message"
+    export ASK_YES_NO_QUESTION_NOTIFY_ENABLED="${ASK_YES_NO_QUESTION_NOTIFY_ENABLED:-yes}"
   fi
   return 0
 }
@@ -80,8 +80,8 @@ notify_error() {
   local name="${1:-$prog}"
   local message="${command:-Command} has failed"
   if [ -z "$SEND_NOTIFY" ]; then
-    notifications "${prog:-$name}:" "$message" || printf_red "${prog:-$name}: $message"
-    export ASK_YES_NO_QUESTION_NOTIFY_ENABLED=yes
+    __notifications "${prog:-$name}:" "$message" || printf_red "${prog:-$name}: $message"
+    export ASK_YES_NO_QUESTION_NOTIFY_ENABLED="${ASK_YES_NO_QUESTION_NOTIFY_ENABLED:-yes}"
   fi
   return 1
 }
@@ -111,8 +111,8 @@ ASK_YES_NO_QUESTION_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$ASK_YES_NO_QUESTI
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
-SHORTOPTS="c,v,h,t"
-LONGOPTS="options,config,version,help,term,terminal"
+SHORTOPTS="c,v,h,t,o"
+LONGOPTS="options,config,version,help,term,terminal,off"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
@@ -157,6 +157,10 @@ while :; do
     RESENT_QUESTION="$ASK_YES_NO_QUESTION_QUESTION"
     RESENT_COMMAND="$ASK_YES_NO_QUESTION_COMMAND"
     ;;
+  -o | --off)
+    shift 1
+    ASK_YES_NO_QUESTION_NOTIFY_ENABLED="no"
+    ;;
   --)
     shift 1
     break
@@ -176,7 +180,7 @@ if [ "$ASK_YES_NO_QUESTION_NOTIFY_ENABLED" = "yes" ]; then
     notifications "$*" || return 1
   }
 else
-  __notifications() { false; }
+  __notifications() { true; }
 fi
 appname="${NOTIFY_CLIENT_NAME:-$ASK_YES_NO_QUESTION_NOTIFY_CLIENT_NAME}"
 question="${1:-Would you like to proceed?}"
