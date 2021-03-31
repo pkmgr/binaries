@@ -188,7 +188,7 @@ if [ "$CMD_EXISTS_NOTIFY_ASK" = "yes" ]; then
   if [ -n "$MISSING" ]; then
     notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Missing $MISSING"
     if [ -n "$DESKTOP_SESSION" ]; then
-      __ask_confirm "Would you like install $MISSING" "pkmgr silent-install $MISSING" || return 1
+      __ask_confirm "Would you like install $MISSING" "pkmgr silent-install $MISSING" && exitCode=0 || exitCode=1
     else
       printf_red "The following apps are missing: $MISSING"
       printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
@@ -207,3 +207,4 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+

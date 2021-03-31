@@ -41,7 +41,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
-__check_app git
+cmd_exists git || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # I'm sure there is a better way to do this
 if [ -d "$1" ]; then
@@ -71,6 +71,7 @@ gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$gitdir/version.txt"
 repo="$(__git_remote_fetch $gitdir)"
 basedir="$(basename $gitdir)"
+gituser="$(basename "$(dirname "$gitdir")")"
 gitversion="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 [ -n "$repo" ] || repo="localdir"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -193,129 +194,156 @@ added)
 
 changed)
   shift 1
-  mess=" ✔️🐛 Changed $1 🐛✔️"
+  ARGS=" ${*:-} "
+  mess=" ✔️🐛 Changed${ARGS}🐛✔️"
   ;;
 
 new)
   shift 1
-  ARGS="$*"
-  mess=" 🆕📦 NEW: $ARGS 📦🆕 "
+  ARGS=" ${*:-} "
+  mess=" 🆕📦 NEW:${ARGS}📦🆕 "
   ;;
 
 improve)
   shift 1
-  ARGS="$*"
-  mess=" 👌 IMPROVE: $ARGS 👌 "
+  ARGS=" ${*:-} "
+  mess=" 👌 IMPROVE:${ARGS}👌 "
   ;;
 
 fixed)
   shift 1
-  ARGS="$*"
-  mess=" 🐛 FIXED: $ARGS 🐛 "
+  ARGS=" ${*:-} "
+  mess=" 🐛 FIXED:${ARGS}🐛 "
   ;;
 
 release)
   shift 1
-  ARGS="$*"
-  mess=" 🚀 RELEASE: $ARGS 🚀 "
+  ARGS=" ${*:-} "
+  mess=" 🚀 RELEASE:${ARGS}🚀 "
   ;;
 
 docs)
   shift 1
-  ARGS="$*"
-  mess=" 📖 DOCS: $ARGS 📖 "
+  ARGS=" ${*} "
+  mess=" 📖 DOCS:${ARGS}📖 "
   ;;
 
 test)
   shift 1
-  ARGS="$*"
-  mess=" 🤖 TEST: $ARGS 🤖 "
+  ARGS=" ${*:-} "
+  mess=" 🤖 TEST:${ARGS}🤖"
   ;;
 
 breaking)
   shift 1
-  ARGS="$*"
-  mess=" ⚒️ BREAKING: $ARGS ⚒️ "
+  ARGS=" ${*:-} "
+  mess=" ⚒️ BREAKING:${ARGS}⚒️ "
   ;;
 
 refactor)
   shift 1
-  mess=" ✔️ 〰️ Refactor Code 〰️ ✔️  "
+  ARGS=" ${*:-} "
+  mess=" ✔️ 〰️ Refactor Code${ARGS}〰️ ✔️  "
   ;;
 
 permission | permissions)
   shift 1
-  mess=" 🏠🔥❗ Fixed Permissions ❗🔥🏠 "
+  ARGS=" ${*:-} "
+  mess=" 🏠🔥❗ Fixed Permissions${ARGS}❗🔥🏠 "
   ;;
 
 bug | bugs)
   shift 1
-  mess=" 🐛🦈🏠❗ Bug Fixes ❗🏠🦈🐛 "
+  ARGS=" ${*:-} "
+  mess=" 🐛🦈🏠❗ Bug Fixes${ARGS}❗🏠🦈🐛 "
   ;;
 
 alot | fixes)
   shift 1
-  mess=" 🦈🏠🐜❗ Fixes and Updates ❗🐜🦈🏠 "
+  ARGS=" ${*:-} "
+  mess=" 🦈🏠🐜❗ Fixes and Updates${ARGS}❗🐜🦈🏠 "
   ;;
 
 docker)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added Docker Workflow ❗🏠🦈❇🐜 "
+  ARGS=" ${*:-} "
+  mess=" 🐜❇🦈🏠❗ Added Docker Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 node)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added nodejs Workflow ❗🏠🦈❇🐜 "
+  ARGS=" ${*:-} "
+  mess=" 🐜❇🦈🏠❗ Added nodejs Workflow${ARGS}🏠🦈❇🐜 "
   ;;
 
 ruby)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added ruby Workflow ❗🏠🦈❇🐜 "
+  ARGS=" ${*:-} "
+  mess=" 🐜❇🦈🏠❗ Added ruby Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 php)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added php Workflow ❗🏠🦈❇🐜 "
+  ARGS=" ${*:-} "
+  mess=" 🐜❇🦈🏠❗ Added php Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 perl)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added perl Workflow ❗🏠🦈❇🐜 "
+  ARGS=" ${*:-} "
+  mess=" 🐜❇🦈🏠❗ Added perl Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 python)
   shift 1
-  mess=" 🐜❇🦈🏠❗ Added python Workflow ❗🏠🦈❇🐜 "
+  ARGS=" ${*:-} "
+  mess=" 🐜❇🦈🏠❗ Added python Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 scratchpad)
   shift 1
-  mess=" 🐜📓❇📓 ${1:-Modified my scratchpad} 📓❇📓🐜 "
+  msg="${1:-}"
+  shift 1
+  ARGS=" ${*:-} "
+  mess=" 🐜📓❇📓 ${msg:-Modified my scratchpad}${ARGS}📓❇📓🐜 "
   ;;
 
 todo)
   shift 1
-  mess=" 🐜📓❇📓 ${1:-Modified my todo list} 📓❇📓🐜 "
+  msg="${1:-}"
+  shift 1
+  ARGS=" ${*:-} "
+  mess=" 🐜📓❇📓 ${mesg:-Modified my todo list}${ARGS}📓❇📓🐜 "
   ;;
 
 notes)
   shift 1
-  mess=" 🐜📓❇📓 ${1:-Modified my notes} 📓❇📓🐜 "
+  msg="${1:-}"
+  shift 1
+  ARGS=" ${*:-} "
+  mess=" 🐜📓❇📓 ${msg:-Modified my notes}${ARGS}📓❇📓🐜 "
   ;;
 
 blog)
   shift 1
-  mess=" 🐜📓❇📓 ${1:-New blog post} 📓❇📓🐜 "
+  msg="${1:-}"
+  shift 1
+  ARGS=" ${*:-} "
+  mess=" 🐜📓❇📓 ${msg:-New blog post}${ARGS}📓❇📓🐜 "
   ;;
 
 init)
   shift 1
-  mess=" 🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠 "
+  msg="${*}"
+  mess=" ${msg:-🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠} "
   ;;
 
 emj | emojy | emojify)
   shift 1
-  mess=" 🦈🏠🐜❗ ${1:-Well I did some things} ❗🐜🦈🏠 "
+  msg="${1:-}"
+  shift 1
+  ARGS=" ${*:-} "
+  mess=" 🦈🏠🐜❗ ${1:-Well I did some things}${ARGS}❗🐜🦈🏠 "
   ;;
 
 random)
@@ -376,3 +404,4 @@ printf_newline
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
+
