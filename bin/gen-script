@@ -1000,12 +1000,21 @@ case ${1:-$SETOPTS} in
     readme_template="$GEN_SCRIPTS_CONFIG_DIR/files/other/$1"
     readme_file="$2"
     if [ -f "$readme_template" ]; then
-      printf_yellow "Using the $new_type template and copying"
+      printf_yellow "Using the template and copying"
       printf_green "from: $readme_template"
-      printf_green "to: $new_filename "
+      printf_green "to: $readme_file "
       __cp_rf "$readme_template" "$readme_file"
+      __sed "GEN_SCRIPTS_REPLACE_APPNAME" "$(basename "$readme_file")" "$readme_file"
+      __sed "GEN_SCRIPTS_REPLACE_FILENAME" "$(basename "$readme_file")" "$readme_file"
+      __sed "GEN_SCRIPTS_REPLACE_DESC" "$GEN_SCRIPTS_REPLACE_DESC" "$readme_file"
     else
       printf_exit "$readme_template doesn't exist"
+    fi
+    if [ -f "$readme_file" ]; then
+      chmod 755 "$readme_file"
+      printf_exit 2 0 "Successfuly created the new readme file"
+    else
+      printf_exit 1 1 "Creation of the readme file has failed"
     fi
   fi
   ;;

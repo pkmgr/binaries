@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103310007-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$CHEAT_SH_TMP_FILE" ] && rm -Rf "$CHEAT_SH_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200616-git
+##@Version       : 202103310007-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : cheat.sh --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:16 EDT
+# @Created       : Wednesday, Mar 31, 2021 00:07 EDT
 # @File          : cheat.sh
 # @Description   : Get help with commands
 # @TODO          :
@@ -40,8 +42,112 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__am_i_online_err || exit 1
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE"
+  [ -d "$CHEAT_SH_CONFIG_DIR" ] || mkdir -p "$CHEAT_SH_CONFIG_DIR"
+  [ -d "$CHEAT_SH_CONFIG_BACKUP_DIR" ] || mkdir -p "$CHEAT_SH_CONFIG_BACKUP_DIR"
+  [ -f "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE" ] &&
+    cp -Rf "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE" "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE.$$"
+  cat <<EOF >"$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE"
+# Settings for cheat.sh
+CHEAT_SH_URL=https://cht.sh
+CHEAT_SH_HOME="HOME/.config/myscripts/cheat.sh"
+CHEAT_SH_TEMP_FILE="${TMPDIR:-/tmp}/cheat.sh"
+CHEAT_SH_NOTIFY_ENABLED="yes"
+CHEAT_SH_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+CHEAT_SH_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$CHEAT_SH_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE" ]; then
+    printf_green "Your config file for cheat.sh has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+CHEAT_SH_CONFIG_FILE="settings.conf"
+CHEAT_SH_CONFIG_DIR="$HOME/.config/myscripts/cheat.sh"
+CHEAT_SH_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/cheat.sh/backups"
+CHEAT_SH_OPTIONS_DIR="$HOME/.local/share/myscripts/cheat.sh/options"
+CHEAT_SH_TEMP_FILE="${TMPDIR:-/tmp}/cheat.sh"
+CHEAT_SH_URL="${CHEAT_SH_URL:-https://cht.sh}"
+CHEAT_SH_HOME="$CHEAT_SH_CONFIG_DIR"
+CHEAT_SH_NOTIFY_ENABLED="yes"
+CHEAT_SH_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+CHEAT_SH_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$CHEAT_SH_NOTIFY_CLIENT_ICON}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$CHEAT_SH_OPTIONS_DIR/options" ] || __list_options "$CHEAT_SH_OPTIONS_DIR" &>/dev/null
+[ -f "$CHEAT_SH_OPTIONS_DIR/array" ] || __list_array "$CHEAT_SH_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE" ]; then
+  . "$CHEAT_SH_CONFIG_DIR/$CHEAT_SH_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$CHEAT_SH_OPTIONS_DIR" "$ARRAY"
+    __list_options "$CHEAT_SH_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error curl bash || exit 1
+am_i_online -s "$CHEAT_SH_URL" --error || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$CHEAT_SH_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${CHEAT_SH_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${CHEAT_SH_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 # [X] open section
 # [X] one shot mode
 # [X] usage info
@@ -65,25 +171,25 @@ __am_i_online_err || exit 1
 # count words in text counter
 # group elements list
 
-__CHTSH_VERSION=0.0.1
-__CHTSH_DATETIME="2020-08-05 09:30:30 +0200"
+__CHEAT_SH_VERSION=0.0.1
+__CHEAT_SH_DATETIME="2020-08-05 09:30:30 +0200"
 
 # cht.sh configuration loading
 #
-# configuration is stored in ~/.config/cheat.sh/ (can be overridden by CHTSH_HOME)
+# configuration is stored in ~/.config/cheat.sh/ (can be overridden by CHEAT_SH_HOME)
 #
-CHTSH_HOME=${CHTSH:-~/.config/cheat.sh}
-[ -z "$CHTSH_CONF" ] && CHTSH_CONF=$CHTSH_HOME/cht.sh.conf
+CHEAT_SH_HOME=${CHEAT_SH:-$CHEAT_SH_HOME}
+[ -z "$CHEAT_SH_CONF" ] && CHEAT_SH_CONF=$CHEAT_SH_HOME/cht.sh.conf
 # shellcheck disable=SC1090,SC2002
-[ -e "$CHTSH_CONF" ] && source "$CHTSH_CONF"
-[ -z "$CHTSH_URL" ] && CHTSH_URL=https://cht.sh
+[ -e "$CHEAT_SH_CONF" ] && source "$CHEAT_SH_CONF"
+[ -z "$CHEAT_SH_URL" ] && CHEAT_SH_URL=https://cht.sh
 
 # currently we support only two modes:
 # * lite = access the server using curl
 # * auto = try standalone usage first
-CHTSH_MODE="$(cat "$CHTSH_HOME"/mode 2>/dev/null)"
-[ "$CHTSH_MODE" != lite ] && CHTSH_MODE=auto
-CHEATSH_INSTALLATION="$(cat "$CHTSH_HOME/standalone" 2>/dev/null)"
+CHEAT_SH_MODE="$(cat "$CHEAT_SH_HOME"/mode 2>/dev/null)"
+[ "$CHEAT_SH_MODE" != lite ] && CHEAT_SH_MODE=auto
+CHEATSH_INSTALLATION="$(cat "$CHEAT_SH_HOME/standalone" 2>/dev/null)"
 
 export LESSSECURE=1
 STEALTH_MAX_SELECTION_LENGTH=5
@@ -285,9 +391,9 @@ EOF
     fi
   )
 
-  mkdir -p "$CHTSH_HOME"
-  echo "$installdir" >"$CHTSH_HOME/standalone"
-  echo auto >"$CHTSH_HOME/mode"
+  mkdir -p "$CHEAT_SH_HOME"
+  echo "$installdir" >"$CHEAT_SH_HOME/standalone"
+  echo auto >"$CHEAT_SH_HOME/mode"
 
   _say_what_i_do Done
 
@@ -339,18 +445,18 @@ chtsh_mode() {
   )
 
   if [ -z "$mode" ]; then
-    echo "current mode: $CHTSH_MODE ($(printf "%s" "$text" | grep "$CHTSH_MODE" | sed "s/$CHTSH_MODE//; s/^ *//; s/ \+/ /"))"
+    echo "current mode: $CHEAT_SH_MODE ($(printf "%s" "$text" | grep "$CHEAT_SH_MODE" | sed "s/$CHEAT_SH_MODE//; s/^ *//; s/ \+/ /"))"
     if [ -d "$CHEATSH_INSTALLATION" ]; then
       echo "cheat.sh standalone installation: $CHEATSH_INSTALLATION"
     else
       echo 'cheat.sh standalone installation not found; falling back to the "lite" mode'
     fi
   elif [ "$mode" = auto ] || [ "$mode" = lite ]; then
-    if [ "$mode" = "$CHTSH_MODE" ]; then
-      echo "The configured mode was \"$CHTSH_MODE\"; nothing changed"
+    if [ "$mode" = "$CHEAT_SH_MODE" ]; then
+      echo "The configured mode was \"$CHEAT_SH_MODE\"; nothing changed"
     else
-      mkdir -p "$CHTSH_HOME"
-      echo "$mode" >"$CHTSH_HOME/mode"
+      mkdir -p "$CHEAT_SH_HOME"
+      echo "$mode" >"$CHEAT_SH_HOME/mode"
       echo "Configured mode: $mode"
     fi
   else
@@ -363,10 +469,10 @@ chtsh_mode() {
 
 get_query_options() {
   local query="$*"
-  if [ -n "$CHTSH_QUERY_OPTIONS" ]; then
+  if [ -n "$CHEAT_SH_QUERY_OPTIONS" ]; then
     case $query in
-    *\?*) query="$query&${CHTSH_QUERY_OPTIONS}" ;;
-    *) query="$query?${CHTSH_QUERY_OPTIONS}" ;;
+    *\?*) query="$query&${CHEAT_SH_QUERY_OPTIONS}" ;;
+    *) query="$query?${CHEAT_SH_QUERY_OPTIONS}" ;;
     esac
   fi
   printf "%s" "$query"
@@ -375,7 +481,7 @@ get_query_options() {
 do_query() {
   local query="$*"
   local b_opts=
-  local uri="${CHTSH_URL}/\"\$(get_query_options $query)\""
+  local uri="${CHEAT_SH_URL}/\"\$(get_query_options $query)\""
 
   if [ -e "$HOME/.config/cheat.sh/id" ]; then
     b_opts="-b \"\$HOME/.config/cheat.sh/id\""
@@ -409,7 +515,7 @@ prepare_query() {
 }
 
 get_list_of_sections() {
-  curl -s "${CHTSH_URL}"/:list | grep -v '/.*/' | grep '/$' | xargs
+  curl -s "${CHEAT_SH_URL}"/:list | grep -v '/.*/' | grep '/$' | xargs
 }
 
 gen_random_str() (
@@ -440,7 +546,7 @@ gen_random_str() (
   fi
 )
 
-if [ "$CHTSH_MODE" = auto ] && [ -d "$CHEATSH_INSTALLATION" ]; then
+if [ "$CHEAT_SH_MODE" = auto ] && [ -d "$CHEATSH_INSTALLATION" ]; then
   curl() {
     # ignoring all options
     # currently the standalone.py does not support them anyway
@@ -453,7 +559,7 @@ if [ "$CHTSH_MODE" = auto ] && [ -d "$CHEATSH_INSTALLATION" ]; then
     local url
     url="$1"
     shift
-    PYTHONIOENCODING=UTF-8 "$CHEATSH_INSTALLATION/ve/bin/python" "$CHEATSH_INSTALLATION/lib/standalone.py" "${url#"$CHTSH_URL"}" "$@"
+    PYTHONIOENCODING=UTF-8 "$CHEATSH_INSTALLATION/ve/bin/python" "$CHEATSH_INSTALLATION/lib/standalone.py" "${url#"$CHEAT_SH_URL"}" "$@"
   }
 elif [ "$(uname -s)" = OpenBSD ] && [ -x /usr/bin/ftp ]; then
   # any better test not involving either OS matching or actual query?
@@ -478,9 +584,9 @@ else
     exit 1
   }
   _CURL=$(command -v curl)
-  if [ x"$CHTSH_CURL_OPTIONS" != x ]; then
+  if [ x"$CHEAT_SH_CURL_OPTIONS" != x ]; then
     curl() {
-      $_CURL "${CHTSH_CURL_OPTIONS}" "$@"
+      $_CURL "${CHEAT_SH_CURL_OPTIONS}" "$@"
     }
   fi
 fi
@@ -542,7 +648,7 @@ done
 query=$(echo "$input" | sed 's@ *$@@; s@^ *@@; s@ @/@; s@ @+@g')
 
 if [ "$shell_mode" != yes ]; then
-  curl -s "${CHTSH_URL}"/"$(get_query_options "$query")"
+  curl -s "${CHEAT_SH_URL}"/"$(get_query_options "$query")"
   exit 0
 else
   new_section="$1"
@@ -564,7 +670,7 @@ else
   fi
   if [ -n "$this_query" ] && [ -z "$CHEATSH_RESTART" ]; then
     printf "$this_prompt$this_query\n"
-    curl -s "${CHTSH_URL}"/"$(get_query_options "$query")"
+    curl -s "${CHEAT_SH_URL}"/"$(get_query_options "$query")"
   fi
 fi
 
@@ -622,7 +728,7 @@ cmd_copy() {
   elif [ -z "$input" ]; then
     echo copy: Make at least one query first.
   else
-    curl -s "${CHTSH_URL}"/"$(get_query_options "$query"?T)" >"$TMP1"
+    curl -s "${CHEAT_SH_URL}"/"$(get_query_options "$query"?T)" >"$TMP1"
     if [ "$is_macos" != yes ]; then
       xsel -bi <"$TMP1"
     else
@@ -638,7 +744,7 @@ cmd_ccopy() {
   elif [ -z "$input" ]; then
     echo copy: Make at least one query first.
   else
-    curl -s "${CHTSH_URL}"/"$(get_query_options "$query"?TQ)" >"$TMP1"
+    curl -s "${CHEAT_SH_URL}"/"$(get_query_options "$query"?TQ)" >"$TMP1"
     if [ "$is_macos" != yes ]; then
       xsel -bi <"$TMP1"
     else
@@ -769,13 +875,13 @@ cmd_stealth() {
 
 cmd_update() {
   [ -w "$0" ] || {
-    echo "The script is readonly; please update manually: curl -s ${CHTSH_URL}/:cht.sh | sudo tee $0"
+    echo "The script is readonly; please update manually: curl -s ${CHEAT_SH_URL}/:cht.sh | sudo tee $0"
     return
   }
   TMP2=$(mktemp /tmp/cht.sh.XXXXXXXXXXXXX)
-  curl -s "${CHTSH_URL}"/:cht.sh >"$TMP2"
+  curl -s "${CHEAT_SH_URL}"/:cht.sh >"$TMP2"
   if ! cmp "$0" "$TMP2" >/dev/null 2>&1; then
-    if grep -q ^__CHTSH_VERSION= "$TMP2"; then
+    if grep -q ^__CHEAT_SH_VERSION= "$TMP2"; then
       # section was vaildated by us already
       args=(--shell "$section")
       cp "$TMP2" "$0" && echo "Updated. Restarting..." && rm "$TMP2" && CHEATSH_RESTART=1 exec "$0" "${args[@]}"
@@ -790,9 +896,9 @@ cmd_update() {
 
 cmd_version() {
   insttime=$(ls -l -- "$0" | sed 's/  */ /g' | cut -d ' ' -f 6-8)
-  echo "cht.sh version $__CHTSH_VERSION of $__CHTSH_DATETIME; installed at: $insttime"
+  echo "cht.sh version $__CHEAT_SH_VERSION of $__CHEAT_SH_DATETIME; installed at: $insttime"
   TMP2=$(mktemp /tmp/cht.sh.XXXXXXXXXXXXX)
-  if curl -s "${CHTSH_URL}"/:cht.sh >"$TMP2"; then
+  if curl -s "${CHEAT_SH_URL}"/:cht.sh >"$TMP2"; then
     if ! cmp "$0" "$TMP2" >/dev/null 2>&1; then
       echo "Update needed (type 'update' for that)".
     else

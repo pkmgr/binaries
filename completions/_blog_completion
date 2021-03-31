@@ -13,7 +13,7 @@
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_blog --options &>/dev/null
+blog --options &>/dev/null
 _blog() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} ${4:-} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
   local cur prev words cword opts
@@ -23,7 +23,7 @@ _blog() {
   local CONFDIR="$HOME/.config/myscripts/blog"
   local OPTSDIR="$HOME/.local/share/myscripts/blog/options"
   local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/blog}"
-  local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "f" "1" "-iname '*.conf'" )"
+  local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "f" "1" "-iname '*.conf'")"
   local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array")"
   local DEFAULTOPTS="$([ -f "$OPTSDIR/options" ] && grep -sEv '#|^$' "$OPTSDIR/options" || echo -v -h)"
   local LONGOPTS="$(grep -sEv '#|^$' "$OPTSDIR/long_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep '\--')"
@@ -52,9 +52,8 @@ _blog() {
     -) prev="-" && COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
     config) prev="config" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     copy) prev="copy" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    edit) prev="edit" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    edit) prev="edit" COMPREPLY=($(compgen -W '$(ls $HOME/.local/share/blogs/*/_*/*)' -- "${cur}"));;
-    new page post) prev="new" && COMPREPLY=($(compgen -W '{a..z}' -- "${cur}")) ;;
+    edit) prev="edit" COMPREPLY=($(compgen -W '$(ls $HOME/.local/share/blogs/*/_*/*)' -- "${cur}")) ;;
+    new | page | post) prev="new" && COMPREPLY=($(compgen -W '{a..z}' -- "${cur}")) ;;
     *)
       if [ -n "$FILEDIR" ]; then _filedir; fi
       if [[ "$ARRAY" = "show-none" ]]; then
@@ -71,8 +70,8 @@ _blog() {
         COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       fi
       ;;
-  esac
-  $split && return
+    esac
+    $split && return
   fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
