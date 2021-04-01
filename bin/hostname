@@ -26,7 +26,7 @@ trap '[ -f "$HOSTNAME_TMP_FILE" ] && rm -Rf "$HOSTNAME_TMP_FILE" &>/dev/null' EX
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
 SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-globals.bash}"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
 SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
@@ -70,7 +70,7 @@ EOF
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __hostname() {
   local hostnamecli hostnamecmd hostnamefcmd hostnamescmd hostnamedcmd PATH
-  local PATH="/usr/bin:/usr/sbin:/bin:/sbin:/usr/local/bin"
+  local PATH="/usr/bin:/usr/sbin:/bin:/sbin"
   if [ -f "$(type -P hostname 2>/dev/null)" ]; then
     hostnamecli="$(type -P hostname)"
     hostnamecmd="$($hostnamecli "-f" 2>/dev/null | grep '^')"
@@ -120,9 +120,9 @@ if user_is_root; then
   HOSTNAME_CONFIG_DIR="/etc/hostname.d"
   HOSTNAME_CACHE_DIR="/etc/hostname.d/files"
 fi
-if [ -d "/etc/hostname.d/files" ]; then
-  cp -Rf "/etc/hostname.d/files/." "$HOSTNAME_CACHE_DIR/" &>/dev/null
-fi
+#if [ -d "/etc/hostname.d/files" ]; then
+#  cp -Rf "/etc/hostname.d/files/." "$HOSTNAME_CACHE_DIR/" &>/dev/null
+#fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
@@ -187,11 +187,10 @@ done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications
-cmd_exists --error bash || exit 1
+#cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 mkdir -p "$HOSTNAME_CACHE_DIR" &>/dev/null
-find "$HOSTNAME_CACHE_DIR" -mtime 0 -type f -print0 | xargs -0 /bin/rm -f
 if [ "$HOSTNAME_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
     export NOTIFY_CLIENT_NAME="${HOSTNAME_NOTIFY_CLIENT_NAME}"
@@ -235,3 +234,4 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+

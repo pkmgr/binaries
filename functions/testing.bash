@@ -811,6 +811,12 @@ __getuser_cur_shell() {
   local CURSHELL="$(grep "$USER" /etc/passwd | tr ':' '\n' | tail -n1)"
   grep "$USER" /etc/passwd | tr ':' '\n' | grep "${CURSHELL:-$SHELL}"
 }
+#hostname() {
+#  local PATH="/usr/bin:/usr/sbin"
+#  hostnamecli="$(type -P hostname)"
+#  $hostname "$@"
+#  return $?
+#}
 ###################### Apps ######################
 #vim "file"
 vim="$(command -v /usr/local/bin/vim || command -v vim)"

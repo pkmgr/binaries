@@ -143,7 +143,7 @@ version)
   #   exit
   # fi
   __version
-  versionbump=" 🚀 Version Bump: $(cat "$versionfile") 🚀 "
+  versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
   printf_cyan "$versionbump"
   git -C "$gitdir" add "$gitdir/version.txt" >/dev/null 2>&1
   if ! __git_porcelain "$gitdir"; then
@@ -156,14 +156,14 @@ version)
 files)
   shift 1
   files="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
-  mess=" ➕ $files ➕ "
+  mess="➕ $files ➕ "
   ;;
 
 modified)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
-    mess=" 🗃 Modified: $files 🗃 "
+    mess="🗃 Modified: $files 🗃 "
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been modified"
@@ -174,7 +174,7 @@ deleted)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'D ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'D ' | awk '{print $2}' | tr '\n' ' ')"
-    mess=" :heavy_minus_sign: $files :heavy_minus_sign: "
+    mess=":heavy_minus_sign: $files :heavy_minus_sign: "
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been deleted"
@@ -185,7 +185,7 @@ added)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F '?? ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F '?? ' | awk '{print $2}' | tr '\n' ' ')"
-    mess=" ❓ $files ❓"
+    mess="❓ $files ❓"
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been added"
@@ -195,109 +195,109 @@ added)
 changed)
   shift 1
   ARGS=" ${*:-} "
-  mess=" ✔️🐛 Changed${ARGS}🐛✔️"
+  mess="✔️🐛 Changed${ARGS}🐛✔️"
   ;;
 
 new)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🆕📦 NEW:${ARGS}📦🆕 "
+  mess="🆕📦 NEW:${ARGS}📦🆕 "
   ;;
 
 improve)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 👌 IMPROVE:${ARGS}👌 "
+  mess="👌 IMPROVE:${ARGS}👌 "
   ;;
 
 fixed)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐛 FIXED:${ARGS}🐛 "
+  mess="🐛 FIXED:${ARGS}🐛 "
   ;;
 
 release)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🚀 RELEASE:${ARGS}🚀 "
+  mess="🚀 RELEASE:${ARGS}🚀 "
   ;;
 
 docs)
   shift 1
   ARGS=" ${*} "
-  mess=" 📖 DOCS:${ARGS}📖 "
+  mess="📖 DOCS:${ARGS}📖 "
   ;;
 
 test)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🤖 TEST:${ARGS}🤖"
+  mess="🤖 TEST:${ARGS}🤖"
   ;;
 
 breaking)
   shift 1
   ARGS=" ${*:-} "
-  mess=" ⚒️ BREAKING:${ARGS}⚒️ "
+  mess="⚒️ BREAKING:${ARGS}⚒️ "
   ;;
 
 refactor)
   shift 1
   ARGS=" ${*:-} "
-  mess=" ✔️ 〰️ Refactor Code${ARGS}〰️ ✔️  "
+  mess="✔️ 〰️ Refactor Code${ARGS}〰️ ✔️  "
   ;;
 
 permission | permissions)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🏠🔥❗ Fixed Permissions${ARGS}❗🔥🏠 "
+  mess="🏠🔥❗ Fixed Permissions${ARGS}❗🔥🏠 "
   ;;
 
 bug | bugs)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐛🦈🏠❗ Bug Fixes${ARGS}❗🏠🦈🐛 "
+  mess="🐛🦈🏠❗ Bug Fixes${ARGS}❗🏠🦈🐛 "
   ;;
 
 alot | fixes)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🦈🏠🐜❗ Fixes and Updates${ARGS}❗🐜🦈🏠 "
+  mess="🦈🏠🐜❗ Fixes and Updates${ARGS}❗🐜🦈🏠 "
   ;;
 
 docker)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜❇🦈🏠❗ Added Docker Workflow${ARGS}❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added Docker Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 node)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜❇🦈🏠❗ Added nodejs Workflow${ARGS}🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added nodejs Workflow${ARGS}🏠🦈❇🐜 "
   ;;
 
 ruby)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜❇🦈🏠❗ Added ruby Workflow${ARGS}❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added ruby Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 php)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜❇🦈🏠❗ Added php Workflow${ARGS}❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added php Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 perl)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜❇🦈🏠❗ Added perl Workflow${ARGS}❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added perl Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 python)
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜❇🦈🏠❗ Added python Workflow${ARGS}❗🏠🦈❇🐜 "
+  mess="🐜❇🦈🏠❗ Added python Workflow${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 scratchpad)
@@ -305,7 +305,7 @@ scratchpad)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜📓❇📓 ${msg:-Modified my scratchpad}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${msg:-Modified my scratchpad}${ARGS}📓❇📓🐜 "
   ;;
 
 todo)
@@ -313,7 +313,7 @@ todo)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜📓❇📓 ${mesg:-Modified my todo list}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${mesg:-Modified my todo list}${ARGS}📓❇📓🐜 "
   ;;
 
 notes)
@@ -321,7 +321,7 @@ notes)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜📓❇📓 ${msg:-Modified my notes}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${msg:-Modified my notes}${ARGS}📓❇📓🐜 "
   ;;
 
 blog)
@@ -329,13 +329,13 @@ blog)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🐜📓❇📓 ${msg:-New blog post}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${msg:-New blog post}${ARGS}📓❇📓🐜 "
   ;;
 
 init)
   shift 1
   msg="${*}"
-  mess=" ${msg:-🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠} "
+  mess="${msg:-🦈🏠🐜❗ Initial Commit 📍🐜🦈🏠} "
   ;;
 
 emj | emojy | emojify)
@@ -343,12 +343,12 @@ emj | emojy | emojify)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess=" 🦈🏠🐜❗ ${1:-Well I did some things}${ARGS}❗🐜🦈🏠 "
+  mess="🦈🏠🐜❗ ${1:-Well I did some things}${ARGS}❗🐜🦈🏠 "
   ;;
 
 random)
   shift 1
-  mess=" 🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜 "
+  mess="🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜 "
   ;;
 
 custom)
@@ -368,10 +368,10 @@ setup | reset)
 
 *)
   if [ -n "$1" ]; then
-    [ ! "$(echo "$@" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
-    mess="${newmess:-$@}"
+    [ ! "$(echo "$*" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
+    mess="${newmess:-$*}"
   else
-    mess=" 🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
+    mess="🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
   fi
   ;;
 esac
@@ -389,14 +389,15 @@ else
   fi
   if [ -z "$files" ]; then git -C "$gitdir" add . >/dev/null 2>&1; fi
   if [ -z "$mess" ]; then
-    git -C "$gitdir" commit -q -S -m " 🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null && exitCode=0 || exitCode=1
+    git -C "$gitdir" commit -q -S -m "🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null && exitCode=0 || exitCode=1
   else
     git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-  __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
+  __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
+    "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
     printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" || exit 1
 
-  if __am_i_online_err "No internet connection. Skipping push"; then
+  if am_i_online --error -m "GitCommit: No internet connection. Skipping push"; then
     __git_push "$@"
   fi
 fi
