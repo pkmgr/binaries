@@ -184,8 +184,11 @@ question="${1:-Would you like to proceed?}"
 command="${2:-true}"
 name="${3:-$appname}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 if [ "$launch_term" = "true" ]; then

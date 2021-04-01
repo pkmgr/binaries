@@ -2360,12 +2360,6 @@ __version() {
 __options() {
   $installtype
   case $1 in
-  --force)
-    shift 1
-    export FORCE_INSTALL=true
-    echo "Setting FORCE_INSTALL to true"
-    ;;
-
   --update) ###################### Update check ######################
     shift 1
     printf_error "Not enabled in apps: See the installer"
@@ -2468,10 +2462,10 @@ run_install_init() {
     local REPORAW="$REPO/$ins/raw"
     if user_is_root; then
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        sudo bash -c "$INSTDIR/$ins/install.sh"
+        sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$ins/install.sh"
       else
         if __urlcheck "$REPORAW/master/install.sh"; then
-          sudo bash -c "$(curl -LSs $REPORAW/master/install.sh)"
+          sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/master/install.sh)"
         else
           printf_error "Failed to initialize the installer from:"
           printf_exit "$REPORAW/master/install.sh\n"
@@ -2480,10 +2474,10 @@ run_install_init() {
       local exitCode+=$?
     else
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        bash -c "$INSTDIR/$ins/install.sh"
+        FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$ins/install.sh"
       else
         if __urlcheck "$REPORAW/master/install.sh"; then
-          bash -c "$(curl -LSs $REPORAW/master/install.sh)"
+          FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/master/install.sh)"
         else
           printf_error "Failed to initialize the installer from:"
           printf_exit "$REPORAW/master/install.sh\n"

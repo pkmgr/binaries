@@ -143,9 +143,12 @@ else
   __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash curl lynx || exit 1
 am_i_online --error -s "$WIKIPEDIA_API_URL" || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 __curl "$WIKIPEDIA_API_URL/$1" | lynx -stdin

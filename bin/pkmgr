@@ -365,7 +365,7 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env

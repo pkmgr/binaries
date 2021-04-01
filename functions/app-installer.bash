@@ -1380,7 +1380,8 @@ app_uninstall() {
 show_optvars() {
   if [ "$1" = "--force" ]; then
     shift 1
-    export FORCE_INSTALL=true
+    FORCE_INSTALL="true"
+    export FORCE_INSTALL
   fi
   if [ "$1" = "--debug" ]; then
     shift 1
@@ -1498,22 +1499,25 @@ show_optvars() {
 
   if [ "$1" = "--installed" ]; then
     printf_green "User                               Group                              AppName"
-    ls -l $CASJAYSDEVSAPPDIR/dotfiles | tr -s ' ' | cut -d' ' -f3,4,9 | \
+    ls -l $CASJAYSDEVSAPPDIR/dotfiles | tr -s ' ' | cut -d' ' -f3,4,9 |
       sed 's# #                               #g' | grep -v "total." | printf_readline "5"
     exit $?
   fi
 }
 ##################################################################################################
 installer_noupdate() {
-  if [ "$FORCE_INSTALL" != "true" ] || [ "$1" != "--force" ]; then
+  if [ "$FORCE_INSTALL" = "true" ]; then
+    rm_rf "$APPDIR/.installed" "$INSTDIR/.installed"
+    return 0
+  fi
+  if [ "$1" != "--force" ]; then
     if [ -f "$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME" ] ||
       [ -f "$APPDIR/.installed" ] || [ -f "$INSTDIR/.installed" ]; then
       APPDIR="$INSTDIR"
       ln_sf "$INSTDIR/install.sh" "$SYSUPDATEDIR/$APPNAME"
-      printf_newline
       printf_yellow "Updating of $APPNAME has been disabled"
       printf_yellow "This can be changed with the --force flag"
-      printf_newline
+      printf_newline ''
       exit 0
     fi
   fi

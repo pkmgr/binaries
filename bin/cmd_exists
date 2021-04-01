@@ -157,7 +157,7 @@ else
   __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 command -v bash &>/dev/null || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 args="$*"

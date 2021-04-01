@@ -143,7 +143,7 @@ else
   __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error curl bash || exit 1
 am_i_online -s "$CHEAT_SH_URL" --error || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

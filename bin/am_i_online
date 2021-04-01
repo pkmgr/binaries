@@ -202,8 +202,11 @@ else
 fi
 options_used_message="PingSite:${site:-$AM_I_ONLINE_TEST_SITE_PING}|HTTPSite:${site:-$AM_I_ONLINE_TEST_SITE_HTTP}|StatusCode:$AM_I_ONLINE_TEST_SITE_HTTP_STATUS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash curl ping || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 test_ping() {

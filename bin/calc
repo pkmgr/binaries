@@ -161,12 +161,14 @@ else
   __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# begin main app
+# APP Variables
 CALC_INPUT="$*"
 CALC_OUTPUT="$(echo "$CALC_INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 if [ -n "$TERMINAL_APP" ]; then
   clear
   printf_newline "\n\n"

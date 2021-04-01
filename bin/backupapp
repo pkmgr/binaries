@@ -375,10 +375,12 @@ if [ "$BACKUPAPP_NOTIFY_ENABLED" = "yes" ]; then
 else
   __notifications() { false; }
 fi
-mkdir -p "$BACKUPAPP_LOG_DIR" "$BACKUPAPP_BACKUPAPPS_DIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash tar || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+mkdir -p "$BACKUPAPP_LOG_DIR" "$BACKUPAPP_BACKUPAPPS_DIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 if [ -n "$TERMAIL_APP" ]; then __term; fi

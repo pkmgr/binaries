@@ -161,17 +161,17 @@ if [ "$AUTOMATE_NOTIFY_ENABLED" = "yes" ]; then
 else
   __notifications() { false; }
 fi
-mkdir -p "$AUTOMATE_CACHE_DIR"
-if [ -f "$HOME/.cache/automate" ]; then
-  mv -f "$HOME/.cache/automate" "$AUTOMATE_STATE_FILE"
-else
-  touch "$AUTOMATE_STATE_FILE"
-fi
-if [ ! -s "$AUTOMATE_STATE_FILE" ]; then echo toggle >$AUTOMATE_STATE_FILE; fi
-setopts="$1"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash curl || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+mkdir -p "$AUTOMATE_CACHE_DIR"
+[ -f "$HOME/.cache/automate" ] &&
+  mv -f "$HOME/.cache/automate" "$AUTOMATE_STATE_FILE" ||
+  touch "$AUTOMATE_STATE_FILE"
+[ -s "$AUTOMATE_STATE_FILE" ] || echo toggle >$AUTOMATE_STATE_FILE
+setopts="$1"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 case "$setopts" in

@@ -144,8 +144,11 @@ EOF
     __notifications() { false; }
   fi
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # Check for required applications
+  # Check for required applications/Network check
   cmd_exists --error bash || exit 1
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # APP Variables
+
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # begin main app
   printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFIG_DIR"

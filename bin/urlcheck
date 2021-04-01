@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104010524-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$URLCHECK_TMP_FILE" ] && rm -Rf "$URLCHECK_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103202011-git
+##@Version       : 202104010524-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : urlcheck --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 20:11 EDT
+# @Created       : Thursday, Apr 01, 2021 05:24 EDT
 # @File          : urlcheck
 # @Description   : Check if an URL is valid
 # @TODO          :
@@ -40,10 +42,124 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-URL="${1:-URL}"
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE"
+  [ -d "$URLCHECK_CONFIG_DIR" ] || mkdir -p "$URLCHECK_CONFIG_DIR"
+  [ -d "$URLCHECK_CONFIG_BACKUP_DIR" ] || mkdir -p "$URLCHECK_CONFIG_BACKUP_DIR"
+  [ -f "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE" ] &&
+    cp -Rf "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE" "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE.$$"
+  cat <<EOF >"$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE"
+# Settings for urlcheck
+URLCHECK_NOTIFY_TIMEOUT="1"
+URLCHECK_CURL_OPTS="-q -Ss --insecure --fail --head"
+URLCHECK_TEMP_FILE="${TMPDIR:-/tmp}/urlcheck"
+URLCHECK_NOTIFY_ENABLED="yes"
+URLCHECK_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+URLCHECK_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$URLCHECK_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE" ]; then
+    printf_green "Your config file for urlcheck has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-timeout 1 curl -q -Ss --insecure --head "$URL" --fail &>/dev/null && true || false
+# Defaults
+exitCode=""
+URLCHECK_CONFIG_FILE="settings.conf"
+URLCHECK_CONFIG_DIR="$HOME/.config/myscripts/urlcheck"
+URLCHECK_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/urlcheck/backups"
+URLCHECK_OPTIONS_DIR="$HOME/.local/share/myscripts/urlcheck/options"
+URLCHECK_TEMP_FILE="${TMPDIR:-/tmp}/urlcheck"
+URLCHECK_NOTIFY_ENABLED="yes"
+URLCHECK_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+URLCHECK_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$URLCHECK_NOTIFY_CLIENT_ICON}"
+URLCHECK_NOTIFY_TIMEOUT="1"
+URLCHECK_CURL_OPTS="-q -Ss --insecure --fail --head"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,u:"
+LONGOPTS="options,config,version,help,url:"
+ARRAY="${LONGOPTS}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# Generate Files
+[ -f "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$URLCHECK_OPTIONS_DIR/options" ] || __list_options "$URLCHECK_OPTIONS_DIR" &>/dev/null
+[ -f "$URLCHECK_OPTIONS_DIR/array" ] || __list_array "$URLCHECK_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE" ]; then
+  . "$URLCHECK_CONFIG_DIR/$URLCHECK_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$URLCHECK_OPTIONS_DIR" "$ARRAY"
+    __list_options "$URLCHECK_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -u | --url)
+    shift 1
+    URL="$1"
+    shift 1
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${URLCHECK_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${URLCHECK_NOTIFY_CLIENT_ICON}"
+if [ "$URLCHECK_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+url="${1:-$URL}"
+[ -n "$url" ] || __help
+timeout="${URLCHECK_NOTIFY_TIMEOUT:-1}"
+curl_opts=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+timeout $timeout curl $curl_opts "$URL" &>/dev/null && true || false
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"

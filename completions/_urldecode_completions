@@ -1,28 +1,28 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202104010346-git
+##@Version       : 202104010530-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @ReadME        : wikipedia --help
+# @ReadME        : urldecode --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Thursday, Apr 01, 2021 03:46 EDT
-# @File          : wikipedia
-# @Description   : Look something up on wikipedia
+# @Created       : Thursday, Apr 01, 2021 05:30 EDT
+# @File          : urldecode
+# @Description   : decode an url
 # @TODO          :
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.local/share/myscripts/wikipedia/array" ] || wikipedia --options &>/dev/null
-_wikipedia() {
+[ -f "$HOME/.local/share/myscripts/urldecode/array" ] || urldecode --options &>/dev/null
+_urldecode() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
   local cur prev words cword opts split
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
-  local CONFDIR="$HOME/.config/myscripts/wikipedia"
-  local OPTSDIR="$HOME/.local/share/myscripts/wikipedia/options"
-  local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/wikipedia}"
+  local CONFDIR="$HOME/.config/myscripts/urldecode"
+  local OPTSDIR="$HOME/.local/share/myscripts/urldecode/options"
+  local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/urldecode}"
   #local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "d" "1")"
   local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array")"
   local DEFAULTOPTS="$([ -f "$OPTSDIR/options" ] && grep -sEv '#|^$' "$OPTSDIR/options" || echo -v -h)"
@@ -50,11 +50,11 @@ _wikipedia() {
     -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    *) prev="" && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}")) ;;
+    *) COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}")) ;;
     esac
     $split && return
   fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _wikipedia wikipedia
+  complete -F _urldecode urldecode

@@ -147,7 +147,8 @@ while :; do
     ;;
   -f | --force)
     shift 1
-    export FORCE_INSTALL="true"
+    FORCE_INSTALL="true"
+    export FORCE_INSTALL
     ;;
   --)
     shift 1
@@ -157,19 +158,19 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${SYSTEMMGR_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${SYSTEMMGR_NOTIFY_CLIENT_ICON}"
 if [ "$SYSTEMMGR_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${SYSTEMMGR_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${SYSTEMMGR_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 case "$1" in

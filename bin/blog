@@ -343,13 +343,15 @@ else
   __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
+# Check for required applications/Network check
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# begin main app
+# APP Variables
 if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then unset BLOG_DIR . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"; fi
 [ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_FILE"
 [ -d "$BLOG_DIR" ] || __setup
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "${SETOPT:-$1}" in
 config)
