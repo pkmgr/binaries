@@ -202,8 +202,6 @@ $INPUT
 👤 **$README_2_POST_AUTHOR**
 ##
 
-{%- comment -%}end readme{%- endcomment -%}
-
 EOF
 fi
 if [ -f "$README_2_POST_DEST_FOLDER/$README_2_POST_DEST_FILE" ]; then
