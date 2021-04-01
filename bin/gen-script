@@ -476,30 +476,8 @@ EOF
   fi
 }
 
-__makefile() {
-  local temp="$1"
-  local new="${newfile:-$2}"
-  local newdir="$(__dirname "$new")"
-  local newfile="$(basename "$2")"
-  # local comptest="$(grep -q 'local cur prev words cword opts' "$new" && echo true || return 1)"
-  # local manscript=""
-  # if [ "$comptest" = "true" ]; then
-  #   newdir="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_COMPLETION_DIR"
-  #   new="_$(basename "$new")_completions"
-  # fi
-  # if [ "$manscript" = "true" ]; then
-  #   newdir="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_MAN_DIR"
-  #   new="$(basename "$new")"
-  # fi
-  shift 2
-  __mkd "$newdir"
-  __vars "$new"
-  __cp_rf "$temp" "$new" || return 1
-  __get_prev "$new" || return 1
-  __edit_header "$new" || return 1
-  local newcmd="$(command -v "$newfile" || type -P "$newfile" || ls -A "$newfile")"
-  chmod -f 755 "$new" || return 1
-  if grep -q 'local cur prev words cword opts' "$new"; then
+__file_is() {
+  if [ "$filetype" = "$1" ]; then
     if [ -f "$newcmd" ]; then
       local GEN_SCRIPTS_REPLACE_license="$(__get_header 'License' "$new" || echo)"
       local GEN_SCRIPTS_REPLACE_readme="$(__get_header 'ReadME' "$new" || echo)"
@@ -520,8 +498,25 @@ __makefile() {
     [ -n "$todo" ] && [ -n "$GEN_SCRIPTS_REPLACE_todo" ] && __sed "$GEN_SCRIPTS_REPLACE_todo" "$todo" "$new"
     [ -n "$other" ] && [ -n "$GEN_SCRIPTS_REPLACE_other" ] && __sed "$GEN_SCRIPTS_REPLACE_other" "$other" "$new"
     [ -n "$resource" ] && [ -n "$GEN_SCRIPTS_REPLACE_resource" ] && __sed "$GEN_SCRIPTS_REPLACE_resource" "$resource" "$new"
+  fi
+}
+
+__makefile() {
+  local temp="$1"
+  local new="${newfile:-$2}"
+  local newdir="$(__dirname "$new")"
+  local newfile="$(basename "$2")"
+  shift 2
+  __mkd "$newdir"
+  __vars "$new"
+  __cp_rf "$temp" "$new" || return 1
+  __get_prev "$new" || return 1
+  __edit_header "$new" || return 1
+  local newcmd="$(command -v "$newfile" || type -P "$newfile" || ls -A "$newfile")"
+  chmod -f 755 "$new" || return 1
+  if __file_is "completion"; then
     local compfile="_$(basename "$new")_completions"
-    local destfolder="$(dirname "$new")/$GEN_SCRIPTS_DEFAULT_COMPLETION_DIR"
+    local destfolder="$(dirname "$new")"
     printf_cyan "Creating and moving the completion file:"
     printf_yellow "$destfolder/$compfile"
     __mkd "$destfolder" &&
@@ -849,7 +844,15 @@ __find_file() {
     template="$GEN_SCRIPTS_TEMPLATE_DIR/shell/bash"
     [[ "$1" = -* ]] && dest="${newScript:-$filename}" || dest="${1:-$filename}"
   fi
-  dest="${dest:-newScript}"
+  if grep -q 'local cur prev words cword opts' "$template"; then
+    dest="$(dirname "$filename")/$GEN_SCRIPTS_DEFAULT_COMPLETION_DIR/$(basename "$filename")"
+    filetype="completion"
+  elif [[ "$template" = readme_* ]]; then
+    dest="$(dirname "$filename")/$GEN_SCRIPTS_DEFAULT_MAN_DIR/$(basename "$filename")"
+    filetype="manual"
+  else
+    dest="${dest:-newScript}"
+  fi
   __set_header "$dest" "$@"
 }
 __default_name() {

@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103312104-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$GITCOMMIT_TMP_FILE" ] && rm -Rf "$GITCOMMIT_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200753-git
+##@Version       : 202103312104-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : gitcommit --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 07:53 EDT
+# @Created       : Wednesday, Mar 31, 2021 21:04 EDT
 # @File          : gitcommit
 # @Description   : Commit changes to a git repo
 # @TODO          : Refactor code
@@ -40,42 +42,47 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# check for needed applications
-cmd_exists git || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# I'm sure there is a better way to do this
-if [ -d "$1" ]; then
-  MYCURRDIR="$1"
-  shift 1
-elif [ "$1" = "-d" ] || [ "$1" = "-dir" ] || [ "$1" = "--dir" ]; then
-  MYCURRDIR="$2"
-  shift 2
-  [ -d "$MYCURRDIR" ] || printf_exit "$MYCURRDIR doesn't seem to be a directory"
-else
-  MYCURRDIR="$PWD"
-fi
-if [ "$MYCURRDIR" = "." ]; then MYCURRDIR="$(__basedir ".")"; fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$1" = "-m" ] || [ "$1" = "--m" ] || [ "$1" = "--mess" ] || [ "$1" = "--message" ]; then
-  shift 1
-  MESSAGE="$1"
-  if [ -n "$2" ]; then
-    newmess="$*"
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE"
+  [ -d "$GITCOMMIT_CONFIG_DIR" ] || mkdir -p "$GITCOMMIT_CONFIG_DIR"
+  [ -d "$GITCOMMIT_CONFIG_BACKUP_DIR" ] || mkdir -p "$GITCOMMIT_CONFIG_BACKUP_DIR"
+  [ -f "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" ] &&
+    cp -Rf "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE.$$"
+  cat <<EOF >"$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE"
+# Settings for gitcommit
+GITCOMMIT_PROJECT_DIR="\${GIT_PROJECT_DIR:-$HOME/Projects}"
+GITCOMMIT_VERSION_FORMAT="\${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
+GITCOMMIT_VERSION_FILE="\${GIT_VERSION_FILE:-version.txt}"
+GITCOMMIT_TEMP_FILE="${TMPDIR:-/tmp}/gitcommit"
+GITCOMMIT_NOTIFY_ENABLED="yes"
+GITCOMMIT_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+GITCOMMIT_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$GITCOMMIT_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" ]; then
+    printf_green "Your config file for gitcommit has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
   fi
-else
-  MESSAGE="$1"
-fi
+}
+__git_dir() {
+  local gitdir="${1:-$gitdir}"
+  if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
+    printf_error "You are not in a git repo"
+    printf_read_question "4" "Would you like to turn $gitdir into a git repo? y/N" "1" "makerepo"
+    if printf_answer_yes "$makerepo"; then
+      gitadmin "$gitdir" setup
+      exit $?
+    else
+      exit
+    fi
+  fi
+  [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a git repo"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
-gitdir="${topdir:-$MYCURRDIR}"
-versionfile="$gitdir/version.txt"
-repo="$(__git_remote_fetch $gitdir)"
-basedir="$(basename $gitdir)"
-gituser="$(basename "$(dirname "$gitdir")")"
-gitversion="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
-[ -n "$repo" ] || repo="localdir"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Functions
 __git_push() {
   local push
   am_i_online --error || exit 1
@@ -95,28 +102,111 @@ __git_push() {
   fi
   return $?
 }
-__version() {
-  date +"$gitversion" >"$versionfile"
-}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
-  printf_error "You are not in a git repo"
-  printf_read_question "4" "Would you like to turn $gitdir into a git repo? y/N" "1" "makerepo"
-  if printf_answer_yes "$makerepo"; then
-    gitadmin "$gitdir" setup
+__version() { date +"$gitversion" >"$versionfile"; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+GITCOMMIT_CONFIG_FILE="settings.conf"
+GITCOMMIT_CONFIG_DIR="$HOME/.config/myscripts/gitcommit"
+GITCOMMIT_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/gitcommit/backups"
+GITCOMMIT_OPTIONS_DIR="$HOME/.local/share/myscripts/gitcommit/options"
+GITCOMMIT_TEMP_FILE="${TMPDIR:-/tmp}/gitcommit"
+GITCOMMIT_NOTIFY_ENABLED="yes"
+GITCOMMIT_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+GITCOMMIT_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$GITCOMMIT_NOTIFY_CLIENT_ICON}"
+GITCOMMIT_PROJECT_DIR="${GIT_PROJECT_DIR:-$HOME/Projects}"
+GITCOMMIT_VERSION_FORMAT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
+GITCOMMIT_VERSION_FILE="${GIT_VERSION_FILE:-version.txt}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,d:,m:"
+LONGOPTS="options,config,version,help,dir:,mess:,message:"
+ARRAY="status log push version files modified deleted added changed new improve "
+ARRAY+="fixed release docs test breaking refactor permissions bugs alot docker node "
+ARRAY+="ruby php perl python scratchpad todo notes blog emojify random custom setup reset "
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$GITCOMMIT_OPTIONS_DIR/options" ] || __list_options "$GITCOMMIT_OPTIONS_DIR" &>/dev/null
+[ -f "$GITCOMMIT_OPTIONS_DIR/array" ] || __list_array "$GITCOMMIT_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" ]; then
+  . "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$GITCOMMIT_OPTIONS_DIR" "$ARRAY"
+    __list_options "$GITCOMMIT_OPTIONS_DIR"
     exit $?
-  else
-    exit
-  fi
-fi
-
-if [ ! -d "$gitdir" ]; then
-  printf_exit "$gitdir doesn't seem to be a git repo"
-fi
-
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -d | --dir)
+    shift 1
+    MYCURRDIR="$2"
+    shift 1
+    ;;
+  -m | --mess | --message)
+    shift 1
+    newmess="$2"
+    shift 1
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Main application
+# Check for required applications
+cmd_exists --error bash git || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+if [ "$GITCOMMIT_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    export NOTIFY_CLIENT_NAME="${GITCOMMIT_NOTIFY_CLIENT_NAME}"
+    export NOTIFY_CLIENT_ICON="${GITCOMMIT_NOTIFY_CLIENT_ICON}"
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
+gitdir="${topdir:-$MYCURRDIR}"
+versionfile="$gitdir/$GITCOMMIT_VERSION_FILE"
+repo="$(__git_remote_fetch $gitdir)"
+basedir="$(basename $gitdir)"
+gituser="$(basename "$(dirname "$gitdir")")"
+gitversion="$GITCOMMIT_VERSION_FORMAT"
+gitprojectdir="$GITCOMMIT_PROJECT_DIR"
+[ -n "$repo" ] || repo="localdir"
+__git_dir "$gitdir"
+MESSAGE="${newmess:-$1}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
 case "$MESSAGE" in
 s | status)
   shift 1
@@ -155,8 +245,14 @@ version)
 
 files)
   shift 1
-  files="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|')"
-  mess="➕ $files ➕ "
+  if ! __git_porcelain "$gitdir"; then
+  files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | sed 's|^ ||g'|awk -F' ' '{print $2}')"
+    filesmsg="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|' | sed 's#|$##g' | grep '^')"
+    mess="➕ $filesmsg ➕ "
+    git -C "$gitdir" add $files >/dev/null 2>&1
+  else
+    printf_exit 1 0 "Nothing has been changed"
+  fi
   ;;
 
 modified)
@@ -174,7 +270,7 @@ deleted)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'D ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'D ' | awk '{print $2}' | tr '\n' ' ')"
-    mess=":heavy_minus_sign: $files :heavy_minus_sign: "
+    mess="➖ Deleted: $files ➖ "
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been deleted"
@@ -185,7 +281,7 @@ added)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F '?? ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F '?? ' | awk '{print $2}' | tr '\n' ' ')"
-    mess="❓ $files ❓"
+    mess="❓ Added: $files ❓"
     git -C "$gitdir" add $files >/dev/null 2>&1
   else
     printf_exit 1 0 "Nothing has been added"
@@ -194,110 +290,116 @@ added)
 
 changed)
   shift 1
-  ARGS=" ${*:-} "
-  mess="✔️🐛 Changed${ARGS}🐛✔️"
+  ARGS="${*:-} "
+  mess="✔️🐛 Changed: ${ARGS}🐛✔️"
   ;;
 
 new)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🆕📦 NEW:${ARGS}📦🆕 "
+  ARGS="${*:-} "
+  mess="🆕📦 NEW: ${ARGS}📦🆕 "
   ;;
 
 improve)
   shift 1
-  ARGS=" ${*:-} "
-  mess="👌 IMPROVE:${ARGS}👌 "
+  ARGS="${*:-} "
+  mess="👌 IMPROVE: ${ARGS}👌 "
   ;;
 
 fixed)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐛 FIXED:${ARGS}🐛 "
+  ARGS="${*:-} "
+  mess="🐛 FIXED: ${ARGS}🐛 "
   ;;
 
 release)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🚀 RELEASE:${ARGS}🚀 "
+  ARGS="${*:-} "
+  mess="🚀 RELEASE: ${ARGS}🚀 "
   ;;
 
 docs)
   shift 1
-  ARGS=" ${*} "
-  mess="📖 DOCS:${ARGS}📖 "
+  ARGS="${*} "
+  mess="📖 DOCS: ${ARGS}📖 "
   ;;
 
 test)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🤖 TEST:${ARGS}🤖"
+  ARGS="${*:-} "
+  mess="🤖 TEST: ${ARGS}🤖"
   ;;
 
 breaking)
   shift 1
-  ARGS=" ${*:-} "
-  mess="⚒️ BREAKING:${ARGS}⚒️ "
+  ARGS="${*:-} "
+  mess="⚒️ BREAKING: ${ARGS}⚒️ "
   ;;
 
 refactor)
   shift 1
-  ARGS=" ${*:-} "
-  mess="✔️ 〰️ Refactor Code${ARGS}〰️ ✔️  "
+  ARGS="${*:-} "
+  mess="✔️ 〰️ Refactor Code ${ARGS}〰️ ✔️  "
+  ;;
+
+performance)
+  shift 1
+  ARGS="${*:-} "
+  mess="🚤 Preformance boost ${ARGS}⏩"
   ;;
 
 permission | permissions)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🏠🔥❗ Fixed Permissions${ARGS}❗🔥🏠 "
+  ARGS="${*:-} "
+  mess="🏠🔥❗ Fixed Permissions ${ARGS}❗🔥🏠 "
   ;;
 
 bug | bugs)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐛🦈🏠❗ Bug Fixes${ARGS}❗🏠🦈🐛 "
+  ARGS="${*:-} "
+  mess="🐛🦈🏠❗ Bug Fixes ${ARGS}❗🏠🦈🐛 "
   ;;
 
 alot | fixes)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🦈🏠🐜❗ Fixes and Updates${ARGS}❗🐜🦈🏠 "
+  ARGS="${*:-} "
+  mess="🦈🏠🐜❗ Fixes and Updates ${ARGS}❗🐜🦈🏠 "
   ;;
 
 docker)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐜❇🦈🏠❗ Added Docker Workflow${ARGS}❗🏠🦈❇🐜 "
+  ARGS="${*:-} "
+  mess="🐜❇🦈🏠❗ Added Docker Workflow ${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 node)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐜❇🦈🏠❗ Added nodejs Workflow${ARGS}🏠🦈❇🐜 "
+  ARGS="${*:-} "
+  mess="🐜❇🦈🏠❗ Added nodejs Workflow ${ARGS}🏠🦈❇🐜 "
   ;;
 
 ruby)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐜❇🦈🏠❗ Added ruby Workflow${ARGS}❗🏠🦈❇🐜 "
+  ARGS="${*:-} "
+  mess="🐜❇🦈🏠❗ Added ruby Workflow ${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 php)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐜❇🦈🏠❗ Added php Workflow${ARGS}❗🏠🦈❇🐜 "
+  ARGS="${*:-} "
+  mess="🐜❇🦈🏠❗ Added php Workflow ${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 perl)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐜❇🦈🏠❗ Added perl Workflow${ARGS}❗🏠🦈❇🐜 "
+  ARGS="${*:-} "
+  mess="🐜❇🦈🏠❗ Added perl Workflow ${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 python)
   shift 1
-  ARGS=" ${*:-} "
-  mess="🐜❇🦈🏠❗ Added python Workflow${ARGS}❗🏠🦈❇🐜 "
+  ARGS="${*:-} "
+  mess="🐜❇🦈🏠❗ Added python Workflow ${ARGS}❗🏠🦈❇🐜 "
   ;;
 
 scratchpad)
@@ -305,7 +407,7 @@ scratchpad)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess="🐜📓❇📓 ${msg:-Modified my scratchpad}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${msg:-Modified my scratchpad} ${ARGS}📓❇📓🐜 "
   ;;
 
 todo)
@@ -313,7 +415,7 @@ todo)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess="🐜📓❇📓 ${mesg:-Modified my todo list}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${mesg:-Modified my todo list} ${ARGS}📓❇📓🐜 "
   ;;
 
 notes)
@@ -321,7 +423,7 @@ notes)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess="🐜📓❇📓 ${msg:-Modified my notes}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${msg:-Modified my notes} ${ARGS}📓❇📓🐜 "
   ;;
 
 blog)
@@ -329,7 +431,7 @@ blog)
   msg="${1:-}"
   shift 1
   ARGS=" ${*:-} "
-  mess="🐜📓❇📓 ${msg:-New blog post}${ARGS}📓❇📓🐜 "
+  mess="🐜📓❇📓 ${msg:-New blog post} ${ARGS}📓❇📓🐜 "
   ;;
 
 init)
@@ -339,16 +441,13 @@ init)
   ;;
 
 emj | emojy | emojify)
-  shift 1
-  msg="${1:-}"
-  shift 1
-  ARGS=" ${*:-} "
-  mess="🦈🏠🐜❗ ${1:-Well I did some things}${ARGS}❗🐜🦈🏠 "
+  cmd_exists emojify && setemj="$(emojify "$*")" || setemj="$*"
+  mess="🦈🏠🐜❗ ${setemj:-Well I did some things} ❗🐜🦈🏠 "
   ;;
 
 random)
   shift 1
-  mess="🐜:arrow_right: Random: $(curl -s https://commitment.herokuapp.com/index.txt) :arrow_left:🐜 "
+  mess="🐜➡️  Random: $(curl -s https://commitment.herokuapp.com/index.txt) ⬅️ 🐜 "
   ;;
 
 custom)
@@ -367,9 +466,10 @@ setup | reset)
   ;;
 
 *)
-  if [ -n "$1" ]; then
-    [ ! "$(echo "$*" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
-    mess="${newmess:-$*}"
+  setmessage="${newmess:-$mess}"
+  if [ -n "$setmessage" ]; then
+    [ ! "$(echo "$setmessage" | wc -m)" -lt "4" ] || printf_exit "Message must be longer than 4 characters"
+    mess="$setmessage"
   else
     mess="🦈🏠❗ Well I did things - Hopefully nothing breaks ❗🏠🦈 "
   fi
@@ -403,6 +503,7 @@ else
 fi
 printf_newline
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
-# end
-
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"
