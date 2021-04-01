@@ -188,11 +188,6 @@ done
 # Actions based on env
 export NOTIFY_CLIENT_NAME="${AM_I_ONLINE_NOTIFY_CLIENT_NAME}"
 export NOTIFY_CLIENT_ICON="${AM_I_ONLINE_NOTIFY_CLIENT_ICON}"
-if [ -n "$AM_I_ONLINE_FORCE_CONNECTION" ] || __local_network "$site"; then
-  httpExit=0
-  pingExit=0
-  AM_I_ONLINE_RUN=no
-fi
 if [ "$AM_I_ONLINE_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
     notifications "$*" || return 1
@@ -200,13 +195,17 @@ if [ "$AM_I_ONLINE_NOTIFY_ENABLED" = "yes" ]; then
 else
   __notifications() { false; }
 fi
-options_used_message="PingSite:${site:-$AM_I_ONLINE_TEST_SITE_PING}|HTTPSite:${site:-$AM_I_ONLINE_TEST_SITE_HTTP}|StatusCode:$AM_I_ONLINE_TEST_SITE_HTTP_STATUS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications/Network check
 cmd_exists --error bash curl ping || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-
+if [ -n "$AM_I_ONLINE_FORCE_CONNECTION" ] || __local_network "$site"; then
+  httpExit=0
+  pingExit=0
+  AM_I_ONLINE_RUN=no
+fi
+options_used_message="PingSite:${site:-$AM_I_ONLINE_TEST_SITE_PING}|HTTPSite:${site:-$AM_I_ONLINE_TEST_SITE_HTTP}|StatusCode:$AM_I_ONLINE_TEST_SITE_HTTP_STATUS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 test_ping() {
