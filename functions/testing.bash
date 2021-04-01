@@ -518,7 +518,7 @@ __local_sysname() {
 __list_array() {
   local OPTSDIR="${1:-$HOME/.local/share/myscripts/${APPNAME:-$PROG}/options}"
   mkdir -p "$OPTSDIR"
-  echo "${2:-$ARRAY}" >"$OPTSDIR/array"
+  echo "${2:-$ARRAY}" >"$OPTSDIR/array" | tr ',' '\n'
   return
 }
 __list_options() {
