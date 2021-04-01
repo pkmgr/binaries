@@ -133,19 +133,21 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications/Network check
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${ICONMGR_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${ICONMGR_NOTIFY_CLIENT_ICON}"
 if [ "$ICONMGR_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${ICONMGR_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${ICONMGR_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
 FORCE_INSTALL="${FORCE_INSTALL:-$ICONMGR_FORCE_INSTALL}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app

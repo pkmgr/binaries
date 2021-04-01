@@ -132,27 +132,32 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications/Network check
-cmd_exists --error dict bash || exit 1
-am_i_online - "$DEFINE_SERVER_HOST" --error || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${DEFINE_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${DEFINE_NOTIFY_CLIENT_ICON}"
 if [ "$DEFINE_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${DEFINE_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${DEFINE_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error dict bash || exit 1
+am_i_online - "$DEFINE_SERVER_HOST" --error || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+HOST="$DEFINE_SERVER_HOST"
+PORT="$DEFINE_SERVER_PORT"
+FILE="$DEFINE_TEMP_FILE"
+DEFINE=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-dict -h ${DEFINE_SERVER_HOST} -p ${DEFINE_SERVER_PORT} -d gcide "$1" | sed '/^$/d' | sed 's#From The Collaborative International.*##g' >"$DEFINE_TEMP_FILE"
-definition="$(<"$DEFINE_TEMP_FILE")"
-printf_readline "2" <"$definition"
-__notifications "$definition"
+dict -h ${HOST} -p ${PORT} -d gcide "$1" | sed '/^$/d' | sed 's#From The Collaborative International.*##g' >"$FILE"
+DEFINE="$(<"$FILE")"
+printf_readline "2" <"$DEFINE"
+__notifications "$DEFINE"
 [ -f "$DEFINE_TEMP_FILE" ] && rm -Rf "$DEFINE_TEMP_FILE" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application

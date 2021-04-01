@@ -132,19 +132,21 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications/Network check
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${DOS2UNIX_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${DOS2UNIX_NOTIFY_CLIENT_ICON}"
 if [ "$DOS2UNIX_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${DOS2UNIX_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${DOS2UNIX_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
 force="${setforce:-0}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app

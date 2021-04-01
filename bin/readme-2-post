@@ -143,19 +143,21 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications/Network check
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${README_2_POST_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${README_2_POST_NOTIFY_CLIENT_ICON}"
 if [ "$README_2_POST_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${README_2_POST_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${README_2_POST_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
 [ -d "$README_2_POST_DEST_FOLDER" ] || mkdir -p "$README_2_POST_DEST_FOLDER"
 README_2_POST_INPUT_FILE="$1"
 README_2_POST_DEST_FILE="${2:-$(basename "$1")}.md"

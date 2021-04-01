@@ -147,6 +147,9 @@ fi
 cmd_exists --error curl bash || exit 1
 am_i_online -s "$CHEAT_SH_URL" --error || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 # [X] open section
 # [X] one shot mode

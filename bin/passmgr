@@ -153,19 +153,21 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications/Network check
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${PASSMGR_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${PASSMGR_NOTIFY_CLIENT_ICON}"
 if [ "$PASSMGR_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${PASSMGR_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${PASSMGR_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
 PASSWORD_STORE_KEY="${PASSWORD_STORE_KEY}"
 PASSWORD_STORE_UMASK="${PASSWORD_STORE_UMASK:-077}"
 PASSWORD_STORE_CLIP_TIME="${PASSWORD_STORE_CLIP_TIME:-60}"
