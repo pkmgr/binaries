@@ -98,8 +98,8 @@ df_personal() {
 __list_available() {
   echo -e 'alacritty asciinema awesome bash bashtop bspwm byobu caja castero chromium cmus deadbeef deadd dircolors
   dunst easytag emacs firefox fish geany git gtk-2.0 gtk-3.0 guake htop i3 jgmenu lemonbar lf misc mpd mutt nano
-  neofetch neovim newsboat nitrogen nodejs openbox personal pianobar picard polybar qterminal qtile ranger remmina rofi
-  ruby sakura screen smplayer smtube sway sxhkd template terminology termite thunar tig tint2 tmux transmission variety
+  neofetch neovim newsboat nitrogen nodejs openbox pianobar picard polybar qterminal qtile ranger remmina rofi
+  ruby sakura screen smplayer smtube sway sxhkd terminology termite thunar tig tint2 tmux transmission variety
   vifm vim volumeicon xfce4 xfce4-terminal xmonad youtube-dl youtube-viewer ytmdl zsh' | tr ' ' '\n'
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
