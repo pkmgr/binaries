@@ -78,19 +78,28 @@ EOF
     false
   fi
 }
-__git_enabled() { if
-  [ -f "${BLOG_CONFIG_DIR}/$BLOG_NAME.nogit" ] || [ "$BLOG_GIT_ENABLED" != "yes" ]; then
-  return 1
-else
-  GIT_STATUS="ENABLED"
-  return 0
-fi
+__git_enabled() {
+  if
+    [ -f "${BLOG_CONFIG_DIR}/$BLOG_NAME.nogit" ] || [ "$BLOG_GIT_ENABLED" != "yes" ]
+  then
+    return 1
+  else
+    GIT_STATUS="ENABLED"
+    return 0
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-a__replace() { sed -i 's|'"$1"'|'"$2"'|g' "$3" 2>/dev/null; }
- # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__replace() { sed -i 's|'"$1"'|'"$2"'|g' "$3" 2>/dev/null; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __findcmd() {
   find "${1:-$BLOG_CONFIG_DIR}" -type f ${1} -not -path "*/.git/*" 2>/dev/null | __sed 's|'${1:-$BLOG_CONFIG_DIR}/'||g' | sort -u
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__setup() {
+  BLOG_NAME="$(basename "${BLOG_DIR}")"
+  __blog_init "$BLOG_DIR" &&
+    ln -sf "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" "$BLOG_CONFIG_DIR/$BLOG_NAME.conf" &&
+    [ $# -ne 0 ] || exit 0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __get_count() {
@@ -102,7 +111,7 @@ __get_count() {
   else
     count=0
   fi
-  [[ $count -gt 0 ]] && cont=$((count+1)) || count=0
+  [[ $count -gt 0 ]] && cont=$((count + 1)) || count=0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_message() {
@@ -110,20 +119,24 @@ __git_message() {
     [ -f "$1" ] && message="Modified: ${file/$BLOG_DIR\//}" || message="Added: ${file/$BLOG_DIR\//}"
   fi
 }
- # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_init() { [ ! -d "${BLOG_DIR}/.git" ] && [ "$GIT_STATUS" = "ENABLED" ] && gitadmin "${BLOG_DIR}" setup; }
 __blog_site() { git -C "$BLOG_DIR" remote -v 2>/dev/null | grep push | head -n 1 | awk '{print $2}' 2>/dev/null | grep '^'; }
 __blog_dir() { if [ -d "$BLOG_DIR" ]; then return 0; else return 1; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_publish() {
-  [ "$GIT_STATUS" = "ENABLED" ] && gitcommit "$BLOG_DIR" "blog" "$*" || \
-  printf_red "Git is disabled for blog: $BLOG_NAME"; }
+  [ "$GIT_STATUS" = "ENABLED" ] && gitcommit "$BLOG_DIR" "blog" "$*" ||
+    printf_red "Git is disabled for blog: $BLOG_NAME"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __edit() {
   # Possible completion fix
-  if [ -f "$1" ]; then file="$1";
-  elif [ -f "$BLOG_DIR/$1"  ]; then file="$BLOG_DIR/$1";
-  elif [ -f "$HOME/.local/share/blogs/$1" ]; then file="$HOME/.local/share/blogs/$1";
+  if [ -f "$1" ]; then
+    file="$1"
+  elif [ -f "$BLOG_DIR/$1" ]; then
+    file="$BLOG_DIR/$1"
+  elif [ -f "$HOME/.local/share/blogs/$1" ]; then
+    file="$HOME/.local/share/blogs/$1"
   else file="$1"; fi
   printf_yellow "Launching $BLOG_EDITOR"
   eval ${BLOG_EDITOR:-$EDITOR} "$file"
@@ -319,32 +332,25 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${BLOG_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${BLOG_NOTIFY_CLIENT_ICON}"
 if [ "$BLOG_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${BLOG_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${BLOG_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
-if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
-  unset BLOG_DIR
-  . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
-fi
-[ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_FILE"
-if [ ! -d "$BLOG_DIR" ]; then
-  BLOG_NAME="$(basename "${BLOG_DIR}")"
-  __blog_init "$BLOG_DIR"
-  ln -sf "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" "$BLOG_CONFIG_DIR/$BLOG_NAME.conf"
-  [ $# -ne 0 ] || exit 0
-fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
+if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then unset BLOG_DIR . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"; fi
+[ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_FILE"
+[ -d "$BLOG_DIR" ] || __setup
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "${SETOPT:-$1}" in
 config)
   shift 1
@@ -408,4 +414,3 @@ __blog_publish "$message"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

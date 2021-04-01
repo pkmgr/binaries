@@ -16,7 +16,7 @@
 [ -f "$HOME/.local/share/misc/GEN_SCRIPTS_REPLACE_FILENAME/options/array" ] || GEN_SCRIPTS_REPLACE_FILENAME --options &>/dev/null
 _GEN_SCRIPTS_REPLACE_FILENAME() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
-  local cur prev words cword opts
+  local cur prev words cword opts split
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
@@ -44,6 +44,7 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
     COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
   else
     case ${COMP_WORDS[1]:-$prev} in
+    -) prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
     --options) prev="--options" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -c | --config) prev="--config" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
@@ -59,9 +60,6 @@ _GEN_SCRIPTS_REPLACE_FILENAME() {
       prev="-r"
       [ $COMP_CWORD -eq 2 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       [ $COMP_CWORD -gt 3 ] && COMPREPLY=($(compgen -W '' -- "${cur}"))
-      ;;
-    -)
-      prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur}))
       ;;
     *)
       if [ -n "$FILEDIR" ]; then _filedir; fi

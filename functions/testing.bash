@@ -354,13 +354,14 @@ printf_question_term() {
 }
 #printf_read_input "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_input() {
+  local readopts="" reply=""
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
   printf_color "\t\t$msg " "$color"
-  read -re -n $lines ${readopts} ${reply}
+  read -re -n $lines $readopts $reply
   [ -n "$reply" ] || echo
 }
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
@@ -2549,7 +2550,7 @@ run_install_list() {
     if [ "$(__count_dir "$USRUPDATEDIR")" -ne 0 ]; then
       local -a LSINST="$(ls "$USRUPDATEDIR/")"
       if [ -n "$LSINST" ]; then
-        for df in ${LSINST[@]}; do
+        for df in "${LSINST[@]}"; do
           installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
         done
         printf_single 4 "$installed"
@@ -2558,8 +2559,8 @@ run_install_list() {
     elif [ "$(__count_dir "$SYSUPDATEDIR")" -ne 0 ]; then
       declare -a LSINST="$(ls "$SYSUPDATEDIR/")"
       if [ -n "$LSINST" ]; then
-        for df in ${LSINST[@]}; do
-        installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
+        for df in "${LSINST[@]}"; do
+          installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
         done
         printf_single 4 "$installed"
         printf_newline
@@ -2576,7 +2577,7 @@ run_install_search() {
   [ $# = 0 ] && printf_exit "Nothing to search for"
   local results=""
   local -a LSINST="$@"
-  for df in ${LSINST[@]}; do
+  for df in "${LSINST[@]}"; do
     local -a results+="$(echo -e "$LIST" | grep -Fi "$df" | sed 's| ||g' | grep -sv '^$') "
   done
   results="$(echo "$results" | sort -u | tr '\n' ' ' | sed 's| | |g' | grep '^')"

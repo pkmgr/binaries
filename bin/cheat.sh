@@ -132,20 +132,20 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
-cmd_exists --error curl bash || exit 1
-am_i_online -s "$CHEAT_SH_URL" --error || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${CHEAT_SH_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${CHEAT_SH_NOTIFY_CLIENT_ICON}"
 if [ "$CHEAT_SH_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${CHEAT_SH_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${CHEAT_SH_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error curl bash || exit 1
+am_i_online -s "$CHEAT_SH_URL" --error || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 # [X] open section

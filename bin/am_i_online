@@ -185,10 +185,9 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
-cmd_exists --error bash curl ping || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${AM_I_ONLINE_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${AM_I_ONLINE_NOTIFY_CLIENT_ICON}"
 if [ -n "$AM_I_ONLINE_FORCE_CONNECTION" ] || __local_network "$site"; then
   httpExit=0
   pingExit=0
@@ -196,14 +195,15 @@ if [ -n "$AM_I_ONLINE_FORCE_CONNECTION" ] || __local_network "$site"; then
 fi
 if [ "$AM_I_ONLINE_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${AM_I_ONLINE_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${AM_I_ONLINE_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
 options_used_message="PingSite:${site:-$AM_I_ONLINE_TEST_SITE_PING}|HTTPSite:${site:-$AM_I_ONLINE_TEST_SITE_HTTP}|StatusCode:$AM_I_ONLINE_TEST_SITE_HTTP_STATUS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash curl ping || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 test_ping() {

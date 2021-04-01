@@ -146,20 +146,20 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
-command -v bash &>/dev/null || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
-[ $# -eq 0 ] && exit
+export NOTIFY_CLIENT_NAME="${CMD_EXISTS_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${CMD_EXISTS_NOTIFY_CLIENT_ICON}"
 if [ "$CMD_EXISTS_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${CMD_EXISTS_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${CMD_EXISTS_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+command -v bash &>/dev/null || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 args="$*"
 exitCode=""
 exitTmp=""
@@ -207,4 +207,3 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
-

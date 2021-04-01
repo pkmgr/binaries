@@ -1,35 +1,60 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 020520211122-git
+##@Version       : 202104010416-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : weather --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Friday, Feb 05, 2021 11:22 EST
+# @Created       : Thursday, Apr 01, 2021 04:16 EDT
 # @File          : weather
-# @Description   : autocomplete for weather
+# @Description   : weather in your console
 # @TODO          :
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+[ -f "$HOME/.local/share/myscripts/weather/array" ] || weather --options &>/dev/null
 _weather() {
-  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-  local cur prev words cword
+  ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
+  local cur prev words cword opts split
   local cur="${COMP_WORDS[$COMP_CWORD]}"
-  local ARRAY="help city v2 img moon"
+  local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
+  local CONFFILE="settings.conf"
+  local CONFDIR="$HOME/.config/myscripts/weather"
+  local OPTSDIR="$HOME/.local/share/myscripts/weather/options"
+  local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/weather}"
+  #local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "d" "1")"
+  local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array")"
+  local DEFAULTOPTS="$([ -f "$OPTSDIR/options" ] && grep -sEv '#|^$' "$OPTSDIR/options" || echo -v -h)"
+  local LONGOPTS="$(grep -sEv '#|^$' "$OPTSDIR/long_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep '\--')"
+  local SHORTOPTS="$(grep -sEv '#|^$' "$OPTSDIR/short_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep -v '\--')"
+  local OPTS="$DEFAULTOPTS"
+  local ARRAY="$DEFAULTARRAY"
+  local SHOW_COMP_OPTS=""
+  local FILEDIR=""
 
   _init_completion || return
-
-  case $prev in
-  help | h | --h*)
-    return
-    ;;
-  *)
-    COMPREPLY=($(compgen -W '${ARRAY}' -- "$cur"))
-    ;;
-  esac
+  if [ "$SHOW_COMP_OPTS" != "" ]; then
+    local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
+    compopt -o $SHOW_COMP_OPTS_SEP
+  fi
+  if [[ ${cur} == --* ]]; then
+    COMPREPLY=($(compgen -W '${LONGOPTS}' -- ${cur}))
+  elif [[ ${cur} == -* ]]; then
+    COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
+  else
+    case ${COMP_WORDS[1]:-$prev} in
+    -) prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
+    --options) prev="--options" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -c | --config) prev="--config" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    *) [ $COMP_CWORD -lt 2 ] && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}")) ;;
+    esac
+    $split && return
+  fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _weather -o default weather
+  complete -F _weather weather

@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104010356-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$WEATHER_TMP_FILE" ] && rm -Rf "$WEATHER_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103202031-git
+##@Version       : 202104010356-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : weather --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 20:31 EDT
+# @Created       : Thursday, Apr 01, 2021 03:56 EDT
 # @File          : weather
 # @Description   : weather in your console
 # @TODO          :
@@ -40,81 +42,205 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__am_i_online_err
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE"
+  [ -d "$WEATHER_CONFIG_DIR" ] || mkdir -p "$WEATHER_CONFIG_DIR"
+  [ -d "$WEATHER_CONFIG_BACKUP_DIR" ] || mkdir -p "$WEATHER_CONFIG_BACKUP_DIR"
+  [ -f "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE" ] &&
+    cp -Rf "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE" "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE.$$"
+  cat <<EOF >"$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE"
+# Settings for weather
+WEATHER_MYLOCATIONZIP="\${WEATHER_MYLOCATIONZIP:-$MYLOCATIONZIP}"
+WEATHER_MYLOCATIONID="\${WEATHER_MYLOCATIONID:-$MYLOCATIONID}"
+WEATHER_WTTR_API="http://wttr.in"
+WEATHER_WTTR_WEATHER_WTTR_API2="http://v2.wttr.in"
+WEATHER_ACCUWEATHER_WEATHER_WTTR_API="http://WEATHER_WTTR_API.wunderground.com/auto/wui/geo/ForecastXML/index.xml"
+WEATHER_TEMP_FILE="${TMPDIR:-/tmp}/weather"
+WEATHER_NOTIFY_ENABLED="yes"
+WEATHER_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+WEATHER_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$WEATHER_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE" ]; then
+    printf_green "Your config file for weather has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-LOCID="${MYLOCATIONID:-$2}"
-API="http://wttr.in"
-API2="http://v2.wttr.in"
-APIACCU="http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__mkd "$HOME/.local/tmp"
+__curl() { curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" 2>/dev/null || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 report() { printf_color "Weather report for $LOCID\n" "21"; }
 grep_v() { grep -v "Weather report" | grep -v "Location"; }
-wttrin() { __curl "$API/$LOCID?AFu$2" | grep_v && report; }
-wttrin2() { __curl -LSs "$API2/$LOCID?AFu$2" | grep_v && report; }
-wttrimage() { __curl -LSsq "$API/$LOCID?AFuw.png" -o "$HOME/.local/tmp/weather.png"; }
-wttrcity() { __curl -LSsq "$API/$MYLOCATIONZIP?AFu$2" | grep -v "Weather report" | head -n 6 && echo ""; }
-wttrmoon() { __curl -LSs "$API/moon?AFu$2"; }
-wttrsimple() { __curl -LSs "$API/$LOCID?format=3"; }
-wttraccuweather() { __curl -s "$APIACCU?query=${*:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
+wttrin() { __curl "$WEATHER_WTTR_API/$LOCID?AFu$2" | grep_v && report; }
+wttrin2() { __curl -LSs "$WEATHER_WTTR_WEATHER_WTTR_API2/$LOCID?AFu$2" | grep_v && report; }
+wttrimage() { __curl -LSsq "$WEATHER_WTTR_API/$LOCID?AFuw.png" -o "$HOME/.local/tmp/weather.png"; }
+wttrcity() { __curl -LSsq "$WEATHER_WTTR_API/$MYLOCATIONZIP?AFu$2" | grep -v "Weather report" | head -n 6 && echo ""; }
+wttrmoon() { __curl -LSs "$WEATHER_WTTR_API/moon?AFu$2"; }
+wttrsimple() { __curl -LSs "$WEATHER_WTTR_API/$LOCID?format=3"; }
+wttraccuweather() { __curl -s "$WEATHER_ACCUWEATHER_WEATHER_WTTR_API?query=${*:-$MYLOCATIONID}" | perl -ne '/<title>([^<]+)/&&printf "%s: ",$1;/<fcttext>([^<]+)/&&print $1,"\n"'; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+# Defaults
+exitCode=""
+WEATHER_CONFIG_FILE="settings.conf"
+WEATHER_CONFIG_DIR="$HOME/.config/myscripts/weather"
+WEATHER_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/weather/backups"
+WEATHER_OPTIONS_DIR="$HOME/.local/share/myscripts/weather/options"
+WEATHER_TEMP_FILE="${TMPDIR:-/tmp}/weather"
+WEATHER_NOTIFY_ENABLED="yes"
+WEATHER_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+WEATHER_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$WEATHER_NOTIFY_CLIENT_ICON}"
+WEATHER_MYLOCATIONZIP="${WEATHER_MYLOCATIONZIP:-$MYLOCATIONZIP}"
+WEATHER_MYLOCATIONID="${WEATHER_MYLOCATIONID:-$MYLOCATIONID}"
+WEATHER_WTTR_API="http://wttr.in"
+WEATHER_WTTR_WEATHER_WTTR_API2="http://v2.wttr.in"
+WEATHER_ACCUWEATHER_WEATHER_WTTR_API="http://WEATHER_WTTR_API.wunderground.com/auto/wui/geo/ForecastXML/index.xml"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help,location:,city:,moon:,simple:"
+ARRAY="city v2 image moon simple accuweather"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$WEATHER_OPTIONS_DIR/options" ] || __list_options "$WEATHER_OPTIONS_DIR" &>/dev/null
+[ -f "$WEATHER_OPTIONS_DIR/array" ] || __list_array "$WEATHER_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE" ]; then
+  . "$WEATHER_CONFIG_DIR/$WEATHER_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$WEATHER_OPTIONS_DIR" "$ARRAY"
+    __list_options "$WEATHER_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --location)
+    shift 1
+    MYLOCATIONZIP="$1"
+    MYLOCATIONID="$1"
+    shift 1
+    ;;
+  --city)
+    shift 1
+    MYLOCATIONZIP="$1"
+    shift 1
+    ;;
+  --moon)
+    shift 1
+    MYLOCATIONZIP="$1"
+    shift 1
+    ;;
+  --simple)
+    shift 1
+    MYLOCATIONID="$1"
+    shift 1
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${WEATHER_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${WEATHER_NOTIFY_CLIENT_ICON}"
+if [ "$WEATHER_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash curl || exit 1
+am_i_online --error || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+__mkd "$HOME/.local/tmp"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
-help | -h | --help)
-  __help
-  ;;
-city | -c | --city)
+city)
   shift 1
   LOCID="${MYLOCATIONZIP:-$1}"
   [ -z "$LOCID" ] && __help
-  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME city zipcode"
+  [ "$1" = "help" ] && printf_help "Usage: $APPNAME city zipcode"
   wttrcity "$@"
   ;;
-v2 | -v2 | --v2)
+v2)
   shift 1
   LOCID="${MYLOCATIONID:-$1}"
   [ -z "$LOCID" ] && __help
-  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME v2 zipcode"
+  [ "$1" = "help" ] && printf_help "Usage: $APPNAME v2 zipcode"
   wttrin2 "$@"
   ;;
-img | -i | --img | image | --image)
+image)
   shift 1
   LOCID="${MYLOCATIONID:-$1}"
   [ -z "$LOCID" ] && __help
-  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME img zipcode"
+  [ "$1" = "help" ] && printf_help "Usage: $APPNAME img zipcode"
   wttrimage "$@"
   ;;
-moon | -m | --moon)
+moon)
   shift 1
   LOCID="${MYLOCATIONZIP:-$1}"
   [ -z "$LOCID" ] && __help
-  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME moon"
+  [ "$1" = "help" ] && printf_help "Usage: $APPNAME moon zipcode"
   wttrmoon "$@"
   ;;
-simple | -simple | --simple)
+simple)
   shift 1
   LOCID="${MYLOCATIONID:-$1}"
   [ -z "$LOCID" ] && __help
-  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME simple"
+  [ "$1" = "help" ] && printf_help "Usage: $APPNAME simple zipcode"
   wttrsimple "$@"
   ;;
 accu | accuweather)
   shift 1
   LOCID="${MYLOCATIONID:-$1}"
   [ -z "$LOCID" ] && __help
-  [ "$1" = "--help" ] && printf_help "Usage: $APPNAME accuweather"
+  [ "$1" = "help" ] && printf_help "Usage: $APPNAME accuweather "
   wttraccuweather "$@"
   ;;
 *)
   shift 0
   LOCID="${MYLOCATIONID:-$1}"
   [ -z "$LOCID" ] && __help
-  [ "$1" = "--help" ] && __help
+  [ "$1" = "help" ] && __help
   wttrin "$@"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit "${exitCode:-$?}"

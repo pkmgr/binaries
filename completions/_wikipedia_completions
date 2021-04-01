@@ -1,53 +1,39 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103311033-git
+##@Version       : 202104010346-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
-# @ReadME        : wallpapermgr --help
+# @ReadME        : wikipedia --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Wednesday, Mar 31, 2021 10:33 EDT
-# @File          : wallpapermgr
-# @Description   : DotFiles ManaGeR
+# @Created       : Thursday, Apr 01, 2021 03:46 EDT
+# @File          : wikipedia
+# @Description   : Lookup something on wikipedia
 # @TODO          :
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.local/share/myscripts/wallpapermgr/options/array" ] || wallpapermgr --options &>/dev/null
-_wallpapermgr() {
+[ -f "$HOME/.local/share/myscripts/wikipedia/array" ] || wikipedia --options &>/dev/null
+_wikipedia() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
-  local cur prev words cword opts
+  local cur prev words cword opts split
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
-  local CONFDIR="$HOME/.config/myscripts/wallpapermgr"
-  local OPTSDIR="$HOME/.local/share/myscripts/wallpapermgr/options"
-  local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/wallpapermgr}"
+  local CONFDIR="$HOME/.config/myscripts/wikipedia"
+  local OPTSDIR="$HOME/.local/share/myscripts/wikipedia/options"
+  local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/wikipedia}"
   #local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "d" "1")"
   local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array")"
   local DEFAULTOPTS="$([ -f "$OPTSDIR/options" ] && grep -sEv '#|^$' "$OPTSDIR/options" || echo -v -h)"
   local LONGOPTS="$(grep -sEv '#|^$' "$OPTSDIR/long_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep '\--')"
   local SHORTOPTS="$(grep -sEv '#|^$' "$OPTSDIR/short_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep -v '\--')"
-  local LIST="$([ -f "$OPTSDIR/available" ] && grep -sEv '#|^$' "$OPTSDIR/available")"
   local OPTS="$DEFAULTOPTS"
   local ARRAY="$DEFAULTARRAY"
-  local SHOW_COMP_OPTS=""
+  local SHOW_COMP_OPTS="nospace"
   local FILEDIR=""
 
   _init_completion || return
-
-  local special i
-  for ((i = 1; i < ${#words[@]} - 1; i++)); do
-    if [[ ${words[i]} == @(cron|update|remove) ]]; then
-      special=${words[i]}
-      break
-    fi
-  done
-
-  if [[ -v special ]]; then
-    [[ $cur == @(*/|[.~])* && $special == @(cron|update|remove|version) ]]
-  fi
-
   if [ "$SHOW_COMP_OPTS" != "" ]; then
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
     compopt -o $SHOW_COMP_OPTS_SEP
@@ -64,41 +50,11 @@ _wallpapermgr() {
     -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    available) prev="available" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    list) prev="list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    search) prev="search" && COMPREPLY=($(compgen -W '$(echo {0..9} {a..z})' -- "${cur}")) && compopt -o nospace ;;
-    install) prev="install" && COMPREPLY=($(compgen -W '--all ${LIST}' -- "${cur}")) ;;
-    update | cron | remove | version)
-      prev="$special"
-      k=0
-      i="$HOME/.local/share/CasjaysDev/apps/wallpapermgr"
-      for j in $(compgen -f "$i/$cur"); do
-        [ -d "$j" ] && j="${j}"
-        COMPREPLY[k++]=${j#$i/}
-      done
-      return 0
-      ;;
-    *)
-      prev=""
-      if [ -n "$FILEDIR" ]; then _filedir; fi
-      if [[ "$ARRAY" = "show-none" ]]; then
-        COMPREPLY=($(compgen -W '' -- "${cur}"))
-      elif [[ "$ARRAY" = "show-_filedir" ]]; then
-        _filedir
-      elif [[ "$ARRAY" = "show-commands" ]]; then
-        COMPREPLY=($(compgen -c -- "${cur}"))
-      elif [[ -n "$ARRAY" ]]; then
-        [ $COMP_CWORD -lt 2 ] &&
-          COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
-      elif [[ -n "$OPTS" ]]; then
-        [ $COMP_CWORD -gt 2 ] &&
-          COMPREPLY=($(compgen -W '' -- "${cur}"))
-      fi
-      ;;
+    *) prev="" && COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}")) ;;
     esac
     $split && return
   fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _wallpapermgr wallpapermgr
+  complete -F _wikipedia wikipedia

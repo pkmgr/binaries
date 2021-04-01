@@ -169,14 +169,11 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
+export NOTIFY_CLIENT_NAME="${ASK_YES_NO_QUESTION_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${ASK_YES_NO_QUESTION_NOTIFY_CLIENT_ICON}"
 if [ "$ASK_YES_NO_QUESTION_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${ASK_YES_NO_QUESTION_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${ASK_YES_NO_QUESTION_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
@@ -186,6 +183,9 @@ appname="${NOTIFY_CLIENT_NAME:-$ASK_YES_NO_QUESTION_NOTIFY_CLIENT_NAME}"
 question="${1:-Would you like to proceed?}"
 command="${2:-true}"
 name="${3:-$appname}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 if [ "$launch_term" = "true" ]; then

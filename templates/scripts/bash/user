@@ -133,6 +133,17 @@ EOF
   done
   #set -- "$SETARGS"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Actions based on env
+  export NOTIFY_CLIENT_NAME="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_NAME}"
+  export NOTIFY_CLIENT_ICON="${GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
+  if [ "$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_ENABLED" = "yes" ]; then
+    __notifications() {
+      notifications "$*" || return 1
+    }
+  else
+    __notifications() { false; }
+  fi
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Check for required applications
   cmd_exists --error bash || exit 1
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

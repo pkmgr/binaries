@@ -498,6 +498,9 @@ __file_is() {
     [ -n "$todo" ] && [ -n "$GEN_SCRIPTS_REPLACE_todo" ] && __sed "$GEN_SCRIPTS_REPLACE_todo" "$todo" "$new"
     [ -n "$other" ] && [ -n "$GEN_SCRIPTS_REPLACE_other" ] && __sed "$GEN_SCRIPTS_REPLACE_other" "$other" "$new"
     [ -n "$resource" ] && [ -n "$GEN_SCRIPTS_REPLACE_resource" ] && __sed "$GEN_SCRIPTS_REPLACE_resource" "$resource" "$new"
+    return 0
+  else
+    return 1
   fi
 }
 
@@ -851,6 +854,7 @@ __find_file() {
     dest="$(dirname "$filename")/$GEN_SCRIPTS_DEFAULT_MAN_DIR/$(basename "$filename")"
     filetype="manual"
   else
+    filetype=""
     dest="${dest:-newScript}"
   fi
   __set_header "$dest" "$@"

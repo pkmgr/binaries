@@ -150,26 +150,23 @@ while :; do
 done
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Check for required applications
-cmd_exists --error bash || exit 1
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
-[ -n "$TERMINAL_APP" ] || [ -n "$1" ] || __help
-#[ $# -ne 1 ] && printf_exit 'You must quote your params IE: calc "2 + 4" or "2*2"'
+export NOTIFY_CLIENT_NAME="${CALC_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${CALC_NOTIFY_CLIENT_ICON}"
 if [ "$CALC_NOTIFY_ENABLED" = "yes" ]; then
   __notifications() {
-    export NOTIFY_CLIENT_NAME="${CALC_NOTIFY_CLIENT_NAME}"
-    export NOTIFY_CLIENT_ICON="${CALC_NOTIFY_CLIENT_ICON}"
     notifications "$*" || return 1
   }
 else
   __notifications() { false; }
 fi
-CALC_INPUT="$*"
-CALC_OUTPUT="$(echo "$CALC_INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-echo $TERMINAL_APP
+CALC_INPUT="$*"
+CALC_OUTPUT="$(echo "$CALC_INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
 if [ -n "$TERMINAL_APP" ]; then
   clear
   printf_newline "\n\n"

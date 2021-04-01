@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104010345-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$WIKIPEDIA_TMP_FILE" ] && rm -Rf "$WIKIPEDIA_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103202032-git
+##@Version       : 202104010345-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : wikipedia --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 20:32 EDT
+# @Created       : Thursday, Apr 01, 2021 03:45 EDT
 # @File          : wikipedia
 # @Description   : Lookup something on wikipedia
 # @TODO          :
@@ -40,13 +42,116 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__check_app curl || exit 1
-__am_i_online_err || exit 1
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE"
+  [ -d "$WIKIPEDIA_CONFIG_DIR" ] || mkdir -p "$WIKIPEDIA_CONFIG_DIR"
+  [ -d "$WIKIPEDIA_CONFIG_BACKUP_DIR" ] || mkdir -p "$WIKIPEDIA_CONFIG_BACKUP_DIR"
+  [ -f "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE" ] &&
+    cp -Rf "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE" "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE.$$"
+  cat <<EOF >"$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE"
+# Settings for wikipedia
+WIKIPEDIA_API_URL="https://en.wikipedia.org/wiki"
+WIKIPEDIA_TEMP_FILE="${TMPDIR:-/tmp}/wikipedia"
+WIKIPEDIA_NOTIFY_ENABLED="yes"
+WIKIPEDIA_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+WIKIPEDIA_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$WIKIPEDIA_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE" ]; then
+    printf_green "Your config file for wikipedia has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-API="https://en.wikipedia.org/wiki"
+__curl() { curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" 2>/dev/null || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__api_test && __curl "$API/$1" | lynx -stdin
+# Defaults
+exitCode=""
+WIKIPEDIA_CONFIG_FILE="settings.conf"
+WIKIPEDIA_CONFIG_DIR="$HOME/.config/myscripts/wikipedia"
+WIKIPEDIA_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/wikipedia/backups"
+WIKIPEDIA_OPTIONS_DIR="$HOME/.local/share/myscripts/wikipedia/options"
+WIKIPEDIA_TEMP_FILE="${TMPDIR:-/tmp}/wikipedia"
+WIKIPEDIA_NOTIFY_ENABLED="yes"
+WIKIPEDIA_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+WIKIPEDIA_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$WIKIPEDIA_NOTIFY_CLIENT_ICON}"
+WIKIPEDIA_API_URL="https://en.wikipedia.org/wiki"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY="$(echo {a..z} {0..9})"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# Generate Files
+[ -f "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$WIKIPEDIA_OPTIONS_DIR/options" ] || __list_options "$WIKIPEDIA_OPTIONS_DIR" &>/dev/null
+[ -f "$WIKIPEDIA_OPTIONS_DIR/array" ] || __list_array "$WIKIPEDIA_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE" ]; then
+  . "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$WIKIPEDIA_OPTIONS_DIR" "$ARRAY"
+    __list_options "$WIKIPEDIA_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${WIKIPEDIA_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${WIKIPEDIA_NOTIFY_CLIENT_ICON}"
+if [ "$WIKIPEDIA_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications
+cmd_exists --error bash curl lynx || exit 1
+am_i_online --error -s "$WIKIPEDIA_API_URL" || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+__curl "$WIKIPEDIA_API_URL/$1" | lynx -stdin
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit "${exitCode:-$?}"
