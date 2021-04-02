@@ -120,14 +120,14 @@ __install() {
       am_i_online --error -m "Can not setup docker: No internet" || exit 1
       if [ -d "$DATADIR/$APPNAME" ]; then
         git -C "$DATADIR/$APPNAME" reset --hard -q &&
-          git -C "$DATADIR/$APPNAME" pull -q && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+          git -C "$DATADIR/$APPNAME" pull -q
       else
-        git clone -q "$REPO/$APPNAME" "$DATADIR/$APPNAME" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+        git clone -q "$REPO/$APPNAME" "$DATADIR/$APPNAME"
       fi
       chmod -Rf 755 "$DATADIR/$APPNAME/install.sh"
       __requiresudo -HE bash "$DATADIR/$APPNAME/install.sh" __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
       if [ -d "$DATADIR/$APPNAME/os" ]; then
-        __requiresudo cp -Rf "$SHARE/$APPNAME/os/." / && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+        __requiresudo cp -Rf "$SHARE/$APPNAME/os/." /
       fi
     fi
   done

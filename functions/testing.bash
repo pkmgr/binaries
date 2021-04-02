@@ -2502,31 +2502,21 @@ run_install_init() {
 run_install_update() {
   local exitCode
   export mgr_init="${mgr_init:-true}"
+  export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME}"
+  export NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON}"
   if [ $# = 0 ]; then
-    if [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR)" ]]; then
-      for upd in $(ls "$USRUPDATEDIR"); do
-        run_install_init "$upd"
+    if [[ -d "$USRUPDATEDIR" && -n "$(ls -A "$USRUPDATEDIR" | grep '^' || ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^')" ]]; then
+      for upd in $(ls "$USRUPDATEDIR" | grep '^' || ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^'); do
+        APPNAME="$upd"
+        run_install_init "$upd" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
         local exitCode+=$?
       done
     fi
     if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
-      if [[ -d "$SYSUPDATEDIR" && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
-        for updadmin in $(ls $SYSUPDATEDIR); do
-          run_install_init "$updadmin"
-          local exitCode+=$?
-        done
-      fi
-    fi
-  elif [[ -d "$SHARE/CasjaysDev/$SCRIPTS_PREFIX" && -n "$(ls -A "$SHARE/CasjaysDev/$SCRIPTS_PREFIX")" ]]; then
-      for upd in $(ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX"); do
-        run_install_init "$upd"
-        local exitCode+=$?
-      done
-    fi
-    if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
-      if [[ -d "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX" && -n "$(ls -A "$SHARE/CasjaysDev/$SCRIPTS_PREFIX")" ]]; then
-        for updadmin in $(ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX"); do
-          run_install_init "$updadmin"
+      if [[ -d "$SYSUPDATEDIR" && -n "$(ls -A "$SYSUPDATEDIR" | grep '^' || ls "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^')" ]]; then
+        for updadmin in $(ls "$SYSUPDATEDIR" | grep '^' || ls "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^'); do
+          APPNAME="$updadmin"
+          run_install_init "$updadmin" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
           local exitCode+=$?
         done
       fi
@@ -2534,7 +2524,8 @@ run_install_update() {
   else
     local -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
-      run_install_init "$ins"
+      APPNAME="$ins"
+      run_install_init "$ins" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
       local exitCode+=$?
     done
   fi
