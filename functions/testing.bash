@@ -2173,15 +2173,13 @@ systemmgr_install() {
   REPORAW="$SYSTEMMGRREPO/raw"
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
-  APPDIR="${APPDIR:-/usr/local/etc}"
-  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  APPDIR="/usr/local/etc"
+  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
-  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -2190,7 +2188,6 @@ systemmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="systemmgr_install"
-  #__main_installer_info
 }
 
 ###################### thememgr settings ######################
