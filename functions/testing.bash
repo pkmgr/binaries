@@ -2100,7 +2100,7 @@ fontmgr_install() {
   generate_font_index() {
     printf_green "Updating the fonts in $FONTDIR"
     FONTDIR="${FONTDIR:-$SHARE/fonts}"
-    fc-cache -f "$FONTDIR"
+    fc-cache -f "$FONTDIR" &>/dev/null
   }
   #__main_installer_info
 }
@@ -2133,8 +2133,8 @@ iconmgr_install() {
   generate_icon_index() {
     printf_green "Updating the icon cache in $ICONDIR"
     ICONDIR="${ICONDIR:-$SHARE/icons}"
-    fc-cache -f "$ICONDIR"
-    gtk-update-icon-cache -q -t -f "$ICONDIR/$APPNAME"
+    fc-cache -f "$ICONDIR" &>/dev/null
+    gtk-update-icon-cache -q -t -f "$ICONDIR" &>/dev/null
   }
   #__main_installer_info
 }
@@ -2503,7 +2503,7 @@ run_install_update() {
   local exitCode
   export mgr_init="${mgr_init:-true}"
   if [ $# = 0 ]; then
-    if [[ -d "$USRUPDATEDIR " && -n "$(ls -A $USRUPDATEDIR)" ]]; then
+    if [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR)" ]]; then
       for upd in $(ls "$USRUPDATEDIR"); do
         run_install_init "$upd"
         local exitCode+=$?
@@ -2512,6 +2512,20 @@ run_install_update() {
     if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
       if [[ -d "$SYSUPDATEDIR" && -n "$(ls -A $SYSUPDATEDIR)" ]]; then
         for updadmin in $(ls $SYSUPDATEDIR); do
+          run_install_init "$updadmin"
+          local exitCode+=$?
+        done
+      fi
+    fi
+  elif [[ -d "$SHARE/CasjaysDev/$SCRIPTS_PREFIX" && -n "$(ls -A "$SHARE/CasjaysDev/$SCRIPTS_PREFIX")" ]]; then
+      for upd in $(ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX"); do
+        run_install_init "$upd"
+        local exitCode+=$?
+      done
+    fi
+    if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
+      if [[ -d "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX" && -n "$(ls -A "$SHARE/CasjaysDev/$SCRIPTS_PREFIX")" ]]; then
+        for updadmin in $(ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX"); do
           run_install_init "$updadmin"
           local exitCode+=$?
         done

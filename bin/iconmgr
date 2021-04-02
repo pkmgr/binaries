@@ -162,10 +162,12 @@ FORCE_INSTALL="${FORCE_INSTALL:-$ICONMGR_FORCE_INSTALL}"
 # begin main app
 case "$1" in
 makecache)
+  shift 1
   generate_icon_index "$ICONDIR"
   ;;
 
 list)
+  shift 1
   __listicons
   ;;
 
@@ -247,3 +249,4 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+
