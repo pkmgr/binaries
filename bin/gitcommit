@@ -70,9 +70,9 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_add() {
-  local files="$*"
-    for f in "${files[*]}"; do
-      [ -e "$f" ] && git -C "$gitdir" add ${files} >/dev/null 2>&1 #|| printf_error "$f is not a file"
+  local -a files="$*"
+    for f in $files; do
+      [ -e "$f" ] && git -C "$gitdir" add "$f" &>/dev/null #|| printf_error "$f is not a file"
     done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -131,7 +131,7 @@ GITCOMMIT_VERSION_FILE="${GIT_VERSION_FILE:-version.txt}"
 SETARGS="${*}"
 SHORTOPTS="c,v,h,d:,m:"
 LONGOPTS="options,config,version,help,dir:,mess:,message:"
-ARRAY="status log push version files modified deleted added changed new improve "
+ARRAY="status log push version files modified deleted added changed new improved"
 ARRAY+="fixed release docs test breaking refactor permissions bugs alot docker node "
 ARRAY+="ruby php perl python scratchpad todo notes blog emojify random custom setup reset "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -294,7 +294,7 @@ added)
   if git -C "$gitdir" status -s -b | grep -F '?? ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F '?? ' | awk '{print $2}' | tr '\n' ' ')"
     mess="❓ Added: $files ❓"
-    __git_add
+    __git_add "$files"
   else
     printf_exit 1 0 "Nothing has been added"
   fi
@@ -316,9 +316,9 @@ new)
   __git_add "$ARGS"
   ;;
 
-improve)
+improved)
   shift 1
-  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME improve filename[s]"
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME improved filename[s]"
   ARGS="${*:-} "
   mess="👌 IMPROVE: ${ARGS}👌 "
   __git_add "$ARGS"
@@ -368,66 +368,77 @@ refactor)
   shift 1
   ARGS="${*:-} "
   mess="✔️ 〰️ Refactor Code ${ARGS}〰️ ✔️  "
+  __git_add "$ARGS"
   ;;
 
 performance)
   shift 1
   ARGS="${*:-} "
   mess="🚤 Preformance boost ${ARGS}⏩"
+  __git_add "$ARGS"
   ;;
 
 permission | permissions)
   shift 1
   ARGS="${*:-} "
   mess="🏠🔥❗ Fixed Permissions ${ARGS}❗🔥🏠 "
+  __git_add "$ARGS"
   ;;
 
 bug | bugs)
   shift 1
   ARGS="${*:-} "
   mess="🐛🦈🏠❗ Bug Fixes ${ARGS}❗🏠🦈🐛 "
+  __git_add "$ARGS"
   ;;
 
 alot | fixes)
   shift 1
   ARGS="${*:-} "
   mess="🦈🏠🐜❗ Fixes and Updates ${ARGS}❗🐜🦈🏠 "
+  __git_add "$ARGS"
   ;;
 
 docker)
   shift 1
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added Docker Workflow ${ARGS}❗🏠🦈❇🐜 "
+  __git_add "$ARGS"
   ;;
 
 node)
   shift 1
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added nodejs Workflow ${ARGS}🏠🦈❇🐜 "
+  __git_add "$ARGS"
   ;;
 
 ruby)
   shift 1
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added ruby Workflow ${ARGS}❗🏠🦈❇🐜 "
+  __git_add "$ARGS"
   ;;
 
 php)
   shift 1
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added php Workflow ${ARGS}❗🏠🦈❇🐜 "
+  __git_add "$ARGS"
   ;;
 
 perl)
   shift 1
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added perl Workflow ${ARGS}❗🏠🦈❇🐜 "
+  __git_add "$ARGS"
   ;;
 
 python)
   shift 1
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added python Workflow ${ARGS}❗🏠🦈❇🐜 "
+  __git_add "$ARGS"
   ;;
 
 scratchpad)
@@ -436,6 +447,7 @@ scratchpad)
   shift 1
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${msg:-Modified my scratchpad} ${ARGS}📓❇📓🐜 "
+  __git_add "$ARGS"
   ;;
 
 todo)
@@ -444,6 +456,7 @@ todo)
   shift 1
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${mesg:-Modified my todo list} ${ARGS}📓❇📓🐜 "
+  __git_add "$ARGS"
   ;;
 
 notes)
@@ -452,6 +465,7 @@ notes)
   shift 1
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${msg:-Modified my notes} ${ARGS}📓❇📓🐜 "
+  __git_add "$ARGS"
   ;;
 
 blog)
@@ -460,6 +474,7 @@ blog)
   shift 1
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${msg:-New blog post} ${ARGS}📓❇📓🐜 "
+  __git_add "$ARGS"
   ;;
 
 init)
