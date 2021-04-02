@@ -68,6 +68,14 @@ EOF
     false
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__git_add() {
+  local files="$*"
+    for f in "${files[*]}"; do
+      [ -e "$f" ] && git -C "$gitdir" add ${files} >/dev/null 2>&1 #|| printf_error "$f is not a file"
+    done
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_dir() {
   local gitdir="${1:-$gitdir}"
   if [ "$(git -C "$gitdir" rev-parse --is-inside-work-tree 2>/dev/null)" == "" ]; then
@@ -239,7 +247,7 @@ version)
   __version
   versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
   printf_cyan "$versionbump"
-  git -C "$gitdir" add "$gitdir/version.txt" >/dev/null 2>&1
+  __git_add "$gitdir/version.txt"
   if ! __git_porcelain "$gitdir"; then
     git -C "$gitdir" commit -q -S -m "$versionbump" "$gitdir/version.txt" 2>/dev/null && exitCode=0 || exitCode=1
   fi
@@ -253,7 +261,7 @@ files)
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | sed 's|^ ||g' | awk -F' ' '{print $2}')"
     filesmsg="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|' | sed 's#|$##g' | grep '^')"
     mess="➕ $filesmsg ➕ "
-    git -C "$gitdir" add $files >/dev/null 2>&1
+    __git_add "$files"
   else
     printf_exit 1 0 "Nothing has been changed"
   fi
@@ -264,7 +272,7 @@ modified)
   if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
     mess="🗃 Modified: $files 🗃 "
-    git -C "$gitdir" add $files >/dev/null 2>&1
+    __git_add "$files"
   else
     printf_exit 1 0 "Nothing has been modified"
   fi
@@ -275,7 +283,7 @@ deleted)
   if git -C "$gitdir" status -s -b | grep -F 'D ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'D ' | awk '{print $2}' | tr '\n' ' ')"
     mess="➖ Deleted: $files ➖ "
-    git -C "$gitdir" add $files >/dev/null 2>&1
+    __git_add "$files"
   else
     printf_exit 1 0 "Nothing has been deleted"
   fi
@@ -286,7 +294,7 @@ added)
   if git -C "$gitdir" status -s -b | grep -F '?? ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F '?? ' | awk '{print $2}' | tr '\n' ' ')"
     mess="❓ Added: $files ❓"
-    git -C "$gitdir" add $files >/dev/null 2>&1
+    __git_add
   else
     printf_exit 1 0 "Nothing has been added"
   fi
@@ -294,50 +302,66 @@ added)
 
 changed)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME changed filename[s]"
   ARGS="${*:-} "
   mess="✔️🐛 Changed: ${ARGS}🐛✔️"
+  __git_add $ARGS >/dev/null 2>&1
   ;;
 
 new)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME new filename[s]"
   ARGS="${*:-} "
   mess="🆕📦 NEW: ${ARGS}📦🆕 "
+  __git_add "$ARGS"
   ;;
 
 improve)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME improve filename[s]"
   ARGS="${*:-} "
   mess="👌 IMPROVE: ${ARGS}👌 "
+  __git_add "$ARGS"
   ;;
 
 fixed)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME fixed filename[s]"
   ARGS="${*:-} "
   mess="🐛 FIXED: ${ARGS}🐛 "
+  __git_add "$ARGS"
   ;;
 
 release)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME release filename[s]"
   ARGS="${*:-} "
   mess="🚀 RELEASE: ${ARGS}🚀 "
+  __git_add "$ARGS"
   ;;
 
 docs)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME docs filename[s]"
   ARGS="${*} "
   mess="📖 DOCS: ${ARGS}📖 "
+  __git_add "$ARGS"
   ;;
 
 test)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME test filename[s]"
   ARGS="${*:-} "
   mess="🤖 TEST: ${ARGS}🤖"
+  __git_add "$ARGS"
   ;;
 
 breaking)
   shift 1
+  [ $# -eq 0 ] && printf_exit "Usage: $APPNAME breaking filename[s]"
   ARGS="${*:-} "
   mess="⚒️ BREAKING: ${ARGS}⚒️ "
+  __git_add "$ARGS"
   ;;
 
 refactor)
