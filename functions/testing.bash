@@ -2018,7 +2018,7 @@ devenvmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="devenvmgr_install"
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### dfmgr settings ######################
@@ -2043,7 +2043,7 @@ dfmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dfmgr_install"
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### dockermgr settings ######################
@@ -2069,7 +2069,7 @@ dockermgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="dockermgr_install"
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### fontmgr settings ######################
@@ -2102,7 +2102,7 @@ fontmgr_install() {
     FONTDIR="${FONTDIR:-$SHARE/fonts}"
     fc-cache -f "$FONTDIR"
   }
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### iconmgr settings ######################
@@ -2136,7 +2136,7 @@ iconmgr_install() {
     fc-cache -f "$ICONDIR"
     gtk-update-icon-cache -q -t -f "$ICONDIR/$APPNAME"
   }
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### pkmgr settings ######################
@@ -2161,7 +2161,7 @@ pkmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="pkmgr_install"
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### systemmgr settings ######################
@@ -2190,7 +2190,7 @@ systemmgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="systemmgr_install"
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### thememgr settings ######################
@@ -2225,7 +2225,7 @@ thememgr_install() {
       fi
     done
   }
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### wallpapermgr settings ######################
@@ -2245,7 +2245,7 @@ wallpapermgr_install() {
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="wallpapermgr_install"
-  __main_installer_info
+  #__main_installer_info
 }
 
 ###################### create directories ######################
@@ -2278,16 +2278,16 @@ ensure_dirs() {
   fi
   return 0
 }
-
-##
+##################################################################################################
 __main_installer_info() {
   if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
     printf_yellow "Installing $APPNAME as the scripts installer"
     APPNAME="scripts"
-    APPDIR="/usr/local/share/CasjaysDev/scripts"
-    INSTDIR="/usr/local/share/CasjaysDev/scripts"
-    PLUGDIR="/usr/local/share/CasjaysDev/apps/systemmgr/scripts"
+    APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+    INSTDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+    PLUGDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
   fi
+  #printf_exit "A:$APPNAME D:$APPDIR I:$INSTDIR P:$PLUGDIR"
 }
 ###################### get installer versions ######################
 
