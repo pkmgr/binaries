@@ -152,4 +152,4 @@ printf_green "Version:$VERSION DIR=$GEN_SCRIPTS_REPLACE_CONFIG_DIR"
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

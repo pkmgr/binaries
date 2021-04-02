@@ -155,7 +155,7 @@ EOF
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # lets exit with code
-  return "${exitCode:-$?}"
+  return ${exitCode:-$?}
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # execute function
@@ -164,4 +164,4 @@ GEN_SCRIPTS_REPLACE_FILENAME_main "$@"
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

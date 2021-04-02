@@ -157,4 +157,4 @@ __curl "$WIKIPEDIA_API_URL/$1" | lynx -stdin
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

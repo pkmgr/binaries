@@ -162,4 +162,4 @@ timeout $timeout curl $curl_opts "$URL" &>/dev/null && true || false
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

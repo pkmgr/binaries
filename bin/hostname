@@ -8,7 +8,10 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 trap '[ -f "$HOSTNAME_TMP_FILE" ] && rm -Rf "$HOSTNAME_TMP_FILE" &>/dev/null' EXIT
-[ -f "/usr/bin/hostname" ] && { /usr/bin/hostname "$@"; exit $?; }
+[ -f "/usr/bin/hostname" ] && {
+  /usr/bin/hostname "$@"
+  exit $?
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103302338-git
 # @Author        : Jason Hempstead
@@ -235,4 +238,4 @@ esac
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

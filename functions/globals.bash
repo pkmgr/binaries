@@ -218,7 +218,7 @@ app_version() {
     exitCode=1
   fi
   printf "\n"
-  exit "${exitCode:-$?}"
+  exit ${exitCode:-$?}
 }
 
 check_local() {
@@ -308,7 +308,6 @@ user_is_root() {
   else return 1; fi
 }
 
-
 user_install() {
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     INSTALL_TYPE=user
@@ -367,4 +366,3 @@ user_install() {
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   installtype="user_installdirs"
 }
-

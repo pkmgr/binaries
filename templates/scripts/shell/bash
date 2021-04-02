@@ -47,4 +47,4 @@ GEN_SCRIPTS_REPLACE_OPTIONS_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

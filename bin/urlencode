@@ -157,4 +157,4 @@ printf_green "$(perl -MURI::Escape -e 'print uri_unescape($ARGV[0]);' "$url")\n"
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

@@ -97,5 +97,4 @@ run_exit
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
-
+exit ${exitCode:-$?}

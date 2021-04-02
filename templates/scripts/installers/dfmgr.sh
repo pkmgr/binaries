@@ -159,5 +159,4 @@ dfmgr_install_version
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
-
+exit ${exitCode:-$?}

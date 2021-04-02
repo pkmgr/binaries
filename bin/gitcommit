@@ -71,9 +71,9 @@ EOF
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_add() {
   local -a files="$*"
-    for f in $files; do
-      [ -e "$f" ] && git -C "$gitdir" add "$f" &>/dev/null #|| printf_error "$f is not a file"
-    done
+  for f in $files; do
+    [ -e "$f" ] && git -C "$gitdir" add "$f" &>/dev/null #|| printf_error "$f is not a file"
+  done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_dir() {
@@ -549,4 +549,4 @@ printf_newline
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit "${exitCode:-$?}"
+exit ${exitCode:-$?}

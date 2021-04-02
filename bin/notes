@@ -209,7 +209,7 @@ __update_notes() {
   else
     exitCode=1
   fi
-  return "${exitCode:-$?}"
+  return ${exitCode:-$?}
 }
 __sync_tmp() {
   local _NOTESP="${1:-$NOTES_PATH}"

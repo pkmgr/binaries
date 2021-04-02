@@ -37,5 +37,4 @@ __printf_help "4" "--options               - files used for completion"
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-#exit "${exitCode:-$?}"
-
+#exit ${exitCode:-$?}
