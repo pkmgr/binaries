@@ -47,17 +47,15 @@ system_installdirs
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-scripts}"
-#APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
-#INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
 APPDIR="/usr/local/share/CasjaysDev/scripts"
 INSTDIR="/usr/local/share/CasjaysDev/scripts"
-REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr/$APPNAME}"
+REPO="${SYSTEMMGRREPO:-https://github.com/systemmgr/installer}"
 REPORAW="${REPORAW:-$REPO/raw}"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
 PLUGNAMES=""
-PLUGDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX/$APPNAME"
+PLUGDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Require a version higher than
 systemmgr_req_version "$APPVERSION"
@@ -164,7 +162,8 @@ run_postinst() {
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
   cmd_exists update-motd && update-ip && update-motd
   echo 'for f in '$CASJAYSDEVDIR/completions/*'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
-  ln_sf "$INSTDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/installer"
 }
 #
 execute "run_postinst" "Running post install scripts"

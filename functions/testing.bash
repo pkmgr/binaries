@@ -2281,11 +2281,10 @@ ensure_dirs() {
 ##################################################################################################
 __main_installer_info() {
   if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
-    printf_yellow "Installing $APPNAME as the scripts installer"
-    APPNAME="scripts"
-    APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-    INSTDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-    PLUGDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
+    APPNAME="installer"
+    #APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+    #INSTDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+    PLUGDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   fi
   #printf_exit "A:$APPNAME D:$APPDIR I:$INSTDIR P:$PLUGDIR"
 }
@@ -2667,7 +2666,7 @@ __appversion() {
 }
 
 __required_version() {
-  __main_installer_info
+  #__main_installer_info
   if [ -f "$CASJAYSDEVDIR/version.txt" ]; then
     local requiredVersion="${1:-$requiredVersion}"
     local currentVersion="${APPVERSION:-$currentVersion}"

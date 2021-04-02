@@ -1854,7 +1854,7 @@ systemmgr_install() {
   CONF="${SYSCONF:-/usr/local/etc}"
   SHARE="${SYSSHARE:-/usr/local/share}"
   APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
-  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
@@ -1869,6 +1869,7 @@ systemmgr_install() {
   fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="systemmgr_install"
+  __main_installer_info &>/dev/null
 }
 ######## Installer Functions ########
 systemmgr_run_init() {
@@ -1971,11 +1972,11 @@ wallpapermgr_install_version() {
 ##################################################################################################
 __main_installer_info() {
   if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
-    printf_yellow "Installing $APPNAME as the scripts installer"
-    APPNAME="scripts"
-    APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-    INSTDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
-    PLUGDIR="/usr/local/share/CasjaysDev/apps/systemmgr"
+    APPNAME="installer"
+    #APPDIR="/usr/local/share/CasjaysDev/scripts"
+    #INSTDIR="/usr/local/share/CasjaysDev/scripts"
+    PLUGDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
+    printf_cyan "Installing $APPNAME as the scripts installer"
   fi
   #printf_exit "A:$APPNAME D:$APPDIR I:$INSTDIR P:$PLUGDIR"
 }
