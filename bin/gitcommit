@@ -197,6 +197,7 @@ fi
 cmd_exists --error bash git || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
+[ -d "$1" ] && MYCURRDIR="$1" || MYCURRDIR="$PWD"
 topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$gitdir/$GITCOMMIT_VERSION_FILE"
