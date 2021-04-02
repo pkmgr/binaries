@@ -79,21 +79,6 @@ preupdate() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-app_uninstall() {
-  [ -z "$1" ] && APPNAME="$APPNAME" || APPNAME="$1"
-  if [ -d "$INSTDIR" ]; then
-    printf_yellow "Removing $APPNAME from $INSTDIR"
-    __devnull sudo rm -Rf "$INSTDIR" &&
-      __devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$APPNAME" &&
-      __devnull sudo rm -Rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" &&
-      __devnull sudo find $BIN $SHARE $COMPDIR -xtype l -exec rm {} \;
-    __getexitcode "$APPNAME has been removed"
-  else
-    printf_red "$APPNAME doesn't seem to be installed"
-    return 1
-  fi
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
 SYSTEMMGR_CONFIG_FILE="settings.conf"
