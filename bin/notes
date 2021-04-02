@@ -77,6 +77,10 @@ if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _notifications() { if [ "$NOTES_NOTIFY" = "yes" ]; then notifications "$@"; fi; }
+__server_start() {
+  notes server start &>/dev/null &
+  disown || return 1
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate config file
 gen_config() {
@@ -159,7 +163,7 @@ Name=Notes Server
 GenericName=NotesServer
 Comment=Start Notes Server.
 Icon=geany
-Exec=notes server start &
+Exec=notes server start --loop &
 Path=~
 Terminal=false
 Actions=
@@ -167,7 +171,7 @@ Categories=System;Development;GTK;X-XFCE;GNOME;
 Keywords=notes;server;
 StartupNotify=true
 EOF
-  notes server start
+  __server_start --loop || false
   [ $? = 0 ] && printf_green "notes server has been installed for $USER" ||
     printf_error 1 1 "$ICON_WARN Failed to install the notes server for $USER"
 }

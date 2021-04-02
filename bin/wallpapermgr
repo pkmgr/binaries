@@ -88,7 +88,7 @@ WALLPAPERMGR_FORCE_INSTALL="false"
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f"
 LONGOPTS="options,config,version,help,force,all"
-ARRAY="search available remove version update install cron"
+ARRAY="list search available remove version update install cron"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" ] || __gen_config &>/dev/null

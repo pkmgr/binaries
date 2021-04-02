@@ -2577,7 +2577,7 @@ run_install_search() {
   if [ -z "$results" ]; then
     printf_exit "Your seach produced no results"
   else
-    printf '%s\n' "$installed" | printf_column "${PRINTF_COLOR:-$color}"
+    printf '%s\n' "$installed" | printf_column "${PRINTF_COLOR:-4}"
   fi
   unset results
   exit $?
@@ -2587,7 +2587,7 @@ run_install_available() {
   if __api_test; then
     __curl_api ${1:-$APPNAME} | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
   else
-    __list_available | printf_column "${PRINTF_COLOR:-$color}"
+    __list_available | printf_column "${PRINTF_COLOR:-4}"
   fi
 }
 
