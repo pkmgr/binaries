@@ -2022,7 +2022,6 @@ run_postinst_global() {
       ln_sf "$INSTDIR/bin/$app" "$SYSBIN/$app"
     done
     cmd_exists updatedb && updatedb || return 0
-
   else
     # Run on everything else
     if [ "$APPDIR" != "$INSTDIR" ]; then
@@ -2096,8 +2095,8 @@ install_version() {
   printf_blue "$ICON_GOOD installing version info"
   $installtype
   mkd "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
-  if [ "$APPNAME" = "installer" ]; then
-    ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
+  if [ "$APPNAME" = "installer" ] || [ "$APPNAME" = "scripts" ]; then
+    ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
     ln_sf "$INSTDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-scripts"
   else
     [ -f "$APPDIR/version.txt" ] && ln_sf "$APPDIR/version.txt" "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME"
