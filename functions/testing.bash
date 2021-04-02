@@ -235,13 +235,13 @@ printf_console() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
-  printf_color "\n\t\t$msg" "$color"
+  printf_color "\n\t\t$msg" "${PRINTF_COLOR:-$color}"
   printf "\n\n"
 }
 printf_pause() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
   local msg="${*:-Press any key to continue}"
-  printf_color "\t\t$msg " "$color"
+  printf_color "\t\t$msg " "${PRINTF_COLOR:-$color}"
   read -r -n 1 -s
   printf "\n"
 }
@@ -281,7 +281,7 @@ printf_single() {
   local TEXT="$*"
   local LEN=${#TEXT}
   local WIDTH=$(($LEN + ($COLUMNS - $LEN) / 2))
-  printf "%b" "$(tput setaf "$color" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
+  printf "%b" "$(tput setaf "${PRINTF_COLOR:-$color}" 2>/dev/null)" "$TEXT " "$(tput sgr0 2>/dev/null)" | sed 's#\t# #g'
 }
 printf_help() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
@@ -292,7 +292,7 @@ printf_help() {
   if [ "${PROG:-$APPNAME}" ]; then
     printf_color "\t\t$(grep ^"# @Description" "$(command -v "${PROG:-$APPNAME}")" | grep ' : ' | sed 's#..* : ##g' || "${PROG:-$APPNAME}" help)\n" 2
   fi
-  printf_color "\t\t$msg" "$color"
+  printf_color "\t\t$msg" "${PRINTF_COLOR:-$color}"
   printf "\n\n"
   exit 0
 }
@@ -300,14 +300,14 @@ printf_custom() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="5"
   local msg="$*"
   shift
-  printf_color "\t\t$msg" "$color"
+  printf_color "\t\t$msg" "${PRINTF_COLOR:-$color}"
   printf "\n"
 }
 printf_read() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   while read line; do
-    printf_color "\t\t$line" "$color"
+    printf_color "\t\t$line" "${PRINTF_COLOR:-$color}"
   done
   printf "\n"
   set +o pipefail
@@ -316,7 +316,7 @@ printf_readline() {
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
   while read line; do
-    printf_color "\t\t$line" "$color"
+    printf_color "\t\t$line" "${PRINTF_COLOR:-$color}"
     printf "\n"
   done
   set +o pipefail
@@ -325,12 +325,12 @@ printf_column() {
   local -a column=""
   set -o pipefail
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="7"
-  cat - | column | printf_readline "$color"
+  cat - | column | printf_readline "${color:-$COLOR}"
   printf "\n"
   set +o pipefail
 }
 printf_cat() {
-  file=${1--}
+  file=${1:--}
   while IFS= read -r line; do
     printf '%s\n' "$line"
   done < <(cat -- "$file")
@@ -339,13 +339,13 @@ printf_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
   local msg="$*"
   shift
-  printf_color "\t\t$ICON_QUESTION $msg? " "$color"
+  printf_color "\t\t$ICON_QUESTION $msg? " "${PRINTF_COLOR:-$color}"
 }
 printf_custom_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$*"
   shift
-  printf_color "\t\t$msg " "$color"
+  printf_color "\t\t$msg " "${PRINTF_COLOR:-$color}"
 }
 printf_question_term() {
   printf_read_question "4" "$1" "1" "REPLY" "-s"
@@ -359,7 +359,7 @@ printf_read_input() {
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
-  printf_color "\t\t$msg " "$color"
+  printf_color "\t\t$msg " "${PRINTF_COLOR:-$color}"
   read -re -n $lines $readopts $reply
   [ -n "$reply" ] || echo
 }
@@ -370,7 +370,7 @@ printf_read_question() {
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
-  printf_color "\t\t$msg " "$color"
+  printf_color "\t\t$msg " "${PRINTF_COLOR:-$color}"
   read -t 30 -r -n $lines ${readopts} ${reply}
   printf_newline
 }
@@ -381,7 +381,7 @@ printf_read_question_nt() {
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
-  printf_color "\t\t$msg " "$color"
+  printf_color "\t\t$msg " "${PRINTF_COLOR:-$color}"
   read -r -n $lines ${readopts} ${reply}
   printf_newline
 }
@@ -418,15 +418,15 @@ printf_head() {
   local msg6="$1" && shift 1 || msg6=
   local msg7="$1" && shift 1 || msg7=
   shift
-  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
-  [ -z "$msg1" ] || printf_color "\t\t$msg1\n" "$color"
-  [ -z "$msg2" ] || printf_color "\t\t$msg2\n" "$color"
-  [ -z "$msg3" ] || printf_color "\t\t$msg3\n" "$color"
-  [ -z "$msg4" ] || printf_color "\t\t$msg4\n" "$color"
-  [ -z "$msg5" ] || printf_color "\t\t$msg5\n" "$color"
-  [ -z "$msg6" ] || printf_color "\t\t$msg6\n" "$color"
-  [ -z "$msg7" ] || printf_color "\t\t$msg7\n" "$color"
-  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "$color"
+  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg1" ] || printf_color "\t\t$msg1\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg2" ] || printf_color "\t\t$msg2\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg3" ] || printf_color "\t\t$msg3\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg4" ] || printf_color "\t\t$msg4\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg5" ] || printf_color "\t\t$msg5\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg6" ] || printf_color "\t\t$msg6\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg7" ] || printf_color "\t\t$msg7\n" "${PRINTF_COLOR:-$color}"
+  [ -z "$msg1" ] || printf_color "\t\t##################################################\n" "${PRINTF_COLOR:-$color}"
 }
 # same as printf_head but no formatting
 printf_header() {
@@ -494,7 +494,7 @@ __counter() {
   msg="$3"
   temp_cnt=${wait_time}
   while [[ ${temp_cnt} -gt 0 ]]; do
-    printf "\r%s" "$(printf_custom "$color" "$msg" ${temp_cnt} "$4")"
+    printf "\r%s" "$(printf_custom "${PRINTF_COLOR:-$color}" "$msg" ${temp_cnt} "$4")"
     sleep 1
     ((temp_cnt--))
   done
@@ -2442,8 +2442,9 @@ __options() {
 
   --remove | --uninstall)
     shift 1
-    installer_delete "$@"
-    if [[ $? -ne 0 ]]; then
+    local exitCode=0
+    installer_delete "$@" || exitCode=1
+    if [[ $exitCode -ne 0 ]]; then
       exit 1
     else
       exit 0
@@ -2547,8 +2548,7 @@ run_install_list() {
         for df in "${LSINST[@]}"; do
           installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
         done
-        printf_single "4" "$installed"
-        printf_newline
+        printf '%s\n' "$installed" | printf_column "4"
       fi
     elif [ "$(__count_dir "$SYSUPDATEDIR")" -ne 0 ]; then
       declare -a LSINST="$(ls "$SYSUPDATEDIR/")"
@@ -2556,8 +2556,7 @@ run_install_list() {
         for df in "${LSINST[@]}"; do
           installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
         done
-        printf_single 4 "$installed"
-        printf_newline
+        printf '%s\n' "$installed" | printf_column "4"
       fi
     else
       printf_red "Nothing was found"
@@ -2578,8 +2577,7 @@ run_install_search() {
   if [ -z "$results" ]; then
     printf_exit "Your seach produced no results"
   else
-    printf_single '4' "$results"
-    printf_newline
+    printf '%s\n' "$installed" | printf_column "${PRINTF_COLOR:-$color}"
   fi
   unset results
   exit $?
@@ -2589,7 +2587,7 @@ run_install_available() {
   if __api_test; then
     __curl_api ${1:-$APPNAME} | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
   else
-    __list_available | printf_column '5'
+    __list_available | printf_column "${PRINTF_COLOR:-$color}"
   fi
 }
 

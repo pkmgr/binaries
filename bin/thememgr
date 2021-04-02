@@ -170,7 +170,7 @@ makecache)
 
 list)
   shift 1
-  __listthemes
+  run_install_list "$@"
   ;;
 
 search)
