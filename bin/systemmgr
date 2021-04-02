@@ -156,6 +156,7 @@ while :; do
     export FORCE_INSTALL
     ;;
   -a | --all)
+    shift 1
     INSTALL_ALL="true"
     ;;
   --)
@@ -204,11 +205,12 @@ remove)
   shift 1
   sudoreq true || exit 1
   unset APPNAME
-  declare -a LISTARRAY="$*"
+  [ "$INSTALL_ALL" = "true" ] && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
+  [ ${#LISTARRAY} -ne 0 ] || printf_exit "No packages selected for removal"
   for rmf in ${LISTARRAY[*]}; do
     MESSAGE="Removing $rmf from $APPDIR"
     APPNAME="$rmf"
-    installer_delete "$APPNAME"
+    installer_delete "$APPNAME" && __notifications "Removed $APPNAME" || __notifications "Removal of $APPNAME has failed"
     echo ""
   done
   ;;
@@ -217,17 +219,20 @@ update)
   shift 1
   sudoreq true || exit 1
   unset APPNAME
+  { [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; } && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
   if [ $# -ne 0 ]; then
-    if [ "$INSTALL_ALL" = "true" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
-      run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
+      APPNAME="$ins"
+      run_install_update "$APPNAME" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
     done
-  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A "$USRUPDATEDIR" 2>/dev/null)" ]]; then
-    for upd in $(ls "$USRUPDATEDIR" 2>/dev/null); do
-      run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
+  elif [[ -d "$USRUPDATEDIR" ]] && [[ ${#LISTARRAY} -ne 0 ]]; then
+    for upd in $(ls "$USRUPDATEDIR"); do
+      APPNAME="$upd"
+      run_install_update "$APPNAME" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
     done
   else
     printf_yellow "There doesn't seem to be any packages installed"
+    __notifications "There doesn't seem to be any packages installed"
   fi
   exit $?
   ;;
@@ -236,12 +241,13 @@ install)
   shift 1
   sudoreq true || exit 1
   unset APPNAME
+  { [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; } && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
   if [ $# -eq 0 ]; then
     sudo systemmgr update
   else
-    [ "$INSTALL_ALL" = "true" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
-      run_install_init "$ins" && __notifications "Installed $ins" || __notifications "Installation of $ins has failed"
+      APPNAME="$ins"
+      run_install_init "$APPNAME" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
     done
   fi
   exit $?

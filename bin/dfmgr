@@ -120,7 +120,7 @@ DFMGR_GIT_REPO="https://github.com/dfmgr"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
-SHORTOPTS="c,v,h,f,l"
+SHORTOPTS="c,v,h,f,l,a"
 LONGOPTS="options,config,version,help,force,list,all"
 ARRAY="list search available personal update install cron version remove"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -171,6 +171,7 @@ while :; do
     __list_available
     ;;
   -a | --all)
+    shift 1
     INSTALL_ALL="true"
     ;;
   --)
@@ -227,11 +228,12 @@ personal)
 remove)
   shift 1
   unset APPNAME
-  declare -a LISTARRAY="$*"
+  [ "$INSTALL_ALL" = "true" ] && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
+  [ ${#LISTARRAY} -ne 0 ] || printf_exit "No packages selected for removal"
   for rmf in ${LISTARRAY[*]}; do
     MESSAGE="Removing $rmf from $CONF"
     APPNAME="$rmf"
-    installer_delete "$APPNAME"
+    installer_delete "$APPNAME" && __notifications "Removed $APPNAME" || __notifications "Removal of $APPNAME has failed"
     echo ""
   done
   ;;
@@ -239,13 +241,16 @@ remove)
 update)
   shift 1
   unset APPNAME
+  { [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; } && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
   if [ $# -ne 0 ]; then
     for ins in ${LISTARRAY[*]}; do
-      run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
+      APPNAME="$ins"
+      run_install_update "$APPNAME" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
     done
-  elif [[ -d "$USRUPDATEDIR" ]] && [[ "$(ls -A "$USRUPDATEDIR" 2>/dev/null | wc -l)" -ne 0 ]]; then
+  elif [[ -d "$USRUPDATEDIR" ]] && [[ ${#LISTARRAY} -ne 0 ]]; then
     for upd in $(ls "$USRUPDATEDIR"); do
-      run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
+      APPNAME="$upd"
+      run_install_update "$APPNAME" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
     done
   else
     printf_yellow "There doesn't seem to be any packages installed"
@@ -257,14 +262,14 @@ update)
 install)
   shift 1
   unset APPNAME
+  { [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; } && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
   if [ $# -eq 0 ]; then
     printf_blue "No packages provide running the updater"
     dfmgr update
   else
-    [ "$INSTALL_ALL" = "true" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       APPNAME="$ins"
-      run_install_init "$APPNAME" && __notifications "Installation of $APPNAME has finished" || __notifications "Installation of $APPNAME has failed"
+      run_install_init "$ins" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
     done
   fi
   exit $?

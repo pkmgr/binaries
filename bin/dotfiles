@@ -129,7 +129,7 @@ admin)
 install)
   shift 1
   [ -z "$1" ] && echo "$LIST" && exit 1
-  [ "$1" = "--all" ] && declare -a LISTARRAY="$LIST" ||
+  [ "$1" = "--all" ] && declare -a LISTARRAY="$(__list_available)" ||
     declare -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
     dfmgr install "$ins"

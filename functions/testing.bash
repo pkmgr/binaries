@@ -2619,7 +2619,8 @@ run_install_version() {
 }
 
 installer_delete() {
-  local rmf="" exitCode=0
+  local rmf=""
+  local exitCode=0
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
     local MESSAGE="${MESSAGE:-Removing $rmf from ${msg:-your system}}"
@@ -2639,6 +2640,7 @@ installer_delete() {
     fi
   done
   unset rmf
+  return ${exitCode}
 }
 
 ##################################################################################################
