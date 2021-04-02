@@ -1854,7 +1854,7 @@ systemmgr_install() {
   CONF="${SYSCONF:-/usr/local/etc}"
   SHARE="${SYSSHARE:-/usr/local/share}"
   APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
-  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
@@ -1867,9 +1867,12 @@ systemmgr_install() {
   else
     APPVERSION="$currentVersion"
   fi
+  if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
+    APPDIR="/usr/local/share/CasjaysDev/scripts"
+    INSTDIR="/usr/local/share/CasjaysDev/scripts"
+  fi
   mkd "$USRUPDATEDIR" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   export installtype="systemmgr_install"
-  __main_installer_info &>/dev/null
 }
 ######## Installer Functions ########
 systemmgr_run_init() {
