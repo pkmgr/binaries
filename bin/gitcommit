@@ -165,7 +165,7 @@ while :; do
     ;;
   -d | --dir)
     shift 1
-    MYCURRDIR="$2"
+    MYCURRDIR="$1"
     shift 1
     ;;
   -m | --mess | --message)

@@ -30,7 +30,7 @@ _gitcommit() {
   local SHORTOPTS="$(grep -sEv '#|^$' "$OPTSDIR/short_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep -v '\--')"
   local OPTS="$DEFAULTOPTS"
   local ARRAY="$DEFAULTARRAY"
-  local SHOW_COMP_OPTS=""
+  local SHOW_COMP_OPTS="default"
   local FILEDIR=""
 
   _init_completion || return
@@ -41,7 +41,7 @@ _gitcommit() {
 
   local special i
   for ((i = 1; i < ${#words[@]} - 1; i++)); do
-    if [[ ${words[i]} == @(changed|new|improve|fix|release|docs|test|breaking) ]]; then
+    if [[ ${words[i]} == @(changed|new|improve|fixed|release|docs|test|breaking) ]]; then
       special=${words[i]}
       break
     fi
@@ -50,7 +50,6 @@ _gitcommit() {
   if [[ -v special ]]; then
     [[ $cur == @(*/|[.~])* && $special == @(cron|update|remove|version) ]]
   fi
-
   if [[ ${cur} == --* ]]; then
     COMPREPLY=($(compgen -W '${LONGOPTS}' -- ${cur}))
   elif [[ ${cur} == -* ]]; then
@@ -62,11 +61,12 @@ _gitcommit() {
     -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -d | --dir) COMPREPLY=($(compgen -W '$(_filedir)' -o filenames -o dirnames -- ${cur})) ;;
     -) prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
-    changed | new | improve | fix | release | docs | test | breaking)
+    changed | new | improve | fixed | release | docs | test | breaking)
       prev="$special"
-      comp -o nospace
-      COMPREPLY=($(compgen -W '$(_filedir)' -o filenames -o dirnames -- "${cur}"))
+      compopt -o nospace
+      COMPREPLY=($(compgen -W '$(_filedir)' -o filenames -- "${cur}"))
       ;;
     *)
       if [ -n "$FILEDIR" ]; then _filedir; fi
