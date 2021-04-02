@@ -51,6 +51,7 @@ __gen_config() {
     cp -Rf "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE.$$"
   cat <<EOF >"$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE"
 # Settings for dfmgr
+DFMGR_GIT_REPO="https://github.com/dfmgr"
 DFMGR_DOTFILES_DIR="${PERSONAL_DOTFILES_DIR:-$HOME/.local/dotfiles/personal}"
 DFMGR_FORCE_INSTALL="false"
 DFMGR_NOTIFY_ENABLED="yes"
@@ -115,12 +116,13 @@ DFMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 DFMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DFMGR_NOTIFY_CLIENT_ICON}"
 DFMGR_DOTFILES_DIR="${PERSONAL_DOTFILES_DIR:-$HOME/.local/dotfiles/personal}"
 DFMGR_FORCE_INSTALL="false"
+DFMGR_GIT_REPO="https://github.com/dfmgr"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f,l"
-LONGOPTS="options,config,version,help,force,list"
-ARRAY="personal search available update install cron"
+LONGOPTS="options,config,version,help,force,list,all"
+ARRAY="list search available personal update install cron version remove"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -168,6 +170,9 @@ while :; do
     shift 1
     __list_available
     ;;
+  -a | --all)
+    INSTALL_ALL="true"
+    ;;
   --)
     shift 1
     break
@@ -191,7 +196,11 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-
+export DFMGRREPO="$DFMGR_GIT_REPO"
+export REPO="$DFMGRREPO"
+export REPORAW="$DFMGRREPO/raw"
+export APPDIR="$CONF"
+export INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 case "$1" in
@@ -215,16 +224,27 @@ personal)
   df_personal && __notifications "Install/Update of personal dotfiles completed" || __notifications "Install/Update of personal dotfiles has failed"
   ;;
 
+remove)
+  shift 1
+  unset APPNAME
+  declare -a LISTARRAY="$*"
+  for rmf in ${LISTARRAY[*]}; do
+    MESSAGE="Removing $rmf from $CONF"
+    APPNAME="$rmf"
+    installer_delete "$APPNAME"
+    echo ""
+  done
+  ;;
+
 update)
   shift 1
   unset APPNAME
   if [ $# -ne 0 ]; then
-    if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
       run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
     done
-  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
-    for upd in $(find "$USRUPDATEDIR" 2>/dev/null | sed 's|'$USRUPDATEDIR/'||g'); do
+  elif [[ -d "$USRUPDATEDIR" ]] && [[ "$(ls -A "$USRUPDATEDIR" 2>/dev/null | wc -l)" -ne 0 ]]; then
+    for upd in $(ls "$USRUPDATEDIR"); do
       run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
     done
   else
@@ -238,9 +258,10 @@ install)
   shift 1
   unset APPNAME
   if [ $# -eq 0 ]; then
+    printf_blue "No packages provide running the updater"
     dfmgr update
   else
-    [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+    [ "$INSTALL_ALL" = "true" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       APPNAME="$ins"
       run_install_init "$APPNAME" && __notifications "Installation of $APPNAME has finished" || __notifications "Installation of $APPNAME has failed"

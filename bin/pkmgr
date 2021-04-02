@@ -66,6 +66,10 @@ EOF
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__list_available() {
+  echo -e '' | tr ' ' '\n'
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_updatechecheck() { __am_i_online --error && pkmgrcheckupdates; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __rm_rf() { sudo rm -Rf "$@"; }
@@ -332,6 +336,7 @@ while :; do
     shift 1
     __list_array "$PKMGR_OPTIONS_DIR" "$ARRAY"
     __list_options "$PKMGR_OPTIONS_DIR"
+    __list_available >"$PKMGR_OPTIONS_DIR/available"
     exit $?
     ;;
   -v | --version)
@@ -356,6 +361,9 @@ while :; do
   --enable-aur)
     shift 1
     ENABLE_AUR="true"
+    ;;
+  -a | --all)
+    INSTALL_ALL="true"
     ;;
   --)
     shift 1

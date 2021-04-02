@@ -70,6 +70,10 @@ EOF
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__list_available() {
+  echo -e 'airsonic daapd gitea hub ifconfig mariadb mongodb nginx-manager portainer postgresql registry registry-web template transmission' | tr ' ' '\n'
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __init() {
   am_i_online --error -m "Can not setup docker: No internet" || exit 1
   if ! cmd_exists docker; then
@@ -107,20 +111,24 @@ __init_help() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __install() {
-  am_i_online --error -m "Can not setup docker: No internet" || exit 1
   declare -a LISTARRAY="$*"
   for container in ${LISTARRAY[*]}; do
     APPNAME="$1"
-    if [ -d "$DATADIR/$APPNAME" ]; then
-      git -C "$DATADIR/$APPNAME" reset --hard -q &&
-        git -C "$DATADIR/$APPNAME" pull -q && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+    if [ -f "$INSTDIR/install.sh" ]; then
+      run_install_update "$container" && __notifications "Updated $container" || __notifications "Update of $container has failed"
     else
-      git clone -q "$REPO/$APPNAME" "$DATADIR/$APPNAME" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
-    fi
-    chmod -Rf 755 "$DATADIR/$APPNAME/install.sh"
-    __requiresudo -HE bash "$DATADIR/$APPNAME/install.sh" __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
-    if [ -d "$DATADIR/$APPNAME/os" ]; then
-      __requiresudo cp -Rf "$SHARE/$APPNAME/os/." / && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+      am_i_online --error -m "Can not setup docker: No internet" || exit 1
+      if [ -d "$DATADIR/$APPNAME" ]; then
+        git -C "$DATADIR/$APPNAME" reset --hard -q &&
+          git -C "$DATADIR/$APPNAME" pull -q && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+      else
+        git clone -q "$REPO/$APPNAME" "$DATADIR/$APPNAME" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+      fi
+      chmod -Rf 755 "$DATADIR/$APPNAME/install.sh"
+      __requiresudo -HE bash "$DATADIR/$APPNAME/install.sh" __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+      if [ -d "$DATADIR/$APPNAME/os" ]; then
+        __requiresudo cp -Rf "$SHARE/$APPNAME/os/." / && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+      fi
     fi
   done
 }
@@ -222,7 +230,7 @@ DOCKERMGR_FORCE_INSTALL="false"
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f"
 LONGOPTS="options,config,version,help,force"
-ARRAY="list cron update log inactive active run ssh install init"
+ARRAY="list search available init install ssh run active inactive log update cron "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$DOCKERMGR_CONFIG_DIR/$DOCKERMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -243,6 +251,7 @@ while :; do
     shift 1
     __list_array "$DOCKERMGR_OPTIONS_DIR" "$ARRAY"
     __list_options "$DOCKERMGR_OPTIONS_DIR"
+    __list_available >"$DOCKERMGR_OPTIONS_DIR/available"
     exit $?
     ;;
   -v | --version)
@@ -263,6 +272,9 @@ while :; do
   -f | --force)
     shift 1
     export FORCE_INSTALL="true"
+    ;;
+  -a | --all)
+    INSTALL_ALL="true"
     ;;
   --)
     shift 1
@@ -291,6 +303,21 @@ DATADIR="$DOCKERMGR_HOME"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 case "$1" in
+list)
+  shift 1
+  run_install_available
+  ;;
+
+search)
+  shift 1
+  run_install_search "$@"
+  ;;
+
+available)
+  shift 1
+  run_install_available
+  ;;
+
 init)
   shift 1
   [ "$1" = "help" ] && __init_help
@@ -346,11 +373,6 @@ update)
 cron)
   shift 1
   __run_cron "$*"
-  ;;
-
-list)
-  shift 1
-  run_install_available
   ;;
 
 *)

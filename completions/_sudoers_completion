@@ -16,7 +16,7 @@
 #_sudoers --options &>/dev/null
 _sudoers() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
-  local cur prev words cword opts
+  local cur prev words cword opts split
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
@@ -48,7 +48,7 @@ _sudoers() {
     -c | --config) prev="--config" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
-    remove ) prev="remove" && COMPREPLY=($(compgen -u -- "$cur")) ;;
+    remove) prev="remove" && COMPREPLY=($(compgen -u -- "$cur")) ;;
     remuser) prev="remuser" && COMPREPLY=($(compgen -u -- "$cur")) ;;
     adduser) prev="adduser" && COMPREPLY=($(compgen -u -- "$cur")) ;;
     pass) prev="pass" && COMPREPLY=($(compgen -u -- "$cur")) ;;
@@ -57,7 +57,8 @@ _sudoers() {
     status) prev="status" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     command) shift 1 && prev="${COMP_WORDS[0]}" && COMPREPLY=($(compgen -c -- "${cur}")) ;;
     -) prev="-" && COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
-    *) COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+    *)
+      COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       #if [ -n "$FILEDIR" ]; then _filedir; fi
       #if [[ "$ARRAY" = "show-none" ]]; then
       #  COMPREPLY=($(compgen -W '' -- "${cur}"))
@@ -66,16 +67,16 @@ _sudoers() {
       #elif [[ "$ARRAY" = "show-commands" ]]; then
       #  COMPREPLY=($(compgen -c -- "${cur}"))
       #elif [[ -n "$ARRAY" ]]; then
-        #[ $COMP_CWORD -eq 3 ] && \
+      #[ $COMP_CWORD -eq 3 ] && \
       #  COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       #elif [[ -n "$OPTS" ]]; then
-        #[ $COMP_CWORD -gt 3 ] && \
+      #[ $COMP_CWORD -gt 3 ] && \
       #  COMPREPLY=($(compgen -W '${OPTS}' -- "${cur}"))
       #fi
       return
       ;;
-  esac
-  $split && return
+    esac
+    $split && return
   fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -16,7 +16,7 @@
 [ -f "$HOME/.local/share/myscripts/gitcommit/array" ] || gitcommit --options &>/dev/null
 _gitcommit() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
-  local cur prev words cword opts
+  local cur prev words cword opts split
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
@@ -48,7 +48,7 @@ _gitcommit() {
   done
 
   if [[ -v special ]]; then
-    [[ $cur == @(*/|[.~])* && $special == @(cron|update|remove|version) ]];
+    [[ $cur == @(*/|[.~])* && $special == @(cron|update|remove|version) ]]
   fi
 
   if [[ ${cur} == --* ]]; then
@@ -63,7 +63,7 @@ _gitcommit() {
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -) prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
-    changed|new|improve|fix|release|docs|test|breaking)
+    changed | new | improve | fix | release | docs | test | breaking)
       prev="$special"
       comp -o nospace
       COMPREPLY=($(compgen -W '$(_filedir)' -o filenames -o dirnames -- "${cur}"))

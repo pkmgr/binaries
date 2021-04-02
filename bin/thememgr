@@ -68,6 +68,10 @@ EOF
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__list_available() {
+  echo -e 'Arc-Pink-Dark' | tr ' ' '\n'
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
 THEMEMGR_CONFIG_FILE="settings.conf"
@@ -84,7 +88,7 @@ THEMEMGR_FORCE_INSTALL="false"
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f"
-LONGOPTS="options,config,version,help,force"
+LONGOPTS="options,config,version,help,force,all"
 ARRAY="makecache list search available remove update install cron version"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
@@ -106,6 +110,7 @@ while :; do
     shift 1
     __list_array "$THEMEMGR_OPTIONS_DIR" "$ARRAY"
     __list_options "$THEMEMGR_OPTIONS_DIR"
+    __list_available >"$THEMEMGR_OPTIONS_DIR/available"
     exit $?
     ;;
   -v | --version)
@@ -126,6 +131,9 @@ while :; do
   -f | --force)
     shift 1
     export FORCE_INSTALL="true"
+    ;;
+  -a | --all)
+    INSTALL_ALL="true"
     ;;
   --)
     shift 1
@@ -177,12 +185,12 @@ available)
 
 remove)
   shift 1
-  printf_green "Removing $* from $THEMEDIR"
+  unset APPNAME
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
-    printf_yellow "Removing $rmf theme from your system"
-    removetheme "$rmf" && __notifications "Removed $rmf" || __notifications "Removal of $rmf has failed"
-    getexitcode "$rmf has been removed"
+    MESSAGE="Removing $rmf from $THEMEDIR"
+    APPNAME="$rmf"
+    installer_delete "$APPNAME"
     echo ""
   done
   ;;
@@ -191,12 +199,12 @@ update)
   shift 1
   unset APPNAME
   if [ $# -ne 0 ]; then
-    if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
+    if [ "$INSTALL_ALL" = "true" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
       run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
     done
-  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
-    for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
+  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A "$USRUPDATEDIR" 2>/dev/null)" ]]; then
+    for upd in $(ls "$USRUPDATEDIR" 2>/dev/null); do
       run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
     done
   else
@@ -211,7 +219,7 @@ install)
   if [ $# -eq 0 ]; then
     thememgr update
   else
-    [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+    [ "$INSTALL_ALL" = "true" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       run_install_init "$ins" && __notifications "Installed $ins" || __notifications "Installation of $ins has failed"
     done

@@ -322,11 +322,10 @@ printf_readline() {
   set +o pipefail
 }
 printf_column() {
+  local -a column=""
   set -o pipefail
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="6"
-  while read line; do
-    printf_color "\t\t$line" "$color"
-  done | column
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="7"
+  cat - | column | printf_readline "$color"
   printf "\n"
   set +o pipefail
 }
@@ -1030,11 +1029,12 @@ check_uri() {
 }
 #very simple function to ensure connection and jq exists
 __api_test() {
+  local message="$*"
   if __am_i_online && __cmd_exists jq; then
     return 0
   else
-    if [ -n "$1" ]; then printf_error "$1"; fi
-    exit 1
+    if [ -n "$message" ]; then printf_error "$message"; fi
+    return 1
   fi
 }
 #do_not_add_a_url "url"
@@ -2004,7 +2004,7 @@ devenvmgr_install() {
   APPDIR="$SHARE/$SCRIPTS_PREFIX"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   REPO="$DEVENVMGRREPO"
-  REPORAW="$DOCKERMGRREPO/raw"
+  REPORAW="$DEVENVMGRREPO/raw"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
@@ -2025,7 +2025,7 @@ dfmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dfmgr"
   REPO="$DFMGRREPO"
-  REPORAW="$DOCKERMGRREPO/raw"
+  REPORAW="$DFMGRREPO/raw"
   APPDIR="$CONF"
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -2495,7 +2495,7 @@ run_install_update() {
   export mgr_init="${mgr_init:-true}"
   if [ $# = 0 ]; then
     if [[ -d "$USRUPDATEDIR " && -n "$(ls -A $USRUPDATEDIR)" ]]; then
-      for upd in $(ls $USRUPDATEDIR); do
+      for upd in $(ls "$USRUPDATEDIR"); do
         run_install_init "$upd"
         local exitCode+=$?
       done
@@ -2521,7 +2521,7 @@ run_install_update() {
 
 run_install_list() {
   local installed=""
-  if [ "$#" -ne 0 ]; then
+  if [ $# -ne 0 ]; then
     local args="$*"
     for f in $args; do
       if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$f" 2>/dev/null)" ]; then
@@ -2542,12 +2542,12 @@ run_install_list() {
     done
   else
     if [ "$(__count_dir "$USRUPDATEDIR")" -ne 0 ]; then
-      local -a LSINST="$(ls "$USRUPDATEDIR/")"
+      local -a LSINST="$(ls "$USRUPDATEDIR")"
       if [ -n "$LSINST" ]; then
         for df in "${LSINST[@]}"; do
           installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
         done
-        printf_single 4 "$installed"
+        printf_single "4" "$installed"
         printf_newline
       fi
     elif [ "$(__count_dir "$SYSUPDATEDIR")" -ne 0 ]; then
@@ -2586,7 +2586,11 @@ run_install_search() {
 }
 
 run_install_available() {
-  __api_test "Failed to load the API for $APPNAME" && __curl_api ${1:-$APPNAME} | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
+  if __api_test; then
+    __curl_api ${1:-$APPNAME} | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
+  else
+    __list_available | printf_column '5'
+  fi
 }
 
 run_install_version() {
@@ -2617,17 +2621,19 @@ run_install_version() {
 }
 
 installer_delete() {
-  local rmf
-  local exitCode=0
+  local rmf="" exitCode=0
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
+    local MESSAGE="${MESSAGE:-Removing $rmf from ${msg:-your system}}"
     if [ -d "$APPDIR/$rmf" ] || [ -d "$INSTDIR/$rmf" ]; then
-      printf_yellow "Removing $rmf from your system"
-      [ -d "$INSTDIR/$rmf" ] && __rm_rf "$INSTDIR/$rmf"
+      printf_yellow "$MESSAGE"
+      printf_blue "Deleting the files"
+      [ -d "$INSTDIR/$rmf" ] && __rm_rf "$INSTDIR/$rmf" || exitCode+=1
       __rm_rf "$APPDIR/$rmf" "$INSTDIR/$rmf" || exitCode+=1
       __rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$rmf" || exitCode+=1
       __rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$rmf" || exitCode+=1
-      __broken_symlinks $BIN $SHARE $COMPDIR $CONF || exitCode+=1
+      printf_yellow "Removing any broken symlinks"
+      __broken_symlinks "$BIN" "$SHARE" "$COMPDIR" "$CONF" "$THEMEDIR" "$FONTDIR" "$ICONDIR" || exitCode+=1
       __getexitcode $exitCode "$rmf has been removed" " "
       return $exitCode
     else

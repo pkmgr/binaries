@@ -68,6 +68,10 @@ EOF
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__list_available() {
+  echo -e 'cron grub httpd lightdm nginx postfix samba ssh ssl tor scripts' | tr ' ' '\n'
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 preupdate() {
   if __am_i_online && [ -d "$CASJAYSDEVDIR" ]; then
     sudo git -C $CASJAYSDEVDIR pull -q
@@ -106,8 +110,8 @@ SYSTEMMGR_INSTALLDIR="$INSTDIR"
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f"
-LONGOPTS="options,config,version,help,force"
-ARRAY=""
+LONGOPTS="options,config,version,help,force,all"
+ARRAY="list search available remove update install cron version"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -128,6 +132,7 @@ while :; do
     shift 1
     __list_array "$SYSTEMMGR_OPTIONS_DIR" "$ARRAY"
     __list_options "$SYSTEMMGR_OPTIONS_DIR"
+    __list_available >"$SYSTEMMGR_OPTIONS_DIR/available"
     exit $?
     ;;
   -v | --version)
@@ -149,6 +154,9 @@ while :; do
     shift 1
     FORCE_INSTALL="true"
     export FORCE_INSTALL
+    ;;
+  -a | --all)
+    INSTALL_ALL="true"
     ;;
   --)
     shift 1
@@ -195,9 +203,12 @@ available)
 remove)
   shift 1
   sudoreq true || exit 1
+  unset APPNAME
   declare -a LISTARRAY="$*"
   for rmf in ${LISTARRAY[*]}; do
-    app_uninstall "$rmf"
+    MESSAGE="Removing $rmf from $APPDIR"
+    APPNAME="$rmf"
+    installer_delete "$APPNAME"
     echo ""
   done
   ;;
@@ -207,12 +218,12 @@ update)
   sudoreq true || exit 1
   unset APPNAME
   if [ $# -ne 0 ]; then
-    if [ "$1" = "--all" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
+    if [ "$INSTALL_ALL" = "true" ]; then shift 1 && declare -a LISTARRAY="$LIST"; else declare -a LISTARRAY="$*"; fi
     for ins in ${LISTARRAY[*]}; do
       run_install_update "$ins" && __notifications "Updated $ins" || __notifications "Update of $ins has failed"
     done
-  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A $USRUPDATEDIR 2>/dev/null)" ]]; then
-    for upd in $(ls $USRUPDATEDIR 2>/dev/null); do
+  elif [[ -d "$USRUPDATEDIR" && -n "$(ls -A "$USRUPDATEDIR" 2>/dev/null)" ]]; then
+    for upd in $(ls "$USRUPDATEDIR" 2>/dev/null); do
       run_install_update "$upd" && __notifications "Updated $upd" || __notifications "Update of $upd has failed"
     done
   else
@@ -228,7 +239,7 @@ install)
   if [ $# -eq 0 ]; then
     sudo systemmgr update
   else
-    [ "$1" = "--all" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
+    [ "$INSTALL_ALL" = "true" ] && shift 1 && declare -a LISTARRAY="$LIST" || declare -a LISTARRAY="$*"
     for ins in ${LISTARRAY[*]}; do
       run_install_init "$ins" && __notifications "Installed $ins" || __notifications "Installation of $ins has failed"
     done

@@ -16,7 +16,7 @@
 [ -f "$HOME/.local/share/myscripts/dfmgr/options/array" ] || dfmgr --options &>/dev/null
 _dfmgr() {
   ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
-  local cur prev words cword opts
+  local cur prev words cword opts split
   local cur="${COMP_WORDS[$COMP_CWORD]}"
   local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
   local CONFFILE="settings.conf"
@@ -45,9 +45,8 @@ _dfmgr() {
   done
 
   if [[ -v special ]]; then
-    [[ $cur == @(*/|[.~])* && $special == @(cron|update|remove|version) ]];
+    [[ $cur == @(*/|[.~])* && $special == @(cron|update|remove|version) ]]
   fi
-
 
   if [ "$SHOW_COMP_OPTS" != "" ]; then
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
@@ -68,7 +67,7 @@ _dfmgr() {
     available) prev="available" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     list) prev="list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     search) prev="search" && COMPREPLY=($(compgen -W '$(echo {0..9} {a..z})' -- "${cur}")) && compopt -o nospace ;;
-    install) prev="install" && COMPREPLY=($(compgen -W '--all ${LIST}' -- "${cur}")) ;;
+    install) prev="install" && COMPREPLY=($(compgen -W '${LIST}' -- "${cur}")) ;;
     update | cron | remove | version)
       prev="$special"
       k=0
@@ -89,11 +88,11 @@ _dfmgr() {
       elif [[ "$ARRAY" = "show-commands" ]]; then
         COMPREPLY=($(compgen -c -- "${cur}"))
       elif [[ -n "$ARRAY" ]]; then
-        [ $COMP_CWORD -lt 2 ] && \
-        COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+        [ $COMP_CWORD -lt 2 ] &&
+          COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
       elif [[ -n "$OPTS" ]]; then
-        [ $COMP_CWORD -gt 2 ] && \
-        COMPREPLY=($(compgen -W '' -- "${cur}"))
+        [ $COMP_CWORD -gt 2 ] &&
+          COMPREPLY=($(compgen -W '' -- "${cur}"))
       fi
       ;;
     esac
@@ -103,4 +102,3 @@ _dfmgr() {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
   complete -F _dfmgr dfmgr
-
