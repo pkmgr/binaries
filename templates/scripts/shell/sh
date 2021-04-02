@@ -22,19 +22,23 @@ SRC_DIR="$(dirname "$PROG")"
 # @Resource      : GEN_SCRIPTS_REPLACE_RES
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-cmd_exists sh || exit 1 # exit if not found
+#cmd_exists sh || exit 1 # exit if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set variables
 __heading="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set functions
-__sed_remove_empty() { sed '/^\#/d;/^$/d;s#^ ##g'; }
-__sed_head() { sed -E 's/^.*#//g;s#^ ##g;s/^@//g'; }
-__grep_head() { grep -sE '[".#]?@[A-Z]' "$(type -P "${2:-$GEN_SCRIPTS_REPLACE_FILENAME}")" | grep "${1:-}" | __sed_head | __sed_remove_empty | grep '^' || return 1; }
-__version() { __grep_head 'Version' "GEN_SCRIPTS_REPLACE_FILENAME" | __sed_head | head -n1 | grep '^'; }
+__version() { __grep_head 'Version' "$PROG" | __sed_head | head -n1 | grep '^'; }
 __printf_color() { printf "%b" "$(tput setaf "${2:-2}" 2>/dev/null)" "$1" "$(tput sgr0 2>/dev/null)"; }
 __printf_head() { __printf_color "\n\t\t$__heading\n\t\t$2\n\t\t$__heading\n" "$1"; }
+__list_options() { echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' && echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' && exit; }
+__list_array() { echo "$ARRAY" | tr ',' ' ' | tr ' ' '\n'; }
+__sed_remove_empty() { sed '/^\#/d;/^$/d;s#^ ##g'; }
+__sed_head() { sed -E 's/^.*#//g;s#^ ##g;s/^@//g'; }
+__grep_head() {
+  grep -sE '[".#]?@[A-Z]' "$(type -P "${2:-$GEN_SCRIPTS_REPLACE_FILENAME}")" | grep "${1:-}" | __sed_head | __sed_remove_empty | grep '^' || return 1
+}
 __printf_help() {
   local color="$1" && shift 1
   local msg="$*"
@@ -51,27 +55,54 @@ __help() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables
 exitCode=""
-GEN_SCRIPTS_ARRAY_DIR="$HOME/.local/share/GEN_SCRIPTS_REPLACE_FILENAME"
+GEN_SCRIPTS_ARRAY_DIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
 GEN_SCRIPTS_REPLACE_CONFIG_DIR="$HOME/.config/GEN_SCRIPTS_REPLACE_FILENAME"
 GEN_SCRIPTS_REPLACE_CONFIG_FILE="settings.conf"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # bring in user config
 [ -f "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE" ] && . "$GEN_SCRIPTS_REPLACE_CONFIG_DIR/$GEN_SCRIPTS_REPLACE_CONFIG_FILE"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Setup application options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -n "$APPNAME" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_options
+    __list_array
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-case "$1" in
---help)
-  shift 1
-  __help
-  exit
-  ;;
---version)
-  shift 1
-  __version
-  exit
-  ;;
+case $1 in
 *)
-  __printf_color "\t\t$PROG\n" "2"
+  echo -e "$PROG: ${*}"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -79,3 +110,4 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit "${exitCode:-$?}"
+
