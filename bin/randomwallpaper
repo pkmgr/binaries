@@ -58,14 +58,14 @@ MANUAL=""
 [ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] &&
   . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { echo "$*" >/dev/null; }; fi
-REFRESH_TIME=$((60 * REFRESH_TIME))
+ROTATE_TIME=$((60 * ROTATE_TIME))
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config"
   __mkd "$RANDOMWALLPAPER_CONFIG_DIR"
   echo '# Randomwallpaper Settings
 # Options minutes,daily,weekly,monthly
-ROTATE_TIME='"${ROTATE_TIME:-300}"'
+ROTATE_TIME='"${ROTATE_TIME:-5}"'
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 CACHE_DIR="${CACHE_DIR:-$HOME/.cache/randomwallpaper}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
@@ -172,7 +172,7 @@ __background_job() {
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
   [ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] && . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
   randomwallpaper --bg --new && touch "$RUN_FILE" || __rm_rf "$RUN_FILE"
-  sleep ${ROTATE_TIME:-300}
+  sleep ${ROTATE_TIME:-5}
   __kill && __background_job || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
