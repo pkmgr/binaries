@@ -6,7 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-
+trap '[ -f "$LERTA" ] && rm "$LERTA"' EXIT
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103200615-git
 # @Author        : Jason Hempstead
@@ -40,6 +40,12 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME $*" &
+  disown
+  sleep 5
+  exit
+fi
 [[ "$1" = -y ]] && cmd_exists cal && cal -y | printf_readline && exit || true
 CAL_CONFIG="$HOME/.config/local/calendar.local"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -61,33 +67,32 @@ MESSAGE="\$(date +"Today is: %A %B %d, %Y and the time is: %H:%M")"
 
 EOF
 }
-
-if [ -f "$CAL_CONFIG" ]; then
-  . "$CAL_CONFIG"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$CAL_CONFIG" ]; then . "$CAL_CONFIG"; else gen_config "$CAL_CONFIG" && . "$CAL_CONFIG"; fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if cmd_exists yad; then
+  yad() { command yad "$*"; }
 else
-  gen_config "$CAL_CONFIG"
-  . "$CAL_CONFIG"
+  notifications "Calendar" "yad is not installed, graphical interface not available"
 fi
-[ -z "$MESSAGE" ] && MESSAGE="$(date +'Today is: %A %B %d, %Y and the time is: %H:%M')"
-printf_custom "3" "$MESSAGE"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # estonta - function file
 LERTA=$(mktemp)
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # better parsing of the iCal file thanks to http://stackoverflow.com/a/8574392
 containsElement() {
   local e
   for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
   return 1
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 initialise() {
   if [[ ! -s "$eventpath" ]]; then
     mkdir -p "$eventpath" 2>/dev/null
     printf_geen "New directory created at $eventpath."
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 generate_fields() {
   icalarray=("DTSTART" "SUMMARY" "LOCATION" "DESCRIPTION" "CATEGORIES")
   while read line; do
@@ -107,7 +112,7 @@ generate_fields() {
   category="$CATEGORIES"
   source "$CAL_CONFIG"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 find_appointments() {
   [[ ! -z "$(ls -A $eventpath)" ]] || {
     printf_red "No events found"
@@ -118,7 +123,7 @@ find_appointments() {
     list_appointment
   done
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 date_range() {
   # SO - http://stackoverflow.com/questions/28226229/bash-looping-through-dates
   sdr="$(date -I -d "$sdr")" || exit 1
@@ -129,7 +134,7 @@ date_range() {
     DATEFILE=$(date -I -d "$DATEFILE + 1 day")
   done
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 list_appointment() {
   [[ ! -z "$(ls -A $eventpath)" ]] || {
     printf_red "No events found"
@@ -143,7 +148,7 @@ list_appointment() {
     printf_custom "4" "$TERSE"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 list_all() {
   initialise
   [[ ! -z "$(ls -A $eventpath)" ]] || {
@@ -153,10 +158,10 @@ list_all() {
   for file in $eventpath/*.ics; do
     tail -n +7 $file >$LERTA
     generate_fields
-    printf_custom "4" "$TERSE"
+    printf "%s\n" "$TERSE"
   done
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tagordo() {
   [[ ! -z "$(ls -A $eventpath)" ]] || {
     printf_red "No events found"
@@ -168,7 +173,7 @@ tagordo() {
     printf_green "$(date -d $DTSTART +"%Y-%m-%d") $SUMMARY ($(date -d $DTSTART +"%-l:%M%P"))"
   done
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 list_by_cat() {
   [[ ! -z "$(ls -A $eventpath)" ]] || {
     printf_red "No events found"
@@ -181,9 +186,8 @@ list_by_cat() {
       printf_info "$TERSE"
     fi
   done
-
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 list_by_text() {
   [[ ! -z "$(ls -A $eventpath)" ]] || {
     printf_red "No events found"
@@ -195,7 +199,7 @@ list_by_text() {
     [[ $SUMMARY =~ ${FILTER} ]] && printf_custom "4" "$TERSE"
   done
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 join_strings() {
   local d=$1
   shift
@@ -203,7 +207,7 @@ join_strings() {
   shift
   printf "%s" "${@/#/$d}"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 shell_generate_ical() {
   newfile="$eventpath/$(date -Iminutes -d "$sdt" | tr -d ':').ics"
   # simple anti-clash mechanism
@@ -214,6 +218,7 @@ shell_generate_ical() {
   fi
   touch $newfile
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 yad_generate_ical() {
   newfile="$eventpath/$(date -Iminutes -d "$sdt" | tr -d ':').ics"
   # simple anti-clash mechanism
@@ -223,7 +228,7 @@ yad_generate_ical() {
   fi
   touch $newfile
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 populate_ical() {
   vcst="BEGIN:VCALENDAR"
   vcv="VERSION:2.0"
@@ -246,7 +251,7 @@ populate_ical() {
   echo -e $veven >>$newfile
   echo "END:VCALENDAR" >>$newfile
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gui_add_event() {
   [[ ! -s $eventpath ]] && {
     mkdir -p "$eventpath" 2>/dev/null
@@ -285,7 +290,7 @@ gui_add_event() {
   populate_ical
   thanks=$(yad --text="Event saved")
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 text_add_event() {
   initialise
   printf_read_input "4" "[Format: YYYYMMDD] What date is the event: " "160" dat
@@ -303,25 +308,44 @@ text_add_event() {
   populate_ical
   printf_green "Event saved."
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__show_date() {
+  clear
+  printf_newline '\n\n\n'
+  if [ -z "$MESSAGE" ]; then
+    MESSAGE="$(date +'Today is: %A %B %d, %Y and the time is: %H:%M')"
+  fi
+  printf_custom "3" "$MESSAGE"
+  printf_newline '\n'
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 show_help() {
   # add: -ag for gui, -a for console
   # list: -lg for calendar, -l (or empty) for text, -d for date, -r for range, -s for summary search
+  printf_green "-a                                   -  Add event in console."
+  printf_green "-ag                                  -  Add event using a graphical dialog interface."
+  printf_green "-g                                   -  Graphical calendar display of events (can also add events)."
+  printf_green "empty,enter                          -  Show all events"
+  printf_green "-c --category=TEXT                   -  List all saved events filtered by category."
+  printf_green "-s --summary=TEXT                    -  List all saved events filtered by summary."
+  printf_green "-d,--date=DATE_STRING                - Find events matching the date string."
+  printf_green "-r START_DATE_STRING END_DATE_STRING -  Find events within a date range."
+  printf_green "-h,-?,--help                         - Show this help."
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__show_date
+if [ $# = 0 ]; then
+  show_help
+  printf_newline '\n'
+  printf_read_input "5" "What would you like to do?" "5" "main" "-e"
+  printf_newline '\n'
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case ${1:-$main} in
+-h | -\? | --help)
   printf_red "calendar script."
   printf_info "Edit ~/.config/local/calendar.local to change the directory."
   printf_info "DATE_STRING is a any value accepted by date(1) function."
-  printf_green "-a  Add event in console."
-  printf_green "-ag	Add event using a graphical dialog interface."
-  printf_green "-g  Graphical calendar display of events (can also add events)."
-  printf_green "-c --category=TEXT List all saved events filtered by category."
-  printf_green "-s --summary=TEXT	List all saved events filtered by summary."
-  printf_green "-d,--date=DATE_STRING Find events matching the date string."
-  printf_green "-r START_DATE_STRING END_DATE_STRING	Find events within a date range."
-  printf_green " -h,-?,--help Show this help."
-}
-
-case $1 in
--h | -\? | --help)
   show_help
   exit 0
   ;;
@@ -346,6 +370,7 @@ case $1 in
     exit 1
   fi
   ;;
+
 --category=?*)
   FILTER=${1#*=}
   if [ -n "$FILTER" ]; then
@@ -356,6 +381,7 @@ case $1 in
     exit 1
   fi
   ;;
+
 -s)
   if [ -n "$2" ]; then
     FILTER=$2
@@ -367,6 +393,7 @@ case $1 in
     exit 1
   fi
   ;;
+
 --summary=?*)
   FILTER=${1#*=}
   if [ -n "$FILTER" ]; then
@@ -377,6 +404,7 @@ case $1 in
     exit 1
   fi
   ;;
+
 -d)
   if [ -n "$2" ]; then
     DATEFILE=$2
@@ -419,12 +447,11 @@ config)
   ;;
 
 *)
-  list_all
-  exit 0
+  list_all | printf_column "4"
   ;;
 esac
 unset
-rm $LERTA
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

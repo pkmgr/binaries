@@ -197,6 +197,8 @@ if [ -n "$TERMINAL_APP" ]; then
     fi
   done
   printf_newline
+elif [ $# = 0 ]; then
+  "$APPNAME" --term
 else
   calc_app | printf_readline "2"
 fi
