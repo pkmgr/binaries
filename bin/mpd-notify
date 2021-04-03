@@ -312,6 +312,12 @@ __toggle() {
   if [ -n "$1" ]; then [ "$status" = "stopped" ] && $APPNAME run || stopDaemon; fi
 }
 __term() {
+  if [ ! -t 0 ]; then
+    myterminal -e "$APPNAME" "$@" &
+    disown
+    exit
+  fi
+
   shift $#
   while :; do
     # show menu

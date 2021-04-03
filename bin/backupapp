@@ -106,6 +106,12 @@ __save_config() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __term() {
+  if [ ! -t 0 ]; then
+    myterminal -e "$APPNAME" "$@" &
+    disown
+    exit
+  fi
+
   local _APPDIRS="" _APPNAME="" cont="" save="" main=""
   clear
   printf_newline '\n\n\n\n\n'

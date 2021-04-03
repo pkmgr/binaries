@@ -170,6 +170,11 @@ CALC_OUTPUT="$(echo "$CALC_INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 if [ -n "$TERMINAL_APP" ]; then
+  if [ ! -t 0 ]; then
+    myterminal -e "$APPNAME" "$@" &
+    disown
+    exit
+  fi
   clear
   printf_newline "\n\n"
   __usage

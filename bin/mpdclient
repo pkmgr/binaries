@@ -258,6 +258,11 @@ __consume_toggle() {
     TOGGLEC=on
   fi
 }
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "$@" &
+  disown
+  exit
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __mkd "$TEMPDIR"
 [ -f "$TEMPDIR/mpdclient_prev" ] || echo "" >"$TEMPDIR/mpdclient_prev"

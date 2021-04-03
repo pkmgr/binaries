@@ -41,6 +41,12 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run_in_term() {
+  if [ ! -t 0 ]; then
+    myterminal -e "$APPNAME" "$@" &
+    disown
+    exit
+  fi
+
   if [ -n "$1" ]; then
     local CMD="$1" && shift 1
     local ARG="$*" && shift $#
