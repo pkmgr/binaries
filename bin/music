@@ -44,6 +44,12 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" &
+  disown
+  exit
+fi
+
 while :; do
   # show menu
   clear

@@ -83,7 +83,8 @@ while :; do
   printf_green "q. launch thesaurus"
   printf_green "r. launch notes"
   printf_green "s. launch rofi"
-  printf_green "t. launch catfish"
+  printf_green "t. launch dmenu"
+  printf_green "u. launch catfish"
   printf_green "y. launch custom application"
   printf_green "z. or escape to Exit"
   printf_green "---------------------------------"
@@ -186,11 +187,15 @@ while :; do
     ;;
   s)
     printf_green "Loading rofi"
-    __run rofi -show run
+    rofi -show run
     ;;
   t)
+    printf_green "Loading dmenu"
+    dmenu_run
+    ;;
+  u)
     printf_green "Loading catfish"
-    __run catfish
+    catfish
     ;;
   y)
     shift 1

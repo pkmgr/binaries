@@ -140,6 +140,11 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" &
+  disown
+  exit
+fi
 if [ -z "$DISPLAY" ]; then printf_exit "No display server found.......exiting $(sleep 2)"; fi
 xine-ui() { xine || xine-ui || false; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
