@@ -184,6 +184,8 @@ __start() {
     ROTATE_TIME=$((24 * 60 * 60 * 7 / WALLPAPER_COUNT))
   elif [ "$ROTATE_TIME" = "monthly" ]; then
     ROTATE_TIME=$((24 * 60 * 60 * 30 / WALLPAPER_COUNT))
+  elif [ "$ROTATE_TIME" = "slideshow" ]; then
+    ROTATE_TIME="${SLIDESHOW_TIME:-5}"
   fi
   __getstatus && return 1
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
