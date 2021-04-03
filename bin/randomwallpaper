@@ -42,7 +42,7 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variables
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
-ROTATE_TIME="${ROTATE_TIME:-300}"
+ROTATE_TIME="${ROTATE_TIME:-5}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
 RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
 NOTIFICATIONS="${NOTIFICATIONS:-enabled}"
@@ -58,11 +58,13 @@ MANUAL=""
 [ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] &&
   . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { echo "$*" >/dev/null; }; fi
+REFRESH_TIME=$((60 * REFRESH_TIME))
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config"
   __mkd "$RANDOMWALLPAPER_CONFIG_DIR"
   echo '# Randomwallpaper Settings
+# Options minutes,daily,weekly,monthly
 ROTATE_TIME='"${ROTATE_TIME:-300}"'
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 CACHE_DIR="${CACHE_DIR:-$HOME/.cache/randomwallpaper}"
@@ -175,6 +177,14 @@ __background_job() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __start() {
+  WALLPAPER_COUNT="$(find -L ~/.local/share/wallpapers/ -type f | wc -l)"
+  if [ "$ROTATE_TIME" = "daily" ]; then
+    ROTATE_TIME=$((24 * 60 * 60 / WALLPAPER_COUNT))
+  elif [ "$ROTATE_TIME" = "weekly" ]; then
+    ROTATE_TIME=$((24 * 60 * 60 * 7 / WALLPAPER_COUNT))
+  elif [ "$ROTATE_TIME" = "monthly" ]; then
+    ROTATE_TIME=$((24 * 60 * 60 * 30 / WALLPAPER_COUNT))
+  fi
   __getstatus && return 1
   notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
@@ -302,7 +312,7 @@ __term() {
         notify_running
       else
         printf_read_input "6" "How often do you want it to change? [minutes]: " "5" "sleeptime"
-        counter=$(echo $((60 * $sleeptime)))
+        counter=$((60 * sleeptime))
         ROTATE_TIME="$counter"
         randomwallpaper --bg --start
         printf_green "Started randomwallpaper in the background"
