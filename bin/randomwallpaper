@@ -41,8 +41,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variables
-WALLPAPERDIR="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
-WALLPAPERS="${WALLPAPERDIR:-$HOME/.local/share/wallpapers}"
+WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 ROTATE_TIME="${ROTATE_TIME:-300}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
 RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
@@ -65,8 +64,7 @@ __config() {
   __mkd "$RANDOMWALLPAPER_CONFIG_DIR"
   echo '# Randomwallpaper Settings
 ROTATE_TIME='"${ROTATE_TIME:-300}"'
-WALLPAPERDIR="${WALLPAPERS:-$HOME/.local/share/wallpapers}"
-WALLPAPERS="${WALLPAPERDIR:-$HOME/.local/share/wallpapers}"
+WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 CACHE_DIR="${CACHE_DIR:-$HOME/.cache/randomwallpaper}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
 RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
@@ -100,7 +98,6 @@ EOF
   [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ] &&
     printf_green "Successfuly installed randomwallpaper Daemon" ||
     printf_error "Failed to install randomwallpaper Daemon"
-  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __variety() {
@@ -135,18 +132,18 @@ __kill() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__find_cmd() { find -L "${1:-$WALLPAPERS}" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*"; }
+__find_cmd() { find -L "${1:-$WALLPAPER_DIR}" -type f -iname "*.jpg" -or -iname "*.jpeg" -or -iname "*.png" -or -iname "*.tif" -or -iname "*.bmp" -or -iname "*.gif" -not -path "*/.git/*"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 init() {
-  [ -d "$WALLPAPERS/system " ] || __mkd "$WALLPAPERS/system"
+  [ -d "$WALLPAPER_DIR/system " ] || __mkd "$WALLPAPER_DIR/system"
   if [ -d /usr/share/backgrounds ]; then
     for l in $(ls /usr/share/backgrounds); do
-      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPERS/system/$l"
+      [ -e "$WALLPAPER_DIR/system/$l" ] || __ln_sf "/usr/share/backgrounds/$l" "$WALLPAPER_DIR/system/$l"
     done
   fi
   if [ -d /usr/share/wallpapers ]; then
     for l in $(ls /usr/share/wallpapers); do
-      [ -e "$WALLPAPERS/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPERS/system/$l"
+      [ -e "$WALLPAPER_DIR/system/$l" ] || __ln_sf "/usr/share/wallpapers/$l" "$WALLPAPER_DIR/system/$l"
     done
   fi
   if [ -f "$1" ]; then
@@ -158,14 +155,14 @@ init() {
     MANUAL=true
     shift 1
   else
-    RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
+    RANDOMDIR="$(find -L $WALLPAPER_DIR -maxdepth 1 -type d | sort -R | head -n1)"
     SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
     [ -n "$SETRANDOM" ] || SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
     __make_seen_file
   fi
   RANDOMWALLPAPER="${WALLPAPER:-$SETRANDOM}"
   RAND="${RANDOMWALLPAPER}"
-  SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
+  SHORTNAME="$(echo "${RAND/$WALLPAPER_DIR/}" | sed 's#^/##g')"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __background_job() {
@@ -207,9 +204,9 @@ notify_running() { notifications "Randomwallpaper" "Already running: $MAINPID" &
 __make_seen_file() {
   [ -d "$CACHE_DIR" ] || __mkd "$CACHE_DIR"
   [ -f "$FILE_SEEN" ] || touch "$FILE_SEEN"
-  if [ -f "$FILE_WALLPAPER" ] && [ -d "$WALLPAPERDIR" ]; then
-    COUNT_SEEN="$(grep -c "$WALLPAPERDIR" "$FILE_SEEN")"
-    COUNT_ALL="$(grep -c "$WALLPAPERDIR" "$FILE_WALLPAPER")"
+  if [ -f "$FILE_WALLPAPER" ] && [ -d "$WALLPAPER_DIR" ]; then
+    COUNT_SEEN="$(grep -c "$WALLPAPER_DIR" "$FILE_SEEN")"
+    COUNT_ALL="$(grep -c "$WALLPAPER_DIR" "$FILE_WALLPAPER")"
     [ "$COUNT_SEEN" = "$COUNT_ALL" ] && __rm_rf "$FILE_SEEN"
   else
     __find_cmd | sort -u >"$FILE_WALLPAPER"
@@ -220,12 +217,12 @@ __find_random() {
   __find_mtime "$FILE_WALLPAPER" "${REFRESH_TIME:-720}" && __find_cmd | sort -u >"$FILE_WALLPAPER"
   if [ "$MANUAL" != "true" ] && grep -qv "$RAND" "$FILE_SEEN" &>/dev/null; then
     while :; do
-      RANDOMDIR="$(find -L $WALLPAPERS -maxdepth 1 -type d | sort -R | head -n1)"
+      RANDOMDIR="$(find -L $WALLPAPER_DIR -maxdepth 1 -type d | sort -R | head -n1)"
       SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
       [ -n "$SETRANDOM" ] || SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
       RANDOMWALLPAPER="$SETRANDOM"
       RAND="$RANDOMWALLPAPER"
-      SHORTNAME="$(echo "${RAND/$WALLPAPERS/}" | sed 's#^/##g')"
+      SHORTNAME="$(echo "${RAND/$WALLPAPER_DIR/}" | sed 's#^/##g')"
       grep "$RAND" "$FILE_SEEN" &>/dev/null || break
     done
   fi
@@ -246,13 +243,13 @@ __randomwallpaper() {
     done
   }
   [ -n "$RAND" ] || exit 1
-  if [[ "$DESKTOP_SESSION" =~ "xfce" ]] && __cmd_exists xfconf-query; then
+  if [[ "$DESKTOP_SESSION" =~ "xfce" ]] && cmd_exists xfconf-query; then
     xfce_change_wp "$RAND" &>/dev/null &
-  elif __cmd_exists variety; then
+  elif cmd_exists variety; then
     variety --set="$RAND" &>/dev/null &
-  elif __cmd_exists feh; then
+  elif cmd_exists feh; then
     feh --bg-fill "$RAND" &>/dev/null &
-  elif __cmd_exists xwallpaper; then
+  elif cmd_exists xwallpaper; then
     xwallpaper --maximize "$RAND" &>/dev/null &
   else
     return 1
@@ -278,6 +275,8 @@ __term() {
     __getstatus && printf_green "randomwallpapers is running" || printf_red "randomwallpapers is not running"
     printf_newline
     printf_green "c. change the wallpaper"
+    printf_green "e. enable randomwallpaper"
+    printf_green "h. get current status"
     printf_green "r. Change the wallpaper every x minutes"
     printf_green "s. ${START_STOP_MESG:-Start randomwallpaper}"
     printf_green "z. or escape to Exit"
@@ -285,11 +284,18 @@ __term() {
     printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-se"
     case "$main" in
     c)
-      __randomwallpaper
+      "$APPNAME" new
+      ;;
+    e)
+      __startup
       ;;
     k)
       sh -c "randomwallpaper --bg --kill"
       sleep 3
+      ;;
+    h)
+      shift 1
+      "$APPNAME" --bg --status
       ;;
     r)
       if __getstatus; then
@@ -308,7 +314,7 @@ __term() {
       if __getstatus; then
         sh -c "randomwallpaper --bg --kill"
       else
-        randomwallpaper --bg --start
+        randomwallpaper --bg --start &
       fi
       ;;
     $'\E' | $'\e' | z | x | n)
@@ -335,6 +341,7 @@ main() {
   *startup | *enable)
     shift 1
     __startup
+    exit $?
     ;;
   *disable)
     __rm_rf "$HOME/.config/autostart/randomwallpaper.desktop"
@@ -414,6 +421,10 @@ main() {
       exit $?
       ;;
     esac
+    ;;
+  new)
+    shift 1
+    __randomwallpaper "$@" && __mesg_ok || __mesg_fail
     ;;
   *)
     __randomwallpaper "$@" && __mesg_ok || __mesg_fail

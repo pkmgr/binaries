@@ -40,7 +40,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[[ "$1" = -y ]] && __cmd_exists cal && cal -y | printf_readline && exit || true
+[[ "$1" = -y ]] && cmd_exists cal && cal -y | printf_readline && exit || true
 CAL_CONFIG="$HOME/.config/local/calendar.local"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gen_config() {

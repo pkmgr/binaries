@@ -84,7 +84,7 @@ EOF
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # command_exists() tells if a given command exists.
 function command_exists() {
-  __cmd_exists "$1"
+  cmd_exists "$1"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 sample_config() {

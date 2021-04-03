@@ -41,7 +41,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__cmd_exists say || __cmd_exists speech || __cmd_exists speaker-test || exit 1
+cmd_exists say || cmd_exists speech || cmd_exists speaker-test || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ $# -ne 2 ] && __help
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

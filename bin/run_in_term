@@ -44,13 +44,14 @@ run_in_term() {
   if [ ! -t 0 ]; then
     myterminal -e "$APPNAME" "$@" &
     disown
+    sleep 3
     exit
   fi
 
   if [ -n "$1" ]; then
     local CMD="$1" && shift 1
     local ARG="$*" && shift $#
-    if __cmd_exists $CMD; then
+    if cmd_exists $CMD; then
       $CMD ${ARG:-}
     else
       printf_exit "1" "1" "$CMD does not exist"
@@ -63,7 +64,9 @@ run_in_term() {
     printf_cyan "To show this message again type: _help_"
     while :; do
       printf_read_input "5" "What would you like to pass to $CMD?" "120" "__ANSWER"
-      if [ "$__ANSWER" = exit ] || [ "$__ANSWER" = quit ] || [ "$__ANSWER" = !q ]; then clear && break; fi
+      if [ "$__ANSWER" = exit ] || [ "$__ANSWER" = quit ] || [ "$__ANSWER" = !q ]; then
+        clear && break
+      fi
       if [ "$__ANSWER" = _help_ ]; then
         clear
         printf_cyan "Usage: Enter the commands for $CMD or type exit to quit"

@@ -44,7 +44,7 @@ __options "$@"
 [ -n "$1" ] || __help
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 for p in "$@"; do
-  if __cmd_exists pidof; then
+  if cmd_exists pidof; then
     pid="$(pidof $p)"
     if [ -n "$pid" ]; then
       printf_green "The pid of $p is: $pid"

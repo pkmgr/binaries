@@ -92,7 +92,7 @@ NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
 NOTIFY_CONFIG_FILE="settings.conf"
 
 #Uncomment and insert this into $NOTIFYD_CONFIG_DIR/notifyd
-#if __cmd_exists pathToDaemon; then
+#if cmd_exists pathToDaemon; then
 #  NOTIFYD="pathToDaemon"
 #  PROCID="processName"
 #  return 0
@@ -107,7 +107,7 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || exit 1)"
-__netcat_test() { __cmd_exists $netcat || notifications "Daemon" "The program netcat is not installed"; }
+__netcat_test() { cmd_exists $netcat || notifications "Daemon" "The program netcat is not installed"; }
 __nc_send() { $netcat -c $1 $2 2>>"$_LOG" && true || $netcat -w 1 $1 $2 2>>"$_LOG" || return 1; }
 __getstatus() { ps -ux | grep "$PROCID" | grep -qv 'grep ' && return 0 || return 1; }
 __kill_server() {
@@ -301,7 +301,7 @@ __dunst_notifyd() {
     NOTIFYD="$PROCID"
     PROCID="$PROCID"
     return 0
-  elif __cmd_exists dunst; then
+  elif cmd_exists dunst; then
     NOTIFYD="dunst"
     PROCID="dunst"
     return 0
@@ -315,7 +315,7 @@ __deadd_notifyd() {
     NOTIFYD="$PROCID"
     PROCID="$PROCID"
     return 0
-  elif __cmd_exists deadd-notification-center; then
+  elif cmd_exists deadd-notification-center; then
     NOTIFYD="deadd-notification-center"
     PROCID="deadd-notification-center"
     return 0

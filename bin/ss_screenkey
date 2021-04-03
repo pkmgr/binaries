@@ -40,7 +40,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__cmd_exists killall screenkey || printf_exit "pmisc package not installed"
+cmd_exists killall screenkey || printf_exit "pmisc package not installed"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 run() {
   __devnull "$1" &

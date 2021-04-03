@@ -41,7 +41,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for needed applications
-__cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
+cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set options
 DEFAULT_DEVICE="0C:FC:83:99:BC:9A"

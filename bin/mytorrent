@@ -133,8 +133,8 @@ case $TORRENT_NAME in
 transmission-remote*)
   transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
   if [ -z "$transmission_daemon" ]; then
-        transmission-daemon &>/dev/null && sleep 5 && \
-          [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Transmission server has been started"
+    transmission-daemon &>/dev/null && sleep 5 &&
+      [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Transmission server has been started"
   fi
   ;;
 esac
@@ -166,7 +166,7 @@ create | link | *-create | *-link)
     exit $?
   elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
     [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Adding $ARGS"
-    if __cmd_exists transadd; then
+    if cmd_exists transadd; then
       transadd "$ARGS" | grep -q "success" && true
     elif [ -n "$DESKTOP_SESSION" ]; then
       xdg-open "$ARGS"

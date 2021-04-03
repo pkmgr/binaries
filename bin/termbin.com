@@ -40,7 +40,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__cmd_exists nc || __cmd_exists netcat || exit 1
+cmd_exists nc || cmd_exists netcat || exit 1
 __am_i_online_err || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NETCATCMD="${nc:-nc}"

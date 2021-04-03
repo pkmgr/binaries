@@ -86,22 +86,22 @@ while :; do
   a)
     shift 1
     clear
-    __cmd_exists rainbowstream && rainbowstream -iot || printf_red "rainbowstream is not installed"
+    cmd_exists rainbowstream && rainbowstream -iot || printf_red "rainbowstream is not installed"
     ;;
   b)
     shift 1
     clear
-    __cmd_exists tootstream && tootstream || printf_red "tootstream is not installed"
+    cmd_exists tootstream && tootstream || printf_red "tootstream is not installed"
     ;;
   c)
     shift 1
     clear
-    __cmd_exists irssi && irssi || printf_red "irssi is not installed"
+    cmd_exists irssi && irssi || printf_red "irssi is not installed"
     ;;
   d)
     shift 1
     clear
-    __cmd_exists finch && finch || printf_red "finch is not installed"
+    cmd_exists finch && finch || printf_red "finch is not installed"
     ;;
   x)
     shift 1

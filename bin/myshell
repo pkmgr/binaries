@@ -109,7 +109,7 @@ __add() {
     done
     exit $?
   else
-    if __cmd_exists "$1"; then
+    if cmd_exists "$1"; then
       local cmd="$(command -v $1)"
       if ! grep -q "$1" /etc/shells; then
         if [ "$(command -v $1 | grep -q '/' || echo 0)" = 0 ]; then

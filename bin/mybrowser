@@ -67,7 +67,7 @@ __create_link() {
   *)
     if [ ! -z "$2" ]; then
       shift 1
-      if __cmd_exists "$1"; then
+      if cmd_exists "$1"; then
         printf_green "Linking $HOME/.local/bin/mybrowser to $1"
         __ln_sf "$(command -v $1)" "$HOME/.local/bin/mybrowser"
         exit 0

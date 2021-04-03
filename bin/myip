@@ -40,7 +40,7 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if __cmd_exists ifconfig; then
+if cmd_exists ifconfig; then
   __getlipaddr
   myip-local4() { sudo ifconfig $NETDEV | grep -E "venet|inet" | grep -Ev "docker|127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1; }
   myip-local6() { sudo ifconfig $NETDEV | grep -E "venet|inet" | grep -v "docker" | grep 'inet6' | grep -i global | awk '{print $2}' | head -n1; }

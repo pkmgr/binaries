@@ -94,7 +94,7 @@ while :; do
 
   # take action
   case "$main" in
-    1) exec "$APPNAME";;
+  1) exec "$APPNAME" ;;
   a)
     shift 1
     printf_green "Loading mybluetooth"
@@ -199,9 +199,9 @@ while :; do
     ;;
   y)
     shift 1
-    if __cmd_exists rofi; then
+    if cmd_exists rofi; then
       APP="$(ls /usr/local/share/CasjaysDev/scripts/bin/ | rofi -dmenu)"
-    elif __cmd_exists dmenu; then
+    elif cmd_exists dmenu; then
       APP="$(ls /usr/local/share/CasjaysDev/scripts/bin/ | dmenu)"
     else
       printf_read_input "2" "What app would you like to run" "160" "APP"
@@ -226,4 +226,3 @@ clear
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

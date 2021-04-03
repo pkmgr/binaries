@@ -119,7 +119,7 @@ while getopts ":*" opt; do
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for needed applications
-__cmd_exists bash || exit 1 # exit 1 if not found
+cmd_exists bash || exit 1 # exit 1 if not found
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
 case $SETOPTS in

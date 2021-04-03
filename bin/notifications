@@ -52,6 +52,7 @@ NOTIFYD_ICON="${NOTIFY_CLIENT_ICON}"
 NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
 NOTIFY_CONFIG_FILE="settings.conf"
 notifyAppName="${NOTIFYD_APPNAME:-$PROG}"
+netcat="$netcat"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" ] &&
   . "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" || {
@@ -65,10 +66,10 @@ if [ "$(uname -s)" = "Darwin" ]; then
 elif [ "$(uname -s)" = "Linux" ]; then
   DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u ${USER})/bus"
   XUSERS=($(who | grep -E "\(:[0-9](\.[0-9])*\)" | awk '{print $1$5}' | sort -u | grep $USER))
-  if __cmd_exists notify-send; then
+  if cmd_exists notify-send; then
     [[ "$1" = *ask ]] && exit 0
     __notify_send() { notify-send --app-name="${NOTIFYD_APPNAME}" -u "${NOTIFYD_URGENY}" -i "${NOTIFY_CLIENT_ICON}" "$@"; }
-  elif __cmd_exists notify-send.sh; then
+  elif cmd_exists notify-send.sh; then
     [[ "$1" = *ask ]] && exit 0
     __notify_send() { notify-send.sh --app-name="${NOTIFYD_APPNAME}" -u "${NOTIFYD_URGENY}" -i "${NOTIFY_CLIENT_ICON}" "$@"; }
   else
@@ -80,9 +81,9 @@ elif [ "$(uname -s)" = "Linux" ]; then
 else
   exit 1
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __nc_send() { $netcat -c "$1" "$2" 2>>"$_LOG" && true || $netcat -w 1 "$1" "$2" 2>>"$_LOG" || return 1; }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config file"
   __mkd "$NOTIFY_CONFIG_DIR"
@@ -106,7 +107,7 @@ notifyUrgency="${notifyUrgency:-normal}"
     printf_error "Failed to save the configuration"
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run_bg() {
   local notifyDir="${TMP:-/tmp}/notifications/process"
   [ -f "$notifyDir/kill" ] && __rm_rf $notifyDir/kill
@@ -116,7 +117,7 @@ __run_bg() {
     for f in $notifyDir/*; do
       if [ -f "$f" ]; then
         title="$(cat "$f" | awk '{print $1}' 2>/dev/null)"
-        message="$(cat "$f" | sed 's#'$(cat $f | awk '{print $1}')' ##g' 2>/dev/null)"
+        message="$(cat "$f" | sed 's#'"$(cat "$f" | awk '{print $1}')"' ##g' 2>/dev/null)"
         notifications "$title" "$message"
       fi
       rm -Rf "$f"
@@ -130,7 +131,7 @@ __run_bg() {
     fi
   done
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __notifications_cli() {
   __netcat_test
   __mkd "$TMP/notify-client"
@@ -147,7 +148,7 @@ __notifications_cli() {
     return 1
   }
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __notifications() {
   local title="$1"
   local msg="$2"
@@ -159,6 +160,7 @@ __notifications() {
   fi
 
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __notifications_all() {
   local title="$1"
   local msg="$2"
@@ -173,15 +175,14 @@ __notifications_all() {
         DBUS_SESSION_BUS_ADDRESS="${DBUS_ADDRESS}" \
         PATH="${PATH}" \
         notify-send --app-name="${notifyAppName:-$APPNAME}" -u "${notifyUrgency:-normal}" -i "${notifyIconName:-com.github.timecraft.notifier}" "$title" "$msg" || return 0
-      __cmd_exists wall && echo "$title: $msg" | wall
+      cmd_exists wall && echo "$title: $msg" | wall
       printf_console "3" "$title: $msg" >/dev/fd/0
     done
   else
     __notifications "$title" "$msg" || return 0
-    __cmd_exists wall && echo "$title: $msg" | wall
+    cmd_exists wall && echo "$title: $msg" | wall
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ! -f "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" ] && [[ "$1" != *config ]]; then
   __config
@@ -276,7 +277,6 @@ client | --client)
   ;;
 
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 exit $?
 # end
