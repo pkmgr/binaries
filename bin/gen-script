@@ -516,7 +516,7 @@ __makefile() {
   __cp_rf "$temp" "$new" || return 1
   __get_prev "$new" || return 1
   __edit_header "$new" || return 1
-  local newcmd="$(command -v "$newfile" || type -P "$newfile" || ls -A "$newfile")"
+  local newcmd="$(command -v "$new" || type -P "$new" || ls -A "$new")"
   chmod -f 755 "$new" || return 1
   if __file_is "completion"; then
     local compfile="_$(basename "$new")_completions"

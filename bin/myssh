@@ -1,0 +1,326 @@
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="$(basename "$0")"
+VERSION="202104022137-git"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+trap '[ -f "$MYSSH_TMP_FILE" ] && rm -Rf "$MYSSH_TMP_FILE" &>/dev/null' EXIT
+#set -Ex
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202104022137-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : myssh --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Friday, Apr 02, 2021 22:36 EDT
+# @File          : myssh
+# @Description   : This is a WIP
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE"
+  [ -d "$MYSSH_CONFIG_DIR" ] || mkdir -p "$MYSSH_CONFIG_DIR"
+  [ -d "$MYSSH_CONFIG_BACKUP_DIR" ] || mkdir -p "$MYSSH_CONFIG_BACKUP_DIR"
+  [ -f "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE" ] &&
+    cp -Rf "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE" "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE.$$"
+  cat <<EOF >"$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE"
+# Settings for myssh
+MYSSH_SSH_CONFIG_FILE="$HOME/.ssh/config"
+MYSSH_TEMP_FILE="${TMPDIR:-/tmp}/myssh"
+MYSSH_NOTIFY_ENABLED="yes"
+MYSSH_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+MYSSH_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$MYSSH_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE" ]; then
+    printf_green "Your config file for myssh has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__ssh_cli() {
+  local hostname="$hostname"
+  local username="${username:-$USER}"
+  clear
+  __notifications "Attempting to connect to $hostname as $username"
+  ssh "${username}@${hostname}" || __notifications "Failed to connect to $hostname as $username"
+  clear
+  printf_newline '\n\n\n\n'
+  printf_yellow "Connection closed with status code $?"
+  printf_pause "Press any key to continue"
+  clear
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__ssh_new_host() {
+  mkdir -p "$HOME/.ssh/known_hosts.d"
+  if [ ! -f "$MYSSH_SSH_CONFIG_FILE" ]; then
+    cat <<EOF | tee >"${1:-$MYSSH_SSH_CONFIG_FILE}"
+Host *
+UserKnownHostsFile ~/.ssh/known_hosts.d/%k
+IdentityFile ~/.ssh/id_rsa
+
+EOF
+  fi
+  cat <<EOF | tee >>"${1:-$MYSSH_SSH_CONFIG_FILE}"
+Host $name     #$comment
+    Hostname $address
+    User $user
+
+EOF
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__sshto() {
+  if [ -t 0 ]; then
+    sshto
+  else
+    myterminal -e "sshto" &
+    disown
+    exit
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_hosts() {
+  IFSOLD=$IFS; IFS=$'\n'; for host in $(grep -h "Host " ~/.ssh/config* | sed '/\*/d; s/Host //g;'); {
+    name="${host// #*/}" # Get HostName
+    desc="${host//*#/}"  # Get Description
+    case $name in
+      '#DUMMY')
+      desc="${host%\#*}"    ; desc="${desc##*\#}"
+      name="{ $desc }"      ; length=$[ (40-${#name})/2 ]
+      name=$( line - $length; printf  "$name"; line - $length )
+      [[ ${#name} -lt 40 ]]  &&  name=-$name ; content+=( "$desc" ); desc=$(line - 20);;
+      '#'*) continue;;
+    esac
+    fullist+=( "$name" "$desc" ) #Add HostName and Description to the list
+    printf '%s    %s\n' "$name" "$desc"
+}; IFS=$IFSOLD
+}
+__ssh_host() {
+  if cmd_exists zenity; then
+    __gen_hosts | \
+      zenity --list --title "Select a ssh server" --text "SSH Hostnames" --column "Hosts" --print-column=ALL --height 400 --width 800
+  else
+    myterminal -e "$APPNAME --term"
+  fi
+}
+__term() {
+  if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" &
+  disown
+  exit
+fi
+
+while :; do
+  # show menu
+  clear
+  shift 1
+  printf_newline "\n\n\n\n"
+  printf_head "SSH Menu"
+  printf_green "a. sshto: ncurses based ssh client"
+  printf_green "b. connect to host"
+  printf_green "c. gui menu from ssh config"
+  printf_green "w. show config"
+  printf_green "x. edit config"
+  printf_green "y. add new host"
+  printf_green "z. or escape to Exit"
+  printf_green "---------------------------------"
+  printf_read_question_nt "6" "Enter your choice [a-z] : " "1" "main" "-s"
+  printf_newline
+
+  # take action
+  case "$main" in
+
+  a)
+    shift 1
+    __sshto
+    ;;
+  b)
+    shift 1
+    username="$(ask_for_input "What is your username?")"
+    hostname="$(ask_for_input "What is your server address?")"
+    __ssh_cli
+    ;;
+  c)
+    shift 1
+    hostname="$(__ssh_host | awk '{print $1}')"
+    __ssh_cli
+    ;;
+  w)
+    shift 1
+    if [ -f "$MYSSH_SSH_CONFIG_FILE" ]; then
+      printf_readline "6" <"$MYSSH_SSH_CONFIG_FILE"
+      printf_pause
+    else
+      printf_red "There isn't a ssh config file"
+    fi
+    ;;
+  x)
+    shift 1
+    myeditor "$MYSSH_SSH_CONFIG_FILE"
+    ;;
+  y)
+    shift 1
+    printf_read_input "5" "Enter a name" "180" "name" "-e"
+    printf_read_input "5" "Enter a comment" "180" "comment" "-e"
+    printf_read_input "5" "Enter the server address" "180" "address" "-e"
+    printf_read_input "5" "Enter the username" "180" "user" "-e"
+    if grep -q "^Host $name" "$MYSSH_SSH_CONFIG_FILE"; then
+      printf_red "$name is already in your confg file"
+    else
+      __cp_rf "$MYSSH_SSH_CONFIG_FILE" "$MYSSH_CONFIG_BACKUP_DIR/ssh_config.$$"
+      __ssh_new_host
+      printf_newline
+      printf_pause "Added $name with the address of $address to $MYSSH_SSH_CONFIG_FILE"
+    fi
+    ;;
+  $'\E' | $'\e' | z)
+    shift 1
+    clear
+    break
+    ;;
+  *) shift ;;
+
+  esac
+  clear
+  #printf_counter "5" "1" "Re-loading menu in"
+done
+clear
+  exit $?
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+MYSSH_CONFIG_FILE="settings.conf"
+MYSSH_CONFIG_DIR="$HOME/.config/myscripts/myssh"
+MYSSH_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/myssh/backups"
+MYSSH_OPTIONS_DIR="$HOME/.local/share/myscripts/myssh/options"
+MYSSH_TEMP_FILE="${TMPDIR:-/tmp}/myssh"
+MYSSH_NOTIFY_ENABLED="yes"
+MYSSH_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+MYSSH_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYSSH_NOTIFY_CLIENT_ICON}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help,term"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYSSH_OPTIONS_DIR/options" ] || __list_options "$MYSSH_OPTIONS_DIR" &>/dev/null
+[ -f "$MYSSH_OPTIONS_DIR/array" ] || __list_array "$MYSSH_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE" ]; then
+  . "$MYSSH_CONFIG_DIR/$MYSSH_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$MYSSH_OPTIONS_DIR" "$ARRAY"
+    __list_options "$MYSSH_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --term)
+    shift 1
+    __term "$@"
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${MYSSH_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${MYSSH_NOTIFY_CLIENT_ICON}"
+if [ "$MYSSH_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+if [[ "$1" =~ @ ]]; then
+  username="$(echo $1 | awk -F@ '{print $1}')"
+  hostname="$(echo $1 | awk -F@ '{print $2}')"
+else
+  hostname="${1}"
+  username="${2:-$USER}"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ $# -eq 0 ]; then
+  __term
+elif [ -n "$hostname" ]; then
+  if [ ! -t 0 ]; then
+    __notifications "Attempting to connect to $hostname"
+    myterminal -e "ssh $username@$hostname" || __notifications "Failed to connect to $hostname"
+  else
+    __ssh_cli
+  fi
+else
+  __notifications "No host was provided for me to connect to"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
+
