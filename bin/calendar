@@ -44,21 +44,22 @@ __options "$@"
 CAL_CONFIG="$HOME/.config/local/calendar.local"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gen_config() {
-  echo '
+  cat <<EOF >"$1"
 #Calendar Configuration
 # directory for storing the events. Make sure this path exists
 eventpath="$HOME/.local/share/ics"
 # alter these to your most common location
-HOMETOWN="${MYLOCATIONCITY:-Albany}"
-HOMECOUNTRY="${MYLOCATIONCOUNTRY:-USA}"
+HOMETOWN="\${MYLOCATIONCITY:-Albany}"
+HOMECOUNTRY="\${MYLOCATIONCOUNTRY:-USA}"
 # sets $startdate below; "man 1 date" for details on modification
 DATEFORMAT="%a %b %d, %Y %H:%M"
 # categories - no spaces in tags
 TAGS=(work meeting study party)
-TERSE="$startdate - $title"
-#FULL="$startdate - $title\n$desc\n$location ($category)"
-MESSAGE="$(date +"Today is: %A %B %d, %Y and the time is: %H:%M")"
-' >"$1"
+TERSE="\$startdate - \$title"
+#FULL="\$startdate - \$title\n\$desc\n\$location (\$category)"
+MESSAGE="\$(date +"Today is: %A %B %d, %Y and the time is: %H:%M")"
+
+EOF
 }
 
 if [ -f "$CAL_CONFIG" ]; then
