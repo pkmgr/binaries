@@ -153,8 +153,8 @@ if [ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate a manager
+[ "$VMMANAGER" != "myvmmanager" ] || unset VMMANAGER
 if [ "$MYVMMANAGER_NAME" != "config" ] || [ -z "$VMMANAGER" ]; then
-  [ "$VMMANAGER" != "myvmmanager" ] || unset VMMANAGER
   if [ -f "$(command -v VirtualBox 2>/dev/null)" ]; then
     MYVMMANAGER="VirtualBox"
   elif [ -f "$(command -v VMWare 2>/dev/null)" ]; then

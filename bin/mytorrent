@@ -153,8 +153,8 @@ if [ -f "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate a manager
+[ "$TORRENT" = "mytorrent" ] && unset TORRENT MYTORRENT_NAME
 if [ "$MYTORRENT_NAME" != "config" ] || [ -z "$MYTORRENT" ]; then
-  [ "$TORRENT" = "mytorrent" ] && unset TORRENT MYTORRENT_NAME
   if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
     MYTORRENT="transmission-remote-gtk"
   elif [ -f "$(command -v transmission-remote 2>/dev/null)" ]; then
