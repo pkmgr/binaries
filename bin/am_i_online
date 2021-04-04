@@ -201,9 +201,9 @@ fi
 cmd_exists --error bash curl ping || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-pingExit=0
-httpExit=0
-exitCode=0
+pingExit=
+httpExit=
+exitCode=
 if [ -n "$AM_I_ONLINE_FORCE_CONNECTION" ] || __local_network "$site"; then
   httpExit=0
   pingExit=0

@@ -164,11 +164,11 @@ command -v bash &>/dev/null || exit 1
 # APP Variables
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 COMMANDS="$*"
-exitCode=0
-exitTmp=0
-missing=""
-choice=""
-cmd=""
+exitCode=
+exitTmp=
+missing=
+choice=
+cmd=
 [ "$(uname -s)" = Darwin ] && exit 0
 [ -n "$COMMANDS" ] || exit 0
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
