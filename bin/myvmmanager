@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'exitCode=$?;[ -f "$MYVMMANAGER_TMP_FILE" ] && rm -Rf "$MYVMMANAGER_TMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=$?;[ -f "$MYVMMANAGER_TEMP_FILE" ] && rm -Rf "$MYVMMANAGER_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104040050-git
@@ -54,6 +54,7 @@ __gen_config() {
 MYVMMANAGER_NAME="config"
 MYVMMANAGER="$MYVMMANAGER"
 MYVMMANAGER_CONSOLE="$MYVMMANAGER_CONSOLE"
+MYVMMANAGER_OPTIONS=""
 MYVMMANAGER_TEMP_FILE="${TMPDIR:-/tmp}/myvmmanager"
 MYVMMANAGER_NOTIFY_ENABLED="yes"
 MYVMMANAGER_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
@@ -87,9 +88,9 @@ __create_term() {
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ! -t 0 ]; then
-  myterminal -e 'bash -c "'$VMMANAGER \$*';bash"'
+  myterminal -e "$VMMANAGER \$MYVMMANAGER_OPTIONS \$*"
 else
-  $VMMANAGER \$*
+  $VMMANAGER \$MYVMMANAGER_OPTIONS \$*
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
@@ -101,7 +102,7 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_link() {
-  if [ ! -z "$2" ]; then
+  if [ -n "$2" ]; then
     shift 1
     if cmd_exists "$1"; then
       if [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then
@@ -140,8 +141,9 @@ MYVMMANAGER_TEMP_FILE="${TMPDIR:-/tmp}/myvmmanager"
 MYVMMANAGER_NOTIFY_ENABLED="yes"
 MYVMMANAGER_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 MYVMMANAGER_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYVMMANAGER_NOTIFY_CLIENT_ICON}"
-MYVMMANAGER="${MYVMMANAGER:-$VMMANAGER}"
 MYVMMANAGER_CONSOLE="${MYVMMANAGER_CONSOLE}"
+MYVMMANAGER="${MYVMMANAGER}"
+MYVMMANAGER_OPTIONS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
@@ -238,6 +240,8 @@ if [ "$MYVMMANAGER_NOTIFY_ENABLED" = "yes" ]; then
 else
   __notifications() { false; }
 fi
+ARGS="$*"
+OPEN="$MYVMMANAGER_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications/Network check
 cmd_exists --error bash || exit 1
@@ -254,15 +258,15 @@ fi
 # begin main app
 __notifications "MyVMManager" "Attempting to launch $MYVMMANAGER_NAME"
 if [ -f "$HOME/.local/bin/myvmmanager" ]; then
-  __exec "$HOME/.local/bin/myvmmanager" "$@"
+  __exec "$HOME/.local/bin/myvmmanager" "$ARGS"
 elif [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then
   if [ ! -t 0 ]; then
-    myterminal -e "$APPNAME --term $*"
+    myterminal -e "$APPNAME --term $ARGS"
   else
-    $VMMANAGER "$*"
+    $VMMANAGER $OPEN
   fi
 else
-  __exec $VMMANAGER "$@"
+  __exec $VMMANAGER $OPEN
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application

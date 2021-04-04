@@ -53,6 +53,7 @@ __gen_config() {
 # Settings for mytorrent
 MYTORRENT_NAME="config"
 MYTORRENT="$MYTORRENT"
+MYTORRENT_OPTIONS=""
 MYTORRENT_CONSOLE="$MYTORRENT_CONSOLE"
 MYTORRENT_SERVER="${TORRENT_SERVER:-localhost:9091}"
 MYTORRENT_TEMP_FILE="${TMPDIR:-/tmp}/mytorrent"
@@ -88,9 +89,9 @@ __create_term() {
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ! -t 0 ]; then
-  myterminal -e 'bash -c "'$TORRENT \$*';bash"'
+  myterminal -e "$TORRENT \$MYTORRENT_OPTIONS \$*"
 else
-  $TORRENT \$*
+  $TORRENT \$MYTORRENT_OPTIONS \$*
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
@@ -104,7 +105,7 @@ EOF
 __create_link() {
   case "$1" in
   *)
-    if [ ! -z "$2" ]; then
+    if [ -n "$2" ]; then
       shift 1
       if cmd_exists "$1"; then
         if [ "$MYTORRENT_CONSOLE" = "yes" ]; then
@@ -124,11 +125,7 @@ __create_link() {
   esac
 }
 __term() {
-  if [ $# = 0 ]; then
-    $TORRENT --help | less
-  else
-    $TORRENT "$*"
-  fi
+  $TORRENT --help | less
   while :; do
     printf_newline
     printf_read_input "2" "What command would you like to execute [q to exit]" "20" "CMD"
@@ -150,6 +147,7 @@ MYTORRENT_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYTORRENT_NOTIFY_CLIENT_ICO
 MYTORRENT="${MYTORRENT:-$TORRENT}"
 MYTORRENT_CONSOLE="${MYTORRENT_CONSOLE}"
 MYTORRENT_SERVER="${TORRENT_SERVER:-localhost:9091}"
+MYTORRENT_OPTIONS="${MYTORRENT_OPTIONS}"
 TORRENT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
@@ -241,7 +239,7 @@ while :; do
     ;;
   -t | --term)
     shift 1
-    __term "$*"
+    __term
     exit $?
     ;;
   -l | --link)
@@ -281,6 +279,7 @@ if [ -z "$MYTORRENT" ]; then
 fi
 TORRENT_SERVER="$MYTORRENT_SERVER"
 ARGS="$*"
+OPEN="$MYTORRENT_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 if [ "$TRANSMISSION_REMOTE" = "true" ]; then
@@ -292,7 +291,7 @@ if [ "$TRANSMISSION_REMOTE" = "true" ]; then
 fi
 __notifications "MyTorrent" "Attempting to launch $MYTORRENT_NAME"
 if [ -f "$HOME/.local/bin/mytorrent" ]; then
-  __exec "$HOME/.local/bin/mytorrent" "$@"
+  __exec "$HOME/.local/bin/mytorrent" "$*"
 
 elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
   if cmd_exists transadd; then
@@ -305,16 +304,16 @@ elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
 
 elif [ "$MYTORRENT_CONSOLE" = "yes" ]; then
   if [ ! -t 0 ]; then
-    myterminal -e "$APPNAME --term $*"
+    myterminal -e "$APPNAME --term"
   else
-    $TORRENT $ARGS
+    $TORRENT $OPEN
   fi
 
 elif [ $# -eq 0 ] && [[ "$MYTORRENT_CONSOLE" != "yes" ]] && [[ "$TORRENT" =~ transmission ]]; then
   $TORRENT -m &
 
 else
-  __exec $TORRENT $ARGS
+  __exec $TORRENT $OPEN
 fi
 
 # ARGS="$*"

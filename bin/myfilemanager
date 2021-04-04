@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104040050-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap 'exitCode=$?;[ -f "$MYFILEMANAGER_TEMP_FILE" ] && rm -Rf "$MYFILEMANAGER_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201726-git
+##@Version       : 202104040050-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : myfilemanager --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 17:26 EDT
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
 # @File          : myfilemanager
 # @Description   : Open file manager
 # @TODO          :
@@ -40,124 +42,248 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-MYTERMINAL_NOTIFICATIONS="no"
-MYFILEMANAGER_NOTIFICATIONS="${MYFILEMANAGER_NOTIFICATIONS:-yes}"
-[ -f "$HOME/.config/myfilemanager/settings" ] && . "$HOME/.config/myfilemanager/settings"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__config() {
-  printf_green "Generating config file"
-  __mkd "$HOME/.config/myfilemanager"
-  echo -e '# Settings for myfilemanager
-MYFILEMANAGER="config"
-FILEMANAGER="'$FILEMANAGER'"
-MYFILEMANAGER_NOTIFICATIONS="'$MYFILEMANAGER_NOTIFICATIONS'"
-  ' >"$HOME/.config/myfilemanager/settings"
-  if [ -f "$HOME/.config/myfilemanager/settings" ]; then
-    printf_green "File saved to: $HOME/.config/myfilemanager/settings"
-    [ -n "$MYFILEMANAGER_NOTIFICATIONS" ] && notifications "MyFilemanager" "Config file saved to:\n$HOME/.config/myfilemanager/settings"
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE"
+  [ -d "$MYFILEMANAGER_CONFIG_DIR" ] || mkdir -p "$MYFILEMANAGER_CONFIG_DIR"
+  [ -d "$MYFILEMANAGER_CONFIG_BACKUP_DIR" ] || mkdir -p "$MYFILEMANAGER_CONFIG_BACKUP_DIR"
+  [ -f "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE" ] &&
+    cp -Rf "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE" "$MYFILEMANAGER_CONFIG_BACKUP_DIR/$MYFILEMANAGER_CONFIG_FILE.$$"
+  cat <<EOF >"$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE"
+# Settings for myfilemanager
+MYFILEMANAGER_NAME="config"
+MYFILEMANAGER="$MYFILEMANAGER"
+MYFILEMANAGER_OPTIONS=
+MYFILEMANAGER_CONSOLE="$MYFILEMANAGER_CONSOLE"
+MYFILEMANAGER_TEMP_FILE="${TMPDIR:-/tmp}/myfilemanager"
+MYFILEMANAGER_NOTIFY_ENABLED="yes"
+MYFILEMANAGER_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+MYFILEMANAGER_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$MYFILEMANAGER_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE" ]; then
+    printf_green "Your config file for myfilemanager has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
   fi
-  exit
 }
-
-__create_link() {
-  case "$1" in
-  *)
-    if [ ! -z "$2" ]; then
-      shift 1
-      if cmd_exists "$1"; then
-        printf_green "Linking $HOME/.local/bin/myfilemanager to $1"
-        __ln_sf "$(command -v $1)" "$HOME/.local/bin/myfilemanager"
-        exit 0
-      else
-        printf_green "Linking $HOME/.local/bin/myfilemanager to $FILEMANAGER"
-        __ln_sf "$FILEMANAGER" "$HOME/.local/bin/myfilemanager"
-        exit 0
-      fi
-    fi
-    ;;
-  esac
-}
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$FILEMANAGER" = "myfilemanager" ] && unset FILEMANAGER
-if [ "$MYFILEMANAGER" != "config" ]; then
+__create_term() {
+  cat <<EOF | tee
+  #!/usr/bin/env sh
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202104040050-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myfilemanager --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
+# @File          : myfilemanager
+# @Description   : Setup $FILEMANAGER
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$FILEMANAGER \$MYFILEMANAGER_OPTIONS \$*"
+else
+  $FILEMANAGER \$MYFILEMANAGER_OPTIONS \$*
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
+
+EOF
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__create_link() {
+  if [ -n "$2" ]; then
+    shift 1
+    if cmd_exists "$1"; then
+      if [ "$MYFILEMANAGER_CONSOLE" = "yes" ]; then
+        printf_green "Generating the script for $FILEMANAGER"
+        __create_term >"$HOME/.local/bin/myfilemanager"
+      fi
+      printf_green "Linking $HOME/.local/bin/myfilemanager to $1"
+      __ln_sf "$(command -v $1)" "$HOME/.local/bin/myfilemanager"
+    else
+      printf_green "Linking $HOME/.local/bin/myfilemanager to $FILEMANAGER"
+      __ln_sf "$FILEMANAGER" "$HOME/.local/bin/myfilemanager"
+    fi
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+MYFILEMANAGER_CONFIG_FILE="settings.conf"
+MYFILEMANAGER_CONFIG_DIR="$HOME/.config/myscripts/myfilemanager"
+MYFILEMANAGER_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/myfilemanager/backups"
+MYFILEMANAGER_OPTIONS_DIR="$HOME/.local/share/myscripts/myfilemanager/options"
+MYFILEMANAGER_TEMP_FILE="${TMPDIR:-/tmp}/myfilemanager"
+MYFILEMANAGER_NOTIFY_ENABLED="yes"
+MYFILEMANAGER_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+MYFILEMANAGER_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYFILEMANAGER_NOTIFY_CLIENT_ICON}"
+MYFILEMANAGER_CONSOLE="${MYFILEMANAGER_CONSOLE}"
+MYFILEMANAGER="${MYFILEMANAGER}"
+MYFILEMANAGER_OPTIONS=${MYFILEMANAGER_OPTIONS}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,l:"
+LONGOPTS="options,config,version,help,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYFILEMANAGER_OPTIONS_DIR/options" ] || __list_options "$MYFILEMANAGER_OPTIONS_DIR" &>/dev/null
+[ -f "$MYFILEMANAGER_OPTIONS_DIR/array" ] || __list_array "$MYFILEMANAGER_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE" ]; then
+  . "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Locate an editor
+[ "$FILEMANAGER" != "myfilemanager" ] || unset MYFILEMANAGER
+if [ "$MYFILEMANAGER_NAME" != "config" ] || [ -z "$MYFILEMANAGER" ]; then
   if [ -z "$DESKTOP_SESSION" ]; then
     if [ -f "$(command -v lf 2>/dev/null)" ]; then
-      export FILEMANAGER="lf"
+      MYFILEMANAGER="lf"
     elif [ -f "$(command -v vifm 2>/dev/null)" ]; then
-      export FILEMANAGER="vifm"
+      MYFILEMANAGER="vifm"
     elif [ -f "$(command -v ranger 2>/dev/null)" ]; then
-      export FILEMANAGER="ranger"
+      MYFILEMANAGER="ranger"
     elif [ -f "$(command -v se 2>/dev/null)" ]; then
-      export FILEMANAGER="se"
+      MYFILEMANAGER="se"
     elif [ -f "$(command -v cfiles 2>/dev/null)" ]; then
-      export FILEMANAGER="cfiles"
+      MYFILEMANAGER="cfiles"
     fi
   else
     if [ -f "$(command -v open 2>/dev/null)" ]; then
-      export FILEMANAGER="open"
+      MYFILEMANAGER="open"
     elif [ -f "$(command -v dolphin 2>/dev/null)" ]; then
-      export FILEMANAGER="dolphin"
+      MYFILEMANAGER="dolphin"
     elif [ -f "$(command -v thunar 2>/dev/null)" ]; then
-      export FILEMANAGER="thunar"
+      MYFILEMANAGER="thunar"
     elif [ -f "$(command -v Thunar 2>/dev/null)" ]; then
-      export FILEMANAGER="Thunar"
+      MYFILEMANAGER="Thunar"
     elif [ -f "$(command -v konqueror 2>/dev/null)" ]; then
-      export FILEMANAGER="konqueror"
+      MYFILEMANAGER="konqueror"
     elif [ -f "$(command -v spacefm 2>/dev/null)" ]; then
-      export FILEMANAGER="spacefm"
+      MYFILEMANAGER="spacefm"
     elif [ -f "$(command -v nemo 2>/dev/null)" ]; then
-      export FILEMANAGER="nemo"
+      MYFILEMANAGER="nemo"
     elif [ -f "$(command -v pcmanfm 2>/dev/null)" ]; then
-      export FILEMANAGER="pcmanfm"
+      MYFILEMANAGER="pcmanfm"
     elif [ -f "$(command -v polo 2>/dev/null)" ]; then
-      export FILEMANAGER="caja"
+      MYFILEMANAGER="caja"
     elif [ -f "$(command -v caja 2>/dev/null)" ]; then
-      export FILEMANAGER="nautilus"
+      MYFILEMANAGER="nautilus"
     elif [ -f "$(command -v nautilus 2>/dev/null)" ]; then
-      export FILEMANAGER="polo"
+      MYFILEMANAGER="polo"
     elif [ -f "$(command -v polo 2>/dev/null)" ]; then
-      export FILEMANAGER="polo"
+      MYFILEMANAGER="polo"
     fi
   fi
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    export FILEMANAGER="open"
+  if [[ "$(uname -s)" = Darwin ]]; then
+    MYFILEMANAGER="open"
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -z "$FILEMANAGER" ]; then
-  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "No filemanagers are installed"
-  printf_exit 1 1 "No filemanagers are installed"
-fi
-FILEMANAGER_NAME="$(basename "$FILEMANAGER" 2>/dev/null)"
+MYFILEMANAGER_NAME="$(basename "$MYFILEMANAGER" 2>/dev/null)"
+export FILEMANAGER="$MYFILEMANAGER"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $FILEMANAGER in
+case $FILEMANAGER_NAME in
 lf | vifm | ranger | se | cfiles)
-  FILEMANAGER="myterminal -e $FILEMANAGER"
+  MYFILEMANAGER_CONSOLE="true"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $1 in
-config | *-config)
-  shift 1
-  __config
-  ;;
-
-create | link | *-create | *-link)
-  shift 1
-  __create_link "$@"
-  ;;
-
-*)
-  [ "$MYFILEMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyFileManager" "Attempting to launch $FILEMANAGER_NAME"
-  if [ -f "$HOME/.local/bin/myfilemanager" ]; then
-    __exec ~/.local/bin/myfilemanager "$@"
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$MYFILEMANAGER_OPTIONS_DIR" "$ARRAY"
+    __list_options "$MYFILEMANAGER_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -l | --link)
+    shift 1
+    __create_link "${1:-$FILEMANAGER}"
+    shift 1
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${MYFILEMANAGER_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${MYFILEMANAGER_NOTIFY_CLIENT_ICON}"
+if [ "$MYFILEMANAGER_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+if [ -z "$MYFILEMANAGER" ]; then
+  __notifications "MyFileManager" "No file managers are installed"
+  printf_newline "\n\n\n"
+  printf_red "No file managers are installed"
+  printf_pause 1 "Press any key to exit this window"
+  exit
+fi
+ARGS=${*:-}
+OPEN="$MYFILEMANAGER_OPTIONS $ARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+__notifications "MyFileManager" "Attempting to launch $MYFILEMANAGER_NAME"
+if [ -f "$HOME/.local/bin/myfilemanager" ]; then
+  __exec "$HOME/.local/bin/myfilemanager" "$ARGS"
+elif [ "$MYFILEMANAGER_CONSOLE" = "yes" ]; then
+  if [ ! -t 0 ]; then
+    myterminal -e $FILEMANAGER $OPEN
   else
-    __exec $FILEMANAGER "$@"
+    $FILEMANAGER $OPEN
   fi
-  ;;
-esac
-
+else
+  __exec $FILEMANAGER $OPEN
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# end
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}

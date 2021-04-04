@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104040050-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap 'exitCode=$?;[ -f "$MYBROWSER_TEMP_FILE" ] && rm -Rf "$MYBROWSER_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201721-git
+##@Version       : 202104040050-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : mybrowser --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 17:21 EDT
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
 # @File          : mybrowser
 # @Description   : Open up the web browser
 # @TODO          :
@@ -40,123 +42,246 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-MYTERMINAL_NOTIFICATIONS="no"
-MYBROWSER_NOTIFICATIONS="${MYBROWSER_NOTIFICATIONS:-yes}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/mybrowser/settings.conf" ] && . "$HOME/.config/mybrowser/settings.conf"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__config() {
-  printf_green "Generating config file"
-  __mkd "$HOME/.config/mybrowser"
-  echo -e '# Settings for mybrowser
-MYBROWSER="config"
-BROWSER="'$BROWSER'"
-MYBROWSER_NOTIFICATIONS="'$MYBROWSER_NOTIFICATIONS'"
-STARTPAGE=""
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE"
+  [ -d "$MYBROWSER_CONFIG_DIR" ] || mkdir -p "$MYBROWSER_CONFIG_DIR"
+  [ -d "$MYBROWSER_CONFIG_BACKUP_DIR" ] || mkdir -p "$MYBROWSER_CONFIG_BACKUP_DIR"
+  [ -f "$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE" ] &&
+    cp -Rf "$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE" "$MYBROWSER_CONFIG_BACKUP_DIR/$MYBROWSER_CONFIG_FILE.$$"
+  cat <<EOF >"$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE"
+# Settings for mybrowser
+MYBROWSER_NAME="config"
+MYBROWSER="$MYBROWSER"
+MYBROWSER_OPTIONS=""
+MYBROWSER_STARTPAGE=""
+MYBROWSER_CONSOLE="$MYBROWSER_CONSOLE"
+MYBROWSER_TEMP_FILE="${TMPDIR:-/tmp}/mybrowser"
+MYBROWSER_NOTIFY_ENABLED="yes"
+MYBROWSER_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+MYBROWSER_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$MYBROWSER_NOTIFY_CLIENT_ICON}"
 
-  ' >"$HOME/.config/mybrowser/settings.conf"
-  if [ -f "$HOME/.config/mybrowser/settings.conf" ]; then
-    printf_green "File saved to: $HOME/.config/mybrowser/settings.conf"
-    [ -n "$MYBROWSER_NOTIFICATIONS" ] && notifications "MyBrowser" "Config file saved to:\n$HOME/.config/mybrowser/settings.conf"
+EOF
+  if [ -f "$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE" ]; then
+    printf_green "Your config file for mybrowser has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
   fi
-  exit
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__create_term() {
+  cat <<EOF | tee
+  #!/usr/bin/env sh
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202104040050-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : mybrowser --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
+# @File          : mybrowser
+# @Description   : Setup $BROWSER
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$BROWSER \$MYBROWSER_OPTIONS \$*"
+else
+  $BROWSER \$MYBROWSER_OPTIONS \$*
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
 
+EOF
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_link() {
-  case "$1" in
-  *)
-    if [ ! -z "$2" ]; then
-      shift 1
-      if cmd_exists "$1"; then
-        printf_green "Linking $HOME/.local/bin/mybrowser to $1"
-        __ln_sf "$(command -v $1)" "$HOME/.local/bin/mybrowser"
-        exit 0
-      else
-        printf_green "Linking $HOME/.local/bin/mybrowser to $BROWSER"
-        __ln_sf "$BROWSER" "$HOME/.local/bin/mybrowser"
-        exit 0
+  if [ -n "$2" ]; then
+    shift 1
+    if cmd_exists "$1"; then
+      if [ "$MYBROWSER_CONSOLE" = "yes" ]; then
+        printf_green "Generating the script for $BROWSER"
+        __create_term >"$HOME/.local/bin/mybrowser"
       fi
+      printf_green "Linking $HOME/.local/bin/mybrowser to $1"
+      __ln_sf "$(command -v $1)" "$HOME/.local/bin/mybrowser"
+    else
+      printf_green "Linking $HOME/.local/bin/mybrowser to $BROWSER"
+      __ln_sf "$BROWSER" "$HOME/.local/bin/mybrowser"
     fi
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+MYBROWSER_CONFIG_FILE="settings.conf"
+MYBROWSER_CONFIG_DIR="$HOME/.config/myscripts/mybrowser"
+MYBROWSER_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/mybrowser/backups"
+MYBROWSER_OPTIONS_DIR="$HOME/.local/share/myscripts/mybrowser/options"
+MYBROWSER_TEMP_FILE="${TMPDIR:-/tmp}/mybrowser"
+MYBROWSER_NOTIFY_ENABLED="yes"
+MYBROWSER_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+MYBROWSER_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYBROWSER_NOTIFY_CLIENT_ICON}"
+MYBROWSER_CONSOLE="${MYBROWSER_CONSOLE}"
+MYBROWSER="${MYBROWSER}"
+MYBROWSER_OPTIONS="${MYBROWSER_OPTIONS}"
+MYBROWSER_STARTPAGE=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,l:"
+LONGOPTS="options,config,version,help,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYBROWSER_OPTIONS_DIR/options" ] || __list_options "$MYBROWSER_OPTIONS_DIR" &>/dev/null
+[ -f "$MYBROWSER_OPTIONS_DIR/array" ] || __list_array "$MYBROWSER_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE" ]; then
+  . "$MYBROWSER_CONFIG_DIR/$MYBROWSER_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Locate an editor
+[ "$MYBROWSER" != "mybrowser" ] || unset MYBROWSER
+if [ "$MYBROWSER_NAME" != "config" ] || [ -z "$MYBROWSER" ]; then
+  if [ -f "$(command -v garcon-url-handler 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v garcon-url-handler 2>/dev/null) --url"
+  elif [ -f "$(command -v firefox 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v firefox 2>/dev/null)"
+  elif [ -f "$(command -v chromium 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v chromium 2>/dev/null)"
+  elif [ -f "$(command -v google-chrome 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v google-chrome 2>/dev/null)"
+  elif [ -f "$(command -v opera 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v opera 2>/dev/null)"
+  elif [ -f "$(command -v epiphany-browser 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v epiphany-browser 2>/dev/null)"
+  elif [ -f "$(command -v falkon 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v falkon 2>/dev/null)"
+  elif [ -f "$(command -v midori 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v midori 2>/dev/null)"
+  elif [ -f "$(command -v netsurf 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v netsurf 2>/dev/null)"
+  elif [ -f "$(command -v surf 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v surf 2>/dev/null)"
+  elif [ -f "$(command -v arora 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v arora 2>/dev/null)"
+  elif [ -f '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ]; then
+    MYBROWSER='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  elif [ -f '/Applications/Firefox.app/Contents/MacOS/firefox-bin' ]; then
+    MYBROWSER='/Applications/Firefox.app/Contents/MacOS/firefox-bin'
+  elif [ -f '/Applications/Opera.app/Contents/MacOS/Opera' ]; then
+    MYBROWSER='/Applications/Opera.app/Contents/MacOS/Opera'
+  elif [ -f '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser' ]; then
+    MYBROWSER='/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
+  elif [ -f '/Applications/Tor Browser.app/Contents/MacOS/firefox' ]; then
+    MYBROWSER='/Applications/Tor Browser.app/Contents/MacOS/firefox'
+  elif [ -f "$(command -v lynx 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v lynx 2>/dev/null)"
+  elif [ -f "$(command -v links 2>/dev/null)" ]; then
+    MYBROWSER="$(command -v links 2>/dev/null)"
+  fi
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+MYBROWSER_NAME="$(basename "$MYBROWSER" 2>/dev/null)"
+export BROWSER="$MYBROWSER"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $BROWSER_NAME in
+links | lynx)
+  MYBROWSER_CONSOLE="true"
+  ;;
+esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$MYBROWSER_OPTIONS_DIR" "$ARRAY"
+    __list_options "$MYBROWSER_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -l | --link)
+    shift 1
+    __create_link "${1:-$BROWSER}"
+    shift 1
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
     ;;
   esac
-}
+done
+set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$BROWSER" = "mybrowser" ] && unset BROWSER
-if [ "$MYBROWSER" != "config" ]; then
-  if [ -f "$(command -v garcon-url-handler 2>/dev/null)" ]; then
-    export BROWSER="$(command -v garcon-url-handler 2>/dev/null) --url"
-  elif [ -f "$(command -v firefox 2>/dev/null)" ]; then
-    export BROWSER="$(command -v firefox 2>/dev/null)"
-  elif [ -f "$(command -v chromium 2>/dev/null)" ]; then
-    export BROWSER="$(command -v chromium 2>/dev/null)"
-  elif [ -f "$(command -v google-chrome 2>/dev/null)" ]; then
-    export BROWSER="$(command -v google-chrome 2>/dev/null)"
-  elif [ -f "$(command -v opera 2>/dev/null)" ]; then
-    export BROWSER="$(command -v opera 2>/dev/null)"
-  elif [ -f "$(command -v epiphany-browser 2>/dev/null)" ]; then
-    export BROWSER="$(command -v epiphany-browser 2>/dev/null)"
-  elif [ -f "$(command -v falkon 2>/dev/null)" ]; then
-    export BROWSER="$(command -v falkon 2>/dev/null)"
-  elif [ -f "$(command -v midori 2>/dev/null)" ]; then
-    export BROWSER="$(command -v midori 2>/dev/null)"
-  elif [ -f "$(command -v netsurf 2>/dev/null)" ]; then
-    export BROWSER="$(command -v netsurf 2>/dev/null)"
-  elif [ -f "$(command -v surf 2>/dev/null)" ]; then
-    export BROWSER="$(command -v surf 2>/dev/null)"
-  elif [ -f "$(command -v arora 2>/dev/null)" ]; then
-    export BROWSER="$(command -v arora 2>/dev/null)"
-  elif [ -f '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' ]; then
-    export BROWSER='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-  elif [ -f '/Applications/Firefox.app/Contents/MacOS/firefox-bin' ]; then
-    export BROWSER='/Applications/Firefox.app/Contents/MacOS/firefox-bin'
-  elif [ -f '/Applications/Opera.app/Contents/MacOS/Opera' ]; then
-    export BROWSER='/Applications/Opera.app/Contents/MacOS/Opera'
-  elif [ -f '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser' ]; then
-    export BROWSER='/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
-  elif [ -f '/Applications/Tor Browser.app/Contents/MacOS/firefox' ]; then
-    export BROWSER='/Applications/Tor Browser.app/Contents/MacOS/firefox'
-  elif [ -f "$(command -v lynx 2>/dev/null)" ]; then
-    export BROWSER="$(command -v lynx 2>/dev/null)"
-  elif [ -f "$(command -v links 2>/dev/null)" ]; then
-    export BROWSER="$(command -v links 2>/dev/null)"
-  fi
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${MYBROWSER_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${MYBROWSER_NOTIFY_CLIENT_ICON}"
+if [ "$MYBROWSER_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -z "$BROWSER" ]; then
-  [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "No Browsers are installed"
-  printf_exit 1 1 "No Browsers are installed"
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+if [ -z "$MYBROWSER" ]; then
+  __notifications "MyBrowser" "No email clients are installed"
+  printf_newline "\n\n\n"
+  printf_red "No email clients are installed"
+  printf_pause 1 "Press any key to exit this window"
+  exit
 fi
-BROWSER_NAME="$(basename "$BROWSER" 2>/dev/null)"
+if [ -f "$STARTPAGE" ]; then OPEN="${OPEN:-$STARTPAGE}"; else OPEN="${OPEN:-About:blank}"; fi
+STARTPAGE="${OPEN:-$STARTPAGE}"
+OPEN="$MYBROWSER_OPTIONS ${*:-$STARTPAGE}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $BROWSER in
-links | lynx)
-  BROWSER="myterminal -e $BROWSER"
-  ;;
-esac
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $1 in
-config | *-config)
-  shift 1
-  __config
-  ;;
-
-create | link | *-create | *-link)
-  shift 1
-  __create_link "$@"
-  ;;
-
-*)
-  if [ -f "$STARTPAGE" ]; then OPEN=""; else OPEN="About:blank"; fi
-  [ "$MYBROWSER_NOTIFICATIONS" = "yes" ] && notifications "MyBrowser" "Attempting to open $BROWSER_NAME"
-  if [ -f "$HOME/.local/bin/mybrowser" ]; then
-    __exec "$HOME/.local/bin/mybrowser" "${@:-$OPEN}"
+# begin main app
+__notifications "MyBrowser" "Attempting to launch $MYBROWSER_NAME"
+if [ -f "$HOME/.local/bin/mybrowser" ]; then
+  __exec "$HOME/.local/bin/mybrowser" "$ARGS"
+elif [ "$MYBROWSER_CONSOLE" = "yes" ]; then
+  if [ ! -t 0 ]; then
+    myterminal -e "$BROWSER $OPEN"
   else
-    __exec "$BROWSER" "${@:-$OPEN}"
+    $BROWSER $OPEN
   fi
-  ;;
-esac
-
+else
+  __exec $BROWSER $OPEN
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit ${exitCode:-$?}

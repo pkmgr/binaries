@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104040050-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap 'exitCode=$?;[ -f "$MYEMAIL_TEMP_FILE" ] && rm -Rf "$MYEMAIL_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201725-git
+##@Version       : 202104040050-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : myemail --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 17:25 EDT
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
 # @File          : myemail
 # @Description   : Open e-mail client
 # @TODO          :
@@ -40,107 +42,229 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-MYTERMINAL_NOTIFICATIONS="no"
-MYEMAIL_NOTIFICATIONS="${MYEMAIL_NOTIFICATIONS:-yes}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/myemail/settings" ] && . "$HOME/.config/myemail/settings"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__config() {
-  printf_green "Generating config file"
-  __mkd "$HOME/.config/myemail"
-  echo -e '# Settings for myemail
-MYEMAIL="config"
-EMAIL="'$EMAIL'"
-MYEMAIL_NOTIFICATIONS="'$MYEMAIL_NOTIFICATIONS'"
-  ' >"$HOME/.config/myemail/settings"
-  if [ -f "$HOME/.config/myemail/settings" ]; then
-    printf_green "File saved to: $HOME/.config/myemail/settings"
-    [ -n "$MYEMAIL_NOTIFICATIONS" ] && notifications "MyEMail" "Config file saved to:\n$HOME/.config/myemail/settings"
-  fi
-  exit
-}
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE"
+  [ -d "$MYEMAIL_CONFIG_DIR" ] || mkdir -p "$MYEMAIL_CONFIG_DIR"
+  [ -d "$MYEMAIL_CONFIG_BACKUP_DIR" ] || mkdir -p "$MYEMAIL_CONFIG_BACKUP_DIR"
+  [ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ] &&
+    cp -Rf "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" "$MYEMAIL_CONFIG_BACKUP_DIR/$MYEMAIL_CONFIG_FILE.$$"
+  cat <<EOF >"$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE"
+# Settings for myemail
+MYEMAIL_NAME="config"
+MYEMAIL="$MYEMAIL"
+MYEMAIL_OPTIONS=""
+MYEMAIL_CONSOLE="$MYEMAIL_CONSOLE"
+MYEMAIL_TEMP_FILE="${TMPDIR:-/tmp}/myemail"
+MYEMAIL_NOTIFY_ENABLED="yes"
+MYEMAIL_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+MYEMAIL_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$MYEMAIL_NOTIFY_CLIENT_ICON}"
 
+EOF
+  if [ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ]; then
+    printf_green "Your config file for myemail has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__create_term() {
+  cat <<EOF | tee
+  #!/usr/bin/env sh
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202104040050-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myemail --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
+# @File          : myemail
+# @Description   : Setup $EMAIL
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$EMAIL \$MYEMAIL_OPTIONS \$*"
+else
+  $EMAIL \$MYEMAIL_OPTIONS \$*
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
+
+EOF
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_link() {
-  case "$1" in
-  *)
-    if [ ! -z "$2" ]; then
-      shift 1
-      if cmd_exists "$1"; then
-        printf_green "Linking $HOME/.local/bin/myemail to $1"
-        __ln_sf "$(command -v $1)" "$HOME/.local/bin/myemail"
-        exit 0
-      else
-        printf_green "Linking $HOME/.local/bin/myemail to $EMAIL"
-        __ln_sf "$EMAIL" "$HOME/.local/bin/myemail"
-        exit 0
+  if [ -n "$2" ]; then
+    shift 1
+    if cmd_exists "$1"; then
+      if [ "$MYEMAIL_CONSOLE" = "yes" ]; then
+        printf_green "Generating the script for $EMAIL"
+        __create_term >"$HOME/.local/bin/myemail"
       fi
+      printf_green "Linking $HOME/.local/bin/myemail to $1"
+      __ln_sf "$(command -v $1)" "$HOME/.local/bin/myemail"
+    else
+      printf_green "Linking $HOME/.local/bin/myemail to $EMAIL"
+      __ln_sf "$EMAIL" "$HOME/.local/bin/myemail"
     fi
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+MYEMAIL_CONFIG_FILE="settings.conf"
+MYEMAIL_CONFIG_DIR="$HOME/.config/myscripts/myemail"
+MYEMAIL_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/myemail/backups"
+MYEMAIL_OPTIONS_DIR="$HOME/.local/share/myscripts/myemail/options"
+MYEMAIL_TEMP_FILE="${TMPDIR:-/tmp}/myemail"
+MYEMAIL_NOTIFY_ENABLED="yes"
+MYEMAIL_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+MYEMAIL_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYEMAIL_NOTIFY_CLIENT_ICON}"
+MYEMAIL_CONSOLE="${MYEMAIL_CONSOLE}"
+MYEMAIL="${MYEMAIL}"
+MYEMAIL_OPTIONS="${MYEMAIL_OPTIONS}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,l:"
+LONGOPTS="options,config,version,help,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYEMAIL_OPTIONS_DIR/options" ] || __list_options "$MYEMAIL_OPTIONS_DIR" &>/dev/null
+[ -f "$MYEMAIL_OPTIONS_DIR/array" ] || __list_array "$MYEMAIL_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ]; then
+  . "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Locate an editor
+[ "$MYEMAIL" != "myemail" ] || unset MYEMAIL
+if [ "$MYEMAIL_NAME" != "config" ] || [ -z "$MYEMAIL" ]; then
+  if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
+    MYEMAIL="thunderbird"
+  elif [ -f "$(command -v evolution 2>/dev/null)" ]; then
+    MYEMAIL="evolution"
+  elif [ -f "$(command -v clawsmail 2>/dev/null)" ]; then
+    MYEMAIL="clawsmail"
+  elif [ -f "$(command -v geary 2>/dev/null)" ]; then
+    MYEMAIL="geary"
+  elif [ -f "$(command -v neomutt 2>/dev/null)" ]; then
+    MYEMAIL="neomutt"
+  elif [ -f "$(command -v mutt 2>/dev/null)" ]; then
+    MYEMAIL="mutt"
+  elif [ -f "$(command -v kmail 2>/dev/null)" ]; then
+    MYEMAIL="kmail"
+  elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
+    MYEMAIL="emacs"
+  elif [ -f "$(command -v gmail 2>/dev/null)" ]; then
+    MYEMAIL="mybrowser https://gmail.com"
+  elif [ -f "$(command -v ymail 2>/dev/null)" ]; then
+    MYEMAIL="mybrowser https://ymail.com"
+  elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
+    MYEMAIL="sylpheed"
+  fi
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+MYEMAIL_NAME="$(basename "$MYEMAIL" 2>/dev/null)"
+export EMAIL="$MYEMAIL"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $EMAIL_NAME in
+emacs | mutt | neomutt)
+  MYEMAIL_CONSOLE="true"
+  ;;
+esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$MYEMAIL_OPTIONS_DIR" "$ARRAY"
+    __list_options "$MYEMAIL_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -l | --link)
+    shift 1
+    __create_link "${1:-$EMAIL}"
+    shift 1
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
     ;;
   esac
-}
-
+done
+set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$EMAIL" = "myemail" ] && unset EMAIL
-if [ "$MYEMAIL" != "config" ]; then
-  if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
-    export EMAIL="thunderbird"
-  elif [ -f "$(command -v evolution 2>/dev/null)" ]; then
-    export EMAIL="evolution"
-  elif [ -f "$(command -v clawsmail 2>/dev/null)" ]; then
-    export EMAIL="clawsmail"
-  elif [ -f "$(command -v geary 2>/dev/null)" ]; then
-    export EMAIL="geary"
-  elif [ -f "$(command -v neomutt 2>/dev/null)" ]; then
-    export EMAIL="neomutt"
-  elif [ -f "$(command -v mutt 2>/dev/null)" ]; then
-    export EMAIL="mutt"
-  elif [ -f "$(command -v kmail 2>/dev/null)" ]; then
-    export EMAIL="kmail"
-  elif [ -f "$(command -v emacs 2>/dev/null)" ]; then
-    export EMAIL="emacs"
-  elif [ -f "$(command -v gmail 2>/dev/null)" ]; then
-    export EMAIL="mybrowser https://gmail.com"
-  elif [ -f "$(command -v ymail 2>/dev/null)" ]; then
-    export EMAIL="mybrowser https://ymail.com"
-  elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
-    export EMAIL="sylpheed"
-  fi
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${MYEMAIL_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${MYEMAIL_NOTIFY_CLIENT_ICON}"
+if [ "$MYEMAIL_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -z "$EMAIL" ]; then
-  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "No email clients are installed"
-  printf_exit 1 1 "No email clients are installed"
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+if [ -z "$MYEMAIL" ]; then
+  __notifications "MyEmail" "No email clients are installed"
+  printf_newline "\n\n\n"
+  printf_red "No email clients are installed"
+  printf_pause 1 "Press any key to exit this window"
+  exit
 fi
-EMAIL_NAME="$(basename "$EMAIL" 2>/dev/null)"
+ARGS="$*"
+OPEN="$MYEMAIL_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $EMAIL in
-emacs | mutt | neomutt)
-  EMAIL="myterminal -e $EMAIL"
-  ;;
-esac
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $1 in
-config | *-config)
-  shift 1
-  __config
-  ;;
-
-create | *-link)
-  shift 1
-  __create_link "$@"
-  ;;
-
-*)
-  [ "$MYEMAIL_NOTIFICATIONS" = "yes" ] && notifications "MyEMail" "Attempting to launch $EMAIL_NAME"
-  if [ -f "$HOME/.local/bin/myemail" ]; then
-    __exec ~/.local/bin/myemail "$@"
+# begin main app
+__notifications "MyEmail" "Attempting to launch $MYEMAIL_NAME"
+if [ -f "$HOME/.local/bin/myemail" ]; then
+  __exec "$HOME/.local/bin/myemail" "$@"
+elif [ "$MYEMAIL_CONSOLE" = "yes" ]; then
+  if [ ! -t 0 ]; then
+    myterminal -e "$EMAIL $OPEN"
   else
-    __exec $EMAIL "$@"
+    $EMAIL $OPEN
   fi
-  ;;
-esac
-
+else
+  __exec $EMAIL $OPEN
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit ${exitCode:-$?}
