@@ -78,9 +78,11 @@ if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 _notifications() { if [ "$NOTES_NOTIFY" = "yes" ]; then notifications "$@"; fi; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __server_start() {
   notes server start &>/dev/null &
   disown || return 1
+  sleep 3
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate config file
@@ -258,6 +260,7 @@ __server() {
   local _PORT="$NOTES_SERVER_PORT"
   local _KILL="$NOTES_TMPDIR/kill_notes"
   local _TMPFILE="$NOTES_TMP_FILE"
+  local NOTES_SERVER_LOOP="$NOTES_SERVER_LOOP"
   __mkd "$NOTES_TMPDIR"
   __netcat_test
   netstatg "$_PORT" &>/dev/null && printf_exit "Already Running" || printf_green "Launching server on port $_PORT"
@@ -295,6 +298,7 @@ __run_service() {
   local _PATH="$NOTES_TMP_FILE"
   local NOTES_NOTIFY=${NOTES_NOTIFY:-yes}
   local DISPLAY="${DISPLAY:-:0.0}"
+  local NOTES_SERVER_LOOP="$NOTES_SERVER_LOOP"
   kill -s KILL "$(netstatg $_PORT | awk '{print $7}' | head -n 1 | sed 's#/.*##g')" || true
   if [ "$NOTES_SERVER_LOOP" != "yes" ]; then
     echo "Launching server on port $_PORT"
@@ -484,7 +488,6 @@ case "$1" in
         __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         if [ "$1" = "--loop" ]; then
           shift 1
-          _notifications "Notes Server" "Launching server on port $_PORT"
           NOTES_SERVER_LOOP="yes"
         fi
         opts="$*"
@@ -519,6 +522,7 @@ case "$1" in
     shift 2
     if [ "$1" = "--loop" ]; then
       NOTES_SERVER_LOOP=yes
+      _notifications "Notes Server" "Launching server on port $NOTES_SERVER_PORT"
       shift 1
     else
       printf_green "Starting notes server for $USER"
