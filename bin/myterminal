@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPNAME="$(basename "$0")"
+APPNAME="$(basename $0)"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
@@ -117,35 +117,35 @@ if [ -z "$TERMINAL" ]; then
 fi
 TERMINAL_NAME="$(basename "$TERMINAL" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$1" = "-e" ] && opt="-e" && shift 1
-echo -e "$@" | grep -q '\-term' && TERMINAL_APP="true"
+[ "$1" = -e ] && shift 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
-config | *-config)
+*config)
   shift 1
   __config
   ;;
 
-create | link | *-create | *-link)
+*create | *link)
   shift 1
   __create_link "$@"
   ;;
 
 *)
-  _OPT=$#
-  _CMD="$1" && shift 1
-  _ARG="$*" && shift $#
   if [ -z "$DISPLAY" ] || [ -n "$SSH_TTY" ]; then
     eval "$*"
     exit $?
   fi
+  _OPT=$#
+  _CMD="$1" && shift 1
+  _ARG="$*" && shift $#
+  if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    "$HOME/.local/bin/myterminal" ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null &
+    exec ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
   else
-    $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null &
+    exec $TERMINAL ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
   fi
-  sleep 3
+  disown
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
