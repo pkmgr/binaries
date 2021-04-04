@@ -179,9 +179,9 @@ fi
 MYEMAIL_NAME="$(basename "$MYEMAIL" 2>/dev/null)"
 export EMAIL="$MYEMAIL"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $EMAIL_NAME in
+case $MYEMAIL_NAME in
 emacs | mutt | neomutt)
-  MYEMAIL_CONSOLE="true"
+  MYEMAIL_CONSOLE="yes"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -241,7 +241,7 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -z "$MYEMAIL" ]; then
-  __notifications "MyEmail" "No email clients are installed"
+  __notifications "No email clients are installed"
   printf_newline "\n\n\n"
   printf_red "No email clients are installed"
   printf_pause 1 "Press any key to exit this window"
@@ -251,7 +251,7 @@ ARGS="$*"
 OPEN="$MYEMAIL_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-__notifications "MyEmail" "Attempting to launch $MYEMAIL_NAME"
+__notifications "Attempting to launch $MYEMAIL_NAME"
 if [ -f "$HOME/.local/bin/myemail" ]; then
   __exec "$HOME/.local/bin/myemail" "$@"
 elif [ "$MYEMAIL_CONSOLE" = "yes" ]; then

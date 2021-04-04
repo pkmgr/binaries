@@ -184,9 +184,9 @@ fi
 MYEDITOR_NAME="$(basename "$MYEDITOR" 2>/dev/null)"
 export EDITOR="$MYEDITOR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $EDITOR_NAME in
+case $MYEDITOR_NAME in
 nano | vim | emacs | nvim)
-  MYEDITOR_CONSOLE="true"
+  MYEDITOR_CONSOLE="yes"
   ;;
 code | vscode)
   MYEDITOR_OPTIONS="-w"
@@ -249,7 +249,7 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -z "$MYEDITOR" ]; then
-  __notifications "MyEditor" "No editors are installed"
+  __notifications "No editors are installed"
   printf_newline "\n\n\n"
   printf_red "No editors are installed"
   printf_pause 1 "Press any key to exit this window"
@@ -259,7 +259,7 @@ ARGS="$*"
 OPEN="$MYEDITOR_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-__notifications "MyEditor" "Attempting to launch $MYEDITOR_NAME"
+__notifications "Attempting to launch $MYEDITOR_NAME"
 if [ -f "$HOME/.local/bin/myeditor" ]; then
   __exec "$HOME/.local/bin/myeditor" "$@"
 elif [ "$MYEDITOR_CONSOLE" = "yes" ]; then

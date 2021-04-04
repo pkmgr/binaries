@@ -195,9 +195,9 @@ fi
 MYBROWSER_NAME="$(basename "$MYBROWSER" 2>/dev/null)"
 export BROWSER="$MYBROWSER"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $BROWSER_NAME in
+case $MYBROWSER_NAME in
 links | lynx)
-  MYBROWSER_CONSOLE="true"
+  MYBROWSER_CONSOLE="yes"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -257,7 +257,7 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -z "$MYBROWSER" ]; then
-  __notifications "MyBrowser" "No email clients are installed"
+  __notifications "No email clients are installed"
   printf_newline "\n\n\n"
   printf_red "No email clients are installed"
   printf_pause 1 "Press any key to exit this window"
@@ -268,7 +268,7 @@ STARTPAGE="${OPEN:-$STARTPAGE}"
 OPEN="$MYBROWSER_OPTIONS ${*:-$STARTPAGE}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-__notifications "MyBrowser" "Attempting to launch $MYBROWSER_NAME"
+__notifications "Attempting to launch $MYBROWSER_NAME"
 if [ -f "$HOME/.local/bin/mybrowser" ]; then
   __exec "$HOME/.local/bin/mybrowser" "$ARGS"
 elif [ "$MYBROWSER_CONSOLE" = "yes" ]; then

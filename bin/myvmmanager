@@ -248,7 +248,7 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -z "$MYVMMANAGER" ]; then
-  __notifications "MyVMManager" "No Virtual Machine Managers are installed"
+  __notifications "No Virtual Machine Managers are installed"
   printf_newline "\n\n\n"
   printf_red "No Virtual Machine Managers are installed"
   printf_pause 1 "Press any key to exit this window"
@@ -256,7 +256,7 @@ if [ -z "$MYVMMANAGER" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-__notifications "MyVMManager" "Attempting to launch $MYVMMANAGER_NAME"
+__notifications "Attempting to launch $MYVMMANAGER_NAME"
 if [ -f "$HOME/.local/bin/myvmmanager" ]; then
   __exec "$HOME/.local/bin/myvmmanager" "$ARGS"
 elif [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then

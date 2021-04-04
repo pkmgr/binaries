@@ -285,11 +285,11 @@ OPEN="$MYTORRENT_OPTIONS $ARGS"
 if [ "$TRANSMISSION_REMOTE" = "true" ]; then
   if [ "$1" = "localhost" ] || [ "$1" = "$(hostname -s)" ] || [ "$1" = "$(hostname -f)" ]; then
     [ -z "$transmission_daemon" ] && transmission-daemon &>/dev/null && sleep 5 &&
-      __notifications "MyTorrent" "Transmission server has been started"
+      __notifications "Transmission server has been started"
   fi
   MYTORRENT_CONSOLE="yes"
 fi
-__notifications "MyTorrent" "Attempting to launch $MYTORRENT_NAME"
+__notifications "Attempting to launch $MYTORRENT_NAME"
 if [ -f "$HOME/.local/bin/mytorrent" ]; then
   __exec "$HOME/.local/bin/mytorrent" "$*"
 

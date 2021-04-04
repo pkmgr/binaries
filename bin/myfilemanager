@@ -8,7 +8,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 trap 'exitCode=$?;[ -f "$MYFILEMANAGER_TEMP_FILE" ] && rm -Rf "$MYFILEMANAGER_TEMP_FILE" &>/dev/null' EXIT
-
+set -Ex
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104040050-git
 # @Author        : Jason Hempstead
@@ -198,9 +198,9 @@ fi
 MYFILEMANAGER_NAME="$(basename "$MYFILEMANAGER" 2>/dev/null)"
 export FILEMANAGER="$MYFILEMANAGER"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $FILEMANAGER_NAME in
+case $MYFILEMANAGER_NAME in
 lf | vifm | ranger | se | cfiles)
-  MYFILEMANAGER_CONSOLE="true"
+  MYFILEMANAGER_CONSOLE="yes"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -260,7 +260,7 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -z "$MYFILEMANAGER" ]; then
-  __notifications "MyFileManager" "No file managers are installed"
+  __notifications "No file managers are installed"
   printf_newline "\n\n\n"
   printf_red "No file managers are installed"
   printf_pause 1 "Press any key to exit this window"
@@ -270,13 +270,14 @@ ARGS=${*:-}
 OPEN="$MYFILEMANAGER_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-__notifications "MyFileManager" "Attempting to launch $MYFILEMANAGER_NAME"
+__notifications "Attempting to launch $MYFILEMANAGER_NAME"
 if [ -f "$HOME/.local/bin/myfilemanager" ]; then
   __exec "$HOME/.local/bin/myfilemanager" "$ARGS"
 elif [ "$MYFILEMANAGER_CONSOLE" = "yes" ]; then
   if [ ! -t 0 ]; then
-    myterminal -e $FILEMANAGER $OPEN
+    myterminal -e "$FILEMANAGER $OPEN"
   else
+    echo here
     $FILEMANAGER $OPEN
   fi
 else
