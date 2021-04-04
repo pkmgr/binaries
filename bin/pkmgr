@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$PKMGR_TMP_FILE" ] && rm -Rf "$PKMGR_TMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$PKMGR_TEMP_FILE" ] && rm -Rf "$PKMGR_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103310710-git

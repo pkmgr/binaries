@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$VIDEOS_TMP_FILE" ] && rm -Rf "$VIDEOS_TMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$VIDEOS_TEMP_FILE" ] && rm -Rf "$VIDEOS_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104010423-git

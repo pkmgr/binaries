@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$ICONMGR_TMP_FILE" ] && rm -Rf "$ICONMGR_TMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$ICONMGR_TEMP_FILE" ] && rm -Rf "$ICONMGR_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103310710-git

@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$SPELLCHECK_TMP_FILE" ] && rm -Rf "$SPELLCHECK_TMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$SPELLCHECK_TEMP_FILE" ] && rm -Rf "$SPELLCHECK_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103302146-git
@@ -51,7 +51,7 @@ __gen_config() {
     cp -Rf "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE" "$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE.$$"
   cat <<EOF >"$SPELLCHECK_CONFIG_DIR/$SPELLCHECK_CONFIG_FILE"
 # Settings for spellcheck
-SPELLCHECK_TMP_FILE="${TMPDIR:-/tmp}/checkspell"
+SPELLCHECK_TEMP_FILE="${TMPDIR:-/tmp}/checkspell"
 SPELLCHECK_NOTIFY_ENABLED="yes"
 SPELLCHECK_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
 SPELLCHECK_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$SPELLCHECK_NOTIFY_CLIENT_ICON}"
@@ -72,7 +72,7 @@ SPELLCHECK_CONFIG_FILE="settings.conf"
 SPELLCHECK_CONFIG_DIR="$HOME/.config/myscripts/spellcheck"
 SPELLCHECK_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/spellcheck/backups"
 SPELLCHECK_OPTIONS_DIR="$HOME/.local/share/myscripts/spellcheck/options"
-SPELLCHECK_TMP_FILE="${TMPDIR:-/tmp}/checkspell"
+SPELLCHECK_TEMP_FILE="${TMPDIR:-/tmp}/checkspell"
 SPELLCHECK_NOTIFY_ENABLED="yes"
 SPELLCHECK_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 SPELLCHECK_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$SPELLCHECK_NOTIFY_CLIENT_ICON}"
@@ -156,18 +156,18 @@ fi
 if [ -f "$FILE_TO_CHECK" ]; then
   aspell -c "$FILE_TO_CHECK"
 else
-  echo "$1" | aspell -a list | grep -v "@(#) " >"$SPELLCHECK_TMP_FILE"
-  if grep -q '^\*$' "$SPELLCHECK_TMP_FILE"; then
+  echo "$1" | aspell -a list | grep -v "@(#) " >"$SPELLCHECK_TEMP_FILE"
+  if grep -q '^\*$' "$SPELLCHECK_TEMP_FILE"; then
     correct="You have spelled $1 correctly"
     printf_green "\n\t\t$correct"
     __notifications "SpellCheck:" "$correct"
   else
-    fix="$(sed 's|^& ||g;s|,| :|g' <"$SPELLCHECK_TMP_FILE")"
+    fix="$(sed 's|^& ||g;s|,| :|g' <"$SPELLCHECK_TEMP_FILE")"
     printf_blue "\n\t\t$fix\n"
     __notifications "SpellCheck:" "$fix"
   fi
 fi
-[ -f "$SPELLCHECK_TMP_FILE" ] && rm -Rf "$SPELLCHECK_TMP_FILE" &>/dev/null
+[ -f "$SPELLCHECK_TEMP_FILE" ] && rm -Rf "$SPELLCHECK_TEMP_FILE" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

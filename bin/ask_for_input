@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$ASK_FOR_INPUT_TMP_FILE" ] && rm -Rf "$ASK_FOR_INPUT_TMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$ASK_FOR_INPUT_TEMP_FILE" ] && rm -Rf "$ASK_FOR_INPUT_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104022137-git
@@ -149,7 +149,7 @@ message="$1"
 if cmd_exists zenity; then
   REPLY="$(zenity --entry --text "$message")"
 elif cmd_exists gdialog; then
-  REPLY="$(gdialog  --erase-on-exit --stdout --inputbox "$message" 0 0)"
+  REPLY="$(gdialog --erase-on-exit --stdout --inputbox "$message" 0 0)"
 elif cmd_exists dialog; then
   REPLY="$(dialog --erase-on-exit --stdout --inputbox "$message" 0 0)"
 else

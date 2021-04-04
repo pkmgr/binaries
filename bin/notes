@@ -6,7 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$NOTES_TMP_FILE" ] && rm $NOTES_TMP_FILE' EXIT
+trap '[ -f "$NOTES_TEMP_FILE" ] && rm $NOTES_TEMP_FILE' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103201736-git
@@ -54,7 +54,7 @@ NOTES_SERVER_PORT="${NOTES_SERVER_PORT:-65000}"
 NOTES_SERVER_DIRECTORY="${NOTES_SERVER_DIRECTORY:-$NOTES_DIRECTORY}"
 NOTES_SERVER_TIMEOUT="${NOTES_SERVER_TIMEOUT:-600}"
 NOTES_LOG_FILE="${NOTES_LOG_FILE:-$NOTES_TMPDIR/notes_server.log}"
-NOTES_TMP_FILE="$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt 2>/dev/null)"
+NOTES_TEMP_FILE="$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt 2>/dev/null)"
 NOTES_PATH="${NOTES_PATH:-$NOTES_DIRECTORY/$NOTES_FOLDER/$NOTES_FILE}"
 NOTES_SERVER_PATH="${NOTES_SERVER_PATH:-$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$NOTES_FILE}"
 NOTES_PREV_FILE="${NOTES_PREV_FILE:-$NOTES_SERVER_DIRECTORY/$NOTES_FOLDER/$NOTES_PREV_MONTH}"
@@ -99,7 +99,7 @@ NOTES_SERVER_PORT="'${NOTES_SERVER_PORT:-65000}'"
 NOTES_SERVER_DIRECTORY="'${NOTES_DIRECTORY}'"
 NOTES_SERVER_TIMEOUT="'${NOTES_SERVER_TIMEOUT:-600}'"
 NOTES_LOG_FILE="'${NOTES_TMPDIR}/notes_server.log'"
-NOTES_TMP_FILE="$(mktemp ${NOTES_TMPDIR}/notes.XXXXXX.txt 2>/dev/null)"
+NOTES_TEMP_FILE="$(mktemp ${NOTES_TMPDIR}/notes.XXXXXX.txt 2>/dev/null)"
 NOTES_PATH="${NOTES_DIRECTORY}/${NOTES_FOLDER}/${NOTES_FILE}"
 NOTES_SERVER_PATH="${NOTES_SERVER_DIRECTORY}/${NOTES_FOLDER}/${NOTES_FILE}"
 NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
@@ -134,7 +134,7 @@ Environment=NOTES_DIRECTORY='${HOME}/.local/share/editors/notes'
 Environment=NOTES_LOG_FILE='${NOTES_TMPDIR}/notes_server.log'
 Environment=NOTES_SERVER_NAME="$(hostname -f)"
 Environment=NOTES_SERVER_PORT=65000
-Environment=NOTES_TMP_FILE="$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt 2>/dev/null)"
+Environment=NOTES_TEMP_FILE="$(mktemp $NOTES_TMPDIR/notes.XXXXXX.txt 2>/dev/null)"
 Environment=NOTES_NOTIFY="'${NOTES_NOTIFY:-yes}'"
 
 ExecStartPre=/usr/local/bin/notes server systemd run vars
@@ -298,7 +298,7 @@ __server() {
   [ "$1" = "--loop" ] && NOTES_SERVER_LOOP="yes"
   local _PORT="$NOTES_SERVER_PORT"
   local _KILL="$NOTES_TMPDIR/kill_notes"
-  local _TMPFILE="$NOTES_TMP_FILE"
+  local _TMPFILE="$NOTES_TEMP_FILE"
   local NOTES_SERVER_LOOP="$NOTES_SERVER_LOOP"
   __mkd "$NOTES_TMPDIR"
   __netcat_test
@@ -334,7 +334,7 @@ __server() {
 # Server function for SystemD
 __run_service() {
   local _PORT="$NOTES_SERVER_PORT"
-  local _PATH="$NOTES_TMP_FILE"
+  local _PATH="$NOTES_TEMP_FILE"
   local NOTES_NOTIFY=${NOTES_NOTIFY:-yes}
   local DISPLAY="${DISPLAY:-:0.0}"
   local NOTES_SERVER_LOOP="$NOTES_SERVER_LOOP"
@@ -369,7 +369,7 @@ __client() {
   local DEDUP_NOTIFY="${DEDUP_NOTIFY:-no}"
   local _SERVER="${NOTES_SERVER_NAME}"
   local _PORT=${NOTES_SERVER_PORT}
-  local _PATH="$NOTES_TMP_FILE"
+  local _PATH="$NOTES_TEMP_FILE"
   __netcat_test
   printf_green "Attempting to send message to $_SERVER on $_PORT"
   if printf "%s\n" "$*" >"$_PATH" 2>>$NOTES_TMPDIR/notes_client &&
@@ -517,7 +517,7 @@ server | service | *-server | *-service)
         shift 3
         __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         export NOTES_NOTIFY NOTES_FOLDER NOTES_FILE NOTES_TMPDIR NOTES_DIRECTORY NOTES_EDITOR NOTES_PATH
-        export NOTES_SERVER_NAME NOTES_SERVER_PORT NOTES_SERVER_DIRECTORY NOTES_LOG_FILE NOTES_TMP_FILE NOTES_SERVER_PATH
+        export NOTES_SERVER_NAME NOTES_SERVER_PORT NOTES_SERVER_DIRECTORY NOTES_LOG_FILE NOTES_TEMP_FILE NOTES_SERVER_PATH
         ;;
       *-stop)
         shift 3

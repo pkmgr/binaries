@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$MYSSH_TMP_FILE" ] && rm -Rf "$MYSSH_TMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$MYSSH_TEMP_FILE" ] && rm -Rf "$MYSSH_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104022137-git

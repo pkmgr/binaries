@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$GITCOMMIT_TMP_FILE" ] && rm -Rf "$GITCOMMIT_TMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$GITCOMMIT_TEMP_FILE" ] && rm -Rf "$GITCOMMIT_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103312104-git
