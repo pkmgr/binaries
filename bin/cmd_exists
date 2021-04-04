@@ -163,8 +163,8 @@ command -v bash &>/dev/null || exit 1
 # APP Variables
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 args="$*"
-exitCode=""
-exitTmp=""
+exitCode=0
+exitTmp=0
 missing=""
 choice=""
 [ -n "$1" ] || exit 0
