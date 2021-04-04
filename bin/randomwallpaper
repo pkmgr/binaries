@@ -6,6 +6,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$RUN_FILE" ] && rm -f "$RUN_FILE"' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103201806-git
@@ -58,7 +59,8 @@ MANUAL=""
 [ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] &&
   . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { echo "$*" >/dev/null; }; fi
-ROTATE_TIME=$((60 * ROTATE_TIME))
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SLEEP_TIME=$((60 * ROTATE_TIME))
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config"
@@ -172,23 +174,23 @@ __background_job() {
   local ROTATE_TIME="${1:-$ROTATE_TIME}"
   [ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] && . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
   randomwallpaper --bg --new && touch "$RUN_FILE" || __rm_rf "$RUN_FILE"
-  sleep ${ROTATE_TIME:-5}
+  sleep $SLEEP_TIME
   __kill && __background_job || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __start() {
   WALLPAPER_COUNT="$(find -L ~/.local/share/wallpapers/ -type f | wc -l)"
   if [ "$ROTATE_TIME" = "daily" ]; then
-    ROTATE_TIME=$((24 * 60 * 60 / WALLPAPER_COUNT))
+    SLEEP_TIME=$((24 * 60 * 60 / WALLPAPER_COUNT))
   elif [ "$ROTATE_TIME" = "weekly" ]; then
-    ROTATE_TIME=$((24 * 60 * 60 * 7 / WALLPAPER_COUNT))
+    SLEEP_TIME=$((24 * 60 * 60 * 7 / WALLPAPER_COUNT))
   elif [ "$ROTATE_TIME" = "monthly" ]; then
-    ROTATE_TIME=$((24 * 60 * 60 * 30 / WALLPAPER_COUNT))
+    SLEEP_TIME=$((24 * 60 * 60 * 30 / WALLPAPER_COUNT))
   elif [ "$ROTATE_TIME" = "slideshow" ]; then
-    ROTATE_TIME="${SLIDESHOW_TIME:-5}"
+    SLEEP_TIME="${SLIDESHOW_TIME:-5}"
   fi
   __getstatus && return 1
-  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME seconds"
+  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME minutes"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
   sleep 60
   sh -c "$APPNAME --bg --run &>/dev/null &" &
@@ -315,7 +317,7 @@ __term() {
       else
         printf_read_input "6" "How often do you want it to change? [minutes]: " "5" "sleeptime"
         counter=$((60 * sleeptime))
-        ROTATE_TIME="$counter"
+        SLEEP_TIME="$counter"
         randomwallpaper --bg --start
         printf_green "Started randomwallpaper in the background"
         printf_counter "5" "4" "exiting menu in"

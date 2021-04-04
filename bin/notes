@@ -6,7 +6,8 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$NOTES_TMP_FILE" ] && rm -r $NOTES_TMP_FILE' EXIT
+trap '[ -f "$NOTES_TMP_FILE" ] && rm $NOTES_TMP_FILE' EXIT
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103201736-git
 # @Author        : Jason Hempstead
@@ -483,6 +484,7 @@ case "$1" in
         __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         if [ "$1" = "--loop" ]; then
           shift 1
+          _notifications "Notes Server" "Launching server on port $_PORT"
           NOTES_SERVER_LOOP="yes"
         fi
         opts="$*"
