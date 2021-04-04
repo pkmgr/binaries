@@ -179,6 +179,25 @@ EOF
     printf_error 1 1 "$ICON_WARN Failed to install the notes server for $USER"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__server_disable() {
+  __notifications "NotesCLI" "Disabling notes server"
+  printf_green "Disabling notes server"
+  if [ -f "$HOME/.config/autostart/notes-server.desktop" ]; then
+    __rm_rf "$HOME/.config/autostart/notes-server.desktop"
+  fi
+  if [ -f "/etc/systemd/system/notes_server.service" ] && user_is_root; then
+    sudo rm -Rf "/etc/systemd/system/notes_server.service" &>/dev/null
+    sudo systemctl daemon-reload &>/dev/null
+  fi
+  if [ -f "$HOME/.config/autostart/notes-server.desktop" ] || [ -f "/etc/systemd/system/notes_server.service" ]; then
+    __notifications "NotesCLI" "Failed to disable the service"
+    printf_red "Failed to disable the service"
+  else
+    __notifications "NotesCLI" "Service has been disabled"
+    printf_green __notifications "NotesCLI" "Service has been disabled"
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Netcat fix
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 __netcat_test() { cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
@@ -370,8 +389,13 @@ __client() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import previous month notes
 __import() {
-  [ -f "$NOTES_PREV_FILE" ] && cat "$NOTES_PREV_FILE" | sed '/^\#/d;/^$/d' >>"${NOTES_PATH}" || return 1
-  printf_green "Notes have been imported"
+  if [ -f "$NOTES_PREV_FILE" ]; then
+    if cat "$NOTES_PREV_FILE" | sed '/^\#/d;/^$/d' >>"${NOTES_PATH}"; then
+      printf_green "Notes have been imported"
+    else
+      return 1
+    fi
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # sync to all.txt
@@ -418,8 +442,8 @@ case $1 in
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-case "$1" in
-*server | *service)
+case "${SETOPTS:$1}" in
+server | service | *-systemd | *-service)
   if [ "$2" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
   if [ "$2" = "--status" ]; then
     shift 1
@@ -444,10 +468,10 @@ case "$1" in
 
   # begin systemd 2 deep
   case "$2" in
-  *systemd)
+  systemd | *-systemd)
     shift 1
     case $2 in
-    *install)
+    *-install)
       shift 2
       NOTES_DIRECTORY="$NOTES_SERVER_DIRECTORY"
       systemd_service "/etc/systemd/system/notes_server.service" &&
@@ -455,7 +479,7 @@ case "$1" in
         __devnull sudo systemctl start notes_server &&
         __devnull sudo systemctl enable -f notes_server && printf_green "Service has been created" || printf_red "Failed to create service"
       ;;
-    *remove)
+    *-remove)
       shift 2
       __system_service_exists notes_server.service || printf_exit 1 0 "Notes server is not installed"
       __devnull sudo systemctl disable -f notes_server &&
@@ -467,17 +491,17 @@ case "$1" in
       __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       __devnull sudo systemctl start notes_server && printf_green "Service has been started" || printf_red "Failed to start service"
       ;;
-    *stop)
+    *-stop)
       shift 2
       __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       __devnull sudo systemctl stop notes_server && printf_green "Service has been stopped" || printf_red "Failed to stop service"
       ;;
-    *restart)
+    *-restart)
       shift 2
       __system_service_exists notes_server.service || printf_exit 2 0 "Notes server is not installed"
       __devnull sudo systemctl restart notes_server && printf_green "Service has been restarted" || printf_red "Failed to restart service"
       ;;
-    *run) # SystemD run
+    *-run) # SystemD run
       case $3 in
       *vars)
         shift 3
@@ -485,7 +509,7 @@ case "$1" in
         export NOTES_NOTIFY NOTES_FOLDER NOTES_FILE NOTES_TMPDIR NOTES_DIRECTORY NOTES_EDITOR NOTES_PATH
         export NOTES_SERVER_NAME NOTES_SERVER_PORT NOTES_SERVER_DIRECTORY NOTES_LOG_FILE NOTES_TMP_FILE NOTES_SERVER_PATH
         ;;
-      *stop)
+      *-stop)
         shift 3
         __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         touch "$NOTES_TMPDIR/kill_notes"
@@ -501,7 +525,7 @@ case "$1" in
         opts="$*"
         __run_service "$opts" 2>>"$NOTES_LOG_FILE"
         ;;
-      *restart)
+      *-restart)
         __system_service_exists notes_server.service && printf_exit 2 0 "Notes server is not installed"
         shift 3
         opts="$*"
@@ -526,7 +550,7 @@ case "$1" in
     ;;
   # End Systemd
 
-  *start)
+  *-start)
     shift 2
     if [ "$1" = "--loop" ]; then
       NOTES_SERVER_LOOP=yes
@@ -540,12 +564,17 @@ case "$1" in
     sleep 3
     ;;
 
-  *enable)
+  *-enable)
     shift 2
     __server_enable
     ;;
 
-  *edit)
+  *-disable)
+    shift 2
+    __server_disable
+    ;;
+
+  edit | *-edit)
     shift 2
     if [ "$1" = prev ]; then
       ssh -qt "$NOTES_SERVER_NAME" notes open "$NOTES_PREV_FILE"
@@ -563,7 +592,7 @@ case "$1" in
   esac
   ;;
 
-*client)
+client | *-client)
   shift 1
   [ "$1" = "--help" ] && printf_help 'Usage: notes client "my message"  |  Send your notes to the server'
   [ -n "$NOTES_SERVER_NAME" ] || printf_help "Please set NOTES_SERVER_NAME variable to your server"
@@ -577,7 +606,7 @@ case "$1" in
   __client "$message" 2>/dev/null
   ;;
 
-*open)
+open | *-open)
   shift 1
   if [ "$1" = list ] || [ $# = 0 ]; then
     __list_all
@@ -597,30 +626,30 @@ case "$1" in
   __run_sync
   ;;
 
-*all)
+all | *-all)
   shift 1
   __sync_all "${NOTES_PATH}" "${NOTES_DIRECTORY}/all.txt"
   __notes "${NOTES_DIRECTORY}/all.txt"
   ;;
 
-*sync)
+sync | *-sync)
   shift 1
   [ "$1" = show ] && show=true && shift 1 || show=""
   [ "$1" = all ] && all=true && shift 1 || all=""
   __sync_all "${NOTES_PATH}" "${NOTES_DIRECTORY}/all.txt"
   ;;
 
-*config)
+config | *-config)
   shift 1
   gen_config && printf_green "config file was created in $NOTES_CONFIG_FILE"
   ;;
 
-*show)
+show | *-show)
   shift 1
   [ -f "$NOTES_PATH" ] && cat "$NOTES_PATH" 2>/dev/null | printf_readline "7" || printf_exit ""
   ;;
 
-*list)
+list | *-list)
   shift 1
   __list_all
   ;;

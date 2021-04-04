@@ -98,16 +98,17 @@ AM_I_ONLINE_OK_NAME="${AM_I_ONLINE_OK_NAME:-Great:}"
 AM_I_ONLINE_ERROR_NAME="${AM_I_ONLINE_ERROR_NAME:-Error:}"
 AM_I_ONLINE_ERROR_MSG="${AM_I_ONLINE_ERROR_MSG:-internet appears to be down and I require a working connection}"
 AM_I_ONLINE_OK_MSG="${AM_I_ONLINE_OK_MSG:-you seem to be connected to the internet}"
+AM_I_ONLINE_SHOW_ERROR=""
+AM_I_ONLINE_SHOW=""
+AM_I_ONLINE_MESSAGE=""
+AM_I_ONLINE_SHOW_CONSOLE=""
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h,f,m:,s:"
 LONGOPTS="options,config,version,help,error,show,console,force,message:,site:,code:"
 ARRAY=""
-AM_I_ONLINE_SHOW_ERROR=""
-AM_I_ONLINE_SHOW=""
-AM_I_ONLINE_MESSAGE=""
-AM_I_ONLINE_SHOW_CONSOLE=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" ] || __gen_config &>/dev/null
