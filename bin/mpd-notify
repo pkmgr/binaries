@@ -40,6 +40,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
+  myterminal -e "$APPNAME $*"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cmd_exists --ask mpd mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -d "$HOME/.config/mpd/mpd-notify" ] || printf_exit "1" "1" "Please install my mpd dotfiles | dfmgr install mpd"
@@ -312,10 +317,6 @@ __toggle() {
   if [ -n "$1" ]; then [ "$status" = "stopped" ] && $APPNAME run || stopDaemon; fi
 }
 __term() {
-  if [ ! -t 0 ]; then
-    myterminal -e "$APPNAME"
-    exit
-  fi
   shift $#
   while :; do
     # show menu

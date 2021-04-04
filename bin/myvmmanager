@@ -43,8 +43,8 @@ __options "$@"
 MYTERMINAL_NOTIFICATIONS="no"
 MYVMMANAGER_NOTIFICATIONS="${MYVMMANAGER_NOTIFICATIONS:-yes}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -t 0 ]; then
-  myterminal -e "$APPNAME" "$@"
+if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
+  myterminal -e "$APPNAME $*"
   exit
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

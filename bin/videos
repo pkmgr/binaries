@@ -42,6 +42,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
+  myterminal -e "$APPNAME $*"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$VIDEOS_CONFIG_DIR/$VIDEOS_CONFIG_FILE"
@@ -140,13 +145,9 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-if [ ! -t 0 ]; then
-  myterminal -e "$APPNAME" &
-  disown
-  exit
-fi
 if [ -z "$DISPLAY" ]; then printf_exit "No display server found.......exiting $(sleep 2)"; fi
 xine-ui() { xine || xine-ui || false; }
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 while :; do

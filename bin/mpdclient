@@ -40,6 +40,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
+  myterminal -e "$APPNAME $*"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __check_app mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 shift $#
@@ -64,11 +69,6 @@ else
   MPDSERVER="${MPDSERVER:-localhost}"
 fi
 export ORIG_MPDSERVER="$MPDSERVER"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -t 0 ]; then
-  myterminal -e "$APPNAME" "$@"
-  exit
-fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __devnull() {
   "$@" &>/dev/null &&

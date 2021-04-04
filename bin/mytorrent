@@ -150,7 +150,7 @@ transmission-remote)
   fi
   ;;
 *)
-  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TORRENT"
+  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TORRENT_NAME"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

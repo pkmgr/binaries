@@ -41,11 +41,6 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -t 0 ]; then
-  myterminal -e "$APPNAME" "$@"
-  exit
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Default variables
 NOTES_PREV_MONTH="$(date --date="1 Month Ago" +%m).txt"
 NOTES_NOTIFY="${NOTES_NOTIFY:-yes}"
@@ -706,6 +701,10 @@ search)
       message="$(</dev/stdin)"
       __update_notes "$message" "${NOTES_PATH}"
     else
+      if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
+        myterminal -e "$APPNAME"
+        exit
+      fi
       __notes
     fi
   else
