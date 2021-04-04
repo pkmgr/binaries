@@ -183,8 +183,16 @@ EOF
 netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null)"
 __netcat_test() { cmd_exists $netcat || printf_exit "The program netcat is not installed"; }
 __nc_send() { $netcat -c $1 $2 2>>"$NOTES_LOG_FILE" && true || $netcat -w 1 $1 $2 2>>"$NOTES_LOG_FILE" || return 1; }
-__local() { if [ "$NOTES_SERVER_NAME" = "$(hostname -f)" ] || [ "$NOTES_SERVER_NAME" = "$(hostname -s)" ] ||
-  [ "$NOTES_SERVER_NAME" = "localhost" ]; then return 1; else return 0; fi; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__local() {
+  if [ "$NOTES_SERVER_NAME" = "$(hostname -f)" ] || [ "$NOTES_SERVER_NAME" = "$(hostname -s)" ] ||
+    [ "$NOTES_SERVER_NAME" = "localhost" ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __notes() {
   unset TMUX
   eval tmux -f "${NOTES_DIRECTORY}/tmux.conf" new-session -D -A -s notes "${NOTES_EDITOR:-vim} ${1:-$NOTES_PATH}" &>/dev/null || return 1
@@ -204,6 +212,7 @@ __dedup() {
     return 0
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #__update_notes "$message" "${NOTES_PATH}"
 __update_notes() {
   if __dedup "$1" "$2"; then
@@ -214,6 +223,7 @@ __update_notes() {
   fi
   return ${exitCode:-$?}
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __sync_tmp() {
   local _NOTESP="${1:-$NOTES_PATH}"
   local _TPATH="${2:-$_PATH}"
@@ -377,9 +387,7 @@ __run_sync() {
 __list_all() {
   printf_green "All notes in $NOTES_DIRECTORY"
   find ${NOTES_DIRECTORY}/*/* ${NOTES_DIRECTORY}/all.txt -type f -iname "*.txt" -not -path "${NOTES_DIRECTORY}/archive/*" |
-    sed 's#'$NOTES_DIRECTORY/'##g' |
-    __column |
-    printf_read "6"
+    sed 's#'$NOTES_DIRECTORY/'##g' | printf_column 6
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup
@@ -574,7 +582,7 @@ case "$1" in
   if [ "$1" = list ] || [ $# = 0 ]; then
     __list_all
   else
-    if [ $1 = $NOTES_DIRECTORY/all.txt ] || [[ "$1" = */all* ]] || [[ "$1" = all ]]; then
+    if [ "$1" = "$NOTES_DIRECTORY/all.txt" ] || [[ "$1" = */all* ]] || [[ "$1" = all ]]; then
       filename="$NOTES_DIRECTORY/all.txt"
     elif [[ "$1" = prev ]]; then
       filename="$NOTES_PREV_FILE"
@@ -663,8 +671,8 @@ search)
   __run_sync
   ;;
 esac
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit ${exitCode:-$?}
