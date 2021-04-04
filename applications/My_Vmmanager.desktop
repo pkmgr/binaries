@@ -13,4 +13,4 @@ Terminal=false
 Actions=
 Categories=System;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=virtual;machine;my;
-StartupNotify=true
+StartupNotify=false

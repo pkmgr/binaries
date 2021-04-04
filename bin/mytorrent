@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104032335-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$MYTORRENT_TMP_FILE" ] && rm -Rf "$MYTORRENT_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201732-git
+##@Version       : 202104032335-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
-# @License       : WTFPL
+# @License       : LICENSE.md
 # @ReadME        : mytorrent --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 17:32 EDT
+# @Created       : Sunday, Apr 04, 2021 02:06 EDT
 # @File          : mytorrent
 # @Description   : Open torrent client
 # @TODO          :
@@ -40,34 +42,74 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-MYTORRENT_NOTIFICATIONS="${MYTORRENT_NOTIFICATIONS:-yes}"
-MYTERMINAL_NOTIFICATIONS="no"
-TORRENT_SERVER="${TORRENT_SERVER:-localhost:9091}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/mytorrent/settings" ] && . "$HOME/.config/mytorrent/settings"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__config() {
-  printf_green "Generating config file"
-  __mkd "$HOME/.config/mytorrent"
-  echo -e '# Settings for mytorrent
-MYTORRENT="config"
-TORRENT="'$TORRENT'"
-MYTORRENT_NOTIFICATIONS="'$MYTORRENT_NOTIFICATIONS'"
-TORRENT_SERVER="'${TORRENT_SERVER:-localhost}:9091'"
-  ' >"$HOME/.config/mytorrent/settings"
-  if [ -f "$HOME/.config/mytorrent/settings" ]; then
-    printf_green "File saved to: $HOME/.config/mytorrent/settings"
-    [ -n "$MYTORRENT_NOTIFICATIONS" ] && notifications "MyTorrent" "Config file saved to:\n$HOME/.config/mytorrent/settings"
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE"
+  [ -d "$MYTORRENT_CONFIG_DIR" ] || mkdir -p "$MYTORRENT_CONFIG_DIR"
+  [ -d "$MYTORRENT_CONFIG_BACKUP_DIR" ] || mkdir -p "$MYTORRENT_CONFIG_BACKUP_DIR"
+  [ -f "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE" ] &&
+    cp -Rf "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE" "$MYTORRENT_CONFIG_BACKUP_DIR/$MYTORRENT_CONFIG_FILE.$$"
+  cat <<EOF >"$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE"
+# Settings for mytorrent
+MYTORRENT_NAME="config"
+MYTORRENT="$MYTORRENT"
+MYTORRENT_CONSOLE="$MYTORRENT_CONSOLE"
+MYTORRENT_TEMP_FILE="${TMPDIR:-/tmp}/mytorrent"
+MYTORRENT_NOTIFY_ENABLED="yes"
+MYTORRENT_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+MYTORRENT_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$MYTORRENT_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE" ]; then
+    printf_green "Your config file for mytorrent has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
   fi
-  exit
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__create_term() {
+  cat <<EOF | tee
+  #!/usr/bin/env sh
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202104040050-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : mytorrent --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
+# @File          : mytorrent
+# @Description   : Setup $TORRENT
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e 'bash -c "'$TORRENT \$*';bash"'
+else
+  $TORRENT \$*
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
+
+EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_link() {
   case "$1" in
   *)
-    if [ -n "$2" ]; then
+    if [ ! -z "$2" ]; then
       shift 1
       if cmd_exists "$1"; then
+        if [ "$MYTORRENT_CONSOLE" = "yes" ]; then
+          printf_green "Generating the script for $TORRENT"
+          __create_term >"$HOME/.local/bin/mytorrent"
+        fi
         printf_green "Linking $HOME/.local/bin/mytorrent to $1"
         __ln_sf "$(command -v $1)" "$HOME/.local/bin/mytorrent"
         exit 0
@@ -81,111 +123,198 @@ __create_link() {
   esac
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__launch() {
-  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "$NOTIFY_MESSAGE"
-  local args="$*"
-  if [ -f "$HOME/.local/bin/mytorrent" ]; then
-    __exec ~/.local/bin/mytorrent ${args:-}
-  else
-    __exec $TORRENT ${args:-}
-  fi
-}
+# Defaults
+exitCode=""
+MYTORRENT_CONFIG_FILE="settings.conf"
+MYTORRENT_CONFIG_DIR="$HOME/.config/myscripts/mytorrent"
+MYTORRENT_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/mytorrent/backups"
+MYTORRENT_OPTIONS_DIR="$HOME/.local/share/myscripts/mytorrent/options"
+MYTORRENT_TEMP_FILE="${TMPDIR:-/tmp}/mytorrent"
+MYTORRENT_NOTIFY_ENABLED="yes"
+MYTORRENT_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+MYTORRENT_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYTORRENT_NOTIFY_CLIENT_ICON}"
+MYTORRENT="${MYTORRENT:-$TORRENT}"
+MYTORRENT_CONSOLE="${MYTORRENT_CONSOLE}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$TORRENT" = "mytorrent" ] && unset TORRENT
-if [ "$MYTORRENT" != "config" ]; then
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,t,l:"
+LONGOPTS="options,config,version,help,term,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYTORRENT_OPTIONS_DIR/options" ] || __list_options "$MYTORRENT_OPTIONS_DIR" &>/dev/null
+[ -f "$MYTORRENT_OPTIONS_DIR/array" ] || __list_array "$MYTORRENT_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE" ]; then
+  . "$MYTORRENT_CONFIG_DIR/$MYTORRENT_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Locate a manager
+if [ "$MYTORRENT_NAME" != "config" ] || [ -z "$MYTORRENT" ]; then
+  [ "$TORRENT" = "mytorrent" ] && unset TORRENT MYTORRENT_NAME
   if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
-    export TORRENT="transmission-remote-gtk"
+    MYTORRENT="transmission-remote-gtk"
   elif [ -f "$(command -v transmission-remote 2>/dev/null)" ]; then
-    export TORRENT="transmission-remote"
+    MYTORRENT="transmission-remote"
+  elif [ -f "$(command -v transmission-cli 2>/dev/null)" ]; then
+    MYTORRENT="transmission-cli"
   elif [ -f "$(command -v transmission-gtk 2>/dev/null)" ]; then
-    export TORRENT="transmission-gtk"
+    MYTORRENT="transmission-gtk"
   elif [ -f "$(command -v transmission-qt 2>/dev/null)" ]; then
-    export TORRENT="transmission-qt"
+    MYTORRENT="transmission-qt"
   elif [ -f "$(command -v deluge 2>/dev/null)" ]; then
-    export TORRENT="deluge"
+    MYTORRENT="deluge"
   elif [ -f "$(command -v vuze 2>/dev/null)" ]; then
-    export TORRENT="vuze"
+    MYTORRENT="vuze"
   elif [ -f "$(command -v qbittorrent)" ]; then
-    export TORRENT="qbittorrent"
+    MYTORRENT="qbittorrent"
   elif [ -f "$(command -v ktorrent 2>/dev/null)" ]; then
-    export TORRENT="ktorrent"
+    MYTORRENT="ktorrent"
   elif [ -f "$(command -v ctorrent 2>/dev/null)" ]; then
-    export TORRENT="ctorrent"
+    MYTORRENT="ctorrent"
   elif [ -f "$(command -v unworkable 2>/dev/null)" ]; then
-    export TORRENT="unworkable"
+    MYTORRENT="unworkable"
   elif [ -f "$(command -v rtorrent 2>/dev/null)" ]; then
-    export TORRENT="rtorrent"
+    MYTORRENT="rtorrent"
   elif [ -f "$(command -v bitstormlite 2>/dev/null)" ]; then
-    export TORRENT="bitstormlite"
+    MYTORRENT="bitstormlite"
   elif [ -f "/Applications/Transmission.app/Contents/MacOS/Transmission" ]; then
-    export TORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
+    MYTORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -z "$TORRENT" ]; then
-  [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "No bittorrent clients are installed"
-  printf_exit 1 1 "No bittorrent clients are installed"
-fi
-TORRENT_NAME="$(basename "$TORRENT" 2>/dev/null)"
+MYTORRENT_NAME="$(basename "$MYTORRENT" 2>/dev/null)"
+export TORRENT="$MYTORRENT"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $TORRENT_NAME in
-transmission-remote*)
+case $MYTORRENT_NAME in
+transmission-remote | transmission-cli)
   transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
   if [ -z "$transmission_daemon" ]; then
     transmission-daemon &>/dev/null && sleep 5 &&
-      [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Transmission server has been started"
+      __notifications "MyTorrent" "Transmission server has been started"
   fi
+  MYTORRENT_CONSOLE="yes"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $TORRENT_NAME in
-transmission-remote)
-  NOTIFY_MESSAGE="Attempting to launch $TORRENT"
-  TORRENT="transmission-remote"
-  TERMINAL_APP=yes
-  if [ ! -t 0 ]; then
-    myterminal -e "$TORRENT $*;bash"
-    exit
-  fi
-  ;;
-*)
-  [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TORRENT_NAME"
-  ;;
-esac
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $1 in
-config | *-config)
-  shift 1
-  __config
-  ;;
-
-create | link | *-create | *-link)
-  shift 1
-  __create_link "$@"
-  ;;
-*)
-  ARGS="$*"
-  if [ $# -eq 0 ] && [[ "$TORRENT" =~ transmission ]] && [[ "$TORRENT" != transmission-cli ]]; then
-    __launch -m
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$MYTORRENT_OPTIONS_DIR" "$ARRAY"
+    __list_options "$MYTORRENT_OPTIONS_DIR"
     exit $?
-  elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
-    [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Adding $ARGS"
-    if cmd_exists transadd; then
-      transadd "$ARGS" | grep -q "success" && true
-    elif [ -n "$DESKTOP_SESSION" ]; then
-      xdg-open "$ARGS"
-    else
-      "$TORRENT" -a "$ARGS"
-    fi
-  elif [ $# -ne 0 ]; then
-    ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch "$ARGS" && sleep 10 || $TORRENT "$ARGS"
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -t | --term)
+    shift 1
+    MYTORRENT_CONSOLE="yes"
+    ;;
+  -l | --link)
+    shift 1
+    __create_link "${1:-$TORRENT}"
+    shift 1
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${MYTORRENT_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${MYTORRENT_NOTIFY_CLIENT_ICON}"
+if [ "$MYTORRENT_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+if [ -z "$MYTORRENT" ]; then
+  __notifications "MyTorrent" "No bittorrent clients are installed"
+  printf_newline "\n\n\n"
+  printf_red "No bittorrent clients are installed"
+  printf_pause 1 "Press any key to exit this window"
+  exit
+fi
+ARGS="$*"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+__notifications "MyTorrent" "Attempting to launch $MYTORRENT_NAME"
+if [ -f "$HOME/.local/bin/mytorrent" ]; then
+  __exec "$HOME/.local/bin/mytorrent" "$@"
+
+elif [ $# -eq 0 ] && [[ "$MYTORRENT_CONSOLE" != "yes" ]] && [[ "$TORRENT" =~ transmission ]]; then
+  __exec $TORRENT -m
+
+elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
+  if cmd_exists transadd; then
+    transadd "$ARGS" | grep -q "success" && true
+  elif [ -n "$DESKTOP_SESSION" ]; then
+    xdg-open "$ARGS"
   else
-    __launch "$ARGS"
+    "$TORRENT" -a "$ARGS"
   fi
-  ;;
-esac
+
+elif [ "$MYTORRENT_CONSOLE" = "yes" ]; then
+  if [ ! -t 0 ]; then
+    myterminal -e 'bash -c "'$TORRENT $ARGS';bash"' &
+  else
+    $TORRENT $ARGS
+  fi
+
+else
+  __exec $TORRENT $ARGS
+fi
+
+# ARGS="$*"
+# if [ $# -eq 0 ] && [[ "$TORRENT" =~ transmission ]] && [[ "$TORRENT" != transmission-cli ]]; then
+#   __launch -m
+#   exit $?
+# elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
+#   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "Adding $ARGS"
+#   if cmd_exists transadd; then
+#     transadd "$ARGS" | grep -q "success" && true
+#   elif [ -n "$DESKTOP_SESSION" ]; then
+#     xdg-open "$ARGS"
+#   else
+#     "$TORRENT" -a "$ARGS"
+#   fi
+# elif [ $# -ne 0 ]; then
+#   ps -ax | grep -v "$TORRENT" | grep -vq 'grep ' && __launch "$ARGS" && sleep 10 || $TORRENT "$ARGS"
+# else
+#   __launch "$ARGS"
+# fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit ${exitCode:-$?}

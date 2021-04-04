@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202104040050-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$MYVMMANAGER_TMP_FILE" ] && rm -Rf "$MYVMMANAGER_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103201734-git
+##@Version       : 202104040050-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
 # @ReadME        : myvmmanager --help
 # @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 17:34 EDT
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
 # @File          : myvmmanager
 # @Description   : Setup virtual machine manager
 # @TODO          :
@@ -40,39 +42,73 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-MYTERMINAL_NOTIFICATIONS="no"
-MYVMMANAGER_NOTIFICATIONS="${MYVMMANAGER_NOTIFICATIONS:-yes}"
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE"
+  [ -d "$MYVMMANAGER_CONFIG_DIR" ] || mkdir -p "$MYVMMANAGER_CONFIG_DIR"
+  [ -d "$MYVMMANAGER_CONFIG_BACKUP_DIR" ] || mkdir -p "$MYVMMANAGER_CONFIG_BACKUP_DIR"
+  [ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ] &&
+    cp -Rf "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" "$MYVMMANAGER_CONFIG_BACKUP_DIR/$MYVMMANAGER_CONFIG_FILE.$$"
+  cat <<EOF >"$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE"
+# Settings for myvmmanager
+MYVMMANAGER_NAME="config"
+MYVMMANAGER="$MYVMMANAGER"
+MYVMMANAGER_CONSOLE="$MYVMMANAGER_CONSOLE"
+MYVMMANAGER_TEMP_FILE="${TMPDIR:-/tmp}/myvmmanager"
+MYVMMANAGER_NOTIFY_ENABLED="yes"
+MYVMMANAGER_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+MYVMMANAGER_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$MYVMMANAGER_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ]; then
+    printf_green "Your config file for myvmmanager has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
-  myterminal -e "$APPNAME $*"
-  exit
+__create_term() {
+  cat <<EOF | tee
+  #!/usr/bin/env sh
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202104040050-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : WTFPL
+# @ReadME        : myvmmanager --help
+# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
+# @Created       : Sunday, Apr 04, 2021 00:50 EDT
+# @File          : myvmmanager
+# @Description   : Setup $VMMANAGER
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e 'bash -c "'$VMMANAGER \$*';bash"'
+else
+  $VMMANAGER \$*
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -f "$HOME/.config/myvmmanager/settings" ] && . "$HOME/.config/myvmmanager/settings"
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__config() {
-  printf_green "Generating config file"
-  __mkd "$HOME/.config/myvmmanager"
-  echo -e '# Settings for myvmmanager
-MYVMMANAGER="config"
-VMMANAGER="'$VMMANAGER'"
-MYVMMANAGER_NOTIFICATIONS="'$MYVMMANAGER_NOTIFICATIONS'"
-  ' >"$HOME/.config/myvmmanager/settings"
-  if [ -f "$HOME/.config/myvmmanager/settings" ]; then
-    printf_green "File saved to: $HOME/.config/myvmmanager/settings"
-    [ -n "$MYVMMANAGER_NOTIFICATIONS" ] && notifications "MyVMManager" "Config file saved to:\n$HOME/.config/myvmmanager/settings"
-  fi
-  exit
-}
+# lets exit with code
+exit ${exitCode:-$?}
 
+EOF
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_link() {
   case "$1" in
   *)
     if [ ! -z "$2" ]; then
       shift 1
       if cmd_exists "$1"; then
-        if [ "$VMMANAGER" = docker ] || [ "$VMMANAGER" = kubectl ]; then
-          exit 0
+        if [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then
+          printf_green "Generating the script for $VMMANAGER"
+          __create_term >"$HOME/.local/bin/myvmmanager"
         fi
         printf_green "Linking $HOME/.local/bin/myvmmanager to $1"
         __ln_sf "$(command -v $1)" "$HOME/.local/bin/myvmmanager"
@@ -86,61 +122,142 @@ __create_link() {
     ;;
   esac
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$VMMANAGER" = "myvmmanager" ] && unset VMMANAGER
-if [ "$MYVMMANAGER" != "config" ]; then
+# Defaults
+exitCode=""
+MYVMMANAGER_CONFIG_FILE="settings.conf"
+MYVMMANAGER_CONFIG_DIR="$HOME/.config/myscripts/myvmmanager"
+MYVMMANAGER_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/myvmmanager/backups"
+MYVMMANAGER_OPTIONS_DIR="$HOME/.local/share/myscripts/myvmmanager/options"
+MYVMMANAGER_TEMP_FILE="${TMPDIR:-/tmp}/myvmmanager"
+MYVMMANAGER_NOTIFY_ENABLED="yes"
+MYVMMANAGER_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+MYVMMANAGER_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYVMMANAGER_NOTIFY_CLIENT_ICON}"
+MYVMMANAGER="${MYVMMANAGER:-$VMMANAGER}"
+MYVMMANAGER_CONSOLE="${MYVMMANAGER_CONSOLE}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="${*}"
+SHORTOPTS="c,v,h,t,l:"
+LONGOPTS="options,config,version,help,term,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYVMMANAGER_OPTIONS_DIR/options" ] || __list_options "$MYVMMANAGER_OPTIONS_DIR" &>/dev/null
+[ -f "$MYVMMANAGER_OPTIONS_DIR/array" ] || __list_array "$MYVMMANAGER_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ]; then
+  . "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Locate a manager
+if [ "$MYVMMANAGER_NAME" != "config" ] || [ -z "$VMMANAGER" ]; then
+  [ "$VMMANAGER" != "myvmmanager" ] || unset VMMANAGER
   if [ -f "$(command -v VirtualBox 2>/dev/null)" ]; then
-    export VMMANAGER="VirtualBox"
+    MYVMMANAGER="VirtualBox"
   elif [ -f "$(command -v VMWare 2>/dev/null)" ]; then
-    export VMMANAGER="VMWare"
+    MYVMMANAGER="VMWare"
   elif [ -f "$(command -v virt-manager 2>/dev/null)" ]; then
-    export VMMANAGER="virt-manager"
+    MYVMMANAGER="virt-manager"
   elif [ -f "$(command -v kubectl 2>/dev/null)" ]; then
-    export VMMANAGER="kubectl"
+    MYVMMANAGER="kubectl"
   elif [ -f "$(command -v docker 2>/dev/null)" ]; then
-    export VMMANAGER="docker"
+    MYVMMANAGER="docker"
   fi
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -z "$VMMANAGER" ]; then
-  [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "No Virtual Machine Managers are installed"
+MYVMMANAGER_NAME="$(basename "$MYVMMANAGER" 2>/dev/null)"
+export VMMANAGER="$MYVMMANAGER"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+case $MYVMMANAGER_NAME in
+docker | kubectl | virt-manager)
+  MYVMMANAGER_CONSOLE="yes"
+  ;;
+esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$MYVMMANAGER_OPTIONS_DIR" "$ARRAY"
+    __list_options "$MYVMMANAGER_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -t | --term)
+    shift 1
+    MYVMMANAGER_CONSOLE="yes"
+    ;;
+  -l | --link)
+    shift 1
+    __create_link "${1:-$VMMANAGER}"
+    shift 1
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${MYVMMANAGER_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${MYVMMANAGER_NOTIFY_CLIENT_ICON}"
+if [ "$MYVMMANAGER_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+if [ -z "$MYVMMANAGER" ]; then
+  __notifications "MyVMManager" "No Virtual Machine Managers are installed"
   printf_newline "\n\n\n"
   printf_red "No Virtual Machine Managers are installed"
   printf_pause 1 "Press any key to exit this window"
   exit
 fi
-VMMANAGER_NAME="$(basename "$VMMANAGER" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $VMMANAGER_NAME in
-docker | kubectl)
-  VMMANAGER="myterminal -e $VMMANAGER"
-  ;;
-esac
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $1 in
-config | *-config)
-  shift 1
-  __config
-  ;;
-
-create | link | *-create | *-link)
-  shift 1
-  __create_link "$@"
-  ;;
-
-*)
-  [ "$MYVMMANAGER_NOTIFICATIONS" = "yes" ] && notifications "MyVMManager" "Attempting to launch $VMMANAGER_NAME"
-  if [ -f "$HOME/.local/bin/myvmmanager" ]; then
-    __exec ~/.local/bin/myvmmanager "$@"
+# begin main app
+__notifications "MyVMManager" "Attempting to launch $MYVMMANAGER_NAME"
+if [ -f "$HOME/.local/bin/myvmmanager" ]; then
+  __exec "$HOME/.local/bin/myvmmanager" "$@"
+elif [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then
+  if [ ! -t 0 ]; then
+    myterminal -e 'bash -c "'$VMMANAGER $*';bash"' &
   else
-    __exec $VMMANAGER "$@"
+    $VMMANAGER "$*"
   fi
-  ;;
-esac
-
+else
+  __exec $VMMANAGER "$@"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# lets exit with code
+exit ${exitCode:-$?}
