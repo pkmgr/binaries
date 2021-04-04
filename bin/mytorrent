@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$MYTORRENT_TMP_FILE" ] && rm -Rf "$MYTORRENT_TMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=$?;[ -f "$MYTORRENT_TMP_FILE" ] && rm -Rf "$MYTORRENT_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104032335-git
@@ -123,6 +123,19 @@ __create_link() {
     ;;
   esac
 }
+__term() {
+  if [ $# = 0 ]; then
+    $TORRENT --help | less
+  else
+    $TORRENT "$*"
+  fi
+  while :; do
+    printf_newline
+    printf_read_input "2" "What command would you like to execute [q to exit]" "20" "CMD"
+    if [ $CMD = '-q' ] || [ $CMD = 'q' ] || [ $CMD = 'quit' ] || [ $CMD = 'exit' ]; then exit; fi
+    $TORRENT $CMD
+  done
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
@@ -137,7 +150,7 @@ MYTORRENT_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYTORRENT_NOTIFY_CLIENT_ICO
 MYTORRENT="${MYTORRENT:-$TORRENT}"
 MYTORRENT_CONSOLE="${MYTORRENT_CONSOLE}"
 MYTORRENT_SERVER="${TORRENT_SERVER:-localhost:9091}"
-
+TORRENT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
@@ -160,12 +173,10 @@ fi
 if [ "$MYTORRENT_NAME" != "config" ] || [ -z "$MYTORRENT" ]; then
   if [ -f "$(command -v transmission-remote-gtk 2>/dev/null)" ]; then
     MYTORRENT="transmission-remote-gtk"
-  elif [ -f "$(command -v transmission-remote 2>/dev/null)" ]; then
-    MYTORRENT="transmission-remote"
-  elif [ -f "$(command -v transmission-cli 2>/dev/null)" ]; then
-    MYTORRENT="transmission-cli"
   elif [ -f "$(command -v transmission-gtk 2>/dev/null)" ]; then
     MYTORRENT="transmission-gtk"
+  elif [ -f "$(command -v transmission-cli 2>/dev/null)" ]; then
+    MYTORRENT="transmission-cli"
   elif [ -f "$(command -v transmission-qt 2>/dev/null)" ]; then
     MYTORRENT="transmission-qt"
   elif [ -f "$(command -v deluge 2>/dev/null)" ]; then
@@ -188,6 +199,9 @@ if [ "$MYTORRENT_NAME" != "config" ] || [ -z "$MYTORRENT" ]; then
     MYTORRENT="/Applications/Transmission.app/Contents/MacOS/Transmission"
   fi
 fi
+if [ -z "$DISPLAY" ] && [ -f "$(command -v transmission-remote 2>/dev/null)" ]; then
+  MYTORRENT="transmission-remote"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYTORRENT_NAME="$(basename "$MYTORRENT" 2>/dev/null)"
 export TORRENT="$MYTORRENT"
@@ -195,11 +209,7 @@ export TORRENT="$MYTORRENT"
 case $MYTORRENT_NAME in
 transmission-remote | transmission-remote-* | transmission-cli)
   transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
-  if [ -z "$transmission_daemon" ]; then
-    transmission-daemon &>/dev/null && sleep 5 &&
-      __notifications "MyTorrent" "Transmission server has been started"
-  fi
-  MYTORRENT_CONSOLE="yes"
+  TRANSMISSION_REMOTE="true"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -231,7 +241,8 @@ while :; do
     ;;
   -t | --term)
     shift 1
-    MYTORRENT_CONSOLE="yes"
+    __term "$*"
+    exit $?
     ;;
   -l | --link)
     shift 1
@@ -244,7 +255,7 @@ while :; do
     ;;
   esac
 done
-#set -- "$SETARGS"
+set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 export NOTIFY_CLIENT_NAME="${MYTORRENT_NOTIFY_CLIENT_NAME}"
@@ -272,12 +283,16 @@ TORRENT_SERVER="$MYTORRENT_SERVER"
 ARGS="$*"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
+if [ "$TRANSMISSION_REMOTE" = "true" ]; then
+  if [ "$1" = "localhost" ] || [ "$1" = "$(hostname -s)" ] || [ "$1" = "$(hostname -f)" ]; then
+    [ -z "$transmission_daemon" ] && transmission-daemon &>/dev/null && sleep 5 &&
+      __notifications "MyTorrent" "Transmission server has been started"
+  fi
+  MYTORRENT_CONSOLE="yes"
+fi
 __notifications "MyTorrent" "Attempting to launch $MYTORRENT_NAME"
 if [ -f "$HOME/.local/bin/mytorrent" ]; then
   __exec "$HOME/.local/bin/mytorrent" "$@"
-
-elif [ $# -eq 0 ] && [[ "$MYTORRENT_CONSOLE" != "yes" ]] && [[ "$TORRENT" =~ transmission ]]; then
-  __exec $TORRENT -m
 
 elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
   if cmd_exists transadd; then
@@ -290,10 +305,13 @@ elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
 
 elif [ "$MYTORRENT_CONSOLE" = "yes" ]; then
   if [ ! -t 0 ]; then
-    myterminal -e 'bash -c "'$TORRENT $ARGS';bash"' &
+    myterminal -e "$APPNAME --term $*"
   else
     $TORRENT $ARGS
   fi
+
+elif [ $# -eq 0 ] && [[ "$MYTORRENT_CONSOLE" != "yes" ]] && [[ "$TORRENT" =~ transmission ]]; then
+  $TORRENT -m &
 
 else
   __exec $TORRENT $ARGS

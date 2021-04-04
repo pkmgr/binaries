@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$MYVMMANAGER_TMP_FILE" ] && rm -Rf "$MYVMMANAGER_TMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=$?;[ -f "$MYVMMANAGER_TMP_FILE" ] && rm -Rf "$MYVMMANAGER_TMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104040050-git
@@ -101,26 +101,33 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_link() {
-  case "$1" in
-  *)
-    if [ ! -z "$2" ]; then
-      shift 1
-      if cmd_exists "$1"; then
-        if [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then
-          printf_green "Generating the script for $VMMANAGER"
-          __create_term >"$HOME/.local/bin/myvmmanager"
-        fi
-        printf_green "Linking $HOME/.local/bin/myvmmanager to $1"
-        __ln_sf "$(command -v $1)" "$HOME/.local/bin/myvmmanager"
-        exit 0
-      else
-        printf_green "Linking $HOME/.local/bin/myvmmanager to $VMMANAGER"
-        __ln_sf "$VMMANAGER" "$HOME/.local/bin/myvmmanager"
-        exit 0
+  if [ ! -z "$2" ]; then
+    shift 1
+    if cmd_exists "$1"; then
+      if [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then
+        printf_green "Generating the script for $VMMANAGER"
+        __create_term >"$HOME/.local/bin/myvmmanager"
       fi
+      printf_green "Linking $HOME/.local/bin/myvmmanager to $1"
+      __ln_sf "$(command -v $1)" "$HOME/.local/bin/myvmmanager"
+    else
+      printf_green "Linking $HOME/.local/bin/myvmmanager to $VMMANAGER"
+      __ln_sf "$VMMANAGER" "$HOME/.local/bin/myvmmanager"
     fi
-    ;;
-  esac
+  fi
+}
+__term() {
+  if [ $# = 0 ]; then
+    $VMMANAGER --help | less
+  else
+    $VMMANAGER "$*"
+  fi
+  while :; do
+    printf_newline
+    printf_read_input "2" "What command would you like to execute [q to exit]" "20" "CMD"
+    if [ $CMD = '-q' ] || [ $CMD = 'q' ] || [ $CMD = 'quit' ] || [ $CMD = 'exit' ]; then exit; fi
+    $VMMANAGER $CMD
+  done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
@@ -203,14 +210,15 @@ while :; do
     __gen_config
     exit $?
     ;;
-  -t | --term)
-    shift 1
-    MYVMMANAGER_CONSOLE="yes"
-    ;;
   -l | --link)
     shift 1
     __create_link "${1:-$VMMANAGER}"
     shift 1
+    exit $?
+    ;;
+  -t | --term)
+    shift 1
+    __term "$*"
     ;;
   --)
     shift 1
@@ -218,7 +226,7 @@ while :; do
     ;;
   esac
 done
-#set -- "$SETARGS"
+set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 export NOTIFY_CLIENT_NAME="${MYVMMANAGER_NOTIFY_CLIENT_NAME}"
@@ -249,7 +257,7 @@ if [ -f "$HOME/.local/bin/myvmmanager" ]; then
   __exec "$HOME/.local/bin/myvmmanager" "$@"
 elif [ "$MYVMMANAGER_CONSOLE" = "yes" ]; then
   if [ ! -t 0 ]; then
-    myterminal -e 'bash -c "'$VMMANAGER $*';bash"' &
+    myterminal -e "$APPNAME --term $*"
   else
     $VMMANAGER "$*"
   fi

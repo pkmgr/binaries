@@ -120,7 +120,6 @@ if [ "$MYFILEMANAGER" != "config" ]; then
       export FILEMANAGER="polo"
     fi
   fi
-
   if [[ "$OSTYPE" == "darwin"* ]]; then
     export FILEMANAGER="open"
   fi
