@@ -83,7 +83,7 @@ __create_link() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __launch() {
   [ "$MYTORRENT_NOTIFICATIONS" = "yes" ] && notifications "MyTorrent" "$NOTIFY_MESSAGE"
-  local args="$@"
+  local args="$*"
   if [ -f "$HOME/.local/bin/mytorrent" ]; then
     __exec ~/.local/bin/mytorrent ${args:-}
   else
@@ -139,10 +139,15 @@ transmission-remote*)
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-case $TORRENT in
+case $TORRENT_NAME in
 transmission-remote)
   NOTIFY_MESSAGE="Attempting to launch $TORRENT"
-  TORRENT="myterminal -e 'bash -c transmission-remote;bash'"
+  TORRENT="transmission-remote"
+  TERMINAL_APP=yes
+  if [ ! -t 0 ]; then
+    myterminal -e "$TORRENT $*;bash"
+    exit
+  fi
   ;;
 *)
   [ -n "$NOTIFY_MESSAGE" ] || NOTIFY_MESSAGE="Attempting to launch $TORRENT"
@@ -160,7 +165,7 @@ create | link | *-create | *-link)
   __create_link "$@"
   ;;
 *)
-  ARGS="$@"
+  ARGS="$*"
   if [ $# -eq 0 ] && [[ "$TORRENT" =~ transmission ]] && [[ "$TORRENT" != transmission-cli ]]; then
     __launch -m
     exit $?

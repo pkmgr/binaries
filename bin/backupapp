@@ -41,6 +41,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "--term"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   local BACKUPAPP_CONFIG_FILE="${1:-$BACKUPAPP_CONFIG_FILE}"
   local NAME="{BACKUPAPP_CONFIG_FILE%.*}"
@@ -106,12 +111,6 @@ __save_config() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __term() {
-  if [ ! -t 0 ]; then
-    myterminal -e "$APPNAME" "$@" &
-    disown
-    exit
-  fi
-
   local _APPDIRS="" _APPNAME="" cont="" save="" main=""
   clear
   printf_newline '\n\n\n\n\n'
@@ -461,6 +460,7 @@ cron)
   ;;
   # end cron
 *)
+
   if [ -f "$BACKUPAPP_CONFIG_DIR/${1}.conf" ] && [ "$#" -lt 2 ] &&
     [ "$BACKUPAPP_CONFIG_FILE" != "$BACKUPAPP_DEFAULT_CONFIG_FILE" ]; then
     [ "$YN" = "Y" ] || printf_read_question_nt "6" "I found a settings file for $1: Should I use that?" "1" YN "-s"

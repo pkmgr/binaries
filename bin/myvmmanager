@@ -43,6 +43,11 @@ __options "$@"
 MYTERMINAL_NOTIFICATIONS="no"
 MYVMMANAGER_NOTIFICATIONS="${MYVMMANAGER_NOTIFICATIONS:-yes}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "$@"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$HOME/.config/myvmmanager/settings" ] && . "$HOME/.config/myvmmanager/settings"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {

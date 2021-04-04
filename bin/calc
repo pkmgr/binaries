@@ -45,6 +45,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "$@"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   printf_green "Generating the config file in"
   printf_green "$CALC_CONFIG_DIR/$CALC_CONFIG_FILE"
@@ -169,12 +174,6 @@ CALC_INPUT="$*"
 CALC_OUTPUT="$(echo "$CALC_INPUT" | sed '/^$/d;s/[[:blank:]]//g')"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-if [ ! -t 0 ]; then
-  myterminal -e "$APPNAME --term" &
-  disown
-  sleep 5
-  exit
-fi
 if [ -n "$TERMINAL_APP" ]; then
   clear
   printf_newline "\n\n"

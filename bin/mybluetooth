@@ -47,7 +47,7 @@ cmd_exists bluetoothctl || printf_exit 1 1 "bluetoothctl is not installed"
 DEFAULT_DEVICE="0C:FC:83:99:BC:9A"
 OPTIONS="$1" && shift 1
 CONFIG="$1"
-ARGS="$@"
+ARGS="$*"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import existing config
 MYTERMINAL_NOTIFICATIONS="no"

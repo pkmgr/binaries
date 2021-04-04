@@ -41,6 +41,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "--term"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variables
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 ROTATE_TIME="${ROTATE_TIME:-5}"
@@ -272,12 +277,6 @@ __randomwallpaper() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __term() {
-  if [ ! -t 0 ]; then
-    myterminal -e "$APPNAME" "$@" &
-    disown
-    exit
-  fi
-
   local main sleeptime
   while :; do
     # show menu

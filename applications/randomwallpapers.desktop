@@ -7,7 +7,7 @@ Name=Random Wallpaper
 GenericName=Random Wallpaper
 Comment=Change the wallpaper.
 Icon=wallpaper
-Exec=myterminal -e 'randomwallpaper --term'
+Exec=randomwallpaper --term
 Path=~
 Terminal=false
 Actions=Actions=Status;Stop;

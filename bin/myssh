@@ -8,7 +8,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 trap '[ -f "$MYSSH_TMP_FILE" ] && rm -Rf "$MYSSH_TMP_FILE" &>/dev/null' EXIT
-#set -Ex
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104022137-git
 # @Author        : Jason Hempstead
@@ -41,6 +41,11 @@ fi
 # user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
 user_install
 __options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "$@"
+  exit
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
   printf_green "Generating the config file in"
@@ -323,4 +328,3 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit ${exitCode:-$?}
-

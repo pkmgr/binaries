@@ -43,6 +43,11 @@ __options "$@"
 # check for needed applications
 __requires chsh
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "$@"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # functions
 __passwd() {
   password=""

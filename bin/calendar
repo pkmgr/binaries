@@ -41,11 +41,10 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ ! -t 0 ]; then
-  myterminal -e "$APPNAME $*" &
-  disown
-  sleep 5
+  myterminal -e "$APPNAME" "$@"
   exit
 fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [[ "$1" = -y ]] && cmd_exists cal && cal -y | printf_readline && exit || true
 CAL_CONFIG="$HOME/.config/local/calendar.local"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

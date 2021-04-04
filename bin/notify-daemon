@@ -40,6 +40,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "--term"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 NOTIFYD_HOST="${NOTIFYD_HOST:-}"
 NOTIFYD_PORT="${NOTIFYD_PORT:-65001}"
 NOTIFYD_CONFIG_DIR="$HOME/.config/notify-daemon"

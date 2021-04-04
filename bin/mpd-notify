@@ -313,11 +313,9 @@ __toggle() {
 }
 __term() {
   if [ ! -t 0 ]; then
-    myterminal -e "$APPNAME" "$@" &
-    disown
+    myterminal -e "$APPNAME"
     exit
   fi
-
   shift $#
   while :; do
     # show menu
@@ -340,17 +338,20 @@ __term() {
 
     # take action
     case "$main" in
-    a) $APPNAME run &>/dev/null;;
-    b) stopDaemon &>/dev/null;;
-    c) restartDaemon &>/dev/null;;
-    d) statusDaemon; printf_pause ;;
-    e) toggle run;;
+    a) $APPNAME run &>/dev/null ;;
+    b) stopDaemon &>/dev/null ;;
+    c) restartDaemon &>/dev/null ;;
+    d)
+      statusDaemon
+      printf_pause
+      ;;
+    e) toggle run ;;
     '\E' | $'\e' | z) clear && break ;;
     *) shift ;;
     esac
-  clear
-  printf_newline "\n\n"
-  printf_counter "2" "3" "Re-loading menu in"
+    clear
+    printf_newline "\n\n"
+    printf_counter "2" "3" "Re-loading menu in"
   done
   clear
 }
@@ -374,7 +375,10 @@ stop)
   ;;
 status)
   shift 1
-  if [ "$1" = "--ask" ]; then shift $# && checkDaemon && echo "running" || echo "stopped"; exit; fi
+  if [ "$1" = "--ask" ]; then
+    shift $# && checkDaemon && echo "running" || echo "stopped"
+    exit
+  fi
   statusDaemon
   ;;
 restart)

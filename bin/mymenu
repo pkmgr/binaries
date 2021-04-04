@@ -44,6 +44,11 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ ! -t 0 ]; then
+  myterminal -e "$APPNAME" "$@"
+  exit
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __run() {
   printf_newline "\n\n"
   printf_read_input "3" "${MESSAGE:-Arguments to send}" "180" "SEND"
@@ -51,11 +56,6 @@ __run() {
   printf_newline "\n\n"
   printf_pause
 }
-if [ ! -t 0 ]; then
-  myterminal -e "$APPNAME" "$@" &
-  disown
-  exit
-fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 while :; do
   # show menu
