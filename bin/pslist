@@ -52,7 +52,7 @@ for p in "$@"; do
       printf_red "There is no pid for $p"
     fi
   else
-    pid="$(__ps | grep $p | awk '{print $11,$2}' | grep -Fv "$PROG" | grep -v "$$" | grep '^' || exit)"
+    pid="$(__ps | grep $p | awk '{print $11,$2}' | grep -Fv "$APPNAME" | grep -v "$$" | grep '^' || exit)"
     if [ -n "$pid" ]; then
       printf_green "Found the following pids for $p:"
       echo "$pid" | printf_readline

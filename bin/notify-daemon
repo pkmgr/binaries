@@ -62,7 +62,7 @@ NOTIFY_CLIENT_URGENY="${NOTIFY_CLIENT_URGENY:-normal}"
 NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-com.github.timecraft.notifier}"
 NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
 NOTIFY_CONFIG_FILE="settings.conf"
-notifyAppName="${NOTIFYD_APPNAME:-$PROG}"
+notifyAppName="${NOTIFYD_APPNAME:-$APPNAME}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if pidof xfce4-notifyd &>/dev/null; then
   NOTIFYD=xfce4-notifyd

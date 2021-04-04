@@ -51,7 +51,7 @@ NOTIFYD_URGENY="${notifyUrgency:-$NOTIFY_CLIENT_URGENY}"
 NOTIFYD_ICON="${NOTIFY_CLIENT_ICON}"
 NOTIFY_CONFIG_DIR="$HOME/.config/notifications"
 NOTIFY_CONFIG_FILE="settings.conf"
-notifyAppName="${NOTIFYD_APPNAME:-$PROG}"
+notifyAppName="${NOTIFYD_APPNAME:-$APPNAME}"
 netcat="$netcat"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 [ -f "$NOTIFY_CONFIG_DIR/$NOTIFY_CONFIG_FILE" ] &&

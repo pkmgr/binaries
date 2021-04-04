@@ -79,15 +79,16 @@ CMD_EXISTS_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 CMD_EXISTS_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-software}"
 CMD_EXISTS_NOTIFY_OK_MESG="${CMD_EXISTS_NOTIFY_OK_MESG:-Great: Nothing is missing}"
 CMD_EXISTS_NOTIFY_ERROR_MESG="${CMD_EXISTS_NOTIFY_ERROR_MESG:-Error: Missing the following packages:}"
+CMD_EXISTS_NOTIFY_SHOW=""
+CMD_EXISTS_NOTIFY_SHOW_ERROR=""
+CMD_EXISTS_NOTIFY_ASK=""
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,ask,show,error"
 ARRAY=""
-CMD_EXISTS_NOTIFY_SHOW=""
-CMD_EXISTS_NOTIFY_SHOW_ERROR=""
-CMD_EXISTS_NOTIFY_ASK=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -100,7 +101,7 @@ if [ -f "$CMD_EXISTS_CONFIG_DIR/$CMD_EXISTS_CONFIG_FILE" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # options
-setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$PROG" -- "$@" 2>/dev/null)
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$APPNAME" -- "$@" 2>/dev/null)
 eval set -- "${setopts[@]}" 2>/dev/null
 while :; do
   case $1 in
@@ -162,15 +163,17 @@ command -v bash &>/dev/null || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-args="$*"
+COMMANDS="$*"
 exitCode=0
 exitTmp=0
 missing=""
 choice=""
-[ -n "$1" ] || exit 0
+cmd=""
+[ "$(uname -s)" = Darwin ] && exit 0
+[ -n "$COMMANDS" ] || exit 0
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-for cmd in $args; do
+for cmd in $COMMANDS; do
   if command -v "$cmd" &>/dev/null || type -P "$cmd" &>/dev/null; then
     exitTmp+=0
   else
