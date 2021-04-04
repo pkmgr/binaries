@@ -180,21 +180,26 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __server_disable() {
-  __notifications "NotesCLI" "Disabling notes server"
+  _notifications "NotesCLI" "Disabling notes server"
   printf_green "Disabling notes server"
   if [ -f "$HOME/.config/autostart/notes-server.desktop" ]; then
     __rm_rf "$HOME/.config/autostart/notes-server.desktop"
   fi
-  if [ -f "/etc/systemd/system/notes_server.service" ] && user_is_root; then
-    sudo rm -Rf "/etc/systemd/system/notes_server.service" &>/dev/null
-    sudo systemctl daemon-reload &>/dev/null
+  if [ -f "/etc/systemd/system/notes_server.service" ]; then
+    if __can_i_sudo || user_is_root; then
+      sudo rm -Rf "/etc/systemd/system/notes_server.service" &>/dev/null
+      sudo systemctl daemon-reload &>/dev/null
+    else
+      printf_red "sudo is required to delete the systemd service"
+      _notifications "NotesCLI" "sudo is required to delete the systemd service"
+    fi
   fi
   if [ -f "$HOME/.config/autostart/notes-server.desktop" ] || [ -f "/etc/systemd/system/notes_server.service" ]; then
-    __notifications "NotesCLI" "Failed to disable the service"
+    _notifications "NotesCLI" "Failed to disable the service"
     printf_red "Failed to disable the service"
   else
-    __notifications "NotesCLI" "Service has been disabled"
-    printf_green __notifications "NotesCLI" "Service has been disabled"
+    _notifications "NotesCLI" "Service has been disabled"
+    printf_green "NotesCLI" "Service has been disabled"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -221,7 +226,7 @@ __dedup() {
   local _MSG="$1"
   local _NOTESP=${2:-$NOTES_PATH}
   shift $#
-  if grep -qx "$_MSG" "$_NOTESP"; then
+  if grep -sqx "$_MSG" "$_NOTESP"; then
     DEDUP=true
     if [ "${NOTES_DEDUP_NOTIFY:-$DEDUP_NOTIFY}" = "yes" ]; then
       _notifications "NotesCLI" "$_MSG already added to $_NOTESP"
@@ -442,8 +447,8 @@ case $1 in
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-case "${SETOPTS:$1}" in
-server | service | *-systemd | *-service)
+case "$1" in
+server | service | *-server | *-service)
   if [ "$2" = "--help" ]; then shift 1 && printf_help 'Usage: notes server  |  Start the server'; fi
   if [ "$2" = "--status" ]; then
     shift 1
@@ -656,7 +661,7 @@ list | *-list)
 
 search)
   shift 1
-  search_results="$(cat "$NOTES_DIRECTORY/all.txt" "$NOTES_PREV_FILE" "$NOTES_PATH" | grep -i "$1" 2>/dev/null)"
+  search_results="$(cat "$NOTES_DIRECTORY/all.txt" "$NOTES_PREV_FILE" "$NOTES_PATH" | grep -si "$1" 2>/dev/null)"
   if [ -n "$search_results" ]; then
     printf_green "Search results: "
     echo "$search_results" | printf_readline "7"
