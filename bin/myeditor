@@ -149,8 +149,8 @@ if [ -f "$MYEDITOR_CONFIG_DIR/$MYEDITOR_CONFIG_FILE" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate an editor
-[ "$EDITOR" != "myeditor" ] || unset EDITOR
-if [ "$MYEDITOR_NAME" != "config" ] || [ -z "$EDITOR" ]; then
+[ "$MYEDITOR" != "myeditor" ] || unset MYEDITOR
+if [ "$MYEDITOR_NAME" != "config" ] || [ -z "$MYEDITOR" ]; then
   if [ -f "$(command -v code 2>/dev/null)" ]; then
     MYEDITOR="code"
   elif [ -f "$(command -v vscode 2>/dev/null)" ]; then

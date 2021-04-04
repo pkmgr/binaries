@@ -149,7 +149,7 @@ if [ -f "$MYFILEMANAGER_CONFIG_DIR/$MYFILEMANAGER_CONFIG_FILE" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate an editor
-[ "$FILEMANAGER" != "myfilemanager" ] || unset MYFILEMANAGER
+[ "$MYFILEMANAGER" != "myfilemanager" ] || unset MYFILEMANAGER
 if [ "$MYFILEMANAGER_NAME" != "config" ] || [ -z "$MYFILEMANAGER" ]; then
   if [ -z "$DESKTOP_SESSION" ]; then
     if [ -f "$(command -v lf 2>/dev/null)" ]; then
