@@ -180,8 +180,8 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __server_disable() {
-  _notifications "NotesCLI" "Disabling notes server"
-  printf_green "Disabling notes server"
+  # _notifications "NotesCLI" "Disabling notes server"
+  # printf_green "Disabling notes server"
   if [ -f "$HOME/.config/autostart/notes-server.desktop" ]; then
     __rm_rf "$HOME/.config/autostart/notes-server.desktop"
   fi
@@ -199,7 +199,7 @@ __server_disable() {
     printf_red "Failed to disable the service"
   else
     _notifications "NotesCLI" "Service has been disabled"
-    printf_green "NotesCLI" "Service has been disabled"
+    printf_green "Service has been disabled"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
