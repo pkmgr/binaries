@@ -175,8 +175,13 @@ Keywords=notes;server;
 StartupNotify=true
 EOF
   __server_start --loop || false
-  [ $? = 0 ] && printf_green "notes server has been installed for $USER" ||
+  if [ $? = 0 ]; then
+    printf_green "notes server has been installed for $USER"
+    _notifications "NotesCLI" "Service has been enabled"
+  else
     printf_error 1 1 "$ICON_WARN Failed to install the notes server for $USER"
+    _notifications "$ICON_WARN Failed to install the notes server for $USER"
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __server_disable() {
