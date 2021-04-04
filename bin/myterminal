@@ -145,7 +145,6 @@ create | link | *-create | *-link)
   else
     $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null &
   fi
-  disown
   sleep 3
   ;;
 esac
