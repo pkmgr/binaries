@@ -54,6 +54,7 @@ __gen_config() {
 MYTORRENT_NAME="config"
 MYTORRENT="$MYTORRENT"
 MYTORRENT_CONSOLE="$MYTORRENT_CONSOLE"
+MYTORRENT_SERVER="${TORRENT_SERVER:-localhost:9091}"
 MYTORRENT_TEMP_FILE="${TMPDIR:-/tmp}/mytorrent"
 MYTORRENT_NOTIFY_ENABLED="yes"
 MYTORRENT_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
@@ -135,6 +136,8 @@ MYTORRENT_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 MYTORRENT_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYTORRENT_NOTIFY_CLIENT_ICON}"
 MYTORRENT="${MYTORRENT:-$TORRENT}"
 MYTORRENT_CONSOLE="${MYTORRENT_CONSOLE}"
+MYTORRENT_SERVER="${TORRENT_SERVER:-localhost:9091}"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="${*}"
@@ -190,7 +193,7 @@ MYTORRENT_NAME="$(basename "$MYTORRENT" 2>/dev/null)"
 export TORRENT="$MYTORRENT"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $MYTORRENT_NAME in
-transmission-remote | transmission-cli)
+transmission-remote | transmission-remote-* | transmission-cli)
   transmission_daemon="$(ps -aux | grep transmission-da | grep -v 'grep ' 2>/dev/null)"
   if [ -z "$transmission_daemon" ]; then
     transmission-daemon &>/dev/null && sleep 5 &&
@@ -265,6 +268,7 @@ if [ -z "$MYTORRENT" ]; then
   printf_pause 1 "Press any key to exit this window"
   exit
 fi
+TORRENT_SERVER="$MYTORRENT_SERVER"
 ARGS="$*"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
