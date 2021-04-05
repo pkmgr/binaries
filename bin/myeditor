@@ -189,7 +189,7 @@ nano | vim | emacs | nvim)
   MYEDITOR_CONSOLE="yes"
   ;;
 code | vscode)
-  MYEDITOR_OPTIONS="-w"
+  MYEDITOR_OPTIONS=""
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -47,8 +47,8 @@ if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # variables
-WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
-ROTATE_TIME="${ROTATE_TIME:-5}"
+ROTATE_TYPE="minutes"
+ROTATE_TIME="5"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
 RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
 NOTIFICATIONS="${NOTIFICATIONS:-enabled}"
@@ -57,6 +57,7 @@ FILE_SEEN="${FILE_SEEN:-$CACHE_DIR/randomwallpaper.seen}"
 FILE_WALLPAPER="${FILE_WALLPAPER:-$CACHE_DIR/randomwallpaper.all}"
 FILE_SEEN_TMP="${FILE_SEEN_TMP:-$FILE_SEEN.tmp}"
 REFRESH_TIME="$((60 * "${REFRESH_TIME:-12}"))"
+WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 RANDOMWALLPAPER_CONFIG_DIR="$HOME/.config/randomwallpaper"
 RANDOMWALLPAPER_CONFIG_FILE="settings.conf"
 MANUAL=""
@@ -65,14 +66,41 @@ MANUAL=""
   . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 if [ "$NOTIFICATIONS" != "enabled" ]; then notifications() { echo "$*" >/dev/null; }; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-SLEEP_TIME=$((60 * ROTATE_TIME))
+WALLPAPER_COUNT="$(find -L "$WALLPAPER_DIR" -type f | wc -l)"
+if [ "$ROTATE_TYPE" = "minutes" ]; then
+  SLEEP_TIME="$((ROTATE_TIME * 60))"
+  DISPLAY_TIME="$SLEEP_TIME minute[s]"
+elif [ "$ROTATE_TYPE" = "hourly" ]; then
+  SLEEP_TIME="$((ROTATE_TIME * 60 * 60))"
+  DISPLAY_TIME="$SLEEP_TIME hour[s]"
+elif [ "$ROTATE_TYPE" = "daily" ]; then
+  SLEEP_TIME=$((24 * 60 * 60 / WALLPAPER_COUNT))
+  DISPLAY_TIME="$SLEEP_TIME [m,h]"
+elif [ "$ROTATE_TYPE" = "weekly" ]; then
+  SLEEP_TIME=$((24 * 60 * 60 * 7 / WALLPAPER_COUNT))
+  DISPLAY_TIME="$SLEEP_TIME [m,h,d]"
+elif [ "$ROTATE_TYPE" = "monthly" ]; then
+  SLEEP_TIME=$((24 * 60 * 60 * 30 / WALLPAPER_COUNT))
+  DISPLAY_TIME="$SLEEP_TIME [m,h,d,w]"
+elif [ "$ROTATE_TYPE" = "slideshow" ]; then
+  SLEEP_TIME="${SLIDESHOW_TIME:-5}"
+else
+  SLEEP_TIME="$((ROTATE_TIME * 60))"
+  DISPLAY_TIME="$((SLEEP_TIME / 60)) minute[s]"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SLEEP_TIME="$SLEEP_TIME"
+ROTATE_TIME="${ROTATE_TIME:-$SLEEP_TIME}"
+DISPLAY_TIME="${DISPLAY_TIME:-$SLEEP_TIME}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config"
   __mkd "$RANDOMWALLPAPER_CONFIG_DIR"
-  echo '# Randomwallpaper Settings
-# Options minutes,daily,weekly,monthly
-ROTATE_TIME='"${ROTATE_TIME:-5}"'
+  cat <<EOF >"$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
+# Randomwallpaper Settings
+# Options minutes,hourly,daily,weekly,monthly - Default minutes
+ROTATE_TIME="${ROTATE_TIME:-5}"
+ROTATE_TYPE="${ROTATE_TYPE:-minutes}"
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 CACHE_DIR="${CACHE_DIR:-$HOME/.cache/randomwallpaper}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
@@ -80,8 +108,9 @@ RUN_FILE="${RUN_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER}"
 FILE_SEEN="${FILE_SEEN:-$CACHE_DIR/randomwallpaper.seen}"
 FILE_WALLPAPER="${FILE_WALLPAPER:-$CACHE_DIR/randomwallpaper.all}"
 FILE_SEEN_TMP="${FILE_SEEN_TMP:-$FILE_SEEN.tmp}"
-NOTIFICATIONS="'${NOTIFICATIONS:-enabled}'"
-' >"$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
+NOTIFICATIONS="${NOTIFICATIONS:-enabled}"
+
+EOF
   printf_exit "2" "$?" "config saved to $RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,8 +159,8 @@ __kill() {
     __rm_rf "$KILL_FILE" "$RUN_FILE"
     if __get_pid &>/dev/null; then
       notifications "Wallpaper Changer" "Background service is shutting down"
-      for f in $(__get_pid); do
-        kill -15 "$f" &>/dev/null
+      for pid in $(__get_pid); do
+        kill -15 "$pid" &>/dev/null
       done && exitCode=0 || exitCode=1
     else
       notifications "Wallpaper Changer" "Background service is not running"
@@ -175,30 +204,21 @@ init() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __background_job() {
+  local SLEEP_TIME="${1:-$SLEEP_TIME}"
   __rm_rf "$RUN_FILE"
-  local ROTATE_TIME="${1:-$ROTATE_TIME}"
-  [ -f "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE" ] && . "$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
   randomwallpaper --bg --new && touch "$RUN_FILE" || __rm_rf "$RUN_FILE"
   sleep $SLEEP_TIME
-  __kill && __background_job || return 1
+  __kill && __background_job "$SLEEP_TIME" || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __start() {
-  WALLPAPER_COUNT="$(find -L ~/.local/share/wallpapers/ -type f | wc -l)"
-  if [ "$ROTATE_TIME" = "daily" ]; then
-    SLEEP_TIME=$((24 * 60 * 60 / WALLPAPER_COUNT))
-  elif [ "$ROTATE_TIME" = "weekly" ]; then
-    SLEEP_TIME=$((24 * 60 * 60 * 7 / WALLPAPER_COUNT))
-  elif [ "$ROTATE_TIME" = "monthly" ]; then
-    SLEEP_TIME=$((24 * 60 * 60 * 30 / WALLPAPER_COUNT))
-  elif [ "$ROTATE_TIME" = "slideshow" ]; then
-    SLEEP_TIME="${SLIDESHOW_TIME:-5}"
-  fi
+  local SLEEP_TIME="$SLEEP_TIME"
+  local DISPLAY_TIME="$DISPLAY_TIME"
   __getstatus && return 1
-  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $ROTATE_TIME minutes"
+  notifications "Wallpaper Changer" "Enabling randomwallpaper background job: Changing every $DISPLAY_TIME"
   __rm_rf "$KILL_FILE" "$RUN_FILE"
   sleep 60
-  sh -c "$APPNAME --bg --run &>/dev/null &" &
+  sh -c "$APPNAME --bg --run "$SLEEP_TIME" &>/dev/null &" &
   disown
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -450,3 +470,4 @@ main "$@"
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+
