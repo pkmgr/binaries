@@ -1,7 +1,7 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.1
+Version=1.0
 Type=Application
 Name=My Calc
 GenericName=Calculator
@@ -13,4 +13,4 @@ Terminal=false
 Actions=
 Categories=Utility;Calculator;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=calc;my;
-StartupNotify=true
+StartupNotify=false

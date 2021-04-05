@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'exitCode=$?;[ -f "$MYEMAIL_TEMP_FILE" ] && rm -Rf "$MYEMAIL_TEMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=${exitCode:-$?};[ -f "$MYEMAIL_TEMP_FILE" ] && rm -Rf "$MYEMAIL_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104040050-git
@@ -129,7 +129,7 @@ MYEMAIL_NOTIFY_ENABLED="yes"
 MYEMAIL_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 MYEMAIL_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYEMAIL_NOTIFY_CLIENT_ICON}"
 MYEMAIL_CONSOLE="${MYEMAIL_CONSOLE}"
-MYEMAIL="${MYEMAIL}"
+MYEMAIL="${MYEMAIL:-$EMAIL}"
 MYEMAIL_OPTIONS="${MYEMAIL_OPTIONS}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate an email client
@@ -253,15 +253,13 @@ OPEN="$MYEMAIL_OPTIONS $ARGS"
 # begin main app
 __notifications "Attempting to launch $MYEMAIL_NAME"
 if [ -f "$HOME/.local/bin/myemail" ]; then
-  __exec "$HOME/.local/bin/myemail" "$@"
-elif [ "$MYEMAIL_CONSOLE" = "yes" ]; then
-  if [ ! -t 0 ]; then
-    myterminal -e "$EMAIL $OPEN"
-  else
-    $EMAIL $OPEN
-  fi
-else
+  "$HOME/.local/bin/myemail" "$ARGS"
+elif [ "$MYEMAIL_CONSOLE" != "yes" ]; then
   __exec $EMAIL $OPEN
+elif [[ -t 0 ]]; then
+  $EMAIL $OPEN
+else
+  myterminal -e "$EMAIL $OPEN"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application

@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$WALLPAPERMGR_TEMP_FILE" ] && rm -Rf "$WALLPAPERMGR_TEMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=${exitCode:-$?};[ -f "$WALLPAPERMGR_TEMP_FILE" ] && rm -Rf "$WALLPAPERMGR_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103310710-git
@@ -141,6 +141,8 @@ while :; do
     ;;
   esac
 done
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+unset setopts
 #set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
@@ -161,7 +163,7 @@ cmd_exists --error bash || exit 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-case "$1" in
+case $1 in
 list)
   shift 1
   run_install_list "$@"
@@ -181,7 +183,11 @@ available)
 remove)
   shift 1
   unset APPNAME
-  [ "$INSTALL_ALL" = "true" ] && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
+  if [ "$INSTALL_ALL" = "true" ]; then
+    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
+  else
+    declare -a LISTARRAY="$*"
+  fi
   [ ${#LISTARRAY} -ne 0 ] || printf_exit "No packages selected for removal"
   for rmf in ${LISTARRAY[*]}; do
     MESSAGE="Removing $rmf from $WALLPAPERS"
@@ -194,7 +200,11 @@ remove)
 update)
   shift 1
   unset APPNAME
-  { [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; } && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
+  if [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; then
+    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
+  else
+    declare -a LISTARRAY="$*"
+  fi
   if [ $# -ne 0 ]; then
     for ins in ${LISTARRAY[*]}; do
       APPNAME="$ins"
@@ -215,7 +225,11 @@ update)
 install)
   shift 1
   unset APPNAME
-  { [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; } && declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)" || declare -a LISTARRAY="$*"
+  if [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; then
+    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
+  else
+    declare -a LISTARRAY="$*"
+  fi
   if [ $# -eq 0 ]; then
     printf_blue "No packages provide running the updater"
     run_install_update

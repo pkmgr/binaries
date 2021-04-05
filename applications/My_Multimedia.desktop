@@ -1,7 +1,7 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.1
+Version=1.0
 Type=Application
 Name=My Media
 GenericName=Media
@@ -14,4 +14,4 @@ Terminal=false
 Actions=
 Categories=AudioVideo;Player;Recorder;Graphics;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=music;videos;images;photo;player;my;
-StartupNotify=true
+StartupNotify=false

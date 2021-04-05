@@ -1,15 +1,14 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.1
+Version=1.0
 Type=Application
 Name=My Browser
 GenericName=Browser
 Comment=Browse the web.
 Icon=web-browser
-TryExec=mybrowser
-Exec=mybrowser
-Path=~
+Exec=mybrowser &
+Path=
 Terminal=false
 Actions=
 Categories=Network;WebBrowser;GTK;X-XFCE;GNOME;MyScripts;

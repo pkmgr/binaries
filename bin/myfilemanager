@@ -129,7 +129,7 @@ MYFILEMANAGER_NOTIFY_ENABLED="yes"
 MYFILEMANAGER_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 MYFILEMANAGER_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYFILEMANAGER_NOTIFY_CLIENT_ICON}"
 MYFILEMANAGER_CONSOLE="${MYFILEMANAGER_CONSOLE}"
-MYFILEMANAGER="${MYFILEMANAGER}"
+MYFILEMANAGER="${MYFILEMANAGER:-$FILEMANAGER}"
 MYFILEMANAGER_OPTIONS=${MYFILEMANAGER_OPTIONS}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate a filemanager
@@ -270,16 +270,13 @@ OPEN="$MYFILEMANAGER_OPTIONS $ARGS"
 # begin main app
 __notifications "Attempting to launch $MYFILEMANAGER_NAME"
 if [ -f "$HOME/.local/bin/myfilemanager" ]; then
-  __exec "$HOME/.local/bin/myfilemanager" "$ARGS"
-elif [ "$MYFILEMANAGER_CONSOLE" = "yes" ]; then
-  if [ ! -t 0 ]; then
-    myterminal -e "$FILEMANAGER $OPEN"
-  else
-    echo here
-    $FILEMANAGER $OPEN
-  fi
-else
+  "$HOME/.local/bin/myfilemanager" "$ARGS"
+elif [ "$MYFILEMANAGER_CONSOLE" != "yes" ]; then
   __exec $FILEMANAGER $OPEN
+elif [[ -t 0 ]]; then
+  $FILEMANAGER $OPEN
+else
+  myterminal -e "$FILEMANAGER $OPEN"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application

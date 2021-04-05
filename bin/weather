@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$WEATHER_TEMP_FILE" ] && rm -Rf "$WEATHER_TEMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=${exitCode:-$?};[ -f "$WEATHER_TEMP_FILE" ] && rm -Rf "$WEATHER_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104010356-git

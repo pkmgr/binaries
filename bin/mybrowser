@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'exitCode=$?;[ -f "$MYBROWSER_TEMP_FILE" ] && rm -Rf "$MYBROWSER_TEMP_FILE" &>/dev/null' EXIT
+#trap 'exitCode=${exitCode:-$?};[ -f "$MYBROWSER_TEMP_FILE" ] && rm -Rf "$MYBROWSER_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104040050-git
@@ -199,6 +199,9 @@ case $MYBROWSER_NAME in
 links | lynx)
   MYBROWSER_CONSOLE="yes"
   ;;
+firefox | chromium | google-chrome* | opera | brave)
+  OPEN="${OPEN:-About:Blank}"
+  ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # options
@@ -263,22 +266,20 @@ if [ -z "$MYBROWSER" ]; then
   printf_pause 1 "Press any key to exit this window"
   exit
 fi
-if [ -f "$STARTPAGE" ]; then OPEN="${OPEN:-$STARTPAGE}"; else OPEN="${OPEN:-About:blank}"; fi
-STARTPAGE="${OPEN:-$STARTPAGE}"
+if [ -f "$MYBROWSER_STARTPAGE" ]; then STARTPAGE="${MYBROWSER_STARTPAGE}"; fi
+STARTPAGE="${OPEN:-$MYBROWSER_STARTPAGE}"
 OPEN="$MYBROWSER_OPTIONS ${*:-$STARTPAGE}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 __notifications "Attempting to launch $MYBROWSER_NAME"
 if [ -f "$HOME/.local/bin/mybrowser" ]; then
-  __exec "$HOME/.local/bin/mybrowser" "$ARGS"
-elif [ "$MYBROWSER_CONSOLE" = "yes" ]; then
-  if [ ! -t 0 ]; then
-    myterminal -e "$BROWSER $OPEN"
-  else
-    $BROWSER $OPEN
-  fi
-else
+  "$HOME/.local/bin/myeditor" "$ARGS"
+elif [ "$MYBROWSER_CONSOLE" != "yes" ]; then
   __exec $BROWSER $OPEN
+elif [[ -t 0 ]]; then
+  $BROWSER $OPEN
+else
+  myterminal -e "$BROWSER $OPEN"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application

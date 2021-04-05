@@ -1,7 +1,7 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.1
+Version=1.0
 Type=Application
 Name=My SSH
 GenericName=SSH Client
@@ -14,4 +14,4 @@ Terminal=false
 Actions=
 Categories=GTK;System;Network;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=system;internet;my;
-StartupNotify=true
+StartupNotify=false

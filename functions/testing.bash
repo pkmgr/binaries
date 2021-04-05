@@ -131,7 +131,7 @@ __exec() {
   if [ "$cmd" = "$TERMINAL" ]; then
     eval $cmd "$args" 2>/dev/null && true || notifications "Failed to launch $cmd $args"
   else
-    exec $cmd "$args" &>/dev/null && true || notifications "Failed to launch $cmd $args" &
+    $cmd "$args" &>/dev/null && true || notifications "Failed to launch $cmd $args" &
   fi
 }
 # macos fixes

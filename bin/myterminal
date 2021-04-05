@@ -49,11 +49,13 @@ MYTERMINAL_NOTIFICATIONS="${MYTERMINAL_NOTIFICATIONS:-no}"
 __config() {
   printf_green "Generating config file"
   __mkd "$HOME/.config/myterminal"
-  echo -e '# Settings for myterminal
+  cat <<EOF >"$HOME/.config/myterminal/settings"
+  # Settings for myterminal
 MYTERMINAL="config"
-TERMINAL="'$TERMINAL'"
-MYTERMINAL_NOTIFICATIONS="'$MYTERMINAL_NOTIFICATIONS'"
-  ' >"$HOME/.config/myterminal/settings"
+TERMINAL="$TERMINAL"
+MYTERMINAL_NOTIFICATIONS="$MYTERMINAL_NOTIFICATIONS"
+
+EOF
   if [ -f "$HOME/.config/myterminal/settings" ]; then
     printf_green "File saved to: $HOME/.config/myterminal/settings"
     [ -n "$MYTERMINAL_NOTIFICATIONS" ] && notifications "MyTerminal" "Config file saved to:\n$HOME/.config/myterminal/settings"
@@ -117,7 +119,10 @@ if [ -z "$TERMINAL" ]; then
 fi
 TERMINAL_NAME="$(basename "$TERMINAL" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ "$1" = -e ] && shift 1
+set -- "$@"
+while getopts ":*" removeopt; do
+  case $removeopt in *) shift ;; esac
+done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
 *config)
@@ -141,11 +146,11 @@ case $1 in
   if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    exec ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
+    ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null
   else
-    exec $TERMINAL ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null &
+    $TERMINAL ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null
   fi
-  disown
+
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$URLCHECK_TEMP_FILE" ] && rm -Rf "$URLCHECK_TEMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=${exitCode:-$?};[ -f "$URLCHECK_TEMP_FILE" ] && rm -Rf "$URLCHECK_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104010524-git

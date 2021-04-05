@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'exitCode=$?;[ -f "$MYEDITOR_TEMP_FILE" ] && rm -Rf "$MYEDITOR_TEMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=${exitCode:-$?};[ -f "$MYEDITOR_TEMP_FILE" ] && rm -Rf "$MYEDITOR_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104040050-git
@@ -129,7 +129,7 @@ MYEDITOR_NOTIFY_ENABLED="yes"
 MYEDITOR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 MYEDITOR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$MYEDITOR_NOTIFY_CLIENT_ICON}"
 MYEDITOR_CONSOLE="${MYEDITOR_CONSOLE}"
-MYEDITOR="${MYEDITOR}"
+MYEDITOR="${MYEDITOR:-$EDITOR}"
 MYEDITOR_OPTIONS="${MYEDITOR_OPTIONS}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate an editor
@@ -261,15 +261,13 @@ OPEN="$MYEDITOR_OPTIONS $ARGS"
 # begin main app
 __notifications "Attempting to launch $MYEDITOR_NAME"
 if [ -f "$HOME/.local/bin/myeditor" ]; then
-  __exec "$HOME/.local/bin/myeditor" "$@"
-elif [ "$MYEDITOR_CONSOLE" = "yes" ]; then
-  if [ ! -t 0 ]; then
-    myterminal -e "$EDITOR $OPEN"
-  else
-    $EDITOR $OPEN
-  fi
-else
+  "$HOME/.local/bin/myeditor" "$ARGS"
+elif [ "$MYEDITOR_CONSOLE" != "yes" ]; then
   __exec $EDITOR $OPEN
+elif [[ -t 0 ]]; then
+  $EDITOR $OPEN
+else
+  myterminal -e "$EDITOR $OPEN"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application

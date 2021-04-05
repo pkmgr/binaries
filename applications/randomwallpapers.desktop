@@ -1,7 +1,7 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.1
+Version=1.0
 Type=Application
 Name=Random Wallpaper
 GenericName=Random Wallpaper
@@ -13,7 +13,7 @@ Terminal=false
 Actions=Actions=Status;Stop;
 Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=wallpaper;my;
-StartupNotify=true
+StartupNotify=false
 
 [Desktop Action Status]
 Name=Status

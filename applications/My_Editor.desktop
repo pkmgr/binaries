@@ -1,7 +1,7 @@
 #!/usr/bin/env xdg-open
 
 [Desktop Entry]
-Version=1.1
+Version=1.0
 Type=Application
 Name=My Editor
 GenericName=TextEditor
@@ -14,4 +14,4 @@ Terminal=false
 Actions=
 Categories=GTK;Development;IDE;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=editor;files;my;
-StartupNotify=true
+StartupNotify=false

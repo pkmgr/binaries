@@ -7,7 +7,7 @@ HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap 'exitCode=$?;[ -f "$MYTORRENT_TEMP_FILE" ] && rm -Rf "$MYTORRENT_TEMP_FILE" &>/dev/null' EXIT
+trap 'exitCode=${exitCode:-$?};[ -f "$MYTORRENT_TEMP_FILE" ] && rm -Rf "$MYTORRENT_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104032335-git
@@ -124,6 +124,7 @@ __create_link() {
     ;;
   esac
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __term() {
   $TORRENT --help | less
   while :; do
@@ -253,7 +254,8 @@ while :; do
     ;;
   esac
 done
-set -- "$SETARGS"
+:
+#set -- "$SETARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Actions based on env
 export NOTIFY_CLIENT_NAME="${MYTORRENT_NOTIFY_CLIENT_NAME}"
@@ -277,21 +279,23 @@ if [ -z "$MYTORRENT" ]; then
   printf_pause 1 "Press any key to exit this window"
   exit
 fi
-TORRENT_SERVER="$MYTORRENT_SERVER"
 ARGS="$*"
+TORRENT_SERVER="$MYTORRENT_SERVER"
 OPEN="$MYTORRENT_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 if [ "$TRANSMISSION_REMOTE" = "true" ]; then
-  if [ "$1" = "localhost" ] || [ "$1" = "$(hostname -s)" ] || [ "$1" = "$(hostname -f)" ]; then
-    [ -z "$transmission_daemon" ] && transmission-daemon &>/dev/null && sleep 5 &&
-      __notifications "Transmission server has been started"
+  if [ "$TORRENT_SERVER" = "localhost" ] || [ "$TORRENT_SERVER" = "$(hostname -s)" ] || [ "$TORRENT_SERVER" = "$(hostname -f)" ]; then
+    if [ -z "$transmission_daemon" ]; then
+      transmission-daemon &>/dev/null && sleep 5 &&
+        __notifications "Transmission server has been started" || __notifications "Transmission server failed to start"
+    fi
   fi
   MYTORRENT_CONSOLE="yes"
 fi
 __notifications "Attempting to launch $MYTORRENT_NAME"
 if [ -f "$HOME/.local/bin/mytorrent" ]; then
-  __exec "$HOME/.local/bin/mytorrent" "$*"
+  "$HOME/.local/bin/mytorrent" "$*"
 
 elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
   if cmd_exists transadd; then
@@ -299,21 +303,21 @@ elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
   elif [ -n "$DESKTOP_SESSION" ]; then
     xdg-open "$ARGS"
   else
-    "$TORRENT" -a "$ARGS"
+    $TORRENT -a "$ARGS"
   fi
 
 elif [ "$MYTORRENT_CONSOLE" = "yes" ]; then
   if [ ! -t 0 ]; then
     myterminal -e "$APPNAME --term"
   else
-    $TORRENT $OPEN
+    __exec $TORRENT $OPEN
   fi
 
 elif [ $# -eq 0 ] && [[ "$MYTORRENT_CONSOLE" != "yes" ]] && [[ "$TORRENT" =~ transmission ]]; then
-  $TORRENT -m &
+  __exec $TORRENT -m &>/dev/null
 
 else
-  __exec $TORRENT $OPEN
+  $TORRENT $OPEN
 fi
 
 # ARGS="$*"
