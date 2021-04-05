@@ -79,7 +79,7 @@ GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$GEN_SCRIPTS_R
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY=""

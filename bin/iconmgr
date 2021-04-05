@@ -84,7 +84,7 @@ ICONMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$ICONMGR_NOTIFY_CLIENT_ICON}"
 ICONMGR_FORCE_INSTALL="false"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,f"
 LONGOPTS="options,config,version,help,force,all"
 ARRAY="makecache list search available remove update install cron version"

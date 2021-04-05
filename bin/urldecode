@@ -79,7 +79,7 @@ URLDECODE_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$URLDECODE_NOTIFY_CLIENT_ICO
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,u:"
 LONGOPTS="options,config,version,help,url:"
 ARRAY="${LONGOPTS}"

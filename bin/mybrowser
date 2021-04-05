@@ -135,7 +135,7 @@ MYBROWSER_OPTIONS="${MYBROWSER_OPTIONS}"
 MYBROWSER_STARTPAGE=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,l:"
 LONGOPTS="options,config,version,help,link:"
 ARRAY=""

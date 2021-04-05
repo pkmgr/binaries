@@ -85,7 +85,7 @@ CMD_EXISTS_NOTIFY_ASK=""
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,ask,show,error"
 ARRAY=""

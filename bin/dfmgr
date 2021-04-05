@@ -119,7 +119,7 @@ DFMGR_FORCE_INSTALL="false"
 DFMGR_GIT_REPO="https://github.com/dfmgr"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,f,l,a"
 LONGOPTS="options,config,version,help,force,list,all"
 ARRAY="list search available personal update install cron version remove"

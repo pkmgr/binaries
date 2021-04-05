@@ -100,7 +100,7 @@ WEATHER_WTTR_WEATHER_WTTR_API2="http://v2.wttr.in"
 WEATHER_ACCUWEATHER_WEATHER_WTTR_API="http://WEATHER_WTTR_API.wunderground.com/auto/wui/geo/ForecastXML/index.xml"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,location:,city:,moon:,simple:"
 ARRAY="city v2 image moon simple accuweather"

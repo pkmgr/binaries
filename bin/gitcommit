@@ -128,7 +128,7 @@ GITCOMMIT_VERSION_FORMAT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 GITCOMMIT_VERSION_FILE="${GIT_VERSION_FILE:-version.txt}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,d:,m:"
 LONGOPTS="options,config,version,help,dir:,mess:,message:"
 ARRAY="status log push version files modified deleted added changed new improved"

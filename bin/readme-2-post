@@ -84,7 +84,7 @@ README_2_POST_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 README_2_POST_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$README_2_POST_NOTIFY_CLIENT_ICON}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,f:"
 LONGOPTS="options,config,version,help,script,file:"
 ARRAY="show-_filedir"

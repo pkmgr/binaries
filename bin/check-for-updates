@@ -84,7 +84,7 @@ CHECK_FOR_UPDATES_ENABLE_UPDATE_NAG="${CHECK_FOR_UPDATES_ENABLE_UPDATE_NAG:-yes}
 CHECK_FOR_UPDATES_SUDO_ASKPASS_APPNAMERAM="${SUDO_ASKPASS:-/usr/local/bin/dmenupass}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY=""

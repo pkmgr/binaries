@@ -132,23 +132,7 @@ MYEMAIL_CONSOLE="${MYEMAIL_CONSOLE}"
 MYEMAIL="${MYEMAIL}"
 MYEMAIL_OPTIONS="${MYEMAIL_OPTIONS}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set additional variables/Argument/Option settings
-SETARGS="${*}"
-SHORTOPTS="c,v,h,l:"
-LONGOPTS="options,config,version,help,link:"
-ARRAY=""
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Generate Files
-[ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ] || __gen_config &>/dev/null
-[ -f "$MYEMAIL_OPTIONS_DIR/options" ] || __list_options "$MYEMAIL_OPTIONS_DIR" &>/dev/null
-[ -f "$MYEMAIL_OPTIONS_DIR/array" ] || __list_array "$MYEMAIL_OPTIONS_DIR" "$ARRAY" &>/dev/null
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Import config
-if [ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ]; then
-  . "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE"
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Locate an editor
+# Locate an email client
 [ "$MYEMAIL" != "myemail" ] || unset MYEMAIL
 if [ "$MYEMAIL_NAME" != "config" ] || [ -z "$MYEMAIL" ]; then
   if [ -f "$(command -v thunderbird 2>/dev/null)" ]; then
@@ -174,6 +158,22 @@ if [ "$MYEMAIL_NAME" != "config" ] || [ -z "$MYEMAIL" ]; then
   elif [ -f "$(command -v sylpheed 2>/dev/null)" ]; then
     MYEMAIL="sylpheed"
   fi
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="$*"
+SHORTOPTS="c,v,h,l:"
+LONGOPTS="options,config,version,help,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYEMAIL_OPTIONS_DIR/options" ] || __list_options "$MYEMAIL_OPTIONS_DIR" &>/dev/null
+[ -f "$MYEMAIL_OPTIONS_DIR/array" ] || __list_array "$MYEMAIL_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE" ]; then
+  . "$MYEMAIL_CONFIG_DIR/$MYEMAIL_CONFIG_FILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYEMAIL_NAME="$(basename "$MYEMAIL" 2>/dev/null)"

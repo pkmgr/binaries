@@ -82,7 +82,7 @@ URLCHECK_NOTIFY_TIMEOUT="1"
 URLCHECK_CURL_OPTS="-q -Ss --insecure --fail --head"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,u:"
 LONGOPTS="options,config,version,help,url:"
 ARRAY="${LONGOPTS}"

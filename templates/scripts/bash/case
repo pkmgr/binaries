@@ -75,7 +75,7 @@ GEN_SCRIPTS_REPLACE_ENV_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/GEN_SCRI
 GEN_SCRIPTS_REPLACE_ENV_OPTIONS_DIR="$HOME/.local/share/myscripts/GEN_SCRIPTS_REPLACE_FILENAME/options"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,:*"
 LONGOPTS="options,config,version,help"
 ARRAY=""

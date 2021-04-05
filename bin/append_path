@@ -76,7 +76,7 @@ APPEND_PATH_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$APPEND_PATH_NOTIFY_CLIENT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY="show-_filedir"

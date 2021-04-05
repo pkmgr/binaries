@@ -128,7 +128,7 @@ fi
 #fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,r,f,s,d"
 LONGOPTS="options,config,version,help,remove,full,domain,short"
 ARRAY="full short domain"

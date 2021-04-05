@@ -132,22 +132,6 @@ MYEDITOR_CONSOLE="${MYEDITOR_CONSOLE}"
 MYEDITOR="${MYEDITOR}"
 MYEDITOR_OPTIONS="${MYEDITOR_OPTIONS}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set additional variables/Argument/Option settings
-SETARGS="${*}"
-SHORTOPTS="c,v,h,l:"
-LONGOPTS="options,config,version,help,link:"
-ARRAY=""
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Generate Files
-[ -f "$MYEDITOR_CONFIG_DIR/$MYEDITOR_CONFIG_FILE" ] || __gen_config &>/dev/null
-[ -f "$MYEDITOR_OPTIONS_DIR/options" ] || __list_options "$MYEDITOR_OPTIONS_DIR" &>/dev/null
-[ -f "$MYEDITOR_OPTIONS_DIR/array" ] || __list_array "$MYEDITOR_OPTIONS_DIR" "$ARRAY" &>/dev/null
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Import config
-if [ -f "$MYEDITOR_CONFIG_DIR/$MYEDITOR_CONFIG_FILE" ]; then
-  . "$MYEDITOR_CONFIG_DIR/$MYEDITOR_CONFIG_FILE"
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate an editor
 [ "$MYEDITOR" != "myeditor" ] || unset MYEDITOR
 if [ "$MYEDITOR_NAME" != "config" ] || [ -z "$MYEDITOR" ]; then
@@ -179,6 +163,22 @@ if [ "$MYEDITOR_NAME" != "config" ] || [ -z "$MYEDITOR" ]; then
       MYEDITOR="nano"
     fi
   fi
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="$*"
+SHORTOPTS="c,v,h,l:"
+LONGOPTS="options,config,version,help,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYEDITOR_CONFIG_DIR/$MYEDITOR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYEDITOR_OPTIONS_DIR/options" ] || __list_options "$MYEDITOR_OPTIONS_DIR" &>/dev/null
+[ -f "$MYEDITOR_OPTIONS_DIR/array" ] || __list_array "$MYEDITOR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYEDITOR_CONFIG_DIR/$MYEDITOR_CONFIG_FILE" ]; then
+  . "$MYEDITOR_CONFIG_DIR/$MYEDITOR_CONFIG_FILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYEDITOR_NAME="$(basename "$MYEDITOR" 2>/dev/null)"

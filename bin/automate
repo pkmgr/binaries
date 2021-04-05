@@ -102,7 +102,7 @@ AUTOMATE_STATE_FILE="$AUTOMATE_CACHE_DIR/state"
 AUTOMATE_NOTIFY_MESG=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY=""

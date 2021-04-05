@@ -310,7 +310,7 @@ BACKUPAPP_BICON_WARN="⚠️"
 BACKUPAPP_BICON_ERROR="✖"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,t"
 LONGOPTS="options,config,version,help,term,cron:"
 ARRAY=""

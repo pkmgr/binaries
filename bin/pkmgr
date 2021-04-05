@@ -312,7 +312,7 @@ PKMGR_FORCE_INSTALL="false"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,f"
 LONGOPTS="options,config,version,help,force,enable-aur"
 ARRAY=""

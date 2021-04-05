@@ -276,7 +276,7 @@ BLOG_POST_BASE_URL="${BLOG_BASE_URL}/blog"
 BLOG_PAGE_COUNT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,f:"
 LONGOPTS="options,config,version,help,file:"
 ARRAY="config copy new edit page post"

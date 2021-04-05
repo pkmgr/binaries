@@ -79,7 +79,7 @@ ASK_FOR_INPUT_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$ASK_FOR_INPUT_NOTIFY_CL
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY=""

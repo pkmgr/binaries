@@ -100,7 +100,7 @@ PASSMGR_FORCE_INSTALL="false"
 PASSMGR_GIT_URL=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,f,i:"
 LONGOPTS="options,config,version,help,force,import:"
 ARRAY=""

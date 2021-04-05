@@ -105,7 +105,7 @@ AM_I_ONLINE_SHOW_CONSOLE=""
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,f,m:,s:"
 LONGOPTS="options,config,version,help,error,show,console,force,message:,site:,code:"
 ARRAY=""

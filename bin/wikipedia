@@ -83,7 +83,7 @@ WIKIPEDIA_API_URL="https://en.wikipedia.org/wiki"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY="$(echo {a..z} {0..9})"

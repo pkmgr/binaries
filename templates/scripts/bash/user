@@ -83,7 +83,7 @@ EOF
   local GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$GEN_SCRIPTS_REPLACE_ENV_NOTIFY_CLIENT_ICON}"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Argument/Option settings
-  local SETARGS="${*}"
+  local SETARGS="$*"
   local SHORTOPTS="c,v,h"
   local LONGOPTS="options,config,version,help"
   local ARRAY=""

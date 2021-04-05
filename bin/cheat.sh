@@ -83,7 +83,7 @@ CHEAT_SH_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$CHEAT_SH_NOTIFY_CLIENT_ICON}
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help"
 ARRAY=""

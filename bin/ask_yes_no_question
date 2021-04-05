@@ -110,7 +110,7 @@ ASK_YES_NO_QUESTION_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$ASK_YES_NO_QUESTI
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
-SETARGS="${*}"
+SETARGS="$*"
 SHORTOPTS="c,v,h,t,o"
 LONGOPTS="options,config,version,help,term,terminal,off"
 ARRAY=""

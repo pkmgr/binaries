@@ -145,22 +145,6 @@ MYVMMANAGER_CONSOLE="${MYVMMANAGER_CONSOLE}"
 MYVMMANAGER="${MYVMMANAGER}"
 MYVMMANAGER_OPTIONS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Set additional variables/Argument/Option settings
-SETARGS="${*}"
-SHORTOPTS="c,v,h,t,l:"
-LONGOPTS="options,config,version,help,term,link:"
-ARRAY=""
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Generate Files
-[ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ] || __gen_config &>/dev/null
-[ -f "$MYVMMANAGER_OPTIONS_DIR/options" ] || __list_options "$MYVMMANAGER_OPTIONS_DIR" &>/dev/null
-[ -f "$MYVMMANAGER_OPTIONS_DIR/array" ] || __list_array "$MYVMMANAGER_OPTIONS_DIR" "$ARRAY" &>/dev/null
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Import config
-if [ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ]; then
-  . "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE"
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Locate a manager
 [ "$MYVMMANAGER" != "myvmmanager" ] || unset MYVMMANAGER
 if [ "$MYVMMANAGER_NAME" != "config" ] || [ -z "$MYVMMANAGER" ]; then
@@ -175,6 +159,22 @@ if [ "$MYVMMANAGER_NAME" != "config" ] || [ -z "$MYVMMANAGER" ]; then
   elif [ -f "$(command -v docker 2>/dev/null)" ]; then
     MYVMMANAGER="docker"
   fi
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="$*"
+SHORTOPTS="c,v,h,t,l:"
+LONGOPTS="options,config,version,help,term,link:"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$MYVMMANAGER_OPTIONS_DIR/options" ] || __list_options "$MYVMMANAGER_OPTIONS_DIR" &>/dev/null
+[ -f "$MYVMMANAGER_OPTIONS_DIR/array" ] || __list_array "$MYVMMANAGER_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE" ]; then
+  . "$MYVMMANAGER_CONFIG_DIR/$MYVMMANAGER_CONFIG_FILE"
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 MYVMMANAGER_NAME="$(basename "$MYVMMANAGER" 2>/dev/null)"
