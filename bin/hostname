@@ -8,10 +8,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 trap '[ -f "$HOSTNAME_TEMP_FILE" ] && rm -Rf "$HOSTNAME_TEMP_FILE" &>/dev/null' EXIT
-[ -f "/usr/bin/hostname" ] && {
-  /usr/bin/hostname "$@"
-  exit $?
-}
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202103302338-git
 # @Author        : Jason Hempstead
@@ -27,22 +24,22 @@ trap '[ -f "$HOSTNAME_TEMP_FILE" ] && rm -Rf "$HOSTNAME_TEMP_FILE" &>/dev/null' 
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
-CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
-SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
-SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
-  . "$PWD/$SCRIPTSFUNCTFILE"
-elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
-  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
-else
-  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
-  exit 1
-fi
+# CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+# SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+# SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+# SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+#   . "$PWD/$SCRIPTSFUNCTFILE"
+# elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+#   . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+# else
+#   echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+#   exit 1
+# fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
-user_install
+# user_install
 #__options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
@@ -69,6 +66,20 @@ EOF
     false
   fi
   __hostname &>/dev/null
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__list_array() {
+  local OPTSDIR="${1:-$HOME/.local/share/myscripts/${APPNAME:-$PROG}/options}"
+  mkdir -p "$OPTSDIR"
+  echo "${2:-$ARRAY}" >"$OPTSDIR/array" | tr ',' '\n'
+  return
+}
+__list_options() {
+  local OPTSDIR="${1:-$HOME/.local/share/myscripts/${APPNAME:-$PROG}/options}"
+  mkdir -p "$OPTSDIR"
+  echo -n "-$SHORTOPTS " | sed 's#:##g;s#,# -#g' >"$OPTSDIR/options"
+  echo "--$LONGOPTS " | sed 's#:##g;s#,# --#g' >>"$OPTSDIR/options"
+  return
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __hostname() {
@@ -119,7 +130,7 @@ HOSTNAME_TEMP_FILE="${TMPDIR:-/tmp}/hostname"
 HOSTNAME_NOTIFY_ENABLED="yes"
 HOSTNAME_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 HOSTNAME_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$HOSTNAME_NOTIFY_CLIENT_ICON}"
-if user_is_root; then
+if [[ $(id -u) -eq 0 ]] || [[ "$EUID" -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
   HOSTNAME_CONFIG_DIR="/etc/hostname.d"
   HOSTNAME_CACHE_DIR="/etc/hostname.d/files"
 fi
