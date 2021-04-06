@@ -193,10 +193,9 @@ init() {
     MANUAL=true
     shift 1
   else
-    RANDOMDIR="$(find -L $WALLPAPER_DIR -maxdepth 1 -type d | sort -R | head -n1)"
-    #SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
+    #SETRANDOM="$(__find_cmd "$WALLPAPER_DIR" | sort -R | tail -n 1)"
     SETRANDOM="$(grep -svf "$FILE_SEEN" "$FILE_WALLPAPER" | sort -R | head -n1)"
-    [ -n "$SETRANDOM" ] || SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
+    [ -n "$SETRANDOM" ] || SETRANDOM="$(__find_cmd "$WALLPAPER_DIR" | sort -R | tail -n 1)"
     __make_seen_file
   fi
   RANDOMWALLPAPER="${WALLPAPER:-$SETRANDOM}"
@@ -257,10 +256,8 @@ __find_random() {
   __find_mtime "$FILE_WALLPAPER" "${REFRESH_TIME:-720}" && __find_cmd | sort -u >"$FILE_WALLPAPER"
   if [ "$MANUAL" != "true" ] && grep -qv "$RAND" "$FILE_SEEN" &>/dev/null; then
     while :; do
-      RANDOMDIR="$(find -L $WALLPAPER_DIR -maxdepth 1 -type d | sort -R | head -n1)"
       SETRANDOM="$(grep -svf "$FILE_SEEN" "$FILE_WALLPAPER" | sort -R | head -n1)"
-      #SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
-      [ -n "$SETRANDOM" ] || SETRANDOM="$(__find_cmd "$RANDOMDIR" | sort -R | tail -n 1)"
+      [ -n "$SETRANDOM" ] || SETRANDOM="$(__find_cmd "$WALLPAPER_DIR" | sort -R | tail -n 1)"
       RANDOMWALLPAPER="$SETRANDOM"
       RAND="$RANDOMWALLPAPER"
       SHORTNAME="$(echo "${RAND/$WALLPAPER_DIR/}" | sed 's#^/##g')"
