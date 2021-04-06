@@ -131,7 +131,7 @@ GITCOMMIT_VERSION_FILE="${GIT_VERSION_FILE:-version.txt}"
 SETARGS="$*"
 SHORTOPTS="c,v,h,d:,m:"
 LONGOPTS="options,config,version,help,dir:,mess:,message:"
-ARRAY="status log push version files modified deleted added changed new improved"
+ARRAY="status log push version files modified deleted added changed new improved "
 ARRAY+="fixed release docs test breaking refactor permissions bugs alot docker node "
 ARRAY+="ruby php perl python scratchpad todo notes blog emojify random custom setup reset "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
