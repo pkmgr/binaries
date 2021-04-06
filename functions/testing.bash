@@ -554,8 +554,8 @@ __cmd_exists() {
   [[ "$1" = *-ask ]] && shift 1 && __requires "$@" && return $? || true
   [ $# -eq 0 ] && return 1
   local args="$*"
-  local exitTmp
-  local exitCode
+  local exitTmp=""
+  local exitCode=""
   for cmd in $args; do
     if find "$(command -v "$cmd" 2>/dev/null)" >/dev/null 2>&1 || find "$(type -P "$cmd" 2>/dev/null)" >/dev/null 2>&1; then
       local exitTmp=0
@@ -746,7 +746,13 @@ __getphpver() {
   fi
   echo $PHPVER
 }
-type_function() { type -f $1 2>/dev/null | grep -q 'is aliased to' && return 1 || return 0; }
+type_function() {
+  if type -f "$1" 2>/dev/null | grep -q 'is aliased to'; then
+    return 1
+  else
+    return 0
+  fi
+}
 ###################### macos fixes#################
 if [ "$(uname -s)" = Darwin ]; then
   [ -f "$(command -v gls 2>/dev/null)" ] && lscmd="$(type -P gls)" || lscmd="$(type -P ls)"
@@ -764,14 +770,14 @@ if [ "$(uname -s)" = Darwin ]; then
 fi
 ###################### tools ######################
 __setcursor() { echo -e -n "\x1b[\x35 q" "\e]12;cyan\a" 2>/dev/null; }
+__get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
+__get_pid_of() { __ps "$1" | head -n1 | awk '{print $2}' | grep '^' || return 1; }
 __ps() {
   local proc="$(__basename "$1")"
   local prog="${APPNAME:-$PROG}"
   [ -n "$proc" ] || return 1
   ps -aux | grep -v 'grep ' | grep -E '?' | grep -w "$proc" 2>/dev/null
 }
-__get_status_pid() { __ps "$1" | grep -v grep | grep -q "$1" 2>/dev/null && return 0 || return 1; }
-__get_pid_of() { __ps "$1" | head -n1 | awk '{print $2}' | grep '^' || return 1; }
 #basedir "file"
 __basedir() {
   if [ "$(dirname "$1" 2>/dev/null)" = . ]; then
@@ -814,7 +820,7 @@ __getuser_cur_shell() {
 #hostname() {
 #  local PATH="/usr/bin:/usr/sbin"
 #  hostnamecli="$(type -P hostname)"
-#  $hostname "$@"
+#  $hostnamecli "$@"
 #  return $?
 #}
 ###################### Apps ######################
@@ -831,9 +837,9 @@ netcat="$(command -v nc 2>/dev/null || command -v netcat 2>/dev/null || return 1
 __netcat_test() { __cmd_exists "$netcat" || printf_error "The program netcat is not installed"; }
 __netcat_pids() { netstat -tupln 2>/dev/null | grep ":$1" | grep "$(basename ${netcat:-nc})" | awk '{print $7}' | sed 's#'/"$(basename ${netcat:-nc})"'##g' | grep '^'; }
 # kill_netpid "port" "procname"
-__kill_netpid() { netstatg "$1" | grep "$(basename $2)" | awk '{print $7}' | sed 's#/'$2'##g' && netstat -taupln | grep -qv "$1" || return 1; }
+__kill_netpid() { netstatg "$1" | grep "$(basename "$2")" | awk '{print $7}' | sed 's#/'$2'##g' && netstat -taupln | grep -qv "$1" || return 1; }
 __netcat_kill() {
-  pidof "$netcat" >/dev/null 2>&1 && kill -s KILL "$(__netcat_pids $1)" >/dev/null 2>&1
+  pidof "$netcat" >/dev/null 2>&1 && kill -s KILL "$(__netcat_pids "$1")" >/dev/null 2>&1
   netstat -taupln | grep -Fqv ":$1 " || return 1
 }
 #__kill_server "port required" "print success" "print fail" "success message" "failed message"
@@ -852,7 +858,7 @@ __file_not_empty() { [ -s "$1" ] && return 0 || return 1; }
 __file_is_empty() { [ ! -s "$1" ] && return 0 || return 1; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
-__sed() { "$sed" "$@"; }
+__sed() { $sed "$*"; }
 #tar "filename dir"
 __tar_create() { tar cfvz "$@"; }
 #tar filename
@@ -889,16 +895,29 @@ __mv_f() { if [ -e "$1" ]; then __devnull mv -f "$1" "$2" || return 0; fi; }
 __cp_rf() { if [ -e "$1" ]; then __devnull cp -Rf "$1" "$2" || return 0; fi; }
 #rm_rf "file"
 __rm_rf() { if [ -e "$1" ]; then __devnull rm -Rf "$@" || return 0; fi; }
+#
+__broken_symlinks() {
+  __devnull find -L "$@" -type l -exec rm -f {} \;
+}
 #ln_rm "file"
-__ln_rm() { if [ -e "$1" ]; then __devnull find -L $1 -mindepth 1 -maxdepth 1 -type l -exec rm -f {} \;; fi; }
-__broken_symlinks() { __devnull find -L "$@" -type l -exec rm -f {} \;; }
+__ln_rm() {
+  if [ -e "$1" ]; then
+    __devnull find -L $1 -mindepth 1 -maxdepth 1 -type l -exec rm -f {} \;
+  fi
+}
 #ln_sf "file"
 __ln_sf() {
   [ -L "$2" ] && __rm_rf "$2" || true
   __devnull ln -sf "$1" "$2"
 }
 #find_mtime "file/dir" "time minutes"
-__find_mtime() { [ "$(find ${1:-.} -type l,f -cmin ${2:-1} | wc -l)" -ne 0 ] && return 0 || return 1; }
+__find_mtime() {
+  if [ "$(find ${1:-.} -type l,f -cmin ${2:-1} | wc -l)" -ne 0 ]; then
+    return 0
+  else
+    return 1
+  fi
+}
 #find "dir" "options"
 __find() {
   local DEF_OPTS="-type l,f,d"
@@ -934,7 +953,7 @@ __cd_into() {
 #kill "app"
 __kill() { kill -s KILL "$(pidof "$1")" >/dev/null 2>&1; }
 #running "app"
-__running() { pidof "$1" >/dev/null 2>&1 && return 1 || return 0; }
+__running() { pidof "$1" &>/dev/null && return 1 || return 0; }
 #start "app"
 __start() {
   sleep 1 && "$@" 2>/dev/null &

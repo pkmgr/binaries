@@ -72,7 +72,7 @@ EOF
 __git_add() {
   local -a files="$*"
   for f in $files; do
-    [ -e "$f" ] && git -C "$gitdir" add "$f" &>/dev/null #|| printf_error "$f is not a file"
+    [ -e "$f" ] && git -C "$gitdir" add "$f" &>/dev/null || git -C "$gitdir" rm "$f" &>/dev/null
   done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
