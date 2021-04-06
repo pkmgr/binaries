@@ -74,7 +74,11 @@ elif [ "$(uname -s)" = "Linux" ]; then
     __notify_send() { notify-send.sh --app-name="${NOTIFYD_APPNAME}" -u "${NOTIFYD_URGENY}" -i "${NOTIFY_CLIENT_ICON}" "$@"; }
   else
     [[ "$1" = *ask ]] && exit 1
-    printf_exit 1 1 "There is no notify app installed: Install notify-send, dunst, deadd"
+    if [ -n "$1" ]; then
+      __notify_send() { echo "$*" >/dev/null; }
+    else
+      printf_exit 1 1 "There is no notify app installed: Install notify-send, dunst, deadd"
+    fi
   fi
   NAME=(${XUSER/(/ })
   DISPLAY="${NAME[1]/)/}"
