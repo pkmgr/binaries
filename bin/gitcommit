@@ -51,6 +51,7 @@ __gen_config() {
     cp -Rf "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE.$$"
   cat <<EOF >"$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE"
 # Settings for gitcommit
+GITCOMMIT_NO_CONFIRM="\${GITCOMMIT_NO_CONFIRM:-true}"
 GITCOMMIT_PROJECT_DIR="\${GIT_PROJECT_DIR:-$HOME/Projects}"
 GITCOMMIT_VERSION_FORMAT="\${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 GITCOMMIT_VERSION_FILE="\${GIT_VERSION_FILE:-version.txt}"
@@ -100,7 +101,11 @@ __git_push() {
       git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
       __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
     else
-      printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
+      if [ "$GITCOMMIT_NO_CONFIRM" != "true" ]; then
+        printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
+      else
+        push="Y"
+      fi
       if printf_answer_yes "$push"; then
         printf_green "Pushing the changes to $repo"
         git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1

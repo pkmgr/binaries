@@ -699,7 +699,7 @@ upgrade | update | -u)
   [ "$1" = "help" ] && printf_help "Update your system"
   am_i_online --error || exit 1
   if [ -f "$(command -v systemmgr)" ]; then
-    systemmgr install installer
+    sudo systemmgr install installer
   fi
   $pkgmgrbinupd
   ;;
@@ -772,7 +772,7 @@ silent-upgrade | silent-update)
   [ "$1" = "help" ] && printf_help "Silently upgrade your system"
   am_i_online --error || exit 1
   if [ -f "$(command -v systemmgr)" ]; then
-    __devnull systemmgr install installer
+    __devnull sudo systemmgr install installer
   fi
   __devnull $pkgmgrbinupdsil && exit 0 || exit 1
   ;;
@@ -934,7 +934,7 @@ silent)
     [ "$1" = "help" ] && printf_help "Silently upgrade your system"
     am_i_online --error || exit 1
     if [ -f "$(command -v systemmgr)" ]; then
-      __devnull systemmgr install installer
+      __devnull sudo systemmgr install installer
     fi
     __devnull $pkgmgrbinupdsil && exit 0 || exit 1
     ;;
