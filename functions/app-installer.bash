@@ -790,35 +790,39 @@ git_clone() {
     local repo="$1"
     [ -n "$2" ] && local myappdir="$2" || local myappdir="$INSTDIR"
     [ -d "$myappdir" ] && rm_rf "$myappdir"
-    devnull git clone --depth=1 -q --recursive "$@"
+    devnull git clone --depth=1 -q --recursive "$repo" "$myappdir"
   fi
 }
 ##################################################################################################
 git_update() {
+  local myappdir="${1:-$INSTDIR}"
   if __am_i_online; then
     local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
-    devnull git -C "$INSTDIR" reset --hard &&
-      devnull git -C "$INSTDIR" pull --recurse-submodules -fq &&
-      devnull git -C "$INSTDIR" submodule update --init --recursive -q &&
-      devnull git -C "$INSTDIR" reset --hard -q && true || false
-    if [ "$?" -ne "0" ]; then
-      rm_rf "$INSTDIR"
-      git_clone "$repo" "$INSTDIR"
+    devnull git -C "$myappdir" reset --hard &&
+      devnull git -C "$myappdir" pull --recurse-submodules -fq &&
+      devnull git -C "$myappdir" submodule update --init --recursive -q &&
+      devnull git -C "$myappdir" reset --hard -q && true || false
+    if [ "$?" -ne "0" ] && [ -n "$repo" ]; then
+      rm_rf "$myappdir"
+      git_clone "$repo" "$myappdir"
     fi
   fi
 }
 ##################################################################################################
 
 dotfilesreqcmd() {
+  local gitrepo="$REPO"
+  local conf="${1:-$conf}"
+  printf_exit $gitrepo/$conf/raw/master/install.sh
   if __am_i_online; then
-    local gitrepo="$REPO"
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
       sudo_user bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
 }
 dotfilesreqadmincmd() {
+  local gitrepo="$REPO"
+  local conf="${1:-$conf}"
   if __am_i_online; then
-    local gitrepo="$REPO"
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
       sudo_root bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
@@ -831,9 +835,7 @@ dotfilesreq() {
       declare -a LISTARRAY="$*"
       for conf in ${LISTARRAY[*]}; do
         if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-          execute \
-            "dotfilesreqcmd" \
-            "Installing required dotfile $conf"
+          execute "dotfilesreqcmd $conf" "Installing required dotfile $conf"
         fi
       done
       rm_rf $TEMP/*.inst.tmp
@@ -847,9 +849,7 @@ dotfilesreqadmin() {
       declare -a LISTARRAY="$*"
       for conf in ${LISTARRAY[*]}; do
         if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-          execute \
-            "dotfilesreqadmincmd" \
-            "Installing required dotfile $conf"
+          execute "dotfilesreqadmincmd $conf" "Installing required dotfile $conf"
         fi
       done
       rm_rf $TEMP/*.inst.tmp
@@ -1354,7 +1354,7 @@ ensure_perms() {
 ##################################################################################################
 get_app_version() {
   if [ -f "$INSTDIR/version.txt" ]; then
-    local version="$(cat "$INSTDIR/version.txt" | grep -v "#" | tail -n 1)"
+    local version="$(grep -v "#" "$INSTDIR/version.txt" | tail -n 1)"
   else
     local version="0000000"
   fi
