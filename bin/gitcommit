@@ -97,21 +97,26 @@ __git_push() {
   local gitdir="${1:-$gitdir}"
   local repo="$(__git_remote_fetch $gitdir)"
   am_i_online --error || exit 1
-  if [ "$repo" != "localdir" ]; then
-    if [[ "$*" =~ --automated ]]; then
-      printf_green "Pushing the changes to $repo"
-      git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
-      __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
-    else
-      if [ "$GITCOMMIT_NO_CONFIRM" != "true" ]; then
-        printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
-      else
-        push="Y"
-      fi
-      if printf_answer_yes "$push"; then
+  if __git_porcelain "$gitdir"; then
+    printf_red "There are no changes to push in ${basedir}"
+    exit
+  else
+    if [ "$repo" != "localdir" ]; then
+      if [[ "$*" =~ --automated ]]; then
         printf_green "Pushing the changes to $repo"
         git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
         __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+      else
+        if [ "$GITCOMMIT_NO_CONFIRM" != "true" ]; then
+          printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
+        else
+          push="Y"
+        fi
+        if printf_answer_yes "$push"; then
+          printf_green "Pushing the changes to $repo"
+          git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
+          __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+        fi
       fi
     fi
   fi
@@ -212,7 +217,7 @@ fi
 cmd_exists --error bash git || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-[ -d "$1" ] && MYCURRDIR="$1" || MYCURRDIR="$PWD"
+[ -d "$1" ] && MYCURRDIR="$1" && shift 1 || MYCURRDIR="$PWD"
 topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$gitdir/$GITCOMMIT_VERSION_FILE"
