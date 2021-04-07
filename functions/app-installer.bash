@@ -859,6 +859,7 @@ install_required() {
   if __am_i_online; then
     [[ $# -eq 0 ]] && return 0
     # local MISSING=""
+    # local cmd=""
     # for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
     # if [ ! -z "$MISSING" ]; then
     #   if cmd_exists "pkmgr"; then
@@ -878,6 +879,7 @@ install_required() {
 install_packages() {
   if __am_i_online; then
     local MISSING=""
+    local cmd=""
     if cmd_exists "pkmgr"; then
       for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
       if [ ! -z "$MISSING" ]; then
@@ -944,6 +946,7 @@ install_python() {
 install_perl() {
   if __am_i_online; then
     local MISSING=""
+    local cmd=""
     for cmd in "$@"; do perl_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
@@ -965,6 +968,7 @@ install_perl() {
 install_pip() {
   if __am_i_online; then
     local MISSING=""
+    local cmd=""
     for cmd in "$@"; do cmd_exists $cmd || pip_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
@@ -982,6 +986,7 @@ install_pip() {
 install_cpan() {
   if __am_i_online; then
     local MISSING=""
+    local cmd=""
     for cmd in "$@"; do cmd_exists $cmd || cpan_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
@@ -999,6 +1004,7 @@ install_cpan() {
 install_gem() {
   if __am_i_online; then
     local MISSING=""
+    local cmd=""
     for cmd in "$@"; do cmd_exists $cmd || gem_missing $cmd; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
