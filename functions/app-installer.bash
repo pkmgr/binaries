@@ -922,6 +922,7 @@ install_packages() {
 install_python() {
   if __am_i_online; then
     local MISSING=""
+    local cmd=""
     for cmd in "$@"; do python_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
