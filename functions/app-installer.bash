@@ -6,7 +6,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-set -Ex
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 020920211625-git
 # @Author        : Jason Hempstead
@@ -2007,13 +2007,13 @@ run_install_init() {
     printf_yellow "Initializing the installer from"
     if [ -f "$INSTDIR/install.sh" ]; then
       printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
-      bash -c "$INSTDIR/install.sh"
+      #bash -c "$INSTDIR/install.sh"
     else
       printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
       printf_purple "$REPORAW/install.sh"
-      if urlcheck "$REPORAW/master/install.sh"; then
-        bash -c "$(__curl $REPORAW/master/install.sh)"
-      else
+      if ! urlcheck "$REPORAW/master/install.sh"; then
+        #bash -c "$(__curl $REPORAW/master/install.sh)"
+        #else
         printf_error "Failed to initialize the installer from:"
         printf_exit "$REPORAW/master/install.sh\n"
       fi
