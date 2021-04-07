@@ -457,7 +457,7 @@ cmd_exists() {
     if devnull command -v "$cmd"; then return 0; else return 1; fi
     exitCode+=$?
   done
-  exit $exitCode
+  return $exitCode
 }
 gem_exists() {
   local package="$1"
@@ -498,7 +498,7 @@ returnexitcode() {
   local RETVAL="$?"
   EXIT="$RETVAL"
   if [ "$RETVAL" -ne 0 ]; then
-    exit "$EXIT"
+    return "$EXIT"
   fi
 }
 ##################################################################################################
@@ -534,7 +534,7 @@ failexitcode() {
   [ ! -z "$1" ] && local fail="$1" || local fail="Command has failed"
   [ ! -z "$2" ] && local success="$2" || local success=""
   if [ "$RETVAL" -ne 0 ]; then
-    set -eE
+    set -E
     printf_error "$fail"
     exit 1
   else
