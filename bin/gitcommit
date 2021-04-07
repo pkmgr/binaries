@@ -241,7 +241,6 @@ l | log)
 
 push)
   shift 1
-  printf_exit "$*"
   __git_push "$*"
   exit $?
   ;;
