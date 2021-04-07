@@ -93,7 +93,8 @@ __git_dir() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_push() {
-  local push
+  local push=""
+  local gitdir="${1:-$gitdir}"
   am_i_online --error || exit 1
   if [ "$repo" != "localdir" ]; then
     if [[ "$*" =~ --automated ]]; then
