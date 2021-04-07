@@ -95,6 +95,7 @@ __git_dir() {
 __git_push() {
   local push=""
   local gitdir="${1:-$gitdir}"
+  local repo="$(__git_remote_fetch $gitdir)"
   am_i_online --error || exit 1
   if [ "$repo" != "localdir" ]; then
     if [[ "$*" =~ --automated ]]; then
@@ -225,7 +226,7 @@ __git_dir "$gitdir"
 MESSAGE="${newmess:-$1}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-case "$MESSAGE" in
+case $MESSAGE in
 s | status)
   shift 1
   __git_status "$gitdir"
@@ -240,7 +241,8 @@ l | log)
 
 push)
   shift 1
-  __git_push "$@"
+  printf_exit "$*"
+  __git_push "$*"
   exit $?
   ;;
 
