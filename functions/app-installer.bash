@@ -2039,7 +2039,7 @@ run_postinst_global() {
     # Only run on the scripts install
     ln_rm "$SYSBIN/"
     ln_rm "$COMPDIR/"
-    appFiles="$(ls $INSTDIR/bin)"
+    appFiles="$(ls "$INSTDIR/bin")"
     for app in $appFiles; do
       chmod -Rf 755 "$INSTDIR/bin/$app"
       ln_sf "$INSTDIR/bin/$app" "$SYSBIN/$app"
