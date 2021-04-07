@@ -53,7 +53,9 @@ WALLPAPERMGRREPO="https://github.com/wallpapermgr"
 WHICH_LICENSE_URL="https://github.com/devenvmgr/licenses/raw/master"
 WHICH_LICENSE_DEF="$CASJAYSDEVDIR/templates/wtfpl.md"
 # OS Settings
-[ -f "$CASJAYSDEVDIR/bin/detectostype" ] && . "$CASJAYSDEVDIR/bin/detectostype"
+if [ -f "$CASJAYSDEVDIR/bin/detectostype" ]; then
+  . "$CASJAYSDEVDIR/bin/detectostype"
+fi
 # Setup temp folders
 TMP="${TMP:-/tmp}"
 TEMP="${TMP:-/tmp}"
@@ -75,11 +77,6 @@ command() {
   [ "$1" = "-v" ] && shift 1
   type -P "$1"
 }
-###################### exports #######################
-#[ -n "$NOTIFY_CLIENT_NAME" ] || NOTIFY_CLIENT_NAME="${APPNAME:$PROG}"
-#[ -n "$APPNAME" ] || APPNAME="${APPNAME:$PROG}"
-#[ -n "$PROG" ] || PROG="${APPNAME:$PROG}"
-#export PROG APPNAME NOTIFY_CLIENT_NAME
 ###################### devnull/logging/error handling ######################
 # send all output to /dev/null
 __devnull() {
@@ -107,19 +104,19 @@ __runapp() {
     local logname="$2"
     shift 2
     echo "#################################" >>"$logdir/$logname.log"
-    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
+    date +'%A, %B %d, %Y' >>"$logdir/$logname.log"
     echo "#################################" >>"$logdir/$logname.log"
     bash -c "${@:-$(false)}" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err" &
   elif [ "$1" = "--log" ]; then
     local logname="$2"
     shift 2
     echo "#################################" >>"$logdir/$logname.log"
-    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/$logname.log"
+    date +'%A, %B %d, %Y' >>"$logdir/$logname.log"
     echo "#################################" >>"$logdir/$logname.log"
     bash -c "${@:-$(false)}" >>"$logdir/$logname.log" 2>>"$logdir/$logname.err"
   else
     echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
-    echo "$(date +'%A, %B %d, %Y')" >>"$logdir/${APPNAME:-$1}.log"
+    date +'%A, %B %d, %Y' >>"$logdir/${APPNAME:-$1}.log"
     echo "#################################" >>"$logdir/${APPNAME:-$1}.log"
     bash -c "${@:-$(false)}" >>"$logdir/${APPNAME:-$1}.log" 2>>"$logdir/${APPNAME:-$1}.err"
   fi

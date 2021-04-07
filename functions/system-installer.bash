@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# @Author      : Jason
-# @Contact     : casjaysdev@casjay.net
-# @File        : system-installer.bash
-# @Created     : Wed, Aug 05, 2020, 02:00 EST
-# @License     : WTFPL
-# @Copyright   : Copyright (c) CasjaysDev
-# @Description : installer functions for system installers
-#
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 export PATH="$(echo $PATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 's#::#:.#g')"
 
 set -o pipefail
 #trap '' err exit SIGINT SIGTERM
 export WHOAMI="${USER}"
-export SUDO_PROMPT="$(printf "\n\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
+export SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 
 TMP="${TMP:-/tmp}"
 TEMP="${TEMP:-/tmp}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# @Author      : Jason
+# @Contact     : casjaysdev@casjay.net
+# @File        : install
+# @Created     : Wed, Aug 05, 2020, 02:00 EST
+# @License     : WTFPL
+# @Copyright   : Copyright (c) CasjaysDev
+# @Description : installer functions for apps
+#
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # fail if git is not installed
 
@@ -103,7 +103,7 @@ printf_readline() {
 
 printf_custom() {
   [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="1"
-  local msg="$*"
+  local msg="$@"
   shift
   printf_color "\t\t$msg" "$color"
   echo ""
@@ -113,7 +113,7 @@ printf_custom() {
 
 printf_head() {
   [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="6"
-  local msg="$*"
+  local msg="$@"
   shift
   printf_color "
 \t\t##################################################
@@ -141,7 +141,7 @@ printf_result() {
 notifications() {
   local title="$1"
   shift 1
-  local msg="$*"
+  local msg="$@"
   shift
   cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }
@@ -149,7 +149,7 @@ notifications() {
 ##################################################################################################
 
 devnull() { "$@" >/dev/null 2>&1; }
-killpid() { devnull kill -9 "$(pidof "$1")"; }
+killpid() { devnull kill -9 $(pidof "$1"); }
 hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1; }
 cmd_exists() {
   local pkg LISTARRAY
@@ -220,12 +220,11 @@ urlinvalid() { if [ -z "$1" ]; then printf_red "\t\tInvalid URL\n"; else
 fi; }
 urlverify() { urlcheck $1 || urlinvalid $1; }
 symlink() { ln_sf "$1" "$2"; }
-__cd() { cd "$*" || return 1; }
 
 ##################################################################################################
 
-system_service_enable() { execute "sudo systemctl enable -f $*" "Enabling services: $*"; }
-system_service_disable() { execute "sudo systemctl disable --now $*" "Disabling services: $*"; }
+system_service_enable() { execute "sudo systemctl enable -f "$@"" "Enabling services: $@"; }
+system_service_disable() { execute "sudo systemctl disable --now $@" "Disabling services: $@"; }
 
 ##################################################################################################
 
@@ -267,7 +266,7 @@ backupapp() {
   local filename count backupdir rmpre4vbackup
   [ ! -z "$1" ] && local myappdir="$1" || local myappdir="$APPDIR"
   [ ! -z "$2" ] && local myappname="$2" || local myappname="$APPNAME"
-  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups}/systemmgr"
+  local backupdir="${MY_BACKUP_DIR:-$HOME/.local/backups/dotfiles}"
   local filename="$myappname-$(date +%Y-%m-%d-%H-%M-%S).tar.gz"
   local count="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | wc -l 2>/dev/null)"
   local rmpre4vbackup="$(ls $backupdir/$myappname*.tar.gz 2>/dev/null | head -n 1)"
@@ -354,8 +353,8 @@ ask_for_confirmation() {
 ##################################################################################################
 
 __getip() {
-  NETDEV="$(ip route | grep default | sed -e 's/^.*dev.//' -e 's/.proto.*//')"
-  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E 'venet|inet' | grep -v '127.0.0.' | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1)"
+  NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
+  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s#addr:##g | head -n1)"
 }
 __getip
 
@@ -455,7 +454,7 @@ versioncheck() {
       read -n 1 -s choice
       echo ""
       if [[ $choice == "y" || $choice == "Y" ]]; then
-        __cd "$APPDIR" && git pull -q
+        cd $APPDIR && git pull -q
         printf_green "Updated to latest version = $NEWVERSION"
       else
         printf_cyan "\t\tYou decided not to update\n"
@@ -469,7 +468,7 @@ versioncheck() {
 
 scripts_check() {
   local REPO="${DOTFILESREPO:-https://github.com/dfmgr}"
-  if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
+  if ! cmd_exists "pkmgr" && ! -f ~/.noscripts; then
     printf_red "\t\tPlease install my scripts repo - requires root/sudo\n"
     printf_question "Would you like to do that now" [y/N]
     read -n 1 -s choice
@@ -518,14 +517,14 @@ git_clone() {
 ##################################################################################################
 
 git_update() {
-  __cd "$APPDIR"
+  cd "$APPDIR"
   local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
   devnull git reset --hard &&
     devnull git pull --recurse-submodules -fq &&
     devnull git submodule update --init --recursive -q &&
     devnull git reset --hard -q
   if [ "$?" -ne "0" ]; then
-    __cd "$HOME"
+    cd "$HOME"
     backupapp "$APPDIR" "$APPNAME" &&
       devnull rm_rf "$APPDIR" &&
       git_clone "$repo" "$APPDIR"
@@ -689,7 +688,7 @@ install_gem() {
 
 trim() {
   local IFS=' '
-  local trimmed="${*//[[:space:]]/}"
+  local trimmed="${@//[[:space:]]/}"
   echo "$trimmed"
 }
 
@@ -735,11 +734,24 @@ show_spinner() {
   local -r PID="$1"
   local i=0
   local frameText=""
+  if [ "$TRAVIS" != "true" ]; then
+    printf "\n\n\n"
+    tput cuu 3
+    tput sc
+  fi
   while kill -0 "$PID" &>/dev/null; do
-    frameText="                [${FRAMES:i++%NUMBER_OR_FRAMES:1}] $MSG"
-    printf "%s" "$frameText"
+    frameText="                [ ${FRAMES:i++%NUMBER_OR_FRAMES:1} ] $MSG"
+    if [ "$TRAVIS" != "true" ]; then
+      printf "%s\n" "$frameText"
+    else
+      printf "%s" "$frameText"
+    fi
     sleep 0.2
-    printf "\r"
+    if [ "$TRAVIS" != "true" ]; then
+      tput rc
+    else
+      printf "\r"
+    fi
   done
 }
 

@@ -6,7 +6,7 @@ USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-
+set -Ex
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 020920211625-git
 # @Author        : Jason Hempstead
@@ -395,17 +395,17 @@ backupapp() {
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
 }
 ##################################################################################################
-broken_symlinks() { devnull find "$@" -xtype l -exec rm {} \;; }
+broken_symlinks() { devnull find "$*" -xtype l -exec rm {} \;; }
+mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
 rm_rf() { if [ -e "$1" ]; then devnull rm -Rf "$@"; else return 0; fi; }
 cp_rf() { if [ -e "$1" ]; then devnull cp -Rfa "$@"; else return 0; fi; }
 ln_rm() { devnull find "$1" -xtype l -delete || return 0; }
 ln_sf() {
   [ -L "$2" ] && rm_rf "$2"
-  devnull ln -sf "$@" || return 0
+  devnull ln -sf "$*" || return 0
 }
-mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
 mkd() {
-  local dir="$@"
+  local dir="$*"
   for d in $dir; do
     if [ -f "$d" ]; then rm_rf "$d"; fi
     [ -d "$d" ] || mkdir -p "$d" &>/dev/null
@@ -465,7 +465,9 @@ gem_exists() {
 }
 perl_exists() {
   local package="$1"
-  if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}' || devnull perl -M$package -le 'print $INC{"$package.pm"}' || devnull perl -M$package -le 'print $INC{"$package"}'; then
+  if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}' ||
+    devnull perl -M$package -le 'print $INC{"$package.pm"}' ||
+    devnull perl -M$package -le 'print $INC{"$package"}'; then
     return 0
   else
     return 1
@@ -477,13 +479,13 @@ pthon_exists() {
 }
 ##################################################################################################
 retry_cmd() {
-  retries="${1:-}"
+  local retries="${1:-}"
+  local count=0
   shift
-  count=0
   until "$@"; do
-    exit=$?
-    wait=$((2 ** count))
-    count=$((count + 1))
+    local exit=$?
+    local wait=$((2 ** count))
+    local count=$((count + 1))
     if [ "$count" -lt "$retries" ]; then
       echo "Retry $count/$retries exited $exit, retrying in $wait seconds ..."
       sleep $wait
@@ -640,7 +642,7 @@ sudoexit() {
     sudoask || printf_green "Getting privileges successfull continuing" &&
       sudo -n true
   else
-    printf_red "${1:-Failed to get privileges}"
+    printf_red "Failed to get privileges"
     return 1
   fi
 }
@@ -652,7 +654,7 @@ requiresudo() {
       sudoexit && sudo "$@"
     fi
   else
-    printf_red "You dont have access to sudoPlease contact the syadmin for access"
+    printf_red "You dont have access to sudo Please contact the syadmin for access"
     exit 1
   fi
 }
@@ -877,6 +879,7 @@ install_required() {
 }
 ##################################################################################################
 install_packages() {
+  [[ -z "$1" ]] && return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -922,6 +925,7 @@ install_packages() {
 }
 ##################################################################################################
 install_python() {
+  [[ -z "$1" ]] && return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -944,6 +948,7 @@ install_python() {
 }
 ##################################################################################################
 install_perl() {
+  [[ -z "$1" ]] && return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -966,6 +971,7 @@ install_perl() {
 }
 ##################################################################################################
 install_pip() {
+  [[ -z "$1" ]] && return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -984,6 +990,7 @@ install_pip() {
 }
 ##################################################################################################
 install_cpan() {
+  [[ -z "$1" ]] && return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -1002,6 +1009,7 @@ install_cpan() {
 }
 ##################################################################################################
 install_gem() {
+  [[ -z "$1" ]] && return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -1994,17 +2002,21 @@ __main_installer_info() {
 run_install_init() {
   printf ""
   __main_installer_info
-  printf_yellow "Initializing the installer from"
-  if [ -f "$INSTDIR/install.sh" ]; then
-    printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
-  else
-    printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
-    printf_purple "$REPORAW/install.sh"
-    if urlcheck "$REPORAW/master/install.sh"; then
-      bash -c "$(__curl $REPORAW/master/install.sh)"
+  if [ ! -f "$TMPDIR/$APPNAME.tmp" ]; then
+    touch "$TMPDIR/$APPNAME.tmp"
+    printf_yellow "Initializing the installer from"
+    if [ -f "$INSTDIR/install.sh" ]; then
+      printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
+      bash -c "$INSTDIR/install.sh"
     else
-      printf_error "Failed to initialize the installer from:"
-      printf_exit "$REPORAW/master/install.sh\n"
+      printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
+      printf_purple "$REPORAW/install.sh"
+      if urlcheck "$REPORAW/master/install.sh"; then
+        bash -c "$(__curl $REPORAW/master/install.sh)"
+      else
+        printf_error "Failed to initialize the installer from:"
+        printf_exit "$REPORAW/master/install.sh\n"
+      fi
     fi
   fi
   if [ -d "$APPDIR" ]; then
@@ -2013,6 +2025,7 @@ run_install_init() {
     printf_green "Installing ${1:-$APPNAME} to ${APPDIR//$HOME/'~'}"
   fi
   local exitCode=$?
+  rm_rf "$TMPDIR/$APPNAME.tmp"
   [ "$exitCode" -eq 0 ] || exit 10
 }
 ##################################################################################################
