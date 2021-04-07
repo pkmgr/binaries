@@ -93,11 +93,10 @@ __git_dir() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_push() {
-  local force=""
+  [ "$1" = "--force" ] && shift 1 && local force=yes || local force=""
   local push=""
   local gitdir="${1:-$gitdir}"
   local repo="$(__git_remote_fetch $gitdir)"
-  [ "$1" = "--force" ] && shift 1 && local force=yes
   am_i_online --error || exit 1
   if __git_porcelain "$gitdir" && [ -z "$force" ]; then
     printf_red "There are no changes to push in ${basedir}"
