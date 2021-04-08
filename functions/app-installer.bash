@@ -821,7 +821,7 @@ dotfilesreqcmd() {
   local prefix="${SCRIPTS_PREFIX:-dfmgr}"
   local gitrepo="${REPO:-https://github.com/$prefix}/$config"
   urlverify "$gitrepo/raw/$GIT_REPO_BRANCH/install.sh" &&
-    bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
+    sh -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
     return 1
 }
 dotfilesreqadmincmd() {
@@ -829,7 +829,7 @@ dotfilesreqadmincmd() {
   local prefix="${SCRIPTS_PREFIX:-systemmgr}"
   local gitrepo="${REPO:-https://github.com/$prefix}/$config"
   urlverify "$gitrepo/raw/$GIT_REPO_BRANCH/install.sh" &&
-    sudo bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
+    sudo sh -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
     return 1
 }
 ##################################################################################################
@@ -1608,12 +1608,12 @@ __install_wallpapers() {
 devenvmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="devenv"
-  REPO="$DEVENVMGRREPO"
-  REPORAW="$DEVENVMGRREPO/$APPNAME/raw"
   APPDIR="${APPDIR:-$SHARE/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPO="${REPO:-$DEVENVMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$DEVENVMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
+  SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1647,13 +1647,13 @@ devenvmgr_install_version() {
 dfmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dfmgr"
-  REPO="$DFMGRREPO"
-  REPORAW="$DFMGRREPO/$APPNAME/raw"
   APPDIR="${APPDIR:-$CONF/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPO="${REPO:-$DFMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1688,14 +1688,14 @@ dockermgr_install() {
   user_installdirs
   #cmd_exists docker || printf_exit 1 1 "This requires docker, however, docker wasn't found"
   SCRIPTS_PREFIX="dockermgr"
-  REPO="$DOCKERMGRREPO"
-  REPORAW="$DOCKERMGRREPO/$APPNAME/raw"
-  APPDIR="${APPDIR:-$SHARE/docker/$APPNAME}"
+  APPDIR="${APPDAIR:-$SHARE/docker/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-  DATADIR="${SHARE/docker/data/$APPNAME:-/srv/docker/$APPNAME}"
+  DATADIR="${DATADIR:-/srv/docker/$APPNAME}"
+  REPO="${REPO:-$DOCKERMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$DOCKERMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1728,14 +1728,14 @@ dockermgr_install_version() {
 fontmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="fontmgr"
-  REPO="$FONTMGRREPO"
-  REPORAW="$FONTMGRREPO/$APPNAME/raw"
-  APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPO="${REPO:-$FONTMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$FONTMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1768,14 +1768,14 @@ fontmgr_install_version() {
 iconmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="iconmgr"
-  REPO="$ICONMGRREPO"
-  REPORAW="$ICONMGRREPO/$APPNAME/raw"
-  APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPO="${REPO:-$ICONMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$ICONMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1813,14 +1813,14 @@ generate_icon_index() {
 pkmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="pkmgr"
-  REPO="$PKMGRREPO"
-  REPORAW="$PKMGRREPO/$APPNAME/raw"
-  APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPO="${REPO:-$PKMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$PKMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/$GIT_REPO_BRANCH"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1853,15 +1853,15 @@ systemmgr_install() {
   requiresudo "true"
   system_installdirs
   SCRIPTS_PREFIX="systemmgr"
-  REPO="$SYSTEMMGRREPO"
-  REPORAW="$SYSTEMMGRREPO/$APPNAME/raw"
-  CONF="${SYSCONF:-/usr/local/etc}"
-  SHARE="${SYSSHARE:-/usr/local/share}"
   APPDIR="${APPDIR:-/usr/local/etc/$APPNAME}"
   INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  CONF="/usr/local/etc"
+  SHARE="/usr/local/share"
+  REPO="${REPO:-$SYSTEMMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$SYSTEMMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1897,14 +1897,14 @@ systemmgr_install_version() {
 thememgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="thememgr"
-  REPO="$THEMEMGRREPO"
-  REPORAW="$THEMEMGRREPO/$APPNAME/raw"
-  APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  THEMEDIR="${THEMEDIR:-$SHARE/themes}/$APPNAME"
+  APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPO="${REPO:-$THEMEMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$THEMEMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  THEMEDIR="${THEMEDIR:-$SHARE/themes}"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1941,13 +1941,13 @@ thememgr_install_version() {
 wallpapermgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="wallpapermgr"
-  REPO="$WALLPAPERMGRREPO"
-  REPORAW="$WALLPAPERMGRREPO/$APPNAME/raw"
-  APPDIR="$SHARE/wallpapers/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPO="${REPO:-$WALLPAPERMGRREPO/$APPNAME}"
+  REPORAW="${REPORAW:-$WALLPAPERMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
+  APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1998,24 +1998,22 @@ run_install_init() {
   if [ ! -f "$TMPFILE" ]; then
     printf ""
     touch "$TMPFILE"
-    printf_yellow "Initializing the installer from"
     if [ -f "$INSTDIR/install.sh" ]; then
-      printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
+      printf_yellow "Initializing the installer from"
+      printf_purple "${INSTDIR/$HOME/\~}/install.sh"
       #bash -c "$INSTDIR/install.sh"
     else
-      printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
+      printf_yellow "Downloading to ${INSTDIR/$HOME/\~}/$APPNAME"
       printf_purple "$REPORAW/master/install.sh"
       if ! urlcheck "$REPORAW/master/install.sh"; then
-        #bash -c "$(__curl $REPORAW/master/install.sh)"
-        #else
         printf_error "Failed to initialize the installer from:"
         printf_exit "$REPORAW/master/install.sh\n"
       fi
     fi
-    if [ -d "$APPDIR" ]; then
-      printf_green "Updating ${1:-$APPNAME} in ${APPDIR//$HOME/'~'}"
+    if [ -d "$INSTDIR" ]; then
+      printf_green "Updating ${1:-$APPNAME} in ${INSTDIR/$HOME/\~}"
     else
-      printf_green "Installing ${1:-$APPNAME} to ${APPDIR//$HOME/'~'}"
+      printf_green "Installing ${1:-$APPNAME} to ${INSTDIR/$HOME/\~}"
     fi
     local exitCode=$?
     [ "$exitCode" -eq 0 ] || exit 10
