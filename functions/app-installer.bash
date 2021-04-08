@@ -206,13 +206,14 @@ printf_custom_question() {
 }
 ##################################################################################################
 printf_question_timeout() {
-  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="4"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="1"
   local msg="$1" && shift 1
   test -n "$1" && test -z "${1//[0-9]/}" && local lines="$1" && shift 1 || local lines="120"
   reply="${1:-REPLY}" && shift 1
-  readopts=${1:-} && shift 1
-  printf_color "\t\t$msg " "$color"
-  read -t 20 -er -n 1 answer
+  readopts="${1:-}" && shift 1
+  printf_color "\t\t$msg " "${PRINTF_COLOR:-$color}"
+  read -t 30 -r -n $lines ${readopts} ${reply}
+  printf_newline
 }
 ##################################################################################################
 printf_head() {
@@ -762,7 +763,7 @@ scripts_check() {
       printf_question_timeout "Would you like to do that now" [y/N]
       read -n 1 -s choice && echo ""
       if [[ $choice == "y" || $choice == "Y" ]]; then
-        urlverify $REPO/scripts/raw/master/install.sh &&
+        urlverify $REPO/installer/raw/master/install.sh &&
           sudo bash -c "$(__curl $REPO/installer/raw/master/install.sh)" && echo
       else
         touch ~/.noscripts
@@ -814,7 +815,6 @@ git_update() {
 dotfilesreqcmd() {
   local gitrepo="$REPO"
   local conf="${1:-$conf}"
-  printf_exit $gitrepo/$conf/raw/master/install.sh
   if __am_i_online; then
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
       sudo_user bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
@@ -2003,8 +2003,9 @@ __main_installer_info() {
 }
 ##################################################################################################
 run_install_init() {
-  printf ""
+  local exitCode=0
   __main_installer_info
+  printf ""
   if [ ! -f "$TMPDIR/$APPNAME.tmp" ]; then
     touch "$TMPDIR/$APPNAME.tmp"
     printf_yellow "Initializing the installer from"

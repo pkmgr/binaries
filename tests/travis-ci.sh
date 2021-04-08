@@ -58,8 +58,8 @@ printf_green "Testing scripts install"
 sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.sh)"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
-printf_green "Printing debug"
-./install.sh --debug
+printf_green "Printing full info"
+./install.sh --full
 
 #echo -e "\n\t\t-----------------------------------------------------\n"
 #printf_green "Running system upgrade - pkmgr silent-upgrade"
