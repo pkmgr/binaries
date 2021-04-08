@@ -405,7 +405,7 @@ ln_rm() {
   fi
 }
 ln_sf() {
-  [ -L "$2" ] && __rm_rf "$2" || true
+  [ -L "$2" ] && rm_rf "$2" || true
   devnull ln -sf "$1" "$2"
 }
 mkd() {
