@@ -56,7 +56,6 @@ fi
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing scripts install"
 sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.sh)"
-ls /usr/local/share/CasjaysDev/scripts | printf_readline 5
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Printing full info"

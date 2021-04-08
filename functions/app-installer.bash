@@ -399,7 +399,11 @@ broken_symlinks() { devnull find "$*" -xtype l -exec rm {} \;; }
 mv_f() { if [ -e "$1" ]; then devnull mv -f "$@"; else return 0; fi; }
 rm_rf() { if [ -e "$1" ]; then devnull rm -Rf "$@"; else return 0; fi; }
 cp_rf() { if [ -e "$1" ]; then devnull cp -Rfa "$@"; else return 0; fi; }
-ln_rm() { devnull find "$1" -xtype l -delete || return 0; }
+__ln_rm() {
+  if [ -e "$1" ]; then
+    __devnull find -L $1 -mindepth 1 -maxdepth 1 -type l -exec rm -f {} \;
+  fi
+}
 ln_sf() {
   [ -L "$2" ] && rm_rf "$2"
   devnull ln -sf "$*" || return 0
@@ -429,7 +433,7 @@ urlverify() { urlcheck "$1" || urlinvalid "$1"; }
 symlink() { ln_sf "$1" "$2"; }
 rm_link() { unlink "$1"; }
 ##################################################################################################
-__am_i_online() {
+am_i_online() {
   site="1.1.1.1"
   test_ping() {
     timeout 1 ping -c1 $site &>/dev/null
@@ -2046,11 +2050,17 @@ run_postinst_global() {
     # Only run on the scripts install
     ln_rm "$SYSBIN/"
     ln_rm "$COMPDIR/"
-    appFiles="$(ls "$INSTDIR/bin")"
-    for app in $appFiles; do
-      chmod -Rf 755 "$INSTDIR/bin/$app"
-      ln_sf "$INSTDIR/bin/$app" "$SYSBIN/$app"
-    done
+    if [ -d "$INSTDIR/bin" ]; then
+      local bin="$(ls $INSTDIR/bin/ 2>/dev/null | wc -l)"
+      if [ "$bin" != "0" ]; then
+        bFiles="$(ls $INSTDIR/bin)"
+        for b in $bFiles; do
+          chmod -Rf 755 "$INSTDIR/bin/$app"
+          ln_sf "$INSTDIR/bin/$b" "$SYSBIN/$b"
+        done
+      fi
+      #ln_rm "$BIN/"
+    fi
     cmd_exists updatedb && updatedb || return 0
   else
     # Run on everything else
