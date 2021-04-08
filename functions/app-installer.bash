@@ -816,53 +816,46 @@ git_update() {
 ##################################################################################################
 
 dotfilesreqcmd() {
-  local REPO="https://github.com/$SCRIPTS_PREFIX"
   local gitrepo="$REPO"
-  local conf="${1:-$conf}"
-  if __am_i_online; then
-    urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      sudo_user bash -c "$(curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail $gitrepo/$conf/raw/master/install.sh)" || return 1
-  fi
+  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
+    bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" ||
+    return 1
 }
-dotfilesreqadmincmd() {
-  local REPO="https://github.com/$SCRIPTS_PREFIX"
-  local gitrepo="$REPO"
-  local conf="${1:-$conf}"
-  if __am_i_online; then
-    urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      sudo_root bash -c "$(curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail $gitrepo/$conf/raw/master/install.sh)" || return 1
-  fi
-}
-##################################################################################################
+
 dotfilesreq() {
-  if __am_i_online; then
-    if cmd_exists pkmgr; then
-      local conf=""
-      local confdir="$USRUPDATEDIR"
-      local LISTARRAY="$*"
-      for conf in ${LISTARRAY[*]}; do
-        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TMPDIR/$conf.inst.tmp" ]; then
-          execute "dotfilesreqcmd $conf" "Installing required dotfile $conf"
-        fi
-      done
-      rm_rf $TMPDIR/*.inst.tmp
+  local confdir="$USRUPDATEDIR"
+  declare -a LISTARRAY="$*"
+  for conf in ${LISTARRAY[*]}; do
+    if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+      execute \
+        "dotfilesreqcmd" \
+        "Installing required dotfile $conf"
     fi
-  fi
+  done
+  rm_rf $TEMP/*.inst.tmp
 }
+
+##################################################################################################
+dotfilesreqadmincmd() {
+  __am_i_online || return 1
+  local gitrepo="$REPO"
+  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
+    sudo bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" ||
+    return 1
+}
+
 dotfilesreqadmin() {
-  if __am_i_online; then
-    if cmd_exists pkmgr; then
-      local conf=""
-      local confdir="$SYSUPDATEDIR"
-      local LISTARRAY="$*"
-      for conf in ${LISTARRAY[*]}; do
-        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TMPDIR/$conf.inst.tmp" ]; then
-          execute "dotfilesreqadmincmd $conf" "Installing required dotfile $conf"
-        fi
-      done
-      rm_rf $TMPDIR/*.inst.tmp
+  __am_i_online || return 1
+  local confdir="$SYSUPDATEDIR"
+  declare -a LISTARRAY="$*"
+  for conf in ${LISTARRAY[*]}; do
+    if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+      execute \
+        "dotfilesreqadmincmd" \
+        "Installing required dotfile $conf"
     fi
-  fi
+  done
+  rm_rf $TEMP/*.inst.tmp
 }
 ##################################################################################################
 install_required() {
