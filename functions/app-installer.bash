@@ -817,6 +817,7 @@ git_update() {
 }
 ##################################################################################################
 dotfilesreqcmd() {
+  set -Ex
   local config="${1:-$conf}"
   local prefix="${SCRIPTS_PREFIX:-dfmgr}"
   local gitrepo="${REPO:-https://github.com/$prefix}/$config"
