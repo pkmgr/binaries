@@ -310,7 +310,7 @@ system_service_exists() {
 #system_service_enable "servicename"
 system_service_enable() {
   for service in "$@"; do
-    if system_service_exists "$service"; then __devnull "sudo systemctl enable --now -f $service"; fi
+    if system_service_exists "$service"; then devnull "sudo systemctl enable --now -f $service"; fi
     setexitstatus $?
   done
   set --
@@ -318,7 +318,7 @@ system_service_enable() {
 #system_service_disable "servicename"
 system_service_disable() {
   for service in "$@"; do
-    if system_service_exists "$service"; then __devnull "sudo systemctl disable --now -f $service"; fi
+    if system_service_exists "$service"; then devnull "sudo systemctl disable --now -f $service"; fi
     setexitstatus $?
   done
   set --
@@ -326,7 +326,7 @@ system_service_disable() {
 #system_service_start "servicename"
 system_service_start() {
   for service in "$@"; do
-    if system_service_exists "$service"; then __devnull "sudo systemctl start $service"; fi
+    if system_service_exists "$service"; then devnull "sudo systemctl start $service"; fi
     setexitstatus $?
   done
   set --
@@ -334,7 +334,7 @@ system_service_start() {
 #system_service_stop "servicename"
 system_service_stop() {
   for service in "$@"; do
-    if system_service_exists "$service"; then __devnull "sudo systemctl stop $service"; fi
+    if system_service_exists "$service"; then devnull "sudo systemctl stop $service"; fi
     setexitstatus $?
   done
   set --
@@ -342,7 +342,7 @@ system_service_stop() {
 #system_service_restart "servicename"
 system_service_restart() {
   for service in "$@"; do
-    if system_service_exists "$service"; then __devnull "sudo systemctl restart $service"; fi
+    if system_service_exists "$service"; then devnull "sudo systemctl restart $service"; fi
     setexitstatus $?
   done
   set --
@@ -405,8 +405,8 @@ ln_rm() {
   fi
 }
 ln_sf() {
-  [ -L "$2" ] && rm_rf "$2"
-  devnull ln -sf "$*" || return 0
+  [ -L "$2" ] && __rm_rf "$2" || true
+  devnull ln -sf "$1" "$2"
 }
 mkd() {
   local dir="$*"
@@ -2059,7 +2059,7 @@ run_postinst_global() {
           ln_sf "$INSTDIR/bin/$b" "$SYSBIN/$b"
         done
       fi
-      #ln_rm "$BIN/"
+      ln_rm "$BIN/"
     fi
     cmd_exists updatedb && updatedb || return 0
   else
