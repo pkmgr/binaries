@@ -1943,11 +1943,11 @@ user_installdirs() {
     SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
   APPNAME="$(basename $0)"
-  APPDIR="$(dirname $0)"
-  INSTDIR="$(dirname $0)"
-  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
-  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  #APPDIR="$(dirname $0)"
+  #INSTDIR="$(dirname $0)"
+  #SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
+  #REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  #INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   installtype="user_installdirs"
 }
 
@@ -2002,11 +2002,11 @@ system_installdirs() {
     SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
   APPNAME="$(basename $0)"
-  APPDIR="$(dirname $0)"
-  INSTDIR="$(dirname $0)"
-  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
-  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
-  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  #APPDIR="$(dirname $0)"
+  #INSTDIR="$(dirname $0)"
+  #SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
+  #REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  #INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   installtype="system_installdirs"
 }
 
@@ -2020,7 +2020,7 @@ devenvmgr_install() {
   APPDIR="${APPDIR:-$SHARE/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   REPO="${REPO:-$DEVENVMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$DEVENVMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"

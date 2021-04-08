@@ -1233,9 +1233,9 @@ user_installdirs() {
     SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
   fi
   APPDIR="${APPDIR:-}"
-  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
-  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
+  INSTDIR="${INSTDIR:-}"
+  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-}"
+  REPORAW="${REPORAW:-}"
   installtype="user_installdirs"
   git_repo_urls
 }
@@ -1289,9 +1289,9 @@ system_installdirs() {
     SYSUPDATEDIR="$HOME/.local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
   fi
   APPDIR="${APPDIR:-}"
-  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
-  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw}"
+  INSTDIR="${INSTDIR:-}"
+  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-}"
+  REPORAW="${REPORAW:-}"
   installtype="system_installdirs"
   git_repo_urls
 }
