@@ -587,7 +587,7 @@ __system_service_running() {
 #system_service_exists "servicename"
 __system_service_exists() {
   for service in "$@"; do
-    if sudo systemctl list-units --full -all | grep -Fq "$service.service" || sudo systemctl list-units --full -all | grep -Fq "$service.socket"; then return 0; else return 1; fi
+    if sudo systemctl list-unit-files | grep -Fq "$service.service" || sudo systemctl list-unit-files | grep -Fq "$service.socket"; then return 0; else return 1; fi
     __setexitstatus $?
   done
   set --
