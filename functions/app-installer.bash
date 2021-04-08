@@ -823,14 +823,12 @@ git_update() {
 dotfilesreqcmd() {
   local gitrepo="https://github.com/${SCRIPTS_PREFIX:-dfmgr}/${1:-$conf}"
   urlverify "$gitrepo/raw/$GIT_REPO_BRANCH/install.sh" &&
-    bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
-    return 1
+    bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" &>/dev/null || return 1
 }
 dotfilesreqadmincmd() {
   local gitrepo="https://github.com/${SCRIPTS_PREFIX:-systemmgr}/${1:-$conf}"
   urlverify "$gitrepo/raw/$GIT_REPO_BRANCH/install.sh" &&
-    sudo bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
-    return 1
+    sudo bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" &>/dev/null || return 1
 }
 ##################################################################################################
 dotfilesreq() {
@@ -838,11 +836,11 @@ dotfilesreq() {
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
     if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+      touch "$TEMP/$conf.inst.tmp"
       #execute "dotfilesreqcmd $conf" "Installing required dotfile $conf"
       dotfilesreqcmd $conf
     fi
   done
-  rm_rf "$TEMP/$conf.inst.tmp"
 }
 
 dotfilesreqadmin() {
@@ -851,11 +849,11 @@ dotfilesreqadmin() {
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
     if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+      touch "$TEMP/$conf.inst.tmp"
       #execute "dotfilesreqcmd $conf" "Installing required dotfile $conf"
       dotfilesreqcmd $conf
     fi
   done
-  rm_rf "$TEMP/$conf.inst.tmp"
 }
 ##################################################################################################
 install_required() {
@@ -1990,11 +1988,14 @@ __main_installer_info() {
 }
 ##################################################################################################
 run_install_init() {
+  trap '[ -f "$TMPINST" ] && rm_rf $"$TMPINST"' EXIT
   __main_installer_info
   local TMPDIR="${TMPDIR:-/tmp}"
   local APPNAME="${APPNAME:-$PROG}"
   local TMPFILE="$TMPDIR/$APPNAME.tmp"
+  local TMPINST="$TMPDIR/$APPNAME.inst.tmp"
   local exitCode=0
+  touch "$TMPINST"
   if [ ! -f "$TMPFILE" ]; then
     printf ""
     touch "$TMPFILE"
@@ -2136,6 +2137,7 @@ run_exit() {
   local APPNAME="${APPNAME:-$PROG}"
   local TMPDIR="${TMPDIR:-/tmp}"
   local TMPFILE="$TMPDIR/$APPNAME.tmp"
+  local TMPINST="$TMPDIR/$APPNAME.inst.tmp"
   printf_yellow "$ICON_GOOD Running exit commands"
   [ -e "$APPDIR/$APPNAME" ] || rm_rf "$APPDIR/$APPNAME"
   [ -e "$INSTDIR/$APPNAME" ] || rm_rf "$INSTDIR/$APPNAME"
@@ -2146,7 +2148,7 @@ run_exit() {
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed" 2>/dev/null
   fi
   if [ -f "$TMPFILE" ]; then rm_rf "$TMPFILE"; fi
-  if [ -f "$TMPDIR/$APPNAME.inst.tmp" ]; then rm_rf "$TMPDIR/$APPNAME.inst.tmp"; fi
+  if [ -f "$TMPINST" ]; then rm_rf "$TMPINST"; fi
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
   local exitCode+=$?
   getexitcode "$APPNAME has been installed" "$APPNAME installer has encountered an error: Check the URL"
