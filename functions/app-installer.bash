@@ -857,30 +857,20 @@ dotfilesreqadmin() {
 }
 ##################################################################################################
 install_required() {
+  [[ $# -eq 0 ]] && return 0
   if __am_i_online; then
-    [[ $# -eq 0 ]] && return 0
-    # local MISSING=""
-    # local cmd=""
-    # for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
-    # if [ ! -z "$MISSING" ]; then
-    #   if cmd_exists "pkmgr"; then
-    #     printf_warning "Installing from package list"
-    #     printf_warning "Still missing: $MISSING"
-    #     if cmd_exists yay; then
-    #       pkmgr --enable-aur dotfiles "$APPNAME"
-    #     else
-    #       pkmgr dotfiles "$APPNAME"
-    #     fi
-    #   fi
-    # fi
-    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
+    local MISSING=""
+    local cmd=""
+    for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
     if [ ! -z "$MISSING" ]; then
-      printf_warning "Still missing:"
-      printf_warning "$MISSING"
-      if cmd_exists yay; then
-        sudo_pkmgr --enable-aur dotfiles "$APPNAME"
-      else
-        sudo_pkmgr dotfiles "$APPNAME"
+      if cmd_exists "pkmgr"; then
+        printf_yellow "Installing from package list"
+        printf_yellow "Still missing: $MISSING"
+        if cmd_exists yay; then
+          pkmgr --enable-aur dotfiles "$APPNAME"
+        else
+          pkmgr dotfiles "$APPNAME"
+        fi
       fi
       unset MISSING
     fi
@@ -1567,10 +1557,10 @@ __install_icons() {
         done
       done
     fi
+    devnull find "$ICONDIR" -type d -exec chmod 755 {} \;
+    devnull find "$ICONDIR" -type f -exec chmod 644 {} \;
+    cmd_exists gtk-update-icon-cache && devnull gtk-update-icon-cache -q -t -f "$ICONDIR"
   fi
-  devnull find "$ICONDIR" -type d -exec chmod 755 {} \;
-  devnull find "$ICONDIR" -type f -exec chmod 644 {} \;
-  cmd_exists gtk-update-icon-cache && devnull gtk-update-icon-cache -q -t -f "$ICONDIR"
   return 0
 }
 __install_theme() {
@@ -1589,12 +1579,12 @@ __install_theme() {
       done
     fi
     ln_rm "$THEMEDIR"
+    find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
+      if [ -f "$THEME/index.theme" ]; then
+        cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
+      fi
+    done
   fi
-  find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d -not -path "*/.git/*" | while read -r THEME; do
-    if [ -f "$THEME/index.theme" ]; then
-      cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
-    fi
-  done
   return 0
 }
 __install_wallpapers() {
@@ -1998,12 +1988,14 @@ __main_installer_info() {
 }
 ##################################################################################################
 run_install_init() {
-  if [ ! -f "$TMPDIR/$APPNAME.inst.tmp" ]; then
-    touch "$TMPDIR/$APPNAME.inst.tmp"
-    local exitCode=0
-    __main_installer_info
+  __main_installer_info
+  local TMPDIR="${TMPDIR:-/tmp}"
+  local APPNAME="${APPNAME:-$PROG}"
+  local TMPFILE="$TMPDIR/$APPNAME.tmp"
+  local exitCode=0
+  if [ ! -f "$TMPFILE" ]; then
     printf ""
-    touch "$TMPDIR/$APPNAME.tmp"
+    touch "$TMPFILE"
     printf_yellow "Initializing the installer from"
     if [ -f "$INSTDIR/install.sh" ]; then
       printf_purple "${INSTDIR//$HOME/'~'}/install.sh"
@@ -2122,8 +2114,8 @@ run_postinst_global() {
 }
 ##################################################################################################
 install_version() {
-  printf_blue "$ICON_GOOD installing version info"
   $installtype
+  printf_blue "$ICON_GOOD installing version info"
   mkd "$CASJAYSDEVSAPPDIR/dotfiles" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX"
   if [ "$APPNAME" = "installer" ] || [ "$APPNAME" = "scripts" ]; then
     ln_sf "$INSTDIR/install.sh" "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/scripts"
@@ -2140,6 +2132,9 @@ install_version() {
 ##################################################################################################
 run_exit() {
   $installtype
+  local APPNAME="${APPNAME:-$PROG}"
+  local TMPDIR="${TMPDIR:-/tmp}"
+  local TMPFILE="$TMPDIR/$APPNAME.tmp"
   printf_yellow "$ICON_GOOD Running exit commands"
   [ -e "$APPDIR/$APPNAME" ] || rm_rf "$APPDIR/$APPNAME"
   [ -e "$INSTDIR/$APPNAME" ] || rm_rf "$INSTDIR/$APPNAME"
@@ -2149,12 +2144,13 @@ run_exit() {
   if [ -d "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed" 2>/dev/null
   fi
+  if [ -f "$TMPFILE" ]; then rm_rf "$TMPFILE"; fi
   if [ -f "$TMPDIR/$APPNAME.inst.tmp" ]; then rm_rf "$TMPDIR/$APPNAME.inst.tmp"; fi
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
   local exitCode+=$?
   getexitcode "$APPNAME has been installed" "$APPNAME installer has encountered an error: Check the URL"
   printf_newline
-  rm_rf "$TMPDIR/$APPNAME.inst.tmp"
+  unset APPNAME APPDIR INSTDIR REPO REPORAW APPVERSION APP PLUGDIR TMPFILE
   exit "${EXIT:-$?}"
 }
 ##################################################################################################
