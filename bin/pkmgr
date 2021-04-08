@@ -74,17 +74,17 @@ run_updatechecheck() { __am_i_online --error && pkmgrcheckupdates; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __rm_rf() { sudo rm -Rf "$@"; }
 __cp_rf() { sudo cp -Rf "$@"; }
-__curl() { __am_i_online --error && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" 2>/dev/null || return 1; }
-__curl_sudo() { __am_i_online --error && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" 2>/dev/null || return 1; }
+__curl() { __am_i_online --error && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$*" 2>/dev/null || return 1; }
+__curl_sudo() { __am_i_online --error && curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$*" 2>/dev/null || return 1; }
 __not_installed() { echo -ne "${RED}Not Installed${NC}"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 pipecmd() {
-  if [ -n "$DISPLAY" ]; then
-    [ -f "$(command -v zenity)" ] && [ -z "$SSH_TTY" ] &&
-      zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
-  else
-    printf_readline "5"
-  fi
+  # if [ -n "$DISPLAY" ]; then
+  #   [ -f "$(command -v zenity)" ] && [ -z "$SSH_TTY" ] &&
+  #     zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install" --height=200 --width=400 || printf_readline "5"
+  # else
+  printf_readline "5"
+  # fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cpan_run() {
@@ -152,7 +152,7 @@ curl_run() {
     __urlverify "$url"
     __curl "$url" -o "$PKMGR_TEMP_FILE"
   else
-    local url="$REPO/$1/raw/master/lists/$2.list"
+    local url="$REPO/$1/raw/$GIT_REPO_BRANCH/lists/$2.list"
     shift "$#"
     __urlverify "$url"
     __curl "$url" -o "$PKMGR_TEMP_FILE"
@@ -239,7 +239,7 @@ __schedule() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 dotfiles_run() {
-  [ -z $1 ] && printf_red "Usage: pkmgr dotfiles name" && exit
+  [ -n "$1" ] || printf_exit "Usage: pkmgr dotfiles name"
   local url="$dotfilesrepo/$1.list"
   __urlverify "$url" && __curl "$url" >"$PKMGR_TEMP_FILE"
 }
@@ -670,7 +670,7 @@ curl)
   for pkg in ${LISTARRAY[*]}; do
     __execute "$pkgmgrbininssil $pkg" "Installing $pkg"
   done
-  [ -z $VDEBUG ] && __rm_rf "$PKMGR_TEMP_FILE"
+  [ -n "$VDEBUG" ] || __rm_rf "$PKMGR_TEMP_FILE"
   ;;
 
 dotfiles)
@@ -683,7 +683,7 @@ dotfiles)
   for pkg in ${LISTARRAY[*]}; do
     __execute "$pkgmgrbininssil $pkg" "Installing $pkg"
   done
-  [ -z $VDEBUG ] && __rm_rf "$PKMGR_TEMP_FILE"
+  [ -n "$VDEBUG" ] || __rm_rf "$PKMGR_TEMP_FILE"
   ;;
 
 script)

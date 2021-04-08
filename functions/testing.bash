@@ -1482,57 +1482,56 @@ __newpasswd() {
 }
 ###################### spinner and execute function ######################
 # show a spinner while executing code or zenity
-if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
-  __execute() {
-    local CMD="$1"
-    local MSG="$2"
-    $CMD | zenity --width=400 --progress --no-cancel --pulsate --auto-close --title="${APPNAME:-Executing}" \
-      --text="${MSG:-Executing commands}" || printf_readline "5"
+# if [ -f "$(command -v zenity 2>/dev/null)" ] && [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
+#   __execute() {
+#     local CMD="$1"
+#     local MSG="$2"
+#     $CMD | zenity --width=400 --progress --no-cancel --pulsate --auto-close --title="${APPNAME:-Executing}" --text="${MSG:-Executing commands}" || printf_readline "5"
+#   }
+# else
+__execute() {
+  __set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
+  __kill_all_subprocesses() {
+    local i=""
+    for i in $(jobs -p); do
+      kill "$i"
+      wait "$i" &>/dev/null
+    done
   }
-else
-  __execute() {
-    __set_trap() { trap -p "$1" | grep "$2" &>/dev/null || trap '$2' "$1"; }
-    __kill_all_subprocesses() {
-      local i=""
-      for i in $(jobs -p); do
-        kill "$i"
-        wait "$i" &>/dev/null
-      done
-    }
-    __show_spinner() {
-      local -r FRAMES='/-\|'
-      local -r NUMBER_OR_FRAMES=${#FRAMES}
-      local -r CMDS="$2"
-      local -r MSG="$3"
-      local -r PID="$1"
-      local i=0
-      local frameText=""
-      while kill -0 "$PID" &>/dev/null; do
-        frameText="                [${FRAMES:i++%NUMBER_OR_FRAMES:1}] $MSG"
-        printf "%s" "$frameText"
-        sleep 0.2
-        printf "\r"
-      done
-    }
-    local -r CMDS="$1"
-    local -r MSG="${2:-$1} "
-    local -r TMP_FILE="$(mktemp /tmp/XXXXX)"
-    local exitCode=0
-    local cmdsPID=""
-    __set_trap "EXIT" "__kill_all_subprocesses"
-    eval "$CMDS" &>/dev/null 2>"$TMP_FILE" &
-    cmdsPID=$!
-    __show_spinner "$cmdsPID" "$CMDS" "$MSG"
-    wait "$cmdsPID" &>/dev/null
-    exitCode=$?
-    printf_execute_result $exitCode "$MSG"
-    if [ $exitCode -ne 0 ]; then
-      printf_execute_error_stream <"$TMP_FILE"
-    fi
-    rm -rf "$TMP_FILE"
-    return $exitCode
+  __show_spinner() {
+    local -r FRAMES='/-\|'
+    local -r NUMBER_OR_FRAMES=${#FRAMES}
+    local -r CMDS="$2"
+    local -r MSG="$3"
+    local -r PID="$1"
+    local i=0
+    local frameText=""
+    while kill -0 "$PID" &>/dev/null; do
+      frameText="                [${FRAMES:i++%NUMBER_OR_FRAMES:1}] $MSG"
+      printf "%s" "$frameText"
+      sleep 0.2
+      printf "\r"
+    done
   }
-fi
+  local -r CMDS="$1"
+  local -r MSG="${2:-$1} "
+  local -r TMP_FILE="$(mktemp /tmp/XXXXX)"
+  local exitCode=0
+  local cmdsPID=""
+  __set_trap "EXIT" "__kill_all_subprocesses"
+  eval "$CMDS" &>/dev/null 2>"$TMP_FILE" &
+  cmdsPID=$!
+  __show_spinner "$cmdsPID" "$CMDS" "$MSG"
+  wait "$cmdsPID" &>/dev/null
+  exitCode=$?
+  printf_execute_result $exitCode "$MSG"
+  if [ $exitCode -ne 0 ]; then
+    printf_execute_error_stream <"$TMP_FILE"
+  fi
+  rm -rf "$TMP_FILE"
+  return $exitCode
+}
+# fi
 #runpost "program"
 __run_post() {
   local e="$1"
