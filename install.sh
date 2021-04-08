@@ -77,9 +77,12 @@ sudoreq # sudo required
 systemmgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end with a space
-if_os mac && APP="jq sudo curl wget "
-if_os linux && APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python " &&
-  APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli mdless cowsay fortune"
+if if_os mac; then
+  APP="jq sudo curl wget cowsay fortune "
+elif if_os linux; then
+  APP="ruby expect byobu killall setcap nethogs iftop iotop iperf rsync mlocate pass python "
+  APP+="bash ifconfig fc-cache jq tf sudo xclip curl wget dialog qalc links html2text dict speedtest-cli mdless cowsay fortune "
+fi
 PERL="CPAN "
 PYTH="pip "
 PIPS="speedtest-cli "
@@ -159,10 +162,10 @@ run_postinst() {
   [ -f /etc/casjaysdev/updates/versions/date.configs.txt ] || date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.configs.txt
   cp_rf "$INSTDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
   date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.scripts.txt >/dev/null 2>&1
-  cmd_exists update-motd && update-ip && update-motd
   echo 'for f in '$CASJAYSDEVDIR/completions/*'; do source "$f" >/dev/null 2>&1; done' >"$COMPDIR/_my_scripts_completions"
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/installer"
+  cmd_exists update-motd && update-ip && update-motd || true
 }
 #
 execute "run_postinst" "Running post install scripts"

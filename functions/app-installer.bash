@@ -824,7 +824,7 @@ dotfilesreqcmd() {
 }
 dotfilesreqadmincmd() {
   local config="${1:-$conf}"
-  local prefix="${SCRIPTS_PREFIX:-dfmgr}"
+  local prefix="${SCRIPTS_PREFIX:-systemmgr}"
   local gitrepo="${REPO:-https://github.com/$prefix}/$config"
   urlverify "$gitrepo/raw/master/install.sh" &&
     sudo bash -c "$(curl -LSs $gitrepo/raw/master/install.sh)" ||
@@ -873,6 +873,27 @@ install_required() {
     #     fi
     #   fi
     # fi
+    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
+    if [ ! -z "$MISSING" ]; then
+      printf_warning "Still missing:"
+      printf_warning "$MISSING"
+      if cmd_exists yay; then
+        sudo_pkmgr --enable-aur dotfiles "$APPNAME"
+      else
+        sudo_pkmgr dotfiles "$APPNAME"
+      fi
+      unset MISSING
+    fi
+    for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
+    if [ ! -z "$MISSING" ]; then
+      printf_warning "Can not install the required packages for $APPNAME"
+      #if [ -f "$APPDIR/install.sh" ]; then
+      #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
+      #fi
+      #set -eE
+      return 1
+    fi
+    unset MISSING
   fi
   # unset MISSING
 }
@@ -896,31 +917,8 @@ install_packages() {
         done
       fi
       unset MISSING
-
-      for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
-      if [ ! -z "$MISSING" ]; then
-        printf_warning "Still missing:"
-        printf_warning "$MISSING"
-        if cmd_exists yay; then
-          sudo_pkmgr --enable-aur dotfiles "$APPNAME"
-        else
-          sudo_pkmgr dotfiles "$APPNAME"
-        fi
-      fi
-      unset MISSING
-
-      for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
-      if [ ! -z "$MISSING" ]; then
-        printf_warning "Can not install the required packages for $APPNAME"
-        #if [ -f "$APPDIR/install.sh" ]; then
-        #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
-        #fi
-        #set -eE
-        return 1
-      fi
     fi
   fi
-  unset MISSING
 }
 ##################################################################################################
 install_python() {
