@@ -947,11 +947,7 @@ install_perl() {
         printf_warning "Attempting to install missing perl packages"
         printf_warning "$MISSING"
         for miss in $MISSING; do
-          if cmd_exists yay; then
-            execute "sudo_pkmgr --enable-aur silent $miss" "Installing $miss"
-          else
-            execute "sudo_pkmgr silent $miss" "Installing $miss"
-          fi
+          execute "sudo_pkmgr perl install $miss" "Installing $miss"
         done
       fi
     fi
@@ -970,7 +966,7 @@ install_pip() {
         printf_warning "Attempting to install missing pip packages"
         printf_warning "$MISSING"
         for miss in $MISSING; do
-          execute "sudo_pkmgr pip $miss" "Installing $miss"
+          execute "sudo_pkmgr pip install $miss" "Installing $miss"
         done
       fi
     fi
@@ -989,7 +985,7 @@ install_cpan() {
         printf_warning "Attempting to install missing cpan packages"
         printf_warning "$MISSING"
         for miss in $MISSING; do
-          execute "sudo_pkmgr cpan $miss" "Installing $miss"
+          execute "sudo_pkmgr cpan install $miss" "Installing $miss"
         done
       fi
     fi
@@ -1008,7 +1004,7 @@ install_gem() {
         printf_warning "Attempting to install missing gem packages"
         printf_warning "$MISSING"
         for miss in $MISSING; do
-          execute "sudo_pkmgr gem $miss" "Installing $miss"
+          execute "sudo_pkmgr gem install $miss" "Installing $miss"
         done
       fi
     fi

@@ -98,48 +98,48 @@ cpan_run() {
         __curl_sudo "$cpanconf" -o "$cpanfile" &&
         sudo touch "$cpandir/.init" || exit 1
     fi
-    bash -c "sudo cpan notest install $*" | printf_readline
+    sudo bash -c "cpan notest install $*" | printf_readline || return 1
   fi
 }
 cpan_remove() {
-  bash -c "sudo cpan --uninstall $*" | printf_readline
+  sudo bash -c "cpan --uninstall $*" | printf_readline || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 pip_run() {
   if cmd_exists pip3; then
-    __devnull2 bash -c "sudo pip3 install --upgrade $*" | printf_readline
+    __devnull2 sudo bash -c "pip3 install --upgrade $*" | printf_readline || return 1
   elif cmd_exists pip; then
-    __devnull2 bash -c "sudo pip install --upgrade $*" | printf_readline
+    __devnull2 sudo bash -c "pip install --upgrade $*" | printf_readline || return 1
   else
     exit 1
   fi
 }
 pip_remove() {
   if cmd_exists pip3; then
-    __devnull2 bash -c "sudo pip3 remove $*" | printf_readline
+    __devnull2 sudo bash -c "pip3 remove $*" | printf_readline || return 1
   elif cmd_exists pip; then
-    __devnull2 bash -c "sudo pip remove $*" | printf_readline
+    __devnull2 sudo bash -c "pip remove $*" | printf_readline || return 1
   else
     exit 1
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gem_run() {
-  __devnull2 bash -c "sudo gem install --no-user-install $*" | printf_readline
+  __devnull2 sudo bash -c "gem install --no-user-install $*" | printf_readline || return 1
 }
 gem_remove() {
-  __devnull2 bash -c "sudo gem uninstall --no-user-install --force -aIx $*" | printf_readline
+  __devnull2 sudo bash -c "gem uninstall --no-user-install --force -aIx $*" | printf_readline || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 npm_run() {
   if command -v nvm &>/dev/null; then nvm unload; fi
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
-  __devnull2 bash -c "sudo npm install -g $*" | printf_readline
+  __devnull2 sudo bash -c "npm install -g $*" | printf_readline || return 1
 }
 npm_remove() {
   if command -v nvm &>/dev/null; then nvm unload; fi
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
-  __devnull2 bash -c "sudo npm remove -g $*" | printf_readline
+  __devnull2 sudo bash -c "npm remove -g $*" | printf_readline || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 curl_run() {
@@ -241,7 +241,7 @@ __schedule() {
 dotfiles_run() {
   [ -n "$1" ] || printf_exit "Usage: pkmgr dotfiles name"
   local url="$dotfilesrepo/$1.list"
-  __urlverify "$url" && __curl "$url" >"$PKMGR_TEMP_FILE"
+  __urlverify "$url" && __curl "$url" >"$PKMGR_TEMP_FILE" || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __aliases() {
