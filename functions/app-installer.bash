@@ -816,6 +816,7 @@ git_update() {
 ##################################################################################################
 
 dotfilesreqcmd() {
+  set -Ex
   local gitrepo="$REPO"
   echo $gitrepo/$conf/raw/master/install.sh
   urlverify "$gitrepo/$conf/raw/master/install.sh" &&
