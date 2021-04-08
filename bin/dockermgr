@@ -75,12 +75,19 @@ __list_available() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __init() {
+  export DOCKERMGR_GET_INSTALL_SCRIPT="https://get.docker.com"
   am_i_online --error -m "Can not setup docker: No internet" || exit 1
   if ! cmd_exists docker; then
     printf_newline
     printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"
-    __requiresudo bash -c "$(__curl "$DOCKERMGR_GET_INSTALL_SCRIPT")" || printf_exit "Installation has failed: could not get the install script"
+    if cmd_exists pacman; then
+      __requiresudo pacman -Sy --noconfirm docker ||
+        printf_exit "Installation has failed: could not get the install script"
+    else
+      __requiresudo bash -c "$(curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$DOCKERMGR_GET_INSTALL_SCRIPT" 2>/dev/null | bash)" ||
+        printf_exit "Installation has failed: could not get the install script"
+    fi
   fi
   mkdir -p "$HOME/.docker"
   if grep -q docker /etc/group; then

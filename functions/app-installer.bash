@@ -816,7 +816,8 @@ git_update() {
 ##################################################################################################
 
 dotfilesreqcmd() {
-  local REPO="${REPO:-https://github.com/dfmgr}"
+  export -f __curl
+  local REPO="https://github.com/$SCRIPTS_PREFIX"
   local gitrepo="$REPO"
   local conf="${1:-$conf}"
   if __am_i_online; then
@@ -825,7 +826,8 @@ dotfilesreqcmd() {
   fi
 }
 dotfilesreqadmincmd() {
-  local REPO="${REPO:-https://github.com/dfmgr}"
+  export -f __curl
+  local REPO="https://github.com/$SCRIPTS_PREFIX"
   local gitrepo="$REPO"
   local conf="${1:-$conf}"
   if __am_i_online; then
