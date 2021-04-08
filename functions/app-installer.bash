@@ -25,7 +25,11 @@ CASJAYSDEVDIR="/usr/local/share/CasjaysDev/scripts"
 # Versioning Info - __required_version "VersionNumber"
 localVersion="${localVersion:-202103310525-git}"
 requiredVersion="${requiredVersion:-202103310525-git}"
-currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
+if [ -f $CASJAYSDEVDIR/version.txt ]; then
+  currentVersion="${currentVersion:-$(<$CASJAYSDEVDIR/version.txt)}"
+else
+  currentVersion="${currentVersion:-$localVersion}"
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 TMPPATH="$HOME/.local/share/bash/basher/cellar/bin:$HOME/.local/share/bash/basher/bin:"
 TMPPATH+="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/gem/bin:/usr/local/bin:"
