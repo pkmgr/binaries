@@ -2,7 +2,7 @@
 
 APPNAME="travis-ci.sh"
 
-set +eE
+set +E
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # @Author      : Jason
@@ -60,6 +60,7 @@ sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Printing full info"
 ./install.sh --full
+command -v pkmgr | printf_readline
 
 #echo -e "\n\t\t-----------------------------------------------------\n"
 #printf_green "Running system upgrade - pkmgr silent-upgrade"
