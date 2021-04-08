@@ -401,7 +401,7 @@ rm_rf() { if [ -e "$1" ]; then devnull rm -Rf "$@"; else return 0; fi; }
 cp_rf() { if [ -e "$1" ]; then devnull cp -Rfa "$@"; else return 0; fi; }
 __ln_rm() {
   if [ -e "$1" ]; then
-    __devnull find -L $1 -mindepth 1 -maxdepth 1 -type l -exec rm -f {} \;
+    devnull find -L $1 -mindepth 1 -maxdepth 1 -type l -exec rm -f {} \;
   fi
 }
 ln_sf() {
@@ -453,6 +453,7 @@ am_i_online() {
   export __AM_I_ONLINE
   return $__AM_I_ONLINE
 }
+__am_i_online() { am_i_online; }
 ##################################################################################################
 cmd_exists() {
   local args="$*"
