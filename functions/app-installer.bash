@@ -1993,11 +1993,12 @@ wallpapermgr_install_version() {
 ##################################################################################################
 __main_installer_info() {
   if [ "$APPNAME" = "scripts" ] || [ "$APPNAME" = "installer" ]; then
-    APPNAME="installer"
-    #APPDIR="/usr/local/share/CasjaysDev/scripts"
-    #INSTDIR="/usr/local/share/CasjaysDev/scripts"
+    printf_cyan "Installing $APPNAME installer"
+    APPNAME="scripts"
+    APPDIR="/usr/local/share/CasjaysDev/scripts"
+    INSTDIR="/usr/local/share/CasjaysDev/scripts"
     PLUGDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
-    printf_cyan "Installing $APPNAME as the scripts installer"
+    SYSBIN="/usr/local/bin"
   fi
   #printf_exit "A:$APPNAME D:$APPDIR I:$INSTDIR P:$PLUGDIR"
 }
