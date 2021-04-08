@@ -1377,7 +1377,7 @@ app_uninstall() {
 }
 ##################################################################################################
 show_optvars() {
-  __main_installer_info
+  __main_installer_info &>/dev/null
   if [ "$1" = "--force" ]; then
     shift 1
     FORCE_INSTALL="true"
@@ -1989,7 +1989,7 @@ __main_installer_info() {
 ##################################################################################################
 run_install_init() {
   trap '[ -f "$TMPINST" ] && rm_rf $"$TMPINST"' EXIT
-  __main_installer_info
+  __main_installer_info &>/dev/null
   local TMPDIR="${TMPDIR:-/tmp}"
   local APPNAME="${APPNAME:-$PROG}"
   local TMPFILE="$TMPDIR/$APPNAME.tmp"
