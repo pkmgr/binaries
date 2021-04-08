@@ -118,9 +118,10 @@ __init_help() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __install() {
+  set -Ex
   declare -a LISTARRAY="$*"
   for container in ${LISTARRAY[*]}; do
-    APPNAME="$1"
+    APPNAME="$container"
     if [ -f "$INSTDIR/install.sh" ]; then
       run_install_update "$container" && __notifications "Updated $container" || __notifications "Update of $container has failed"
     else
@@ -132,7 +133,7 @@ __install() {
         git clone -q "$REPO/$APPNAME" "$DATADIR/$APPNAME"
       fi
       chmod -Rf 755 "$DATADIR/$APPNAME/install.sh"
-      __requiresudo -HE bash "$DATADIR/$APPNAME/install.sh" __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
+      __requiresudo -HE bash "$DATADIR/$APPNAME/install.sh" && __notifications "Updated $APPNAME" || __notifications "Update of $APPNAME has failed"
       if [ -d "$DATADIR/$APPNAME/os" ]; then
         __requiresudo cp -Rf "$SHARE/$APPNAME/os/." /
       fi

@@ -817,6 +817,7 @@ git_update() {
 
 dotfilesreqcmd() {
   local gitrepo="$REPO"
+  echo $gitrepo/$conf/raw/master/install.sh
   urlverify "$gitrepo/$conf/raw/master/install.sh" &&
     bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" ||
     return 1
