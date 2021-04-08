@@ -735,6 +735,7 @@ crontab_add() {
 }
 ##################################################################################################
 versioncheck() {
+  local choice=""
   if [ -f "$INSTDIR/version.txt" ]; then
     printf_green "Checking for updates"
     local NEWVERSION="$(echo $APPVERSION | grep -v "#" | tail -n 1)"
@@ -744,9 +745,7 @@ versioncheck() {
     else
       printf_blue "There is an update available"
       printf_blue "New version is $NEWVERSION and currentversion is $OLDVERSION"
-      printf_question_timeout "Would you like to update" [y/N]
-      read -n 1 -s choice
-      echo ""
+      printf_question_timeout "4" "Would you like to update" "1" "choice" "-s"
       if [[ $choice == "y" || $choice == "Y" ]]; then
         [ -f "$INSTDIR/install.sh" ] && bash -c "$INSTDIR/install.sh" && echo ||
           git -C "$INSTDIR" pull -q &&
@@ -761,11 +760,11 @@ versioncheck() {
 }
 ##################################################################################################
 scripts_check() {
+  local choice=""
   if __am_i_online; then
     if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
       printf_red "Please install my scripts repo - requires root/sudo"
-      printf_question_timeout "Would you like to do that now" [y/N]
-      read -n 1 -s choice && echo ""
+      printf_question_timeout "4" "Would you like to do that now" "1" "choice" "-s"
       if [[ $choice == "y" || $choice == "Y" ]]; then
         urlverify $REPO/installer/raw/master/install.sh &&
           sudo bash -c "$(__curl $REPO/installer/raw/master/install.sh)" && echo
