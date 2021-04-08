@@ -1998,10 +1998,11 @@ __main_installer_info() {
 }
 ##################################################################################################
 run_install_init() {
-  local exitCode=0
-  __main_installer_info
-  printf ""
-  if [ ! -f "$TMPDIR/$APPNAME.tmp" ]; then
+  if [ ! -f "$TMPDIR/$APPNAME.inst.tmp" ]; then
+    touch "$TMPDIR/$APPNAME.inst.tmp"
+    local exitCode=0
+    __main_installer_info
+    printf ""
     touch "$TMPDIR/$APPNAME.tmp"
     printf_yellow "Initializing the installer from"
     if [ -f "$INSTDIR/install.sh" ]; then
@@ -2017,15 +2018,14 @@ run_install_init() {
         printf_exit "$REPORAW/master/install.sh\n"
       fi
     fi
+    if [ -d "$APPDIR" ]; then
+      printf_green "Updating ${1:-$APPNAME} in ${APPDIR//$HOME/'~'}"
+    else
+      printf_green "Installing ${1:-$APPNAME} to ${APPDIR//$HOME/'~'}"
+    fi
+    local exitCode=$?
+    [ "$exitCode" -eq 0 ] || exit 10
   fi
-  if [ -d "$APPDIR" ]; then
-    printf_green "Updating ${1:-$APPNAME} in ${APPDIR//$HOME/'~'}"
-  else
-    printf_green "Installing ${1:-$APPNAME} to ${APPDIR//$HOME/'~'}"
-  fi
-  local exitCode=$?
-  rm_rf "$TMPDIR/$APPNAME.tmp"
-  [ "$exitCode" -eq 0 ] || exit 10
 }
 ##################################################################################################
 run_postinst_global() {
@@ -2154,6 +2154,7 @@ run_exit() {
   local exitCode+=$?
   getexitcode "$APPNAME has been installed" "$APPNAME installer has encountered an error: Check the URL"
   printf_newline
+  rm_rf "$TMPDIR/$APPNAME.inst.tmp"
   exit "${EXIT:-$?}"
 }
 ##################################################################################################

@@ -154,7 +154,7 @@ run_postinst() {
   replace /etc/casjaysdev/messages/ MYHOSTIP "$CURRIP4"
   replace /etc/casjaysdev/messages/ MYHOSTNAME "$(hostname -s)"
   replace /etc/casjaysdev/messages/ MYFULLHOSTNAME "$(hostname -f)"
-  grep -Riq "git" /etc/casjaysdev/updates/versions/configs.txt && sudo rm -Rfv /etc/casjaysdev/updates/versions/configs.txt
+  grep -sRiq "git" /etc/casjaysdev/updates/versions/configs.txt && sudo rm -Rfv /etc/casjaysdev/updates/versions/configs.txt
   [ -f /etc/casjaysdev/updates/versions/configs.txt ] || date +"%m%d%Y%H%M-git" | sudo tee /etc/casjaysdev/updates/versions/configs.txt
   [ -f /etc/casjaysdev/updates/versions/date.configs.txt ] || date +"%b %d, %Y at %H:%M" | sudo tee /etc/casjaysdev/updates/versions/date.configs.txt
   cp_rf "$INSTDIR/version.txt" /etc/casjaysdev/updates/versions/scripts.txt
