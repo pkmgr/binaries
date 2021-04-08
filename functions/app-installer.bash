@@ -433,7 +433,7 @@ urlverify() { urlcheck "$1" || urlinvalid "$1"; }
 symlink() { ln_sf "$1" "$2"; }
 rm_link() { unlink "$1"; }
 ##################################################################################################
-am_i_online() {
+__am_i_online() {
   site="1.1.1.1"
   test_ping() {
     timeout 1 ping -c1 $site &>/dev/null
@@ -453,7 +453,6 @@ am_i_online() {
   export __AM_I_ONLINE
   return $__AM_I_ONLINE
 }
-__am_i_online() { am_i_online; }
 ##################################################################################################
 cmd_exists() {
   local args="$*"
