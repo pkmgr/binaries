@@ -50,8 +50,9 @@ APPNAME="${APPNAME:-scripts}"
 APPDIR="/usr/local/share/CasjaysDev/scripts"
 INSTDIR="/usr/local/share/CasjaysDev/scripts"
 REPO="https://github.com/systemmgr/installer"
-REPORAW="${REPORAW:-$REPO/raw/master}"
-APPVERSION="$(__appversion "$REPORAW/version.txt")"
+REPO_BRANCH=${GIT_REPO_BRANCH:-master}
+REPORAW="${REPORAW:-$REPO/raw/$REPO_BRANCH}"
+APPVERSION="${APPVERSION:-$(__appversion "$REPORAW/version.txt")}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
 PLUGNAMES=""
