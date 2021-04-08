@@ -80,7 +80,7 @@ __init() {
     printf_newline
     printf_green "Installing docker and setting up systemd"
     printf_green "This will take a few minutes"
-    __requiresudo bash -c "$(__curl "$DOCKERMGR_DOCKER_INSTALL_SCRIPT")" || printf_exit "Installation has failed"
+    __requiresudo bash -c "$(__curl "$DOCKERMGR_GET_INSTALL_SCRIPT")" || printf_exit "Installation has failed: could not get the install script"
   fi
   mkdir -p "$HOME/.docker"
   if grep -q docker /etc/group; then

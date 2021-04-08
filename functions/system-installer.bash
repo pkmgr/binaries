@@ -103,7 +103,7 @@ printf_readline() {
 
 printf_custom() {
   [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="1"
-  local msg="$@"
+  local msg="$*"
   shift
   printf_color "\t\t$msg" "$color"
   echo ""
@@ -113,7 +113,7 @@ printf_custom() {
 
 printf_head() {
   [[ $1 == ?(-)+([0-9]) ]] && local color="$1" && shift 1 || local color="6"
-  local msg="$@"
+  local msg="$*"
   shift
   printf_color "
 \t\t##################################################
@@ -141,7 +141,7 @@ printf_result() {
 notifications() {
   local title="$1"
   shift 1
-  local msg="$@"
+  local msg="$*"
   shift
   cmd_exists notify-send && notify-send -u normal -i "notification-message-IM" "$title" "$msg" || return 0
 }
@@ -149,7 +149,7 @@ notifications() {
 ##################################################################################################
 
 devnull() { "$@" >/dev/null 2>&1; }
-killpid() { devnull kill -9 $(pidof "$1"); }
+killpid() { devnull kill -9 "$(pidof "$1")"; }
 hostname2ip() { getent hosts "$1" | cut -d' ' -f1 | head -n1; }
 cmd_exists() {
   local pkg LISTARRAY
@@ -223,8 +223,8 @@ symlink() { ln_sf "$1" "$2"; }
 
 ##################################################################################################
 
-system_service_enable() { execute "sudo systemctl enable -f "$@"" "Enabling services: $@"; }
-system_service_disable() { execute "sudo systemctl disable --now $@" "Disabling services: $@"; }
+system_service_enable() { execute "sudo systemctl enable -f $*" "Enabling services: $*"; }
+system_service_disable() { execute "sudo systemctl disable --now $*" "Disabling services: $*"; }
 
 ##################################################################################################
 
@@ -354,7 +354,7 @@ ask_for_confirmation() {
 
 __getip() {
   NETDEV="$(ip route | grep default | sed -e "s/^.*dev.//" -e "s/.proto.*//")"
-  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed s#addr:##g | head -n1)"
+  CURRIP4="$(/sbin/ifconfig $NETDEV | grep -E "venet|inet" | grep -v "127.0.0." | grep 'inet' | grep -v inet6 | awk '{print $2}' | sed 's#addr:##g' | head -n1)"
 }
 __getip
 

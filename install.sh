@@ -151,6 +151,7 @@ run_postinst() {
   mkd /etc/casjaysdev/messages/motd
   mkd /etc/casjaysdev/messages/issue
   mkd /etc/casjaysdev/messages/legal
+  mkd /etc/casjaysdev/updates/versions
   if [ -f "$INSTDIR/templates/casjaysdev-legal.txt" ] && [ ! -f /etc/casjaysdev/messages/legal/000.txt ]; then
     cp_rf "$INSTDIR/templates/casjaysdev-legal.txt" "/etc/casjaysdev/messages/legal/000.txt"
   fi
