@@ -56,7 +56,7 @@ for installpkgs in $INSTPKGS; do
 done
 
 for pkg in neovim neofetch fish zsh tmux; do
-  execute "sudo pkmgr silent "$pkg"" " Installing $pkg"
+  __execute "sudo pkmgr silent "$pkg"" " Installing $pkg"
 done
 
 systemmgr install --all

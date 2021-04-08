@@ -64,7 +64,7 @@ sudo bash -c "$(curl -LSs https://github.com/dfmgr/installer/raw/master/install.
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Installing packages"
 for installpkgs in cmake cmake-data cmatrix conky cowsay cscope curl dmenu exo-utils figlet neovim neofetch fish zsh tmux; do
-  execute "sudo pkmgr silent $installpkgs" "Installing $installpkgs"
+  __execute "sudo pkmgr silent $installpkgs" "Installing $installpkgs"
   exitCode=$?
 done
 
@@ -74,7 +74,7 @@ sudo systemmgr install installer
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing systemmgr"
-systemmgr install cron ssl
+sudo systemmgr install cron ssl
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing dfmgr"
@@ -90,12 +90,12 @@ wallpapermgr install casjay
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing pkmgr pip install"
-execute "pkmgr pip wakatime"
-execute "pkmgr pip youtube-dl"
+__execute "pkmgr pip wakatime"
+__execute "pkmgr pip youtube-dl"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Testing pkmgr gem install"
-execute "pkmgr gem Test"
+__execute "pkmgr gem Test"
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "printing installed app locations"
@@ -105,7 +105,7 @@ done
 
 echo -e "\n\t\t-----------------------------------------------------\n"
 printf_green "Printing dfmgr bash"
-for f in $(ls $HOME/.config/bash/install.sh); do
+for f in $(ls $HOME/.local/share/CasjaysDev/dfmgr/*/install.sh); do
   bash -c "$f --version"
 done
 

@@ -2013,7 +2013,7 @@ run_install_init() {
       #bash -c "$INSTDIR/install.sh"
     else
       printf_yellow "Downloading to ${INSTDIR//$HOME/'~'}"
-      printf_purple "$REPORAW/install.sh"
+      printf_purple "$REPORAW/master/install.sh"
       if ! urlcheck "$REPORAW/master/install.sh"; then
         #bash -c "$(__curl $REPORAW/master/install.sh)"
         #else
