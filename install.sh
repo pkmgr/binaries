@@ -49,7 +49,7 @@ system_installdirs
 APPNAME="${APPNAME:-scripts}"
 APPDIR="/usr/local/share/CasjaysDev/scripts"
 INSTDIR="/usr/local/share/CasjaysDev/scripts"
-REPO="https://github.com/systemmgr/installer}"
+REPO="https://github.com/systemmgr/installer"
 REPORAW="$REPO/raw"
 APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
