@@ -2035,10 +2035,12 @@ run_install_init() {
 ##################################################################################################
 run_postinst_global() {
   $installtype
-  if [ "$APPDIR" != "$INSTDIR" ]; then
-    ln_sf "$APPDIR" "$INSTDIR"
-    if [ -d "$INSTDIR" ] && [ ! -e "$APPDIR" ]; then ln_sf "$APPDIR" "$INSTDIR"; fi
-  fi
+  # if [ "$APPDIR" != "$INSTDIR" ]; then
+  #   ln_sf "$APPDIR" "$INSTDIR"
+  #   if [ -d "$INSTDIR" ] && [ ! -e "$APPDIR" ]; then
+  #     ln_sf "$APPDIR" "$INSTDIR"
+  #   fi
+  # fi
   if [[ "$APPNAME" = "scripts" ]] || [[ "$APPNAME" = "installer" ]]; then
     # Only run on the scripts install
     ln_rm "$SYSBIN/"

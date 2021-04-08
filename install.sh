@@ -139,6 +139,11 @@ run_postinst() {
   if [ "$fontdir" = "0" ]; then
     sudo fontmgr install Hack
   fi
+  appFiles="$(ls "$INSTDIR/bin")"
+  for bin in $appFiles; do
+    chmod -Rf 755 "$INSTDIR/bin/$bin"
+    ln_sf "$INSTDIR/bin/$bin" "$SYSBIN/$bin"
+  done
   for function in $(ls "$CASJAYSDEVDIR/functions"); do
     ln_sf "$CASJAYSDEVDIR/functions/$function" "$CASJAYSDEVSHARE/functions/$function"
   done
