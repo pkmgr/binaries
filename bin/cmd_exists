@@ -68,7 +68,6 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
-exitCode=""
 CMD_EXISTS_CONFIG_FILE="settings.conf"
 CMD_EXISTS_CONFIG_DIR="$HOME/.config/myscripts/cmd_exists"
 CMD_EXISTS_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/cmd_exists/backups"
@@ -160,49 +159,49 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications/Network check
 command -v bash &>/dev/null || exit 1
+[ "$(uname -s)" = Darwin ] && exit 0
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-COMMANDS="$*"
-exitCode=
-exitTmp=
-missing=
-choice=
-cmd=
-[ "$(uname -s)" = Darwin ] && exit 0
+declare COMMANDS="$*"
+declare cmdExitCode=""
+declare cmdExitTmp=""
+declare cmdMissing=""
+declare cmdChoice=""
+declare cmdExists=""
 [ -n "$COMMANDS" ] || exit 0
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-for cmd in $COMMANDS; do
-  if command -v "$cmd" &>/dev/null || type -P "$cmd" &>/dev/null; then
-    exitTmp+=0
+for cmdExists in $COMMANDS; do
+  if command -v "$cmdExists" &>/dev/null || type -P "$cmdExists" &>/dev/null; then
+    cmdExitTmp+=0
   else
-    exitTmp+=1
-    missing+="$cmd "
+    cmdExitTmp+=1
+    cmdMissing+="$cmdExists "
   fi
-  exitCode="$exitTmp"
+  cmdExitCode="$cmdExitTmp"
 done
 if [ "$CMD_EXISTS_NOTIFY_SHOW" = "yes" ] || [ "$CMD_EXISTS_NOTIFY_SHOW_ERROR" = "yes" ]; then
-  [ $exitCode -eq 0 ] && [ "$CMD_EXISTS_NOTIFY_OK_ENABLED" = "yes" ] && __notifications "$CMD_EXISTS_NOTIFY_OK_MESG"
-  [ $exitCode -ne 0 ] && __notifications "$CMD_EXISTS_NOTIFY_ERROR_MESG $missing"
+  [ $cmdExitCode -eq 0 ] && [ "$CMD_EXISTS_NOTIFY_OK_ENABLED" = "yes" ] && __notifications "$CMD_EXISTS_NOTIFY_OK_MESG"
+  [ $cmdExitCode -ne 0 ] && __notifications "$CMD_EXISTS_NOTIFY_ERROR_MESG $cmdMissing"
 fi
-[ $exitCode -eq 0 ] && exitCode=0 || exitCode=1
+[ $cmdExitCode -eq 0 ] && cmdExitCode=0 || cmdExitCode=1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$CMD_EXISTS_NOTIFY_ASK" = "yes" ]; then
-  MISSING="$missing"
+  MISSING="$cmdMissing"
   if [ -n "$MISSING" ]; then
     notifications "${NOTIFY_CLIENT_NAME:-$APPNAME}" "Missing $MISSING"
     if [ -n "$DESKTOP_SESSION" ]; then
-      __ask_confirm "Would you like install $MISSING" "pkmgr silent-install $MISSING" && exitCode=0 || exitCode=1
+      __ask_confirm "Would you like install $MISSING" "pkmgr silent-install $MISSING" && cmdExitCode=0 || cmdExitCode=1
     else
       printf_red "The following apps are missing: $MISSING"
-      printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "choice" "-s"
-      if printf_answer_yes "$choice"; then
+      printf_read_question "2" "Would you like install the missing packages? [y/N]" "1" "cmdChoice" "-s"
+      if printf_answer_yes "$cmdChoice"; then
         for miss in $MISSING; do
-          __execute "pkmgr silent-install $miss" "Installing $miss" && exitCode=0 || exitCode=1
+          __execute "pkmgr silent-install $miss" "Installing $miss" && cmdExitCode=0 || cmdExitCode=1
         done
       else
-        exitCode=1
+        cmdExitCode=1
       fi
     fi
   fi
@@ -211,4 +210,4 @@ fi
 # End application
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
-exit ${exitCode:-$?}
+exit ${cmdExitCode:-$?}

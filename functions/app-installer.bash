@@ -36,6 +36,7 @@ unset TMPPATH
 export SUDO_PROMPT="$(printf "\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 export TMP="${TMP:-/tmp}"
 export TEMP="${TEMP:-/tmp}"
+export TMPDIR="${TMPDIR:-/tmp}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 export WHOAMI="${SUDO_USER:-$USER}"
 export HOME="${USER_HOME:-$HOME}"
@@ -68,15 +69,13 @@ sudo_pkmgr() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cmd_exists() {
   local pkg LISTARRAY
-  declare -a LISTARRAY="$*"
-  for cmd in $LISTARRAY; do
+  local LISTARRAY="$*"
+  for pkg in $LISTARRAY; do
     type -P "$1" | grep -q "/" 2>/dev/null
   done
 }
-
 devnull() { "$@" >/dev/null 2>&1; }
 devnull2() { "$@" >/dev/null 2>&1; }
-
 # fail if git is not installed
 if [ ! -f "$(type -P git 2>/dev/null)" ]; then
   echo -e "\t\t\033[0;31mAttempting to install git\033[0m"
@@ -638,7 +637,8 @@ sudoask() {
 }
 ######################
 sudoexit() {
-  if [ $? -eq 0 ]; then
+  local exitCode=$?
+  if [ $exitCode -eq 0 ]; then
     sudoask || printf_green "Getting privileges successfull continuing" &&
       sudo -n true
   else
@@ -733,7 +733,7 @@ versioncheck() {
   if [ -f "$INSTDIR/version.txt" ]; then
     printf_green "Checking for updates"
     local NEWVERSION="$(echo $APPVERSION | grep -v "#" | tail -n 1)"
-    local OLDVERSION="$(cat $INSTDIR/version.txt | grep -v "#" | tail -n 1)"
+    local OLDVERSION="$(grep -v "#" $INSTDIR/version.txt | tail -n 1)"
     if [ "$NEWVERSION" == "$OLDVERSION" ]; then
       printf_green "No updates available currentversion is $OLDVERSION"
     else
@@ -788,21 +788,22 @@ fi
 git_clone() {
   if __am_i_online; then
     local repo="$1"
-    [ -n "$2" ] && local myappdir="$2" || local myappdir="$INSTDIR"
-    [ -d "$myappdir" ] && rm_rf "$myappdir"
+    local myappdir="${2:-$INSTDIR}"
+    [ -d "$myappdir/.git" ] || rm_rf "$myappdir"
     devnull git clone --depth=1 -q --recursive "$repo" "$myappdir"
   fi
 }
 ##################################################################################################
 git_update() {
   local myappdir="${1:-$INSTDIR}"
+  local exitCode=""
   if __am_i_online; then
     local repo="$(git remote -v | grep fetch | head -n 1 | awk '{print $2}')"
     devnull git -C "$myappdir" reset --hard &&
       devnull git -C "$myappdir" pull --recurse-submodules -fq &&
       devnull git -C "$myappdir" submodule update --init --recursive -q &&
-      devnull git -C "$myappdir" reset --hard -q && true || false
-    if [ "$?" -ne "0" ] && [ -n "$repo" ]; then
+      devnull git -C "$myappdir" reset --hard -q && exitCode=0 || exitCode=1
+    if [ "$exitCode" -ne 0 ] && [ -n "$repo" ] && [ ! -d "$myappdir/.git" ]; then
       rm_rf "$myappdir"
       git_clone "$repo" "$myappdir"
     fi
@@ -831,28 +832,30 @@ dotfilesreqadmincmd() {
 dotfilesreq() {
   if __am_i_online; then
     if cmd_exists pkmgr; then
+      local conf=""
       local confdir="$USRUPDATEDIR"
-      declare -a LISTARRAY="$*"
+      local LISTARRAY="$*"
       for conf in ${LISTARRAY[*]}; do
-        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TMPDIR/$conf.inst.tmp" ]; then
           execute "dotfilesreqcmd $conf" "Installing required dotfile $conf"
         fi
       done
-      rm_rf $TEMP/*.inst.tmp
+      rm_rf $TMPDIR/*.inst.tmp
     fi
   fi
 }
 dotfilesreqadmin() {
   if __am_i_online; then
     if cmd_exists pkmgr; then
+      local conf=""
       local confdir="$SYSUPDATEDIR"
-      declare -a LISTARRAY="$*"
+      local LISTARRAY="$*"
       for conf in ${LISTARRAY[*]}; do
-        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
+        if [ ! -f "$confdir/$conf" ] && [ ! -f "$TMPDIR/$conf.inst.tmp" ]; then
           execute "dotfilesreqadmincmd $conf" "Installing required dotfile $conf"
         fi
       done
-      rm_rf $TEMP/*.inst.tmp
+      rm_rf $TMPDIR/*.inst.tmp
     fi
   fi
 }
@@ -2142,7 +2145,7 @@ run_exit() {
   if [ -d "$INSTDIR" ] && [ ! -f "$INSTDIR/.installed" ]; then
     date '+Installed on: %m/%d/%y @ %H:%M:%S' >"$INSTDIR/.installed" 2>/dev/null
   fi
-  if [ -f "$TEMP/$APPNAME.inst.tmp" ]; then rm_rf "$TEMP/$APPNAME.inst.tmp"; fi
+  if [ -f "$TMPDIR/$APPNAME.inst.tmp" ]; then rm_rf "$TMPDIR/$APPNAME.inst.tmp"; fi
   if [ -f "/tmp/$SCRIPTSFUNCTFILE" ]; then rm_rf "/tmp/$SCRIPTSFUNCTFILE"; fi
   local exitCode+=$?
   getexitcode "$APPNAME has been installed" "$APPNAME installer has encountered an error: Check the URL"

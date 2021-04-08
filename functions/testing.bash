@@ -1045,7 +1045,7 @@ check_uri() {
 }
 #very simple function to ensure connection and jq exists
 __api_test() {
-  local message="$*"
+  local message="${*:-}"
   if __am_i_online && __cmd_exists jq; then
     return 0
   else
@@ -1088,7 +1088,7 @@ __git_clone() {
   [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
   local repo="$1"
   __git_username_repo "$repo"
-  [ -n "$2" ] && local dir="$2" && shift 1 || local dir="${APPDIR:-.}"
+  [ -n "$2" ] && local dir="$2" && shift 1 || local dir="${INSTDIR:-.}"
   if [ -d "$dir/.git" ]; then
     __git_update "$dir" || return 1
   else
@@ -1101,7 +1101,7 @@ __git_clone() {
 }
 #git_pull "dir"
 __git_update() {
-  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="${APPDIR:-.}"
+  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="${INSTDIR:-.}"
   local repo="$(git -C "$dir" remote -v | grep fetch | head -n 1 | awk '{print $2}')"
   local gitrepo="$(dirname $dir/.git)"
   local reponame="${APPNAME:-$gitrepo}"
@@ -1116,7 +1116,7 @@ __git_update() {
 }
 #git_commit "dir"
 __git_commit() {
-  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="${APPDIR:-.}"
+  [ -n "$1" ] && local dir="$1" && shift 1 || local dir="${INSTDIR:-.}"
   if __cmd_exists gitcommit; then
     if [ -d "$2" ]; then shift 1; fi
     local mess="${*}"
