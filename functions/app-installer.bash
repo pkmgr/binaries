@@ -739,7 +739,7 @@ versioncheck() {
     else
       printf_blue "There is an update available"
       printf_blue "New version is $NEWVERSION and currentversion is $OLDVERSION"
-      printf_question "Would you like to update" [y/N]
+      printf_question_timeout "Would you like to update" [y/N]
       read -n 1 -s choice
       echo ""
       if [[ $choice == "y" || $choice == "Y" ]]; then
@@ -759,7 +759,7 @@ scripts_check() {
   if __am_i_online; then
     if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
       printf_red "Please install my scripts repo - requires root/sudo"
-      printf_question "Would you like to do that now" [y/N]
+      printf_question_timeout "Would you like to do that now" [y/N]
       read -n 1 -s choice && echo ""
       if [[ $choice == "y" || $choice == "Y" ]]; then
         urlverify $REPO/scripts/raw/master/install.sh &&
