@@ -50,7 +50,8 @@ __gen_config() {
   [ -f "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" ] &&
     cp -Rf "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE" "$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE.$$"
   cat <<EOF >"$WALLPAPERMGR_CONFIG_DIR/$WALLPAPERMGR_CONFIG_FILE"
-# Settings for wallpapermgr
+# Settings for wallpapermgr - unused
+WALLPAPERMGR_GIT_REPO="https://github.com/wallpapermgr"
 WALLPAPERMGR_FORCE_INSTALL="false"
 WALLPAPERMGR_TEMP_FILE="${TMPDIR:-/tmp}/wallpapermgr"
 WALLPAPERMGR_NOTIFY_ENABLED="yes"
@@ -82,6 +83,7 @@ WALLPAPERMGR_NOTIFY_ENABLED="yes"
 WALLPAPERMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 WALLPAPERMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$WALLPAPERMGR_NOTIFY_CLIENT_ICON}"
 WALLPAPERMGR_FORCE_INSTALL="false"
+WALLPAPERMGR_GIT_REPO="https://github.com/wallpapermgr"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
@@ -160,6 +162,7 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
+export installtype
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app

@@ -50,7 +50,7 @@ __gen_config() {
   [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] &&
     cp -Rf "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE.$$"
   cat <<EOF >"$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE"
-# Settings for dfmgr
+# Settings for dfmgr - unused
 DFMGR_GIT_REPO="https://github.com/dfmgr"
 DFMGR_DOTFILES_DIR="${PERSONAL_DOTFILES_DIR:-$HOME/.local/dotfiles/personal}"
 DFMGR_FORCE_INSTALL="false"
@@ -117,6 +117,7 @@ DFMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DFMGR_NOTIFY_CLIENT_ICON}"
 DFMGR_DOTFILES_DIR="${PERSONAL_DOTFILES_DIR:-$HOME/.local/dotfiles/personal}"
 DFMGR_FORCE_INSTALL="false"
 DFMGR_GIT_REPO="https://github.com/dfmgr"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="$*"
@@ -204,6 +205,8 @@ export REPO="$DFMGRREPO"
 export REPORAW="$DFMGRREPO/raw"
 export APPDIR="$CONF"
 export INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
+export installtype
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 case $1 in

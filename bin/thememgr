@@ -50,7 +50,8 @@ __gen_config() {
   [ -f "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE" ] &&
     cp -Rf "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE" "$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE.$$"
   cat <<EOF >"$THEMEMGR_CONFIG_DIR/$THEMEMGR_CONFIG_FILE"
-# Settings for thememgr
+# Settings for thememgr - unused
+THEMEMGR_GIT_REPO="https://github.com/thememgr"
 THEMEMGR_DATA_DIR="${THEMEDIR:-$SHARE/themes}"
 THEMEMGR_FORCE_INSTALL="false"
 THEMEMGR_TEMP_FILE="${TMPDIR:-/tmp}/thememgr"
@@ -84,6 +85,8 @@ THEMEMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 THEMEMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$THEMEMGR_NOTIFY_CLIENT_ICON}"
 THEMEMGR_DATA_DIR="${THEMEDIR:-$SHARE/themes}"
 THEMEMGR_FORCE_INSTALL="false"
+THEMEMGR_GIT_REPO="https://github.com/thememgr"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="$*"
@@ -161,7 +164,8 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-THEMEDIR="${THEMEMGR_DATA_DIR:-$THEMEDIR}"
+export THEMEDIR="${THEMEMGR_DATA_DIR:-$THEMEDIR}"
+export installtype
 __mkd "$THEMEDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app

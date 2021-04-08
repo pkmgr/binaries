@@ -50,7 +50,8 @@ __gen_config() {
   [ -f "$FONTMGR_CONFIG_DIR/$FONTMGR_CONFIG_FILE" ] &&
     cp -Rf "$FONTMGR_CONFIG_DIR/$FONTMGR_CONFIG_FILE" "$FONTMGR_CONFIG_DIR/$FONTMGR_CONFIG_FILE.$$"
   cat <<EOF >"$FONTMGR_CONFIG_DIR/$FONTMGR_CONFIG_FILE"
-# Settings for fontmgr
+# Settings for fontmgr - unused
+FONTMGR_GIT_REPO="https://github.com/fontmgr"
 FONTMGR_FORCE_INSTALL="false"
 FONTMGR_TEMP_FILE="${TMPDIR:-/tmp}/fontmgr"
 FONTMGR_NOTIFY_ENABLED="yes"
@@ -82,6 +83,7 @@ FONTMGR_NOTIFY_ENABLED="yes"
 FONTMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 FONTMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$FONTMGR_NOTIFY_CLIENT_ICON}"
 FONTMGR_FORCE_INSTALL="false"
+FONTMGR_GIT_REPO="https://github.com/fontmgr"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
@@ -161,7 +163,9 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-FORCE_INSTALL="${FORCE_INSTALL:-$FONTMGR_FORCE_INSTALL}"
+export FORCE_INSTALL="${FORCE_INSTALL:-$FONTMGR_FORCE_INSTALL}"
+export installtype
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 case $1 in

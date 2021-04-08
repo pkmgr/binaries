@@ -50,7 +50,8 @@ __gen_config() {
   [ -f "$ICONMGR_CONFIG_DIR/$ICONMGR_CONFIG_FILE" ] &&
     cp -Rf "$ICONMGR_CONFIG_DIR/$ICONMGR_CONFIG_FILE" "$ICONMGR_CONFIG_DIR/$ICONMGR_CONFIG_FILE.$$"
   cat <<EOF >"$ICONMGR_CONFIG_DIR/$ICONMGR_CONFIG_FILE"
-# Settings for iconmgr
+# Settings for iconmgr - unused
+ICONMGR_GIT_REPO="https://github.com/iconmgr"
 ICONMGR_FORCE_INSTALL="false"
 ICONMGR_TEMP_FILE="${TMPDIR:-/tmp}/iconmgr"
 ICONMGR_NOTIFY_ENABLED="yes"
@@ -82,6 +83,8 @@ ICONMGR_NOTIFY_ENABLED="yes"
 ICONMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 ICONMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$ICONMGR_NOTIFY_CLIENT_ICON}"
 ICONMGR_FORCE_INSTALL="false"
+ICONMGR_GIT_REPO="https://github.com/iconmgr"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="$*"
@@ -159,7 +162,9 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-FORCE_INSTALL="${FORCE_INSTALL:-$ICONMGR_FORCE_INSTALL}"
+export FORCE_INSTALL="${FORCE_INSTALL:-$ICONMGR_FORCE_INSTALL}"
+export installtype
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 case $1 in

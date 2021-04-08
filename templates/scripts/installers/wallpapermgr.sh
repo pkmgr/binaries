@@ -52,8 +52,8 @@ APPDIR="$SHARE/wallpapers/$APPNAME"
 INSTDIR="$SHARE/CasjaysDev/wallpapermgr/$APPNAME"
 REPO_BRANCH="${GIT_REPO_BRANCH:-master}"
 REPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}/$APPNAME"
-REPORAW="${REPORAW:-$REPO/raw}"
-APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
+REPORAW="$REPO/raw/$REPO_BRANCH"
+APPVERSION="$(__appversion "$REPORAW/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Require a version higher than
 wallpapermgr_req_version "$APPVERSION"

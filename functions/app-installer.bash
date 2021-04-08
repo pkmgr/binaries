@@ -743,8 +743,8 @@ versioncheck() {
   local choice=""
   if [ -f "$INSTDIR/version.txt" ]; then
     printf_green "Checking for updates"
-    local NEWVERSION="$(echo $APPVERSION | grep -v "#" | tail -n 1)"
-    local OLDVERSION="$(grep -v "#" $INSTDIR/version.txt | tail -n 1)"
+    local NEWVERSION="$(echo $APPVERSION | grep -sv "#" | tail -n 1)"
+    local OLDVERSION="$(grep -sv "#" $INSTDIR/version.txt | tail -n 1)"
     if [ "$NEWVERSION" == "$OLDVERSION" ]; then
       printf_green "No updates available currentversion is $OLDVERSION"
     else
@@ -1338,12 +1338,12 @@ ensure_perms() {
 ##################################################################################################
 get_app_version() {
   if [ -f "$INSTDIR/version.txt" ]; then
-    local version="$(grep -v "#" "$INSTDIR/version.txt" | tail -n 1)"
+    local version="$(grep -sv "#" "$INSTDIR/version.txt" | tail -n 1)"
   else
     local version="0000000"
   fi
-  local GITREPO=""$REPO/$APPNAME""
-  local APPVERSION="${APPVERSION:-$(__appversion)}"
+  local GITREPO="${REPORAW}"
+  local APPVERSION="${APPVERSION:-$(__appversion "$REPORAW/version.txt")}"
   [ -n "$WHOAMI" ] && printf_info "WhoamI:                    $WHOAMI"
   [ -n "$INSTALL_TYPE" ] && printf_info "Install Type:              $INSTALL_TYPE"
   [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
@@ -1610,12 +1610,12 @@ devenvmgr_install() {
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1649,13 +1649,12 @@ dfmgr_install() {
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1691,13 +1690,12 @@ dockermgr_install() {
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1731,13 +1729,12 @@ fontmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1771,13 +1768,12 @@ iconmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1816,13 +1812,12 @@ pkmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/$GIT_REPO_BRANCH"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1857,13 +1852,12 @@ systemmgr_install() {
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1900,13 +1894,12 @@ thememgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
     APPVERSION="$currentVersion"
   fi
@@ -1943,13 +1936,12 @@ wallpapermgr_install() {
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion $REPORAW/version.txt)"
-  ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
-  LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  ARRAY="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array")"
+  LIST="$(grep -s '^' "$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list")"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
@@ -2181,12 +2173,13 @@ run_install_list() {
 ##################################################################################################
 # Versioning
 __appversion() {
+  local versionfile="${1:-REPORAW/version.txt}"
   if [ -f "$INSTDIR/version.txt" ]; then
     local localVersion="$(<$INSTDIR/version.txt)"
   else
     local localVersion="$localVersion"
   fi
-  __curl "${1:-$REPORAW/version.txt}" || echo "$localVersion"
+  __curl "${versionfile}" 2>/dev/null | head -n1 || echo "$localVersion"
 }
 
 __required_version() {

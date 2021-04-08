@@ -50,8 +50,8 @@ __gen_config() {
   [ -f "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" ] &&
     cp -Rf "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE" "$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE.$$"
   cat <<EOF >"$SYSTEMMGR_CONFIG_DIR/$SYSTEMMGR_CONFIG_FILE"
-# Settings for systemmgr
-SYSTEMMGR_INSTALLDIR="\$INSTDIR"
+# Settings for systemmgr - unused
+SYSTEMMGR_GIT_REPO="https://github.com/systemmgr"
 SYSTEMMGR_FORCE_INSTALL="false"
 SYSTEMMGR_TEMP_FILE="${TMPDIR:-/tmp}/systemmgr"
 SYSTEMMGR_NOTIFY_ENABLED="yes"
@@ -90,7 +90,8 @@ SYSTEMMGR_NOTIFY_ENABLED="yes"
 SYSTEMMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 SYSTEMMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$SYSTEMMGR_NOTIFY_CLIENT_ICON}"
 SYSTEMMGR_FORCE_INSTALL="false"
-SYSTEMMGR_INSTALLDIR="$INSTDIR"
+THEMEMGR_GIT_REPO="https://github.com/thememgr"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="$*"
@@ -169,6 +170,7 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
+export installtype
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
