@@ -815,17 +815,19 @@ git_update() {
 }
 ##################################################################################################
 dotfilesreqcmd() {
-  local config="$1"
-  local gitrepo="${REPO:-https://github.com/dfmgr}"
-  urlverify "$gitrepo/$config/raw/master/install.sh" &&
-    bash -c "$(curl -LSs $gitrepo/$config/raw/master/install.sh)" ||
+  local config="${1:-$conf}"
+  local prefix="${SCRIPTS_PREFIX:-dfmgr}"
+  local gitrepo="${REPO:-https://github.com/$prefix}/$config"
+  urlverify "$gitrepo/raw/master/install.sh" &&
+    bash -c "$(curl -LSs $gitrepo/raw/master/install.sh)" ||
     return 1
 }
 dotfilesreqadmincmd() {
-  local config="$1"
-  local gitrepo="${REPO:-https://github.com/dfmgr}"
-  urlverify "$gitrepo/$config/raw/master/install.sh" &&
-    sudo bash -c "$(curl -LSs $gitrepo/$config/raw/master/install.sh)" ||
+  local config="${1:-$conf}"
+  local prefix="${SCRIPTS_PREFIX:-dfmgr}"
+  local gitrepo="${REPO:-https://github.com/$prefix}/$config"
+  urlverify "$gitrepo/raw/master/install.sh" &&
+    sudo bash -c "$(curl -LSs $gitrepo/raw/master/install.sh)" ||
     return 1
 }
 ##################################################################################################
