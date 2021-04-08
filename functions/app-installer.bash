@@ -816,23 +816,21 @@ git_update() {
 ##################################################################################################
 
 dotfilesreqcmd() {
-  export -f __curl
   local REPO="https://github.com/$SCRIPTS_PREFIX"
   local gitrepo="$REPO"
   local conf="${1:-$conf}"
   if __am_i_online; then
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      sudo_user bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
+      sudo_user bash -c "$(curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
 }
 dotfilesreqadmincmd() {
-  export -f __curl
   local REPO="https://github.com/$SCRIPTS_PREFIX"
   local gitrepo="$REPO"
   local conf="${1:-$conf}"
   if __am_i_online; then
     urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-      sudo_root bash -c "$(__curl $gitrepo/$conf/raw/master/install.sh)" || return 1
+      sudo_root bash -c "$(curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail $gitrepo/$conf/raw/master/install.sh)" || return 1
   fi
 }
 ##################################################################################################
