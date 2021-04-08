@@ -100,6 +100,7 @@ if [ ! -f "$(type -P git 2>/dev/null)" ]; then
 fi
 ##################################################################################################
 # Set Main Repo for dotfiles
+export GIT_REPO_BRANCH="master"
 export DOTFILESREPO="${DOTFILESREPO:-https://github.com/dfmgr}"
 export DFMGRREPO="${DFMGRREPO:-https://github.com/dfmgr}"
 export PKMGRREPO="${PKMGRREPO:-https://github.com/pkmgr}"
@@ -761,13 +762,14 @@ versioncheck() {
 ##################################################################################################
 scripts_check() {
   local choice=""
+  export -f __curl
   if __am_i_online; then
     if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
       printf_red "Please install my scripts repo - requires root/sudo"
       printf_question_timeout "4" "Would you like to do that now" "1" "choice" "-s"
       if [[ $choice == "y" || $choice == "Y" ]]; then
-        urlverify $REPO/installer/raw/master/install.sh &&
-          sudo bash -c "$(__curl $REPO/installer/raw/master/install.sh)" && echo
+        urlverify $REPO/installer/raw/$GIT_REPO_BRANCH/install.sh &&
+          sudo bash -c "$(__curl $REPO/installer/raw/$GIT_REPO_BRANCH/install.sh)" && echo
       else
         touch ~/.noscripts
         exit 1
@@ -818,16 +820,16 @@ dotfilesreqcmd() {
   local config="${1:-$conf}"
   local prefix="${SCRIPTS_PREFIX:-dfmgr}"
   local gitrepo="${REPO:-https://github.com/$prefix}/$config"
-  urlverify "$gitrepo/raw/master/install.sh" &&
-    bash -c "$(curl -LSs $gitrepo/raw/master/install.sh)" ||
+  urlverify "$gitrepo/raw/$GIT_REPO_BRANCH/install.sh" &&
+    bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
     return 1
 }
 dotfilesreqadmincmd() {
   local config="${1:-$conf}"
   local prefix="${SCRIPTS_PREFIX:-systemmgr}"
   local gitrepo="${REPO:-https://github.com/$prefix}/$config"
-  urlverify "$gitrepo/raw/master/install.sh" &&
-    sudo bash -c "$(curl -LSs $gitrepo/raw/master/install.sh)" ||
+  urlverify "$gitrepo/raw/$GIT_REPO_BRANCH/install.sh" &&
+    sudo bash -c "$(curl -LSs $gitrepo/raw/$GIT_REPO_BRANCH/install.sh)" ||
     return 1
 }
 ##################################################################################################
@@ -1651,7 +1653,7 @@ dfmgr_install() {
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1693,7 +1695,7 @@ dockermgr_install() {
   DATADIR="${SHARE/docker/data/$APPNAME:-/srv/docker/$APPNAME}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1733,7 +1735,7 @@ fontmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1773,7 +1775,7 @@ iconmgr_install() {
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1817,8 +1819,8 @@ pkmgr_install() {
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/master"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/$GIT_REPO_BRANCH"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1859,7 +1861,7 @@ systemmgr_install() {
   INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1902,7 +1904,7 @@ thememgr_install() {
   THEMEDIR="${THEMEDIR:-$SHARE/themes}/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
@@ -1945,7 +1947,7 @@ wallpapermgr_install() {
   INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
-  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt)"
+  APPVERSION="$(__appversion ${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/$GIT_REPO_BRANCH/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
