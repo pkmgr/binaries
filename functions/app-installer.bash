@@ -823,6 +823,7 @@ dotfilesreqcmd() {
 }
 
 dotfilesreq() {
+  set -Ex
   local confdir="$USRUPDATEDIR"
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
