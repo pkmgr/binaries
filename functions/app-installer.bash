@@ -814,38 +814,31 @@ git_update() {
   fi
 }
 ##################################################################################################
-
 dotfilesreqcmd() {
-  set -Ex
-  local gitrepo="$REPO"
-  echo $gitrepo/$conf/raw/master/install.sh
-  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-    bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" ||
+  local config="$1"
+  local gitrepo="${REPO:-https://github.com/dfmgr}"
+  urlverify "$gitrepo/$config/raw/master/install.sh" &&
+    bash -c "$(curl -LSs $gitrepo/$config/raw/master/install.sh)" ||
     return 1
 }
-
+dotfilesreqadmincmd() {
+  local config="$1"
+  local gitrepo="${REPO:-https://github.com/dfmgr}"
+  urlverify "$gitrepo/$config/raw/master/install.sh" &&
+    sudo bash -c "$(curl -LSs $gitrepo/$config/raw/master/install.sh)" ||
+    return 1
+}
+##################################################################################################
 dotfilesreq() {
-  set -Ex
   local confdir="$USRUPDATEDIR"
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
     if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-      execute \
-        "dotfilesreqcmd" \
-        "Installing required dotfile $conf"
+      #execute "dotfilesreqcmd $conf" "Installing required dotfile $conf"
+      dotfilesreqcmd $conf
     fi
   done
-  rm_rf $TEMP/*.inst.tmp
-  set +Ex
-}
-
-##################################################################################################
-dotfilesreqadmincmd() {
-  __am_i_online || return 1
-  local gitrepo="$REPO"
-  urlverify "$gitrepo/$conf/raw/master/install.sh" &&
-    sudo bash -c "$(curl -LSs $gitrepo/$conf/raw/master/install.sh)" ||
-    return 1
+  rm_rf "$TEMP/$conf.inst.tmp"
 }
 
 dotfilesreqadmin() {
@@ -854,12 +847,11 @@ dotfilesreqadmin() {
   declare -a LISTARRAY="$*"
   for conf in ${LISTARRAY[*]}; do
     if [ ! -f "$confdir/$conf" ] && [ ! -f "$TEMP/$conf.inst.tmp" ]; then
-      execute \
-        "dotfilesreqadmincmd" \
-        "Installing required dotfile $conf"
+      #execute "dotfilesreqcmd $conf" "Installing required dotfile $conf"
+      dotfilesreqcmd $conf
     fi
   done
-  rm_rf $TEMP/*.inst.tmp
+  rm_rf "$TEMP/$conf.inst.tmp"
 }
 ##################################################################################################
 install_required() {
