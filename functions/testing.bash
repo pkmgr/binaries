@@ -2169,6 +2169,7 @@ pkmgr_install() {
   APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(cat $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -2196,6 +2197,7 @@ systemmgr_install() {
   APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -2220,6 +2222,12 @@ thememgr_install() {
   APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
   installtype="thememgr_install"
@@ -2254,6 +2262,12 @@ wallpapermgr_install() {
   APPVERSION="$(__appversion $REPORAW/version.txt)"
   ARRAY="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(<$CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
+  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
+    APPVERSION="$(<$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
+  else
+    APPVERSION="$currentVersion"
+  fi
   __mkd "$WALLPAPERS"
   __mkd "$USRUPDATEDIR"
   user_is_root && __mkd "$SYSUPDATEDIR"
