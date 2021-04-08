@@ -48,11 +48,12 @@ scripts_check
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-GEN_SCRIPTS_REPLACE_APPNAME}"
-APPDIR="${APPDIR:-$SHARE/wallpapers/$APPNAME}"
-INSTDIR="${INSTDIR:-SHARE/CasjaysDev/installed/$SCRIPTS_PREFIX/$APPNAME}"
-REPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr/$APPNAME}"
-REPORAW="$REPO/$APPNAME/raw"
-APPVERSION="$(__appversion "${REPO:-https://github.com/$SCRIPTS_PREFIX}/$APPNAME/raw/master/version.txt")"
+APPDIR="$SHARE/wallpapers/$APPNAME"
+INSTDIR="$SHARE/CasjaysDev/wallpapermgr/$APPNAME"
+REPO_BRANCH="${GIT_REPO_BRANCH:-master}"
+REPO="${WALLPAPERMGRREPO:-https://github.com/wallpapermgr}/$APPNAME"
+REPORAW="${REPORAW:-$REPO/raw}"
+APPVERSION="$(__appversion "$REPORAW/master/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Require a version higher than
 wallpapermgr_req_version "$APPVERSION"
@@ -75,7 +76,7 @@ if __am_i_online; then
   if [ -d "$INSTDIR/.git" ]; then
     execute "git_update $INSTDIR" "Updating $APPNAME wallpaper pack"
   else
-    execute "git_clone $REPO/$APPNAME $INSTDIR" "Installing $APPNAME wallpaper pack"
+    execute "git_clone $REPO $INSTDIR" "Installing $APPNAME wallpaper pack"
   fi
   # exit on fail
   failexitcode $? "Git has failed"

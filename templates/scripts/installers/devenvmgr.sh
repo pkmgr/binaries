@@ -51,11 +51,12 @@ scripts_check
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-GEN_SCRIPTS_REPLACE_APPNAME}"
-APPDIR="${APPDIR:-$HOME/.local/share/development/$APPNAME}"
-INSTDIR="${APPDIR}"
-REPO="${DEVENVMGRREPO:-https://github.com/devenvmgr/$APPNAME}"
-REPORAW="${REPORAW:-$REPO/raw}"
-APPVERSION="$(__appversion $REPORAW/master/version.txt)"
+APPDIR="$HOME/.local/share/devenvmgr/$APPNAME"
+INSTDIR="$CASJAYSDEVSHARE/devenvmgr/$APPNAME"
+REPO_BRANCH="${GIT_REPO_BRANCH:-master}"
+REPO="${DEVENVMGRREPO:-https://github.com/devenvmgr}/$APPNAME"
+REPORAW="$REPO/raw/$REPO_BRANCH"
+APPVERSION="$(__appversion "$REPORAW/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
 PLUGNAMES=""
@@ -128,7 +129,7 @@ if connect_test; then
     execute "git_update $INSTDIR" "Updating $APPNAME configurations"
   else
     execute
-    "git_clone $REPO/$APPNAME $INSTDIR" "Installing $APPNAME configurations"
+    "git_clone $REPO $INSTDIR" "Installing $APPNAME configurations"
   fi
   # exit on fail
   failexitcode $? "Git has failed"

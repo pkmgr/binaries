@@ -45,12 +45,13 @@ user_installdirs
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 APPNAME="${APPNAME:-GEN_SCRIPTS_REPLACE_FILENAME}"
-APPDIR="${APPDIR:-$HOME/.config/$APPNAME}"
-INSTDIR="${INSTDIR}"
-DATADIR="${SHARE/docker/data/$APPNAME:-/srv/docker/$APPNAME}"
-REPO="${DOCKERMGRREPO:-https://github.com/dockermgr/$APPNAME}"
-REPORAW="${REPORAW:-$REPO/raw}"
-APPVERSION="$(__appversion $REPORAW/master/version.txt)"
+DATADIR="$SHARE/docker/data/$APPNAME"
+APPDIR="$CASJAYSDEVSHARE/dockermgr/$APPNAME"
+INSTDIR="$CASJAYSDEVSHARE/dockermgr/$APPNAME"
+REPO_BRANCH="${GIT_REPO_BRANCH:-master}"
+REPO="${DOCKERMGRREPO:-https://github.com/dockermgr}/$APPNAME"
+REPORAW="$REPO/raw/$REPO_BRANCH"
+APPVERSION="$(__appversion "$REPORAW/version.txt")"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup plugins
 PLUGNAMES=""
@@ -69,26 +70,21 @@ show_optvars "$@"
 dockermgr_run_init
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup
-__dockermgr_main() {
-  mkdir -p "$DATADIR"/{data,config}
-  chmod -Rf 777 "$DATADIR"
+mkdir -p "$DATADIR"/{data,config}
+chmod -Rf 777 "$DATADIR"
 
-  if docker ps -a | grep "GEN_SCRIPTS_REPLACE_APPNAME" >/dev/null 2>&1; then
-    docker pull GEN_SCRIPTS_REPLACE_APPNAME && docker restart "GEN_SCRIPTS_REPLACE_APPNAME"
-  else
-    docker run -d \
-      --name="GEN_SCRIPTS_REPLACE_APPNAME" \
-      --hostname "GEN_SCRIPTS_REPLACE_APPNAME" \
-      --restart=always \
-      --privileged \
-      -p 4040:80 \
-      -v "$DATADIR/data":/GEN_SCRIPTS_REPLACE_APPNAME/data \
-      GEN_SCRIPTS_REPLACE_APPNAME
-  fi
-}
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# execute main function
-__dockermgr_main
+if docker ps -a | grep "GEN_SCRIPTS_REPLACE_APPNAME" >/dev/null 2>&1; then
+  docker pull GEN_SCRIPTS_REPLACE_APPNAME && docker restart "GEN_SCRIPTS_REPLACE_APPNAME"
+else
+  docker run -d \
+    --name="GEN_SCRIPTS_REPLACE_APPNAME" \
+    --hostname "GEN_SCRIPTS_REPLACE_APPNAME" \
+    --restart=always \
+    --privileged \
+    -p 4040:80 \
+    -v "$DATADIR/data":/GEN_SCRIPTS_REPLACE_APPNAME/data \
+    GEN_SCRIPTS_REPLACE_APPNAME
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # create version file
 dockermgr_install_version

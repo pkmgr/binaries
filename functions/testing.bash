@@ -968,7 +968,7 @@ __curl_header() { curl --disable -LSIsk --connect-timeout 3 --retry 0 --max-time
 #curl_download "url" "file"
 __curl_download() { curl --disable --create-dirs -LSsk --connect-timeout 3 --retry 0 "$1" -o "$2" 2>/dev/null; }
 #curl_version "url"
-__curl_version() { curl --disable -LSsk --connect-timeout 3 --retry 0 "${1:-$REPORAW/master/version.txt}" 2>/dev/null; }
+__curl_version() { curl --disable -LSsk --connect-timeout 3 --retry 0 "${1:-$REPORAW/version.txt}" 2>/dev/null; }
 #curl_upload "file" "url"
 __curl_upload() { curl -disable -LSsk --connect-timeout 3 --retry 0 --upload-file "$1" "$2" 2>/dev/null; }
 #curl_api "API URL"
@@ -1893,6 +1893,10 @@ __if_os_id() {
 }
 ###################### setup folders - user ######################
 user_installdirs() {
+  APPNAME="$(basename $0)"
+  APPDIR="$(dirname $0)"
+  INSTDIR="$(dirname $0)"
+  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     INSTALL_TYPE=user
     if [[ $(uname -s) =~ Darwin ]]; then HOME="/usr/local/home/root"; else HOME="${HOME}"; fi
@@ -1942,17 +1946,17 @@ user_installdirs() {
     SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
-  APPNAME="$(basename $0)"
-  #APPDIR="$(dirname $0)"
-  #INSTDIR="$(dirname $0)"
-  #SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
-  #REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
-  #INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   installtype="user_installdirs"
 }
 
 ###################### setup folders - system ######################
 system_installdirs() {
+  APPNAME="$(basename $0)"
+  APPDIR="$(dirname $0)"
+  INSTDIR="$(dirname $0)"
+  SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
   if [[ $(id -u) -eq 0 ]] || [[ $EUID -eq 0 ]] || [[ "$WHOAMI" = "root" ]]; then
     if [[ $(uname -s) =~ Darwin ]]; then HOME="/usr/local/home/root"; else HOME="${HOME}"; fi
     BACKUPDIR="$HOME/.local/backups"
@@ -2001,12 +2005,8 @@ system_installdirs() {
     SYSUPDATEDIR="$HOME/.local/share/CasjaysDev/apps/${SCRIPTS_PREFIX:-dfmgr}"
     SYSTEMDDIR="$HOME/.config/systemd/user"
   fi
-  APPNAME="$(basename $0)"
-  #APPDIR="$(dirname $0)"
-  #INSTDIR="$(dirname $0)"
-  #SCRIPTS_PREFIX="${SCRIPTS_PREFIX:-dfmgr}"
-  #REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
-  #INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
+  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   installtype="system_installdirs"
 }
 
@@ -2044,7 +2044,7 @@ dfmgr_install() {
   APPDIR="${APPDIR:-$CONF/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   REPO="${REPO:-$DFMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion $REPORAW/version.txt)"
@@ -2070,7 +2070,7 @@ dockermgr_install() {
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   DATADIR="${DATADIR:-/srv/docker/$APPNAME}"
   REPO="${REPO:-$DOCKERMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$DOCKERMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion $REPORAW/version.txt)"
@@ -2095,7 +2095,7 @@ fontmgr_install() {
   APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   REPO="${REPO:-$FONTMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$FONTMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
@@ -2128,7 +2128,7 @@ iconmgr_install() {
   APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   REPO="${REPO:-$ICONMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$ICONMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
@@ -2162,7 +2162,7 @@ pkmgr_install() {
   APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   REPO="${REPO:-$PKMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$PKMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/$GIT_REPO_BRANCH"
@@ -2190,7 +2190,7 @@ systemmgr_install() {
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
   REPO="${REPO:-$SYSTEMMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$SYSTEMMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion $REPORAW/version.txt)"
@@ -2213,7 +2213,7 @@ thememgr_install() {
   APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   REPO="${REPO:-$THEMEMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$THEMEMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
@@ -2248,7 +2248,7 @@ wallpapermgr_install() {
   APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   REPO="${REPO:-$WALLPAPERMGRREPO/$APPNAME}"
-  REPORAW="${REPORAW:-$WALLPAPERMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   APPVERSION="$(__appversion $REPORAW/version.txt)"
@@ -2484,16 +2484,16 @@ run_install_init() {
   local -a LISTARRAY="$*"
   for ins in ${LISTARRAY[*]}; do
     __main_installer_info
-    local REPORAW="$REPO/$ins/raw"
+    local REPORAW="$REPO/$ins/raw/$GIT_REPO_BRANCH"
     if user_is_root; then
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
         sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$ins/install.sh"
       else
-        if __urlcheck "$REPORAW/master/install.sh"; then
-          sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/master/install.sh)"
+        if __urlcheck "$REPORAW/install.sh"; then
+          sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/install.sh)"
         else
           printf_error "Failed to initialize the installer from:"
-          printf_exit "$REPORAW/master/install.sh\n"
+          printf_exit "$REPORAW/install.sh\n"
         fi
       fi
       local exitCode+=$?
@@ -2501,11 +2501,11 @@ run_install_init() {
       if [ -f "$INSTDIR/$ins/install.sh" ]; then
         FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$ins/install.sh"
       else
-        if __urlcheck "$REPORAW/master/install.sh"; then
-          FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/master/install.sh)"
+        if __urlcheck "$REPORAW/install.sh"; then
+          FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/install.sh)"
         else
           printf_error "Failed to initialize the installer from:"
-          printf_exit "$REPORAW/master/install.sh\n"
+          printf_exit "$REPORAW/install.sh\n"
         fi
       fi
       local exitCode+=$?
@@ -2600,7 +2600,7 @@ run_install_list() {
 run_install_search() {
   [ $# = 0 ] && printf_exit "Nothing to search for"
   local results=""
-  local -a LSINST="$@"
+  local -a LSINST="$*"
   for df in "${LSINST[@]}"; do
     local -a results+="$(echo -e "$LIST" | grep -Fi "$df" | sed 's| ||g' | grep -sv '^$') "
   done
@@ -2682,7 +2682,7 @@ __appversion() {
   else
     localVersion="$localVersion"
   fi
-  __curl "${1:-$REPORAW/master/version.txt}" || echo "$localVersion"
+  __curl "${1:-$REPORAW/version.txt}" || echo "$localVersion"
 }
 
 __required_version() {
