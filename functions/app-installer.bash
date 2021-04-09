@@ -462,6 +462,7 @@ __am_i_online() {
 }
 ##################################################################################################
 cmd_exists() {
+  [ -n "$1" ] || return
   local args="$*"
   local exitCode=0
   for cmd in $args; do
@@ -472,10 +473,12 @@ cmd_exists() {
   return $exitCode
 }
 gem_exists() {
+  [ -n "$1" ] || return
   local package="$1"
   if devnull gem query -i -n "$package"; then return 0; else return 1; fi
 }
 perl_exists() {
+  [ -n "$1" ] || return
   local package="$1"
   if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}' ||
     devnull perl -M$package -le 'print $INC{"$package.pm"}' ||
@@ -486,6 +489,7 @@ perl_exists() {
   fi
 }
 pthon_exists() {
+  [ -n "$1" ] || return
   local package="$1"
   if devnull $PYTHONVER -c "import $package"; then return 0; else return 1; fi
 }
@@ -861,7 +865,7 @@ dotfilesreqadmin() {
 }
 ##################################################################################################
 install_required() {
-  [[ $# -ne 0 ]] || return 0
+  [ -n "$1" ] || return
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -891,7 +895,7 @@ install_required() {
 }
 ##################################################################################################
 install_packages() {
-  [[ $# -ne 0 ]] || return 0
+  [ -n "$1" ] || return
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -913,7 +917,7 @@ install_packages() {
 }
 ##################################################################################################
 install_python() {
-  [[ $# -ne 0 ]] || return 0
+  [ -n "$1" ] || return
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -935,7 +939,7 @@ install_python() {
 }
 ##################################################################################################
 install_perl() {
-  [[ $# -ne 0 ]] || return 0
+  [ -n "$1" ] || return
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -953,7 +957,7 @@ install_perl() {
 }
 ##################################################################################################
 install_pip() {
-  [[ $# -ne 0 ]] || return 0
+  [ -n "$1" ] || return
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -971,7 +975,7 @@ install_pip() {
 }
 ##################################################################################################
 install_cpan() {
-  [[ $# -ne 0 ]] || return 0
+  [ -n "$1" ] || return
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -989,7 +993,7 @@ install_cpan() {
 }
 ##################################################################################################
 install_gem() {
-  [[ $# -ne 0 ]] || return 0
+  [ -n "$1" ] || return
   if __am_i_online; then
     local MISSING=""
     local cmd=""
