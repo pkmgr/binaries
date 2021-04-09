@@ -2178,7 +2178,7 @@ pkmgr_install() {
 
 ###################### systemmgr settings ######################
 systemmgr_install() {
-  __requiresudo "true"
+  #__requiresudo "true"
   system_installdirs
   SCRIPTS_PREFIX="systemmgr"
   APPDIR="${APPDIR:-/usr/local/etc}"

@@ -766,17 +766,18 @@ versioncheck() {
 }
 ##################################################################################################
 scripts_check() {
+  mkdir -p "$HOME/.config/local"
   local choice=""
   export -f __curl
   if __am_i_online; then
-    if ! cmd_exists "pkmgr" && [ ! -f ~/.noscripts ]; then
+    if ! cmd_exists "pkmgr" && [ ! -f "$HOME/.config/local/noscripts" ]; then
       printf_red "Please install my scripts repo - requires root/sudo"
       printf_question_timeout "4" "Would you like to do that now" "1" "choice" "-s"
       if [[ $choice == "y" || $choice == "Y" ]]; then
-        urlverify $REPO/installer/raw/$GIT_REPO_BRANCH/install.sh &&
-          sudo bash -c "$(__curl $REPO/installer/raw/$GIT_REPO_BRANCH/install.sh)" && echo
+        urlverify "$SYSTEMMGRREPO/installer/raw/$GIT_REPO_BRANCH/install.sh" &&
+          sudo bash -c "$(__curl "$SYSTEMMGRREPO/installer/raw/$GIT_REPO_BRANCH/install.sh")" && echo
       else
-        touch ~/.noscripts
+        touch "$HOME/.config/local/noscripts"
         exit 1
       fi
     fi
@@ -1350,7 +1351,7 @@ get_app_version() {
   [ -n "$APPNAME" ] && printf_info "APP name:                  $APPNAME"
   [ -n "$APPDIR" ] && printf_info "APP dir:                   $APPDIR"
   [ -n "$INSTDIR" ] && printf_info "Downloaded to:             $INSTDIR"
-  [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO/$APPNAME"
+  [ -n "$GITREPO" ] && printf_info "APP repo:                  $REPO"
   [ -n "$PLUGNAMES" ] && printf_info "Plugins:                   $PLUGNAMES"
   [ -n "$PLUGDIR" ] && printf_info "PluginsDir:                $PLUGDIR"
   [ -n "$version" ] && printf_info "Installed Version:         $version"
@@ -1412,11 +1413,11 @@ show_optvars() {
 
   if [ "$1" = "--help" ]; then
     #    if cmd_exists xdg-open; then
-    #      xdg-open "$REPO/$APPNAME"
+    #      xdg-open "$REPO"
     #    elif cmd_exists open; then
-    #      open "$REPO/$APPNAME"
+    #      open "$REPO"
     #    else
-    printf_cyan "Go to $REPO/$APPNAME for help"
+    printf_cyan "Go to $REPO for help"
     #    fi
     exit
   fi
@@ -1647,7 +1648,7 @@ dfmgr_install() {
   SCRIPTS_PREFIX="dfmgr"
   APPDIR="${APPDIR:-$CONF/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-  REPO="${REPO:-$DFMGRREPO}"
+  REPO="${REPO:-$DFMGRREPO/$APPNAME}"
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1688,7 +1689,7 @@ dockermgr_install() {
   APPDIR="${APPDAIR:-$SHARE/docker/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   DATADIR="${DATADIR:-/srv/docker/$APPNAME}"
-  REPO="${REPO:-$DOCKERMGRREPO}"
+  REPO="${REPO:-$DOCKERMGRREPO/$APPNAME}"
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1726,7 +1727,7 @@ fontmgr_install() {
   SCRIPTS_PREFIX="fontmgr"
   APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-  REPO="${REPO:-$FONTMGRREPO}"
+  REPO="${REPO:-$FONTMGRREPO/$APPNAME}"
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1765,7 +1766,7 @@ iconmgr_install() {
   SCRIPTS_PREFIX="iconmgr"
   APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-  REPO="${REPO:-$ICONMGRREPO}"
+  REPO="${REPO:-$ICONMGRREPO/$APPNAME}"
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
@@ -1809,7 +1810,7 @@ pkmgr_install() {
   SCRIPTS_PREFIX="pkmgr"
   APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
   INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-  REPO="${REPO:-$PKMGRREPO}"
+  REPO="${REPO:-$PKMGRREPO/$APPNAME}"
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
