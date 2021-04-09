@@ -8,7 +8,6 @@ GenericName=Multimedia player
 Comment=Watch videos.
 Icon=vlc
 Exec=videos
-Path=~
 Terminal=false
 Actions=
 Categories=Video;Player;GTK;X-XFCE;GNOME;MyScripts;

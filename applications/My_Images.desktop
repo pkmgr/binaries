@@ -9,7 +9,6 @@ Comment=Manage Photos.
 Icon=image-viewer
 TryExec=images
 Exec=images
-Path=~
 Terminal=false
 Actions=
 Categories=Graphics;Viewer;Photography;GTK;X-XFCE;GNOME;MyScripts;

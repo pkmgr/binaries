@@ -9,7 +9,6 @@ Comment=Manage Media.
 Icon=multimedia
 TryExec=multimedia
 Exec=multimedia
-Path=~
 Terminal=false
 Actions=
 Categories=AudioVideo;Player;Recorder;Graphics;GTK;X-XFCE;GNOME;MyScripts;

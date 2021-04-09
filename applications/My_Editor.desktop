@@ -9,7 +9,6 @@ Comment=Edit Files.
 Icon=accessories-text-editor
 TryExec=myeditor
 Exec=myeditor
-Path=~
 Terminal=false
 Actions=
 Categories=GTK;Development;IDE;GTK;X-XFCE;GNOME;MyScripts;

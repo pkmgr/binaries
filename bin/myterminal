@@ -87,31 +87,48 @@ __create_link() {
 [ "$TERMINAL" = "myterminal" ] && unset TERMINAL
 if [ "$MYTERMINAL" != "config" ]; then
   if [ -f "$(command -v termite 2>/dev/null)" ]; then
-    export TERMINAL="termite"
+    TERMINAL="termite"
+  elif [ -f "$(command -v sakura 2>/dev/null)" ]; then
+    TERMINAL="sakura"
   elif [ -f "$(command -v xfce4-terminal 2>/dev/null)" ]; then
-    export TERMINAL="xfce4-terminal"
+    TERMINAL="xfce4-terminal"
   elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
-    export TERMINAL="qterminal-terminal"
+    TERMINAL="qterminal-terminal"
   elif [ -f "$(command -v qterminal-terminal 2>/dev/null)" ]; then
-    export TERMINAL="qterminal-terminal"
+    TERMINAL="qterminal-terminal"
   elif [ -f "$(command -v mate-terminal 2>/dev/null)" ]; then
-    export TERMINAL="mate-terminal"
+    TERMINAL="mate-terminal"
   elif [ -f "$(command -v i3-sensible-terminal 2>/dev/null)" ]; then
-    export TERMINAL="i3-sensible-terminal"
+    TERMINAL="i3-sensible-terminal"
   elif [ -f "$(command -v rofi-sensible-terminal 2>/dev/null)" ]; then
-    export TERMINAL="rofi-sensible-terminal"
+    TERMINAL="rofi-sensible-terminal"
   elif [ -f "$(command -v terminology 2>/dev/null)" ]; then
-    export TERMINAL="terminology"
+    TERMINAL="terminology"
+  elif [ -f "$(command -v gnome-terminal 2>/dev/null)" ]; then
+    TERMINAL="gnome-terminal"
+  elif [ -f "$(command -v deepin-terminal 2>/dev/null)" ]; then
+    TERMINAL="deepin-terminal"
+  elif [ -f "$(command -v kitty 2>/dev/null)" ]; then
+    TERMINAL="kitty"
+  elif [ -f "$(command -v konsole 2>/dev/null)" ]; then
+    TERMINAL="konsole"
+  elif [ -f "$(command -v lxterminal 2>/dev/null)" ]; then
+    TERMINAL="lxterminal"
+  elif [ -f "$(command -v tilix 2>/dev/null)" ]; then
+    TERMINAL="tilix"
+  elif [ -f "$(command -v rxvt-unicode 2>/dev/null)" ]; then
+    TERMINAL="rxvt-unicode"
   elif [ -f "$(command -v xterm 2>/dev/null)" ]; then
-    export TERMINAL="xterm"
+    TERMINAL="xterm"
   elif [ -f "$(command -v uxterm 2>/dev/null)" ]; then
-    export TERMINAL="uxterm"
+    TERMINAL="uxterm"
   elif [ -f "/Applications/iTerm.app/Contents/MacOS/iTerm" ]; then
-    export TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"
+    TERMINAL="/Applications/iTerm.app/Contents/MacOS/iTerm"
   elif [ -f "/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal" ]; then
-    export TERMINAL="/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
+    TERMINAL="/System/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal"
   fi
 fi
+export TERMINAL
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -z "$TERMINAL" ]; then
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "No terminal emulators are installed"

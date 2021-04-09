@@ -8,7 +8,6 @@ GenericName=NotificationDaemon
 Comment=Start Notification Daemon.
 Icon=preferences-desktop-notification
 Exec=notify-daemon --term
-Path=~
 Terminal=false
 Actions=
 Categories=System;GTK;X-XFCE;GNOME;

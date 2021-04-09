@@ -9,7 +9,6 @@ Comment=Manage Torrents.
 Icon=transmission
 TryExec=mytorrent
 Exec=mytorrent
-Path=~
 Terminal=false
 Actions=
 Categories=Network;FileTransfer;P2P;GTK;X-XFCE;GNOME;MyScripts;

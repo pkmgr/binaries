@@ -8,7 +8,6 @@ GenericName=MPDNotify
 Comment=Get MPD Notifications.
 Icon=multimedia
 Exec=mpd-notify --term
-Path=~
 Terminal=false
 Actions=
 Categories=Audio;Player;System;GTK;X-XFCE;GNOME;MyScripts

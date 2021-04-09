@@ -8,7 +8,6 @@ GenericName=Notes
 Comment=Manage Notes.
 Icon=geany
 Exec=notes
-Path=~
 Terminal=false
 Actions=
 Categories=GTK;Development;IDE;GTK;X-XFCE;GNOME;MyScripts;

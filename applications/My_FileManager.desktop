@@ -8,7 +8,6 @@ GenericName=File Manager
 Comment=Manage Files.
 Icon=system-file-manager
 Exec=myfilemanager
-Path=~
 Terminal=false
 Actions=
 Categories=FileManager;System;Utility;GTK;X-XFCE;GNOME;MyScripts;

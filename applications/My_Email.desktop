@@ -8,7 +8,6 @@ GenericName=E-Mail
 Comment=Manage E-mail.
 Icon=thunderbird
 Exec=myemail
-Path=~
 Terminal=false
 Actions=
 Categories=Application;Network;Email;GTK;X-XFCE;GNOME;MyScripts;

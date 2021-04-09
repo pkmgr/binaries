@@ -9,7 +9,6 @@ Comment=Open a ssh conection.
 Icon=folder-remote-ssh
 TryExec=myssh
 Exec=myssh
-Path=~
 Terminal=false
 Actions=
 Categories=GTK;System;Network;GTK;X-XFCE;GNOME;MyScripts;

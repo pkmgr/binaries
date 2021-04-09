@@ -8,7 +8,6 @@ GenericName=Backup
 Comment=Backup Files.
 Icon=back
 Exec=backupapp --term
-Path=~
 Terminal=false
 Actions=
 Categories=System;Utility;GTK;X-XFCE;GNOME;MyScripts;

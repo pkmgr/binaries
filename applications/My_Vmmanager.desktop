@@ -8,7 +8,6 @@ GenericName=VM Manager
 Comment=Manager VMs.
 Icon=virtualbox
 Exec=myvmmanager
-Path=~
 Terminal=false
 Actions=
 Categories=System;GTK;X-XFCE;GNOME;MyScripts;

@@ -8,7 +8,6 @@ GenericName=MPDCLient
 Comment=Manage MPD.
 Icon=multimedia
 Exec=mpdclient
-Path=~
 Terminal=false
 Actions=
 Categories=Audio;Player;GTK;X-XFCE;GNOME;MyScripts;

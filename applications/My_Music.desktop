@@ -9,7 +9,6 @@ Comment=Play Music.
 Icon=multimedia
 TryExec=music
 Exec=music
-Path=~
 Terminal=false
 Actions=
 Categories=Audio;Player;GTK;X-XFCE;GNOME;MyScripts;

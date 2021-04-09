@@ -461,9 +461,10 @@ __am_i_online() {
 ##################################################################################################
 cmd_exists() {
   local args="$*"
+  local exitCode=0
   for cmd in $args; do
     unalias "$cmd" 2>/dev/null >&1
-    if devnull command -v "$cmd"; then return 0; else return 1; fi
+    if devnull command -v "$cmd" || devnull type -P "$cmd"; then return 0; else return 1; fi
     exitCode+=$?
   done
   return $exitCode
@@ -598,7 +599,7 @@ __getpythonver() {
     PIP="pip"
     PATH="${PATH}:$(python -c 'import site; print(site.USER_BASE)')/bin"
   fi
-  if [ "$(cmd_exists yay)" ] || [ "$(cmd_exists pacman)" ]; then PYTHONVER="python" && PIP="pip3"; fi
+  if cmd_exists yay || cmd_exists pacman; then PYTHONVER="python" && PIP="pip3"; fi
 }
 __getpythonver
 ##################################################################################################
