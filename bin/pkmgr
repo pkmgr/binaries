@@ -637,7 +637,7 @@ install | -i)
   shift 1
   [ "$1" = "help" ] && printf_help "Install a package"
   am_i_online --error || exit 1
-  "$pkgmgrbinins" "${@}" && exit 0 || exit 1
+  $pkgmgrbinins "${@}" && exit 0 || exit 1
   set --
   ;;
 
