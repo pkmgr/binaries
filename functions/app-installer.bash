@@ -72,6 +72,7 @@ sudo_pkmgr() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cmd_exists() {
+  [ -n "$1" ] || return 0
   local LISTARRAY="$*"
   local exitCode=0
   local pkg=""
