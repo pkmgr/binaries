@@ -1999,7 +1999,7 @@ run_install_init() {
       printf_purple "${INSTDIR/$HOME/\~}/install.sh"
       #bash -c "$INSTDIR/install.sh"
     else
-      printf_yellow "Downloading to ${INSTDIR/$HOME/\~}/$APPNAME"
+      printf_yellow "Downloading to ${INSTDIR/$HOME/\~}"
       printf_purple "$REPORAW/install.sh"
       if ! urlcheck "$REPORAW/install.sh"; then
         printf_error "Failed to initialize the installer from:"
@@ -2007,9 +2007,9 @@ run_install_init() {
       fi
     fi
     if [ -d "$INSTDIR" ]; then
-      printf_green "Updating ${1:-$APPNAME} in ${INSTDIR/$HOME/\~}"
+      printf_green "Updating ${1:-$APPNAME} in ${APPDIR/$HOME/\~}"
     else
-      printf_green "Installing ${1:-$APPNAME} to ${INSTDIR/$HOME/\~}"
+      printf_green "Installing ${1:-$APPNAME} to ${APPDIR/$HOME/\~}"
     fi
     local exitCode=$?
     export APPDIR INSTDIR
