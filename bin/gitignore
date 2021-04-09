@@ -78,49 +78,46 @@ setup_custom() {
         mv -f "$GITDIR/.gitignore" "$GITDIR/.gitignore.tmp" &&
           printf "$custom_cmd\n\n" >"$GITDIR/.gitignore" &&
           cat "$GITDIR/.gitignore.tmp" >>"$GITDIR/.gitignore" &&
-          rm -Rf "$GITDIR/.gitignore.tmp" &&
-          printf_green "Added dirignore to your .gitignore" ||
-          printf_error "Failed to add dirignore to gitignore"
-      else
-        printf_green "dirignore added to .gitignore"
+          rm -Rf "$GITDIR/.gitignore.tmp" && return 0 || return 1
       fi
     else
-      printf "$custom_cmd\n\n" >>"$GITDIR/.gitignore" &&
-        printf_green "Added dirignore to your .gitignore" ||
-        printf_error "Failed to add dirignore to gitignore"
+      printf "$custom_cmd\n\n" >>"$GITDIR/.gitignore" && return 0 || return 1
     fi
     ;;
   *)
-    return
+    return 1
     ;;
   esac
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+fetch_file() {
+  gi_args=()
+  for arg; do
+    if [[ $arg = -- ]]; then
+      curl_args=("${gi_args[@]}")
+        gi_args=()
+    else
+        gi_args+=("$arg")
+    fi
+  done
+  IFS=,
+  curl -q -LSs "${curl_args[@]}" https://www.toptal.com/developers/gitignore/api/"${gi_args[*]}"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 fetch_ignore() {
   if [ -d "$GITIGNOREDIR" ]; then
+    local IGNOREFILES="$IGNOREFILES"
     for file in $IGNOREFILES; do
-      if setup_custom "$file"; then
-        true
-      elif [ -f "$GITIGNOREDIR/$file" ]; then
+      ls "$GITIGNOREDIR/$file"
+      if grep -sEvq '#.*|^$' "$GITIGNOREDIR/$file"; then
         cat "$GITIGNOREDIR/$file"
       else
-        fetch_ignore "$file"
+        fetch_file "$file"
       fi
     done
   else
-    gi_args=()
-    for arg; do
-      if [[ $arg = -- ]]; then
-        curl_args=("${gi_args[@]}")
-        gi_args=()
-      else
-        gi_args+=("$arg")
-      fi
-    done
-    local IFS=,
-    __curl "${curl_args[@]}" "$GITIGNOREURL/${gi_args[*]}"
+    fetch_file "$@"
   fi
-  printf "\n"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ignore_overwrite() {
@@ -140,7 +137,7 @@ ignore_overwrite() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 create_gitignore() {
-  fetch_ignore "$@" >>"$GITDIR/.gitignore"
+  fetch_ignore "$@" #>>"$GITDIR/.gitignore"
   printf_green "Added $IGNORELIST to your .gitignore"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -150,32 +147,45 @@ case $* in
   __help
   exit
   ;;
+
 --list)
   cat "${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array" | printf_column
   exit
   ;;
+
 --console)
   shift 1
   printf_green "$(fetch_ignore "$@")"
   exit
   ;;
+
 --update)
-  dir="${1:-$HOME/.config/gitignore/files}"
+  shift 1
+  dir="${1:-$GITIGNOREDIR}"
+  curl -q -LSs https://www.toptal.com/developers/gitignore/api/list | tr ',' ' ' | tr ' ' '\n' > /tmp/ignorelist
+  arrayfile="/tmp/ignorelist"
   mkdir -p "$dir"
-  for f in $(cat "${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array"); do
-    create_gitignore "$dir/$f"
+  printf_cyan "Retrieving the files from gitignore.io and saving"
+  printf_cyan "them to $dir"
+  cat "$arrayfile" | while read line || [[ -n $line ]]; do
+    fetch_file "$line" | grep -v -E '(^# .*$)|(^$)' > "$dir/$line" && \
+      printf '\n' >> "$dir/$line" && printf_green "Created $line" || \
+      printf_red "Failed to create $dir/$line"
   done
-  printf "# Disable reminder in prompt\nignoredirmessage\n" > "$dir/dirignore"
+  printf "# Disable reminder in prompt\nignoredirmessage\n\n" > "$dir/dirignore"
+  rm /tmp/ignorelist
   exit
   ;;
+
 dirignore)
   if [ $# = 1 ]; then
-    setup_custom
+    setup_custom && printf_green "Added dirignore to your .gitignore" || \
+      printf_error "Failed to add dirignore to gitignore"
   fi
   ;;
 *)
   ignore_overwrite "$@" $ignoredir
-  [ $# -ne 0 ] && create_gitignore "$@" || exit $?
+  [ $# -ne 0 ] && create_gitignore "$@" && true || false
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
