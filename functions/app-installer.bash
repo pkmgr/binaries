@@ -72,11 +72,13 @@ sudo_pkmgr() {
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cmd_exists() {
-  local pkg LISTARRAY
   local LISTARRAY="$*"
+  local exitCode=0
+  local pkg=""
   for pkg in $LISTARRAY; do
-    type -P "$1" | grep -q "/" 2>/dev/null
+    type -P "$pkg" &>/dev/null && exitCode+=0 || exitCode+=1
   done
+  return $exitCode
 }
 devnull() { "$@" >/dev/null 2>&1; }
 devnull2() { "$@" >/dev/null 2>&1; }
@@ -859,7 +861,7 @@ dotfilesreqadmin() {
 }
 ##################################################################################################
 install_required() {
-  [[ -n "$1" ]] || return 0
+  [[ $# -ne 0 ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -874,8 +876,8 @@ install_required() {
           pkmgr dotfiles "$APPNAME"
         fi
       fi
-      unset MISSING
     fi
+    unset MISSING
     for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
     if [ -n "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
@@ -885,13 +887,11 @@ install_required() {
       #set -eE
       return 1
     fi
-    unset MISSING
   fi
-  # unset MISSING
 }
 ##################################################################################################
 install_packages() {
-  [[ -n "$1" ]] || return 0
+  [[ $# -ne 0 ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -908,13 +908,12 @@ install_packages() {
           fi
         done
       fi
-      unset MISSING
     fi
   fi
 }
 ##################################################################################################
 install_python() {
-  [[ -n "$1" ]] || return 0
+  [[ $# -ne 0 ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -933,11 +932,10 @@ install_python() {
       fi
     fi
   fi
-  unset MISSING
 }
 ##################################################################################################
 install_perl() {
-  [[ -n "$1" ]] || return 0
+  [[ $# -ne 0 ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -952,11 +950,10 @@ install_perl() {
       fi
     fi
   fi
-  unset MISSING
 }
 ##################################################################################################
 install_pip() {
-  [[ -n "$1" ]] || return 0
+  [[ $# -ne 0 ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -971,11 +968,10 @@ install_pip() {
       fi
     fi
   fi
-  unset MISSING
 }
 ##################################################################################################
 install_cpan() {
-  [[ -n "$1" ]] || return 0
+  [[ $# -ne 0 ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -989,12 +985,11 @@ install_cpan() {
         done
       fi
     fi
-    unset MISSING
   fi
 }
 ##################################################################################################
 install_gem() {
-  [[ -n "$1" ]] || return 0
+  [[ $# -ne 0 ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -1009,7 +1004,6 @@ install_gem() {
       fi
     fi
   fi
-  unset MISSING
 }
 ##################################################################################################
 trim() {
