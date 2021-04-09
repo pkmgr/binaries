@@ -2390,11 +2390,11 @@ __version() {
 __options() {
   $installtype
   case $1 in
-  --update) ###################### Update check ######################
-    shift 1
-    printf_error "Not enabled in apps: See the installer"
-    exit
-    ;;
+  #--update) ###################### Update check ######################
+  #  shift 1
+  #  printf_error "Not enabled in apps: See the installer"
+  #  exit
+  #  ;;
 
   --vdebug) ###################### basic debug ######################
     shift 1
