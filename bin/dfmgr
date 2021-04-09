@@ -202,10 +202,8 @@ cmd_exists --error bash || exit 1
 # APP Variables
 export DFMGRREPO="$DFMGR_GIT_REPO"
 export REPO="$DFMGRREPO"
-export REPORAW="$DFMGRREPO/raw"
 export APPDIR="$CONF"
 export INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
-export installtype
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
@@ -232,14 +230,13 @@ personal)
 
 remove)
   shift 1
-  unset APPNAME
   if [ "$INSTALL_ALL" = "true" ]; then
-    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
+    LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
   else
-    declare -a LISTARRAY="$*"
+    LISTARRAY="$*"
   fi
   [ ${#LISTARRAY} -ne 0 ] || printf_exit "No packages selected for removal"
-  for rmf in ${LISTARRAY[*]}; do
+  for rmf in $LISTARRAY; do
     MESSAGE="Removing $rmf from $CONF"
     APPNAME="$rmf"
     installer_delete "$APPNAME"
@@ -249,14 +246,13 @@ remove)
 
 update)
   shift 1
-  unset APPNAME
   if [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; then
-    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
+    LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
   else
-    declare -a LISTARRAY="$*"
+    LISTARRAY="$*"
   fi
   if [ $# -ne 0 ]; then
-    for ins in ${LISTARRAY[*]}; do
+    for ins in $LISTARRAY; do
       APPNAME="$ins"
       run_install_update "$APPNAME"
     done
@@ -274,29 +270,26 @@ update)
 
 install)
   shift 1
-  unset APPNAME
-  if [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; then
-    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
-  else
-    declare -a LISTARRAY="$*"
-  fi
-  if [ $# -eq 0 ]; then
+  if [ "$INSTALL_ALL" = "true" ]; then
+    LISTARRAY="$(__list_available)"
+  elif [ $# -eq 0 ]; then
     printf_blue "No packages provide running the updater"
     run_install_update
+    exit $?
   else
-    for ins in ${LISTARRAY[*]}; do
-      APPNAME="$ins"
-      run_install_update "$ins"
-    done
+    LISTARRAY="$*"
   fi
+  for ins in $LISTARRAY; do
+    APPNAME="$ins"
+    run_install_update "$APPNAME"
+  done
   exit $?
   ;;
 
 cron)
   shift 1
-  unset APPNAME
-  declare -a LISTARRAY="$*"
-  for cron in ${LISTARRAY[*]}; do
+  LISTARRAY="$*"
+  for cron in $LISTARRAY; do
     APPNAME="$cron"
     cron_updater "$APPNAME"
   done
@@ -304,9 +297,8 @@ cron)
 
 version)
   shift 1
-  unset APPNAME
-  declare -a LISTARRAY="$*"
-  for ver in ${LISTARRAY[*]}; do
+  LISTARRAY="$*"
+  for ver in $LISTARRAY; do
     APPNAME="$ver"
     run_install_version "$APPNAME"
   done

@@ -2017,10 +2017,10 @@ system_install() { system_installdirs; }
 devenvmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="devenv"
-  APPDIR="$SHARE/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  REPO="$DEVENVMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-$SHARE/$SCRIPTS_PREFIX}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  REPO="${REPO:-$DEVENVMGRREPO}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(grep -s '^' $CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
@@ -2041,15 +2041,15 @@ devenvmgr_install() {
 dfmgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dfmgr"
-  APPDIR="$CONF/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  REPO="$DFMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-$CONF}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  REPO="${REPO:-$DFMGRREPO}"
+  REPORAW="${REPORAW:-$DFMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(grep -s '^' $CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(grep -s '^' $CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
-  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  #[ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(grep -sv '#' $CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME)"
   else
@@ -2065,11 +2065,11 @@ dfmgr_install() {
 dockermgr_install() {
   user_installdirs
   SCRIPTS_PREFIX="dockermgr"
-  APPDIR="$SHARE/docker/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  DATADIR="/srv/docker/$APPNAME"
-  REPO="$DOCKERMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-$SHARE/docker}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  DATADIR="${DATADIR:-$/srv/docker/$APPNAME}"
+  REPO="${REPO:-$DOCKERMGRREPO}"
+  REPORAW="${REPORAw:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(grep -s '^' $CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
@@ -2090,10 +2090,10 @@ dockermgr_install() {
 fontmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="fontmgr"
-  APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  REPO="$FONTMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  REPO="${REPO:-$FONTMGRREPO}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   FONTDIR="${FONTDIR:-$SHARE/fonts}"
@@ -2122,10 +2122,10 @@ fontmgr_install() {
 iconmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="iconmgr"
-  APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  REPO="$ICONMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  REPO="${REPO:-$ICONMGRREPO}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ICONDIR="${ICONDIR:-$SHARE/icons}"
@@ -2155,10 +2155,10 @@ iconmgr_install() {
 pkmgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="pkmgr"
-  APPDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  REPO="$PKMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  REPO="${REPO:-$PKMGRREPO}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   REPODF="https://raw.githubusercontent.com/pkmgr/dotfiles/$GIT_REPO_BRANCH"
@@ -2181,12 +2181,12 @@ systemmgr_install() {
   __requiresudo "true"
   system_installdirs
   SCRIPTS_PREFIX="systemmgr"
-  APPDIR="/usr/local/etc/$APPNAME"
-  INSTDIR="$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+  APPDIR="${APPDIR:-/usr/local/etc}"
+  INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX}"
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
-  REPO="$SYSTEMMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  REPO="${REPO:-SYSTEMMGRREPO}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(grep -s '^' $CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
@@ -2206,10 +2206,10 @@ systemmgr_install() {
 thememgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="thememgr"
-  APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
-  REPO="$THEMEMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  REPO="${REPO:-$THEMEMGRREPO}"
+  REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   THEMEDIR="${THEMEDIR:-$SHARE/themes}"
@@ -2227,8 +2227,8 @@ thememgr_install() {
   ######## Installer Functions ########
   generate_theme_index() {
     printf_green "Updating the theme index in $THEMEDIR"
-    local -a LISTARRAY="${*:-$APPNAME}"
-    for index in ${LISTARRAY[*]}; do
+    LISTARRAY="${*:-$APPNAME}"
+    for index in $LISTARRAY; do
       THEMEDIR="${THEMEDIR:-$SHARE/themes}/${index:-}"
       if [ -d "$THEMEDIR" ]; then
         find "$THEMEDIR" -mindepth 0 -maxdepth 2 -type f,l,d -not -path "*/.git/*" 2>/dev/null | while read -r THEME; do
@@ -2246,15 +2246,15 @@ thememgr_install() {
 wallpapermgr_install() {
   system_installdirs
   SCRIPTS_PREFIX="wallpapermgr"
-  APPDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
-  INSTDIR="$SHARE/CasjaysDev/$SCRIPTS_PREFIX"
-  REPO="$WALLPAPERMGRREPO"
-  REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+  APPDIR="${APPDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  INSTDIR="${INSTDIR:-$SHARE/CasjaysDev/$SCRIPTS_PREFIX}"
+  REPO="${REPO:-$WALLPAPERMGRREPO}"
+  REPORAW="${REPORAW:-$WALLPAPERMGRREPO/$APPNAME/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="$SHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="$SYSSHARE/CasjaysDev/apps/$SCRIPTS_PREFIX"
   ARRAY="$(grep -s '^' $CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/array)"
   LIST="$(grep -s '^' $CASJAYSDEVDIR/helpers/$SCRIPTS_PREFIX/list)"
-  [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
+  #[ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
     APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
@@ -2486,15 +2486,19 @@ __options() {
 ###################### *mgr scripts install/update/version ######################
 export mgr_init="${mgr_init:-true}"
 run_install_init() {
-  local exitCode
-  local -a LISTARRAY="$*"
-  for ins in ${LISTARRAY[*]}; do
+  $installtype
+  local app=""
+  local exitCode=""
+  local LISTARRAY="$*"
+  for app in $LISTARRAY; do
     __main_installer_info
-    $installtype
-    export REPORAW="$REPO/$ins/raw/$GIT_REPO_BRANCH"
+    APPNAME="$app"
+    REPO="$REPO/$APPNAME"
+    REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+    export APPNAME REPO REPORAW
     if user_is_root; then
-      if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$ins/install.sh"
+      if [ -f "$INSTDIR/install.sh" ]; then
+        sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$app/install.sh"
       else
         if __urlcheck "$REPORAW/install.sh"; then
           sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/install.sh)"
@@ -2505,8 +2509,8 @@ run_install_init() {
       fi
       local exitCode+=$?
     else
-      if [ -f "$INSTDIR/$ins/install.sh" ]; then
-        FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$ins/install.sh"
+      if [ -f "$INSTDIR/install.sh" ]; then
+        FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/install.sh"
       else
         if __urlcheck "$REPORAW/install.sh"; then
           FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/install.sh)"
@@ -2517,56 +2521,55 @@ run_install_init() {
       fi
       local exitCode+=$?
     fi
+    unset APPNAME REPO REPORAW
   done
-  unset ins
+  unset app
   return $exitCode
 }
 
 run_install_update() {
-  local exitCode=""
+  local app=""
   local APPNAME=""
-  export mgr_init="${mgr_init:-true}"
-  export NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME}"
-  export NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON}"
+  local exitCode=0
+  local mgr_init="${mgr_init:-true}"
+  local NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME}"
+  local NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON}"
+  export mgr_init NOTIFY_CLIENT_NAME NOTIFY_CLIENT_ICON
   if [ $# = 0 ]; then
     if [[ -d "$USRUPDATEDIR" && -n "$(ls -A "$USRUPDATEDIR" | grep '^' || ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^')" ]]; then
-      for upd in $(ls "$USRUPDATEDIR" | grep '^' || ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^'); do
-        APPNAME="$upd"
-        export REPO="$REPO/$APPNAME" REPORAW="$REPO/$APPNAME/raw/$GIT_REPO_BRANCH" APPNAME="$APPNAME" installtype="$installtype"
+      for app in $(ls "$USRUPDATEDIR" | grep '^' || ls "$SHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^'); do
+        APPNAME="$app"
         run_install_init "$APPNAME" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
         local exitCode+=$?
       done
     fi
     if user_is_root && [ "$USRUPDATEDIR" != "$SYSUPDATEDIR" ]; then
       if [[ -d "$SYSUPDATEDIR" && -n "$(ls -A "$SYSUPDATEDIR" | grep '^' || ls "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^')" ]]; then
-        for updadmin in $(ls "$SYSUPDATEDIR" | grep '^' || ls "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^'); do
-          APPNAME="$updadmin"
-          export REPO="$REPO/$APPNAME" REPORAW="$REPO/$APPNAME/raw/$GIT_REPO_BRANCH" APPNAME="$APPNAME" installtype="$installtype"
+        for app in $(ls "$SYSUPDATEDIR" | grep '^' || ls "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX" | grep '^'); do
+          APPNAME="$app"
           run_install_init "$APPNAME" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
           local exitCode+=$?
         done
       fi
     fi
   else
-    local -a LISTARRAY="$*"
-    for ins in ${LISTARRAY[*]}; do
-      APPNAME="$ins"
-      export REPO="$REPO/$APPNAME" REPORAW="$REPO/$APPNAME/raw/$GIT_REPO_BRANCH" APPNAME="$APPNAME" installtype="$installtype"
+    local LISTARRAY="$*"
+    for app in $LISTARRAY; do
+      APPNAME="$app"
       run_install_init "$APPNAME" && __notifications "Installed $APPNAME" || __notifications "Installation of $APPNAME has failed"
       local exitCode+=$?
     done
   fi
-  unset upd updadmin ins
+  unset app
   return $exitCode
 }
 
 run_install_list() {
-  $installtype
   local installed=""
   if [ $# -ne 0 ]; then
     local args="$*"
-    for f in $args; do
-      export REPO="$REPO/$APPNAME" REPORAW="$REPO/$APPNAME/raw/$GIT_REPO_BRANCH" APPNAME="$APPNAME" installtype="$installtype"
+    for app in $args; do
+      export APPNAME="$app" REPO="$REPO/$APPNAME" REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
       if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A "$USRUPDATEDIR/$f" 2>/dev/null)" ]; then
         file="$(ls -A "$USRUPDATEDIR/$f" 2>/dev/null)"
         if [ -f "$file" ]; then
@@ -2587,16 +2590,16 @@ run_install_list() {
     if [ "$(__count_dir "$USRUPDATEDIR")" -ne 0 ]; then
       local -a LSINST="$(ls "$USRUPDATEDIR")"
       if [ -n "$LSINST" ]; then
-        for df in "${LSINST[@]}"; do
-          installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
+        for app in "${LSINST[@]}"; do
+          installed+="$(echo "$app" | sed 's| ||g' | grep -sv "^$") "
         done
         printf '%s\n' "$installed" | printf_column "4"
       fi
     elif [ "$(__count_dir "$SYSUPDATEDIR")" -ne 0 ]; then
       declare -a LSINST="$(ls "$SYSUPDATEDIR/")"
       if [ -n "$LSINST" ]; then
-        for df in "${LSINST[@]}"; do
-          installed+="$(echo "$df" | sed 's| ||g' | grep -sv "^$") "
+        for app in "${LSINST[@]}"; do
+          installed+="$(echo "$app" | sed 's| ||g' | grep -sv "^$") "
         done
         printf '%s\n' "$installed" | printf_column "4"
       fi
@@ -2604,7 +2607,7 @@ run_install_list() {
       printf_red "Nothing was found"
     fi
   fi
-  unset args file df
+  unset args file app
   return $?
 }
 
@@ -2612,9 +2615,9 @@ run_install_search() {
   [ $# = 0 ] && printf_exit "Nothing to search for"
   local results=""
   local -a LSINST="$*"
-  for df in "${LSINST[@]}"; do
-    export REPO REPORAW APPNAME="$df" installtype="$installtype"
-    local -a results+="$(echo -e "$LIST" | grep -Fi "$df" | sed 's| ||g' | grep -sv '^$') "
+  for app in "${LSINST[@]}"; do
+    export APPNAME="$app" REPO="$REPO/$APPNAME" REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+    local -a results+="$(echo -e "$LIST" | grep -Fi "$app" | sed 's| ||g' | grep -sv '^$') "
   done
   results="$(echo "$results" | sort -u | tr '\n' ' ' | sed 's| | |g' | grep '^')"
   if [ -z "$results" ]; then
@@ -2622,70 +2625,73 @@ run_install_search() {
   else
     printf '%s\n' "$installed" | printf_column "${PRINTF_COLOR:-4}"
   fi
-  unset results
+  unset results app
   exit $?
 }
 
 run_install_available() {
-  export REPO REPORAW APPNAME="${1:-$APPNAME}" installtype="$installtype"
+  local app="$APPNAME"
+  export APPNAME="$app" REPO="$REPO/$APPNAME" REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
   if __api_test; then
-    __curl_api $APPNAME | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
+    __curl_api $app | jq -r '.[] | .name' 2>/dev/null | printf_readline "4"
   else
     __list_available | printf_column "${PRINTF_COLOR:-4}"
   fi
+  unset app
 }
 
 run_install_version() {
   [ $# = 0 ] && local args="${PROG:-$APPNAME}" || local args="$*"
-  local exitCode="0"
-  for version in $args; do
-    export REPO REPORAW APPNAME="$version" installtype="$installtype"
-    if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$version 2>/dev/null)" ]; then
-      file="$(ls -A $USRUPDATEDIR/$version 2>/dev/null)"
+  local app=""
+  local exitCode=0
+  for app in $args; do
+    export APPNAME="$app" REPO="$REPO/$APPNAME" REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+    if [ -d "$USRUPDATEDIR" ] && [ -n "$(ls -A $USRUPDATEDIR/$app 2>/dev/null)" ]; then
+      file="$(ls -A $USRUPDATEDIR/$app 2>/dev/null)"
       if [ -f "$file" ]; then
-        printf_green "Information about $version: \n$(bash -c "$file --version" | sed '/^\#/d;/^$/d')"
+        printf_green "Information about $app: \n$(bash -c "$file --version" | sed '/^\#/d;/^$/d')"
       fi
-    elif [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A $SYSUPDATEDIR/$version 2>/dev/null)" ] && [ "$SYSUPDATEDIR" != "$USRUPDATEDIR" ]; then
-      file="$(ls -A $SYSUPDATEDIR/$version 2>/dev/null)"
+    elif [ -d "$SYSUPDATEDIR" ] && [ -n "$(ls -A $SYSUPDATEDIR/$app 2>/dev/null)" ] && [ "$SYSUPDATEDIR" != "$USRUPDATEDIR" ]; then
+      file="$(ls -A $SYSUPDATEDIR/$app 2>/dev/null)"
       if [ -f "$file" ]; then
-        printf_green "Information about $version: \n$(bash -c "$file --version" | sed '/^\#/d;/^$/d')"
+        printf_green "Information about $app: \n$(bash -c "$file --version" | sed '/^\#/d;/^$/d')"
       fi
-    elif [ -f "$(command -v $version 2>/dev/null)" ]; then
-      printf_green "$(bash -c "$version --version 2>/dev/null" | sed '/^\#/d;/^$/d')"
+    elif [ -f "$(command -v $app 2>/dev/null)" ]; then
+      printf_green "$(bash -c "$app --version 2>/dev/null" | sed '/^\#/d;/^$/d')"
     else
-      echo $USRUPDATEDIR/$version
+      echo $USRUPDATEDIR/$app
       printf_red "File was not found is it installed?"
       exitCode+=1
       return 1
     fi
   done
-  unset args version
+  unset args app
   [ "$exitCode" = 0 ] && scripts_version || exit 1
 }
 
 installer_delete() {
-  local rmf=""
+  local app=""
   local exitCode=0
-  declare -a LISTARRAY="$*"
-  for rmf in ${LISTARRAY[*]}; do
-    export REPO REPORAW APPNAME="$rmf" installtype="$installtype"
-    local MESSAGE="${MESSAGE:-Removing $rmf from ${msg:-your system}}"
-    if [ -d "$APPDIR/$rmf" ] || [ -d "$INSTDIR/$rmf" ]; then
+  local LISTARRAY="$*"
+  for app in $LISTARRAY; do
+    export APPNAME="$app" REPO="$REPO/$APPNAME" REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
+    local MESSAGE="${MESSAGE:-Removing $app from ${msg:-your system}}"
+    if [ -d "$APPDIR/$app" ] || [ -d "$INSTDIR/$app" ]; then
       printf_yellow "$MESSAGE"
       printf_blue "Deleting the files"
-      [ -d "$INSTDIR/$rmf" ] && __rm_rf "$INSTDIR/$rmf" || exitCode+=1
-      __rm_rf "$APPDIR/$rmf" "$INSTDIR/$rmf" || exitCode+=1
-      __rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$rmf" || exitCode+=1
-      __rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$rmf" || exitCode+=1
+      [ -d "$INSTDIR/$app" ] && __rm_rf "$INSTDIR/$app" || exitCode+=1
+      __rm_rf "$APPDIR/$app" "$INSTDIR/$app" || exitCode+=1
+      __rm_rf "$CASJAYSDEVSAPPDIR/$SCRIPTS_PREFIX/$app" || exitCode+=1
+      __rm_rf "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$app" || exitCode+=1
       printf_yellow "Removing any broken symlinks"
       __broken_symlinks "$BIN" "$SHARE" "$COMPDIR" "$CONF" "$THEMEDIR" "$FONTDIR" "$ICONDIR" || exitCode+=1
-      __getexitcode $exitCode "$rmf has been removed" " "
+      __getexitcode $exitCode "$app has been removed" " "
       return $exitCode
     else
-      printf_error "1" "$exitCode" "$rmf doesn't seem to be installed"
+      printf_error "1" "$exitCode" "$app doesn't seem to be installed"
     fi
   done
-  unset rmf
+  unset app
   return ${exitCode}
 }
 

@@ -192,12 +192,12 @@ remove)
   shift 1
   unset APPNAME
   if [ "$INSTALL_ALL" = "true" ]; then
-    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
+    LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
   else
-    declare -a LISTARRAY="$*"
+    LISTARRAY="$*"
   fi
   [ ${#LISTARRAY} -ne 0 ] || printf_exit "No packages selected for removal"
-  for rmf in ${LISTARRAY[*]}; do
+  for rmf in $LISTARRAY; do
     MESSAGE="Removing $rmf from $ICONDIR"
     APPNAME="$rmf"
     installer_delete "$APPNAME"
@@ -209,12 +209,12 @@ update)
   shift 1
   unset APPNAME
   if [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; then
-    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
+    LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
   else
-    declare -a LISTARRAY="$*"
+    LISTARRAY="$*"
   fi
   if [ $# -ne 0 ]; then
-    for ins in ${LISTARRAY[*]}; do
+    for ins in $LISTARRAY; do
       APPNAME="$ins"
       run_install_update "$APPNAME"
     done
@@ -232,21 +232,19 @@ update)
 
 install)
   shift 1
-  unset APPNAME
-  if [ $# -eq 0 ] || [ "$INSTALL_ALL" = "true" ]; then
-    declare -a LISTARRAY="$(ls -A "$USRUPDATEDIR" 2>/dev/null)"
-  else
-    declare -a LISTARRAY="$*"
-  fi
-  if [ "$#" -eq 0 ]; then
+  if [ "$INSTALL_ALL" = "true" ]; then
+    LISTARRAY="$(__list_available)"
+  elif [ $# -eq 0 ]; then
     printf_blue "No packages provide running the updater"
     run_install_update
+    exit $?
   else
-    for ins in ${LISTARRAY[*]}; do
-      APPNAME="$ins"
-      run_install_update "$APPNAME"
-    done
+    LISTARRAY="$*"
   fi
+  for ins in $LISTARRAY; do
+    APPNAME="$ins"
+    run_install_update "$APPNAME"
+  done
   exit $?
   ;;
 

@@ -1566,10 +1566,11 @@ __install_theme() {
   if [ -d "$INSTDIR/theme" ]; then
     local themedir="$THEMEDIR"
     local theme="$(ls "$INSTDIR/theme" 2>/dev/null | wc -l)"
+    mkd "$themedir/$APPNAME"
     if [ "$theme" != "0" ]; then
       fFiles="$(ls $INSTDIR/theme --ignore='.uuid')"
       for f in $fFiles; do
-        ln_sf "$INSTDIR/theme/$f" "$themedir/$f"
+        ln_sf "$INSTDIR/theme/$f" "$themedir/$APPNAME/$f"
         find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d | while read -r THEME; do
           if [ -f "$THEME/index.theme" ]; then
             cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
@@ -1591,10 +1592,10 @@ __install_wallpapers() {
     local wallpapers="$(ls $INSTDIR/images/ 2>/dev/null | wc -l)"
     if [ "$wallpapers" != "0" ]; then
       if [ "$INSTDIR" != "$APPDIR" ] && [ -e "$APPDIR" ]; then rm_rf "$APPDIR"; fi
-      mkd "$APPDIR"
+      mkd "$WALLPAPERS/$APPNAME"
       wallpaperFiles="$(ls $INSTDIR/images/)"
       for wallpaper in $wallpaperFiles; do
-        ln_sf "$INSTDIR/images/$wallpaper" "$APPDIR/$wallpaper"
+        ln_sf "$INSTDIR/images/$wallpaper" "$WALLPAPERS/$APPNAME/$wallpaper"
       done
     fi
   fi
@@ -1696,7 +1697,7 @@ dockermgr_install() {
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && APPDIR="${APPDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   [ "$APPNAME" = "$SCRIPTS_PREFIX" ] && INSTDIR="${INSTDIR//$APPNAME\/$SCRIPTS_PREFIX/$APPNAME}"
   if [ -f "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME" ]; then
-    APPVERSION="$(grep -sv '#' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
+    APPVERSION="$(grep -sv ' #' "$CASJAYSDEVSAPPDIR/dotfiles/$SCRIPTS_PREFIX-$APPNAME")"
   else
     APPVERSION="$currentVersion"
   fi
