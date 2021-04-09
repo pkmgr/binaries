@@ -463,7 +463,7 @@ __am_i_online() {
 }
 ##################################################################################################
 cmd_exists() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   local args="$*"
   local exitCode=0
   for cmd in $args; do
@@ -474,12 +474,12 @@ cmd_exists() {
   return $exitCode
 }
 gem_exists() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   local package="$1"
   if devnull gem query -i -n "$package"; then return 0; else return 1; fi
 }
 perl_exists() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   local package="$1"
   if devnull perl -M$package -le 'print $INC{"$package/Version.pm"}' ||
     devnull perl -M$package -le 'print $INC{"$package.pm"}' ||
@@ -490,7 +490,7 @@ perl_exists() {
   fi
 }
 pthon_exists() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   local package="$1"
   if devnull $PYTHONVER -c "import $package"; then return 0; else return 1; fi
 }
@@ -866,11 +866,12 @@ dotfilesreqadmin() {
 }
 ##################################################################################################
 install_required() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   if __am_i_online; then
+    local REQUIRED="$*"
     local MISSING=""
     local cmd=""
-    for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
+    for cmd in $REQUIRED; do cmd_exists $cmd || MISSING+="$cmd "; done
     if [ -n "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
         printf_yellow "Installing from package list"
@@ -897,12 +898,13 @@ install_required() {
 }
 ##################################################################################################
 install_packages() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   if __am_i_online; then
+    local REQUIRED="$*"
     local MISSING=""
     local cmd=""
     if cmd_exists "pkmgr"; then
-      for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
+      for cmd in $REQUIRED; do cmd_exists "$cmd" || MISSING+="$cmd "; done
       if [ ! -z "$MISSING" ]; then
         printf_warning "Attempting to install missing packages"
         printf_warning "$MISSING"
@@ -920,11 +922,12 @@ install_packages() {
 }
 ##################################################################################################
 install_python() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   if __am_i_online; then
+    local REQUIRED="$*"
     local MISSING=""
     local cmd=""
-    for cmd in "$@"; do python_missing "$cmd"; done
+    for cmd in $REQUIRED; do python_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
         printf_warning "Attempting to install missing python packages"
@@ -943,11 +946,12 @@ install_python() {
 }
 ##################################################################################################
 install_perl() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   if __am_i_online; then
+    local REQUIRED="$*"
     local MISSING=""
     local cmd=""
-    for cmd in "$@"; do perl_missing "$cmd"; done
+    for cmd in $REQUIRED; do perl_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
         printf_warning "Attempting to install missing perl packages"
@@ -962,11 +966,12 @@ install_perl() {
 }
 ##################################################################################################
 install_pip() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   if __am_i_online; then
+    local REQUIRED="$*"
     local MISSING=""
     local cmd=""
-    for cmd in "$@"; do cmd_exists $cmd || pip_missing "$cmd"; done
+    for cmd in $REQUIRED; do cmd_exists $cmd || pip_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
         printf_warning "Attempting to install missing pip packages"
@@ -981,11 +986,12 @@ install_pip() {
 }
 ##################################################################################################
 install_cpan() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   if __am_i_online; then
+    local REQUIRED="$*"
     local MISSING=""
     local cmd=""
-    for cmd in "$@"; do cmd_exists $cmd || cpan_missing "$cmd"; done
+    for cmd in $REQUIRED; do cmd_exists $cmd || cpan_missing "$cmd"; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
         printf_warning "Attempting to install missing cpan packages"
@@ -1000,11 +1006,12 @@ install_cpan() {
 }
 ##################################################################################################
 install_gem() {
-  [ -n "$1" ] || return
+  #[ -n "$1" ] || return
   if __am_i_online; then
+    local REQUIRED="$*"
     local MISSING=""
     local cmd=""
-    for cmd in "$@"; do cmd_exists $cmd || gem_missing $cmd; done
+    for cmd in $REQUIRED; do cmd_exists $cmd || gem_missing $cmd; done
     if [ ! -z "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
         printf_warning "Attempting to install missing gem packages"
