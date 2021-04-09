@@ -151,7 +151,7 @@ case $* in
   exit
   ;;
 --list)
-  cat "${SCRIPTSFUNCTDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array" | printf_columns
+  cat "${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array" | printf_column
   exit
   ;;
 --console)
