@@ -240,7 +240,7 @@ if [ "$MYVMMANAGER_NOTIFY_ENABLED" = "yes" ]; then
 else
   __notifications() { false; }
 fi
-ARGS="$*"
+ARGS="${*:-}"
 OPEN="$MYVMMANAGER_OPTIONS $ARGS"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications/Network check

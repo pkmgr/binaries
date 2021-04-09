@@ -701,7 +701,7 @@ search)
       message="$(</dev/stdin)"
       __update_notes "$message" "${NOTES_PATH}"
     else
-      if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# = 0 ]; }; then
+      if [ ! -t 0 ] && { [ "$1" = "--term" ] || [ $# -eq 0 ]; }; then
         myterminal -e "$APPNAME"
         exit
       fi

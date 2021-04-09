@@ -95,7 +95,7 @@ DISPLAY_TIME="${DISPLAY_TIME:-$SLEEP_TIME}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __config() {
   printf_green "Generating the config"
-  __mkd "$RANDOMWALLPAPER_CONFIG_DIR"
+  __mkd "$RANDOMWALLPAPER_CONFIG_DIR" "$CACHE_DIR"
   cat <<EOF >"$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 # Randomwallpaper Settings
 # Options minutes,hourly,daily,weekly,monthly - Default minutes
@@ -133,6 +133,7 @@ Terminal=false
 Hidden=false
 
 EOF
+  [ -d "$CACHE_DIR" ] || __mkd "$CACHE_DIR"
   [ -f "$HOME/.config/autostart/randomwallpaper.desktop" ] &&
     printf_green "Successfuly installed randomwallpaper Daemon" ||
     printf_error "Failed to install randomwallpaper Daemon"
@@ -469,4 +470,3 @@ main "$@"
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-

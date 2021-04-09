@@ -126,7 +126,7 @@ __term() {
     printf_green "b. Backup files"
     printf_green "r. Restore files"
     printf_green "z. or escape to Exit"
-    printf_read_question_nt "6" "Enter your choice [b,r,z] : " "1" "main" "-s"
+    printf_read_question_nt "6" "Enter your choice [c,e,r,s,z] : " "1" "main" "-s"
     clear
     printf_newline "\n\n\n"
 

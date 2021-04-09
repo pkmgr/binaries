@@ -163,9 +163,9 @@ case $1 in
   if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
-    ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null
+    ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   else
-    $TERMINAL ${OPTIONS:-$opt} "$_CMD "$_ARG"" &>/dev/null
+    $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   fi
 
   ;;

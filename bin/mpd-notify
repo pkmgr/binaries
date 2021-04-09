@@ -47,7 +47,10 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cmd_exists --ask mpd mpc
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -d "$HOME/.config/mpd/mpd-notify" ] || printf_exit "1" "1" "Please install my mpd dotfiles | dfmgr install mpd"
+if [ ! -d "$HOME/.config/mpd/mpd-notify" ]; then
+  printf_pause "1" "1" "Please install my mpd dotfiles | dfmgr install mpd"
+  exit 1
+fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 daemonName="mpd-notify"
 daemonDir="$HOME/.config/mpd/mpd-notify"
