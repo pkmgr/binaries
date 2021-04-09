@@ -2185,7 +2185,7 @@ systemmgr_install() {
   INSTDIR="${INSTDIR:-$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX}"
   CONF="/usr/local/etc"
   SHARE="/usr/local/share"
-  REPO="${REPO:-SYSTEMMGRREPO}"
+  REPO="${REPO:-$SYSTEMMGRREPO}"
   REPORAW="${REPORAW:-$REPO/raw/$GIT_REPO_BRANCH}"
   USRUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"
   SYSUPDATEDIR="/usr/local/share/CasjaysDev/apps/$SCRIPTS_PREFIX"

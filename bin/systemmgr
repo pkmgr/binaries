@@ -236,6 +236,7 @@ update)
 
 install)
   shift 1
+  set -Ex
   sudoreq true || exit 1
   if [ "$INSTALL_ALL" = "true" ]; then
     LISTARRAY="$(__list_available)"
