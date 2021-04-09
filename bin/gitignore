@@ -159,6 +159,15 @@ case $* in
   printf_green "$(fetch_ignore "$@")"
   exit
   ;;
+--update)
+  dir="${1:-$HOME/.config/gitignore/files}"
+  mkdir -p "$dir"
+  for f in $(cat "${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/helpers/gitignore/array"); do
+    create_gitignore "$dir/$f"
+  done
+  printf "# Disable reminder in prompt\nignoredirmessage\n" > "$dir/dirignore"
+  exit
+  ;;
 dirignore)
   if [ $# = 1 ]; then
     setup_custom
