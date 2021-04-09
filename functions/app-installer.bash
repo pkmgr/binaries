@@ -859,12 +859,12 @@ dotfilesreqadmin() {
 }
 ##################################################################################################
 install_required() {
-  [[ $# -eq 0 ]] && return 0
+  [[ -n "$1" ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
     for cmd in "$@"; do cmd_exists $cmd || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
+    if [ -n "$MISSING" ]; then
       if cmd_exists "pkmgr"; then
         printf_yellow "Installing from package list"
         printf_yellow "Still missing: $MISSING"
@@ -877,7 +877,7 @@ install_required() {
       unset MISSING
     fi
     for cmd in "$@"; do cmd_exists "$cmd" || MISSING+="$cmd "; done
-    if [ ! -z "$MISSING" ]; then
+    if [ -n "$MISSING" ]; then
       printf_warning "Can not install the required packages for $APPNAME"
       #if [ -f "$APPDIR/install.sh" ]; then
       #  devnull unlink -f "$APPDIR" || devnull rm -Rf "$APPDIR"
@@ -891,7 +891,7 @@ install_required() {
 }
 ##################################################################################################
 install_packages() {
-  [[ -z "$1" ]] && return 0
+  [[ -n "$1" ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -914,7 +914,7 @@ install_packages() {
 }
 ##################################################################################################
 install_python() {
-  [[ -z "$1" ]] && return 0
+  [[ -n "$1" ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -937,7 +937,7 @@ install_python() {
 }
 ##################################################################################################
 install_perl() {
-  [[ -z "$1" ]] && return 0
+  [[ -n "$1" ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -956,7 +956,7 @@ install_perl() {
 }
 ##################################################################################################
 install_pip() {
-  [[ -z "$1" ]] && return 0
+  [[ -n "$1" ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -975,7 +975,7 @@ install_pip() {
 }
 ##################################################################################################
 install_cpan() {
-  [[ -z "$1" ]] && return 0
+  [[ -n "$1" ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
@@ -994,7 +994,7 @@ install_cpan() {
 }
 ##################################################################################################
 install_gem() {
-  [[ -z "$1" ]] && return 0
+  [[ -n "$1" ]] || return 0
   if __am_i_online; then
     local MISSING=""
     local cmd=""
