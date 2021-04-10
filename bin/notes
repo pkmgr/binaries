@@ -70,8 +70,8 @@ __mkd "$NOTES_TMPDIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Tmux config
 if [ ! -f "$NOTES_DIRECTORY/tmux.conf" ]; then
-  if [ -f "$HOME/.config/tmux/tmux.conf" ]; then
-    __cp_rf "$HOME/.config/tmux/tmux.conf" "$NOTES_DIRECTORY/tmux.conf"
+  if [ -f "$HOME/.config/tmux/others/editors.conf" ]; then
+    __cp_rf "$HOME/.config/tmux/others/editors.conf" "$NOTES_DIRECTORY/tmux.conf"
   else
     __cp_rf "$CASJAYSDEVDIR/templates/tmux.conf" "$NOTES_DIRECTORY/tmux.conf"
   fi

@@ -58,8 +58,8 @@ __mkd "$tododir"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 tmux_conf() {
   if [ ! -f "$tododir/tmux.conf" ]; then
-    if [ -f "$HOME/.config/tmux/tmux.conf" ]; then
-      __cp_rf "$HOME/.config/tmux/tmux.conf" "$tododir/tmux.conf"
+    if [ -f "$HOME/.config/tmux/others/editors.conf" ]; then
+      __cp_rf "$HOME/.config/tmux/others/editors.conf" "$tododir/tmux.conf"
     else
       __cp_rf "$CASJAYSDEVDIR/templates/tmux.conf" "$NOTES_DIRECTORY/tmux.conf"
     fi
