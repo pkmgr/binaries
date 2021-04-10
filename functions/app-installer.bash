@@ -1563,7 +1563,7 @@ __install_icons() {
       fFiles="$(ls $INSTDIR/icons --ignore='.uuid')"
       for f in $fFiles; do
         ln_sf "$INSTDIR/icons/$f" "$icondir/$f"
-        find "$ICONDIR/$f" -mindepth 1 -maxdepth 1 -type d | while read -r ICON; do
+        find -L "$ICONDIR" -mindepth 1 -maxdepth 1 -type d | while read -r ICON; do
           if [ -f "$ICON/index.theme" ]; then
             cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$ICON"
           fi
@@ -1585,7 +1585,7 @@ __install_theme() {
       fFiles="$(ls $INSTDIR/theme --ignore='.uuid')"
       for f in $fFiles; do
         ln_sf "$INSTDIR/theme/$f" "$themedir/$APPNAME/$f"
-        find "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d | while read -r THEME; do
+        find -L "$THEMEDIR" -mindepth 1 -maxdepth 2 -type d | while read -r THEME; do
           if [ -f "$THEME/index.theme" ]; then
             cmd_exists gtk-update-icon-cache && gtk-update-icon-cache -f -q "$THEME"
           fi
