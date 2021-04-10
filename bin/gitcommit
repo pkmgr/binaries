@@ -98,10 +98,10 @@ __git_push() {
   local gitdir="${1:-$gitdir}"
   local repo="$(__git_remote_fetch $gitdir)"
   am_i_online --error || exit 1
-  if __git_porcelain "$gitdir" && [ -z "$force" ]; then
-    printf_red "There are no changes to push in ${basedir}"
-    exit
-  else
+  #if __git_porcelain "$gitdir" && [ -z "$force" ]; then
+  #  printf_red "There are no changes to push in ${basedir}"
+  #  exit
+  #else
     if [ "$repo" != "localdir" ]; then
       if [[ "$*" =~ --automated ]]; then
         printf_green "Pushing the changes to $repo"
@@ -120,7 +120,7 @@ __git_push() {
         fi
       fi
     fi
-  fi
+  #fi
   return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
