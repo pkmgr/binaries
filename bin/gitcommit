@@ -93,15 +93,10 @@ __git_dir() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_push() {
-  [ "$1" = "--force" ] && shift 1 && local force=yes || local force=""
   local push=""
   local gitdir="${1:-$gitdir}"
   local repo="$(__git_remote_fetch $gitdir)"
   am_i_online --error || exit 1
-  #if __git_porcelain "$gitdir" && [ -z "$force" ]; then
-  #  printf_red "There are no changes to push in ${basedir}"
-  #  exit
-  #else
     if [ "$repo" != "localdir" ]; then
       if [[ "$*" =~ --automated ]]; then
         printf_green "Pushing the changes to $repo"
@@ -120,7 +115,6 @@ __git_push() {
         fi
       fi
     fi
-  #fi
   return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -555,7 +549,7 @@ else
     printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" || exit 1
 
   if am_i_online --error -m "No internet connection. Skipping push"; then
-    __git_push --force "$@"
+    __git_push
   fi
 fi
 printf_newline
