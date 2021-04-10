@@ -99,8 +99,8 @@ __config() {
   cat <<EOF >"$RANDOMWALLPAPER_CONFIG_DIR/$RANDOMWALLPAPER_CONFIG_FILE"
 # Randomwallpaper Settings
 # Options minutes,hourly,daily,weekly,monthly - Default minutes
-ROTATE_TIME="${ROTATE_TIME:-5}"
-ROTATE_TYPE="${ROTATE_TYPE:-minutes}"
+ROTATE_TIME="5"
+ROTATE_TYPE="minutes"
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/.local/share/wallpapers}"
 CACHE_DIR="${CACHE_DIR:-$HOME/.cache/randomwallpaper}"
 KILL_FILE="${KILL_FILE:-${TMPDIR:-/tmp}/randomwallpaper.$USER.kill}"
