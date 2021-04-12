@@ -67,7 +67,7 @@ REPODIR="${topdir:-$PROJECT_DIR}"
 VERSIONFILE="$(__git_top_dir $gitdir 2>/dev/null)/version.txt"
 VERSION_DATE_FORMAT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-[ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
+#[ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #git init
 if [ "$(git config --get user.name | wc -m)" -lt 2 ]; then
