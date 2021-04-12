@@ -579,15 +579,16 @@ pkginit="$pkgmgrbincle ; $pkgmgrbincac ; $pkgmgrbinupdsil"
 # begin main app
 case "$1" in
 check)
-  UPDATECHECKFILE="${CACHE_DIR:-/$HOME/.cache}/updatechecheck"
-  [ "$1" = "force" ] && __rm_rf "$UPDATECHECKFILE" && run_updatechecheck
+  UPDATECHECKFILE="${CACHE_DIR:-$HOME/.cache}/updatechecheck"
+  if [ "$1" = "force" ] || [ "$FORCE" = "yes" ]; then
+    __rm_rf "$UPDATECHECKFILE" && run_updatechecheck
+  fi
   if [ -f "$UPDATECHECKFILE" ]; then
-    cat "$UPDATECHECKFILE"
-    __find_mtime "$UPDATECHECKFILE" "3600"
+    __find_mtime "$UPDATECHECKFILE" "3600" || run_updatechecheck >"$UPDATECHECKFILE" 2>/dev/null
   else
     run_updatechecheck >"$UPDATECHECKFILE" 2>/dev/null
-    cat "$UPDATECHECKFILE"
   fi
+  cat "$UPDATECHECKFILE"
   exit
   ;;
 
