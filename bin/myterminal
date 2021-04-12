@@ -159,7 +159,7 @@ case $1 in
   fi
   _OPT=$#
   _CMD="$1" && shift 1
-  _ARG="$*" && shift $#
+  _ARG="${*:-$SHELL}" && shift $#
   if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
