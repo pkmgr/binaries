@@ -240,8 +240,13 @@ __schedule() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 dotfiles_run() {
   [ -n "$1" ] || printf_exit "Usage: pkmgr dotfiles name"
-  local url="$dotfilesrepo/$1.list"
-  __urlverify "$url" && __curl "$url" >"$PKMGR_TEMP_FILE" || return 1
+  local file="$*"
+  local f=""
+  echo > "$PKMGR_TEMP_FILE"
+  for f in $file; do
+    local url="$dotfilesrepo/$f.list"
+    __urlverify "$url" && __curl "$url" >>"$PKMGR_TEMP_FILE" || return 1
+  done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __aliases() {
@@ -583,9 +588,7 @@ check)
   if [ "$1" = "force" ] || [ "$FORCE" = "yes" ]; then
     __rm_rf "$UPDATECHECKFILE" && run_updatechecheck
   fi
-  if [ -f "$UPDATECHECKFILE" ]; then
-    __find_mtime "$UPDATECHECKFILE" "3600" || run_updatechecheck >"$UPDATECHECKFILE" 2>/dev/null
-  else
+  if [ ! -f "$UPDATECHECKFILE" ] && ! __find_mtime "$UPDATECHECKFILE" "3600"; then
     run_updatechecheck >"$UPDATECHECKFILE" 2>/dev/null
   fi
   cat "$UPDATECHECKFILE"
