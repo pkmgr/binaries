@@ -136,18 +136,17 @@ if [ -z "$TERMINAL" ]; then
 fi
 TERMINAL_NAME="$(basename "$TERMINAL" 2>/dev/null)"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-set -- "$@"
 while getopts ":*" removeopt; do
   case $removeopt in *) shift ;; esac
 done
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case $1 in
-*config)
+config)
   shift 1
   __config
   ;;
 
-*create | *link)
+create | link)
   shift 1
   __create_link "$@"
   ;;
@@ -158,14 +157,14 @@ case $1 in
     exit $?
   fi
   _OPT=$#
-  _CMD="$1" && shift 1
-  _ARG="${*:-$SHELL}" && shift $#
-  if [ "$_OPT" -gt 0 ]; then opt="-e"; fi
+  _CMD="${1:-$SHELL}" && shift 1
+  _ARG="${*:-}" && shift $#
+  opt="-e"
   [ "$MYTERMINAL_NOTIFICATIONS" = "yes" ] && notifications "MyTerminal" "Attempting to launch $TERMINAL_NAME"
   if [ -f "$HOME/.local/bin/myterminal" ]; then
     ~/.local/bin/myterminal ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   else
-    $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
+   $TERMINAL ${OPTIONS:-$opt} "$_CMD $_ARG" &>/dev/null
   fi
 
   ;;
