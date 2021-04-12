@@ -581,13 +581,14 @@ case "$1" in
 check)
   UPDATECHECKFILE="${CACHE_DIR:-/$HOME/.cache}/updatechecheck"
   [ "$1" = "force" ] && __rm_rf "$UPDATECHECKFILE" && run_updatechecheck
-  __find_mtime "$UPDATECHECKFILE" "3600"
   if [ -f "$UPDATECHECKFILE" ]; then
     cat "$UPDATECHECKFILE"
+    __find_mtime "$UPDATECHECKFILE" "3600"
   else
     run_updatechecheck >"$UPDATECHECKFILE" 2>/dev/null
     cat "$UPDATECHECKFILE"
   fi
+  exit
   ;;
 
 available)
