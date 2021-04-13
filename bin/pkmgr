@@ -102,6 +102,7 @@ cpan_run() {
   fi
 }
 cpan_remove() {
+  cmd_exists cpan || return 1
   sudo bash -c "cpan --uninstall $*" 2>/dev/null | printf_readline || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -125,18 +126,22 @@ pip_remove() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 gem_run() {
+  cmd_exists gem || return 1
   sudo bash -c "gem install --no-user-install $*" 2>/dev/null | printf_readline || return 1
 }
 gem_remove() {
+  cmd_exists gem || return 1
   sudo bash -c "gem uninstall --no-user-install --force -aIx $*" 2>/dev/null | printf_readline || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 npm_run() {
+  cmd_exists npm || return 1
   if command -v nvm &>/dev/null; then nvm unload; fi
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
   sudo bash -c "npm install -g $*" 2>/dev/null | printf_readline || return 1
 }
 npm_remove() {
+  cmd_exists npm || return 1
   if command -v nvm &>/dev/null; then nvm unload; fi
   NODEINSTDIR="$(command -v node | sed 's#/node##g')"
   sudo bash -c "npm remove -g $*" 2>/dev/null | printf_readline || return 1
@@ -320,7 +325,9 @@ PKMGR_FORCE_INSTALL="false"
 SETARGS="$*"
 SHORTOPTS="c,v,h,f"
 LONGOPTS="options,config,version,help,force,enable-aur"
-ARRAY=""
+ARRAY="check alias available install remove list curl script dotfiles upgrade export clean init makecache search "
+ARRAY+="required silent cpan pip gem npm info version "
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$PKMGR_CONFIG_DIR/$PKMGR_CONFIG_FILE" ] || __gen_config &>/dev/null

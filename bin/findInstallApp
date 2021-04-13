@@ -42,14 +42,14 @@ __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __requiresudo true
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__dfmgr() { __devnull dfmgr "$*" && exitCode=0 || exitCode=1; }
-__pkmgr() { __devnull pkmgr "$*" && exitCode=0 || exitCode=1; }
-__systemmgr() { __devnull sudo systemmgr "$*" && exitCode=0 || exitCode=1; }
+__dfmgr() { __devnull dfmgr "$*" && return 0 || return 1; }
+__pkmgr() { __devnull pkmgr "$*" && return 0 || return 1; }
+__systemmgr() { __devnull sudo systemmgr "$*" && return 0 || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __message() {
   local mgr="$1" && shift 1
   local arg="$*" && shift $#
-  if [ -z "$DISPLAY" ]; then
+  if [ -z "$DISPLAY" ] || [ -n "$SSH_TTY" ]; then
     printf_green "Trying to find $arg via $mgr"
   fi
 }
@@ -103,6 +103,7 @@ run_npm_findInstallApp() {
   __message "npm" "$LISTARRAY"
   for pkg in ${LISTARRAY[*]}; do
     cmd_exists "$pkg" || __pkmgr npm install "$pkg"
+    exitCode+=$?
   done
   return $exitCode
 }
@@ -122,9 +123,9 @@ main() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -n "$DISPLAY" ] && [ -z "$SSH_TTY" ]; then
-  main "$@" | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install $*" --height=200 --width=400
+  if main "$@" | zenity --progress --no-cancel --pulsate --auto-close --title="Attempting install" --text="Trying to install $*" --height=200 --width=400; then exitCode=0; else exitCode=1; fi
 else
-  main "$@"
+  if main "$@"; then exitCode=0; else exitCode=1; fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$exitCode" = 0 ]; then
@@ -146,3 +147,4 @@ fi
 exit ${exitCode:-$?}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
+

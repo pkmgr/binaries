@@ -36,18 +36,6 @@ _pkmgr() {
 
   _init_completion || return
 
-  local special i
-  for ((i = 1; i < ${#words[@]} - 1; i++)); do
-    if [[ ${words[i]} == @(cron|update|remove) ]]; then
-      special=${words[i]}
-      break
-    fi
-  done
-
-  if [[ -v special ]]; then
-    [[ $cur == @(*/|[.~])* && $special == @(cron|update|remove|version) ]]
-  fi
-
   if [ "$SHOW_COMP_OPTS" != "" ]; then
     local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
     compopt -o $SHOW_COMP_OPTS_SEP
@@ -64,20 +52,27 @@ _pkmgr() {
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -) prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
+    check) prev="check" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     available) prev="available" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     list) prev="list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     search) prev="search" && COMPREPLY=($(compgen -W '$(echo {0..9} {a..z})' -- "${cur}")) && compopt -o nospace ;;
-    install) prev="install" && COMPREPLY=($(compgen -W '--all ${LIST}' -- "${cur}")) ;;
-    update | cron | remove | version)
-      prev="$special"
-      k=0
-      i="$HOME/.local/share/CasjaysDev/apps/pkmgr"
-      for j in $(compgen -f "$i/$cur"); do
-        [ -d "$j" ] && j="${j}"
-        COMPREPLY[k++]=${j#$i/}
-      done
-      return 0
-      ;;
+    install) prev="install" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    remove) prev="remove" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    curl) prev="curl" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    dotfiles) prev="dotfiles" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    script) prev="script" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    upgrade) prev="upgrade" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    export) prev="export" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    clean) prev="clean" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    init) prev="init" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    makecache) prev="makecache" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    cpan) prev="cpan" && COMPREPLY=($(compgen -W 'install remove' -- "${cur}")) ;;
+    pip) prev="cpan" && COMPREPLY=($(compgen -W 'install remove' -- "${cur}")) ;;
+    gem) prev="cpan" && COMPREPLY=($(compgen -W 'install remove' -- "${cur}")) ;;
+    npm) prev="cpan" && COMPREPLY=($(compgen -W 'install remove' -- "${cur}")) ;;
+    silent) prev="cpan" && COMPREPLY=($(compgen -W 'install remove update' -- "${cur}")) ;;
+    info)prev="info" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    version) prev="version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     *)
       prev=""
       if [ -n "$FILEDIR" ]; then _filedir; fi

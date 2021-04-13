@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="$(basename "$0")"
+VERSION="202104121918-git"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+trap 'exitCode=${exitCode:-$?};[ -f "$SEARCH_MENU_TEMP_FILE" ] && rm -Rf "$SEARCH_MENU_TEMP_FILE" &>/dev/null' EXIT
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202104121918-git
+# @Author        : Jason Hempstead
+# @Contact       : jason@casjaysdev.com
+# @License       : LICENSE.md
+# @ReadME        : search-menu --help
+# @Copyright     : Copyright: (c) 2021 Jason, CasjaysDev
+# @Created       : Tuesday, Apr 13, 2021 02:43 EDT
+# @File          : search-menu
+# @Description   : Search various search engines
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE"
+  [ -d "$SEARCH_MENU_CONFIG_DIR" ] || mkdir -p "$SEARCH_MENU_CONFIG_DIR"
+  [ -d "$SEARCH_MENU_CONFIG_BACKUP_DIR" ] || mkdir -p "$SEARCH_MENU_CONFIG_BACKUP_DIR"
+  [ -f "$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE" ] &&
+    cp -Rf "$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE" "$SEARCH_MENU_CONFIG_BACKUP_DIR/$SEARCH_MENU_CONFIG_FILE.$$"
+  cat <<EOF >"$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE"
+# Settings for search-menu
+DMBROWSER="mybrowser"
+SEARCH_MENU_TEMP_FILE="${TMPDIR:-/tmp}/search-menu"
+SEARCH_MENU_NOTIFY_ENABLED="yes"
+SEARCH_MENU_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+SEARCH_MENU_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$SEARCH_MENU_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE" ]; then
+    printf_green "Your config file for search-menu has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+SEARCH_MENU_CONFIG_FILE="settings.conf"
+SEARCH_MENU_CONFIG_DIR="$HOME/.config/myscripts/search-menu"
+SEARCH_MENU_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/search-menu/backups"
+SEARCH_MENU_OPTIONS_DIR="$HOME/.local/share/myscripts/search-menu/options"
+SEARCH_MENU_TEMP_FILE="${TMPDIR:-/tmp}/search-menu"
+SEARCH_MENU_NOTIFY_ENABLED="yes"
+SEARCH_MENU_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+SEARCH_MENU_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$SEARCH_MENU_NOTIFY_CLIENT_ICON}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="$*"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$SEARCH_MENU_OPTIONS_DIR/options" ] || __list_options "$SEARCH_MENU_OPTIONS_DIR" &>/dev/null
+[ -f "$SEARCH_MENU_OPTIONS_DIR/array" ] || __list_array "$SEARCH_MENU_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE" ]; then
+  . "$SEARCH_MENU_CONFIG_DIR/$SEARCH_MENU_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$APPNAME" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$SEARCH_MENU_OPTIONS_DIR" "$ARRAY"
+    __list_options "$SEARCH_MENU_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${SEARCH_MENU_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${SEARCH_MENU_NOTIFY_CLIENT_ICON}"
+if [ "$SEARCH_MENU_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash dmenu || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+DMBROWSER="${DMBROWSER:-mybrowser}"
+engine=""
+query=""
+declare -A options
+options[amazon]="https://www.amazon.com/s?k="
+options[archaur]="https://aur.archlinux.org/packages/?O=0&K="
+options[archpkg]="https://archlinux.org/packages/?sort=&q="
+options[archwiki]="https://wiki.archlinux.org/index.php?search="
+options[arxiv]="https://arxiv.org/search/?searchtype=all&source=header&query="
+options[bbcnews]="https://www.bbc.co.uk/search?q="
+options[bing]="https://www.bing.com/search?q="
+options[cliki]="https://www.cliki.net/site/search?query="
+options[cnn]="https://www.cnn.com/search?q="
+options[coinbase]="https://www.coinbase.com/price?query="
+options[debianpkg]="https://packages.debian.org/search?suite=default&section=all&arch=any&searchon=names&keywords="
+options[discogs]="https://www.discogs.com/search/?&type=all&q="
+options[duckduckgo]="https://duckduckgo.com/?q="
+options[ebay]="https://www.ebay.com/sch/i.html?&_nkw="
+options[github]="https://github.com/search?q="
+options[gitlab]="https://gitlab.com/search?search="
+options[imdb]="https://www.imdb.com/find?q="
+options[lbry]="https://lbry.tv/$/search?q="
+options[odysee]="https://odysee.com/$/search?q="
+options[reddit]="https://www.reddit.com/search/?q="
+options[slashdot]="https://slashdot.org/index2.pl?fhfilter="
+options[socialblade]="https://socialblade.com/youtube/user/"
+options[sourceforge]="https://sourceforge.net/directory/?q="
+options[stack]="https://stackoverflow.com/search?q="
+options[startpage]="https://www.startpage.com/do/dsearch?query="
+options[stockquote]="https://finance.yahoo.com/quote/"
+options[thesaurus]="https://www.thesaurus.com/misspelling?term="
+options[translate]="https://translate.google.com/?sl=auto&tl=en&text="
+options[urban]="https://www.urbandictionary.com/define.php?term="
+options[wayback]="https://web.archive.org/web/*/"
+options[webster]="https://www.merriam-webster.com/dictionary/"
+options[wikipedia]="https://en.wikipedia.org/wiki/"
+options[wiktionary]="https://en.wiktionary.org/wiki/"
+options[wolfram]="https://www.wolframalpha.com/input/?i="
+options[youtube]="https://www.youtube.com/results?search_query="
+options[google]="https://www.google.com/search?q="
+options[googleimages]="https://www.google.com/search?hl=en&tbm=isch&q="
+options[googlenews]="https://news.google.com/search?q="
+options[googleSupport]="https://support.google.com/search?q="
+options[googleSupportAdmin]="https://support.google.com/a/search?q="
+options[googleStructuredData]="https://search.google.com/structured-data/testing-tool#url="
+options[googleRichResults]="https://search.google.com/test/rich-results??url="
+options[googlePagespeed]="https://developers.google.com/speed/pagespeed/insights/?url="
+options[googleDevelopers]="https://developers.google.com/s/results?q="
+options[googleOpenSource]="https://opensource.google/projects/search?q="
+options[googleExperimentswithGoogle]="https://experiments.withgoogle.com/search?q="
+options[googleDataset]="https://datasetsearch.research.google.com/search?query="
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+while [ -z "$engine" ]; do
+  engine=$(printf '%s\n' "${!options[@]}" | sort | dmenu -i -l 20 -p 'Choose search engine:') "$@" || exit
+  url="${options["${engine}"]}" || exit
+done
+
+# Searching the chosen engine.
+while [ -z "$query" ]; do
+  query=$(echo "$engine" | dmenu -p 'Enter search query:') "$@" || exit
+done
+
+# Display search results in web browser
+$DMBROWSER "$url""$query"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
