@@ -8,7 +8,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
 trap 'exitCode=${exitCode:-$?};[ -f "$SCREENSHOT_MENU_TEMP_FILE" ] && rm -Rf "$SCREENSHOT_MENU_TEMP_FILE" &>/dev/null' EXIT
-set -euo pipefail
+set -Eo pipefail
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ##@Version       : 202104121918-git
@@ -152,6 +152,7 @@ fi
 cmd_exists --error bash dmenu maim tee xdotool xclip xrandr || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
+[ -d "$SCREENSHOT_MENU_SAVE_DIR" ] || mkdir -p "$SCREENSHOT_MENU_SAVE_DIR" &>/dev/null
 DISPLAYS=$(xrandr --listactivemonitors | grep '+' | awk '{print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
 declare -a modes=(
   "Fullscreen"
@@ -215,3 +216,4 @@ esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # lets exit with code
 exit ${exitCode:-$?}
+
