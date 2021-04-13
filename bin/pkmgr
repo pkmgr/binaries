@@ -400,6 +400,7 @@ fi
 cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
+export SUDO_USER
 if [[ "$(__devnull2 python3 -V)" =~ "Python 3" ]]; then
   PYTHONVER="python3"
   PIP="pip3"

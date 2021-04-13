@@ -73,7 +73,11 @@ EOF
 __git_add() {
   local -a files="$*"
   for f in $files; do
-    [ -e "$f" ] && git -C "$gitdir" add "$f" &>/dev/null || git -C "$gitdir" rm "$f" &>/dev/null
+    if [ -e "$f" ]; then
+      git -C "$gitdir" add "$f" &>/dev/null
+    #else
+    #  git -C "$gitdir" rm "$f" &>/dev/null
+    fi
   done
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -93,6 +97,10 @@ __git_dir() {
   [ -d "$gitdir" ] || printf_exit "$gitdir doesn't seem to be a git repo"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__git_commitid() {
+  git -C "${1:-$gitdir}" rev-parse --short HEAD
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_push() {
   local push=""
   local gitdir="${1:-$gitdir}"
@@ -102,7 +110,7 @@ __git_push() {
     if [[ "$*" =~ --automated ]]; then
       printf_green "Pushing the changes to $repo"
       git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
-      __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+      __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(__git_commitid "$gitdir")" "Failed to push the changes"
     else
       if [ "$GITCOMMIT_NO_CONFIRM" != "true" ]; then
         printf_read_question "3" "Should I push to $repo? [y/n]" "1" "push"
@@ -112,7 +120,7 @@ __git_push() {
       if printf_answer_yes "$push"; then
         printf_green "Pushing the changes to $repo"
         git -C "$gitdir" push -q >/dev/null 2>&1 && exitCode=0 || exitCode=1
-        __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" "Failed to push the changes"
+        __getexitcode $exitCode "Successfuly pushed the changes for commit ID: $(__git_commitid "$gitdir")" "Failed to push the changes"
       fi
     fi
   fi
@@ -213,7 +221,12 @@ fi
 cmd_exists --error bash git || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-[ -d "$1" ] && MYCURRDIR="$1" && shift 1 || MYCURRDIR="$PWD"
+if [ -d "$1" ]; then
+  MYCURRDIR="$1"
+  shift 1
+else
+  MYCURRDIR="$PWD"
+fi
 topdir="$(__git_top_dir $MYCURRDIR 2>/dev/null)"
 gitdir="${topdir:-$MYCURRDIR}"
 versionfile="$gitdir/$GITCOMMIT_VERSION_FILE"
@@ -314,7 +327,7 @@ changed)
   [ $# -eq 0 ] && printf_exit "Usage: $APPNAME changed filename[s]"
   ARGS="${*:-} "
   mess="✔️🐛 Changed: ${ARGS}🐛✔️"
-  __git_add $ARGS >/dev/null 2>&1
+  __git_add $ARGS
   ;;
 
 new)
@@ -535,7 +548,9 @@ if __git_porcelain "$gitdir"; then
 else
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
-  [ -f "$versionfile" ] && __version
+  if [ -f "$versionfile" ]; then
+    __version
+  fi
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
     cp -Rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
   fi
@@ -547,7 +562,7 @@ else
   fi
   __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
     "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
-    printf_green "commit ID: $(git -C "$gitdir" rev-parse --short HEAD)" || exit 1
+    printf_green "commit ID: $(__git_commitid "$gitdir")" || exit 1
 
   if am_i_online --error -m "No internet connection. Skipping push"; then
     __git_push
