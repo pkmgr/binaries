@@ -444,11 +444,11 @@ rm_link() { unlink "$1"; }
 __am_i_online() {
   site="1.1.1.1"
   test_ping() {
-    timeout 1 ping -c1 $site &>/dev/null
+    timeout 2 ping -c2 $site &>/dev/null
     pingExit=$?
   }
   test_http() {
-    timeout 1 __curl --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    timeout 2 __curl --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
     httpExit=$?
   }
   test_ping || test_http

@@ -50,6 +50,8 @@ __gen_config() {
     cp -Rf "$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE" "$AM_I_ONLINE_CONFIG_BACKUP_DIR/$AM_I_ONLINE_CONFIG_FILE.$$"
   cat <<EOF >"$AM_I_ONLINE_CONFIG_DIR/$AM_I_ONLINE_CONFIG_FILE"
 # Settings for am_i_online
+AM_I_ONLINE_TIMEOUT=2
+AM_I_ONLINE_PINGCOUNT=2
 AM_I_ONLINE_TEST_SITE="\${AM_I_ONLINE_TEST_SITE:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_PING="\${AM_I_ONLINE_TEST_SITE_PING:-1.1.1.1}"
 AM_I_ONLINE_TEST_SITE_HTTP="\${AM_I_ONLINE_TEST_SITE_HTTP:-1.1.1.1}"
@@ -215,7 +217,9 @@ options_used_message="PingSite:${site:-$AM_I_ONLINE_TEST_SITE_PING}|HTTPSite:${s
 test_ping() {
   local definesite="${site:-$AM_I_ONLINE_TEST_SITE_PING}"
   local site="${definesite:-$AM_I_ONLINE_TEST_SITE}"
-  timeout 1 ping -c1 "$site" &>/dev/null && true || false
+  local timeout="${AM_I_ONLINE_TIMEOUT:-2}"
+  local count="${AM_I_ONLINE_PINGCOUNT:-2}"
+  timeout $timeout ping -c$count "$site" &>/dev/null && true || false
   pingExit="$?"
 }
 test_http() {
@@ -223,7 +227,8 @@ test_http() {
   local definestatus="${status}"
   local site="${site:-$AM_I_ONLINE_TEST_SITE}"
   local status="${definestatus:-$AM_I_ONLINE_TEST_SITE_HTTP_STATUS}"
-  timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep -E '${status}' -n1 &>/dev/null && true || false
+  local timeout="${AM_I_ONLINE_TIMEOUT:-2}"
+  timeout $timeout curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep -E '${status}' -n1 &>/dev/null && true || false
   httpExit="$?"
 }
 if [ -z "$AM_I_ONLINE_RUN" ]; then
