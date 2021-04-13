@@ -276,7 +276,7 @@ ask_question() {
   read -re -n 1 "REPLY"
 }
 ##################################################################################################
-__curl() { __am_i_online && curl --disable -LSs --connect-timeout 3 --retry 0 "$@"; }
+__curl() { __am_i_online && curl -q -LSs --connect-timeout 3 --retry 0 "$@"; }
 __start() {
   sleep .2 && "$@" &>/dev/null &
   disown
@@ -450,7 +450,7 @@ __am_i_online() {
     pingExit=$?
   }
   test_http() {
-    timeout 2 __curl --max-time 1 $site | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+    timeout 2 __curl "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
     httpExit=$?
   }
   test_ping || test_http

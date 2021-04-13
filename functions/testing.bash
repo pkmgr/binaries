@@ -1651,11 +1651,11 @@ __am_i_online() {
     esac
     shift
     test_ping() {
-      timeout 1 ping -c1 "$site" &>/dev/null
+      timeout 2 ping -c1 "$site" &>/dev/null
       local pingExit=$?
     }
     test_http() {
-      timeout 1 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
+      timeout 2 curl --disable -LSIs --max-time 1 "$site" | grep -e "HTTP/[0123456789]" | grep "200" -n1 &>/dev/null
       local httpExit=$?
     }
     test_ping || test_http
@@ -1682,7 +1682,7 @@ __am_i_online() {
   fi
 }
 #am_i_online_err "Message"
-__am_i_online_err() { __am_i_online --show "$@"; }
+__am_i_online_err() { __am_i_online --error "$@"; }
 # ask question and execute
 __ask_confirm() {
   local appname="${PROG:-$APPNAME}"
@@ -2497,11 +2497,12 @@ run_install_init() {
     REPORAW="$REPO/raw/$GIT_REPO_BRANCH"
     export APPNAME REPO REPORAW
     if user_is_root; then
+      export SUDO_USER
       if [ -f "$INSTDIR/install.sh" ]; then
         sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/$app/install.sh"
       else
         if __urlcheck "$REPORAW/install.sh"; then
-          sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/install.sh)"
+          sudo FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -q -LSs "$REPORAW/install.sh" 2>/dev/null)"
         else
           printf_error "Failed to initialize the installer from:"
           printf_exit "$REPORAW/install.sh\n"
@@ -2513,7 +2514,7 @@ run_install_init() {
         FORCE_INSTALL="$FORCE_INSTALL" bash -c "$INSTDIR/install.sh"
       else
         if __urlcheck "$REPORAW/install.sh"; then
-          FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -LSs $REPORAW/install.sh)"
+          FORCE_INSTALL="$FORCE_INSTALL" bash -c "$(curl -q -LSs "$REPORAW/install.sh" 2>/dev/null)"
         else
           printf_error "Failed to initialize the installer from:"
           printf_exit "$REPORAW/install.sh\n"
