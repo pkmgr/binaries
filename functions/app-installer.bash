@@ -398,7 +398,7 @@ backupapp() {
     echo -e "#################################" >>"$logdir/$myappname.log"
     echo -e "# Ended on $(date +'%A, %B %d, %Y %H:%M:%S')" >>"$logdir/$myappname.log"
     echo -e "#################################" >>"$logdir/$myappname.log"
-    #[ -f "$APPDIR/.installed" ] || rm_rf "$myappdir"
+    [ -f "$APPDIR/.installed" ] || rm_rf "$myappdir"
   fi
   if [ "$count" -gt "3" ]; then rm_rf $rmpre4vbackup; fi
 }
