@@ -97,6 +97,7 @@ FILE_TYPE=""
 [ -f "$SCREENSHOT_MENU_CONFIG_DIR/$SCREENSHOT_MENU_CONFIG_FILE" ] || __gen_config &>/dev/null
 [ -f "$SCREENSHOT_MENU_OPTIONS_DIR/options" ] || __list_options "$SCREENSHOT_MENU_OPTIONS_DIR" &>/dev/null
 [ -f "$SCREENSHOT_MENU_OPTIONS_DIR/array" ] || __list_array "$SCREENSHOT_MENU_OPTIONS_DIR" "$ARRAY" &>/dev/null
+[ -d "$SCREENSHOT_MENU_SAVE_DIR" ] || mkdir -p "$SCREENSHOT_MENU_SAVE_DIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
 if [ -f "$SCREENSHOT_MENU_CONFIG_DIR/$SCREENSHOT_MENU_CONFIG_FILE" ]; then
@@ -152,18 +153,16 @@ fi
 cmd_exists --error bash dmenu maim tee xdotool xclip xrandr || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-[ -d "$SCREENSHOT_MENU_SAVE_DIR" ] || mkdir -p "$SCREENSHOT_MENU_SAVE_DIR" &>/dev/null
+declare -A DISPLAY_MODE
 DISPLAYS=$(xrandr --listactivemonitors | grep '+' | awk '{print $4, $3}' | awk -F'[x/+* ]' '{print $1,$2"x"$4"+"$6"+"$7}')
 declare -a modes=(
   "Fullscreen"
   "Active window"
   "Selected region"
 )
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 IFS=$'\n'
-declare -A DISPLAY_MODE
 for i in ${DISPLAYS}; do
   name=$(echo "${i}" | awk '{print $1}')
   rest="$(echo "${i}" | awk '{print $2}')"
@@ -177,15 +176,18 @@ case "$target" in
 'Fullscreen')
   FILE_TYPE="full"
   ;;
+
 'Active window')
   active_window=$(xdotool getactivewindow)
   MAIM_ARGS="-i ${active_window}"
   FILE_TYPE="window"
   ;;
+
 'Selected region')
   MAIM_ARGS="-s"
   FILE_TYPE="region"
   ;;
+
 *)
   MAIM_ARGS="-g ${DISPLAY_MODE[${target}]}"
   FILE_TYPE="${target}"
