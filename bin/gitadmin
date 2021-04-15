@@ -497,10 +497,9 @@ git_pull_single() {
 # clone a single repo
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
-  local PROJECT_DIR projectdir
   local giturl="$1"
   local projdir="${2:-$projectdir}"
-  local REPODIR="$(__basedir "${1:-$projdir}/.git")"
+  local REPODIR="$(__basedir "${2:-$projdir}/.git")"
   __git_username_repo "$giturl"
   SUCCESS_MSG() { echo "Cloning from $giturl has completed"; }
   FAILED_MSG() { echo "Cloning from $giturl has failed"; }
