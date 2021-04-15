@@ -131,7 +131,7 @@ print_gitignore() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 create_gitignore() {
   ignore_list "$@"
-  printf 'gitignore created on %s\n' "$(date +'%D at %H:%M')" >"$GITDIR/.gitignore"
+  printf '# gitignore created on %s\n' "$(date +'%D at %H:%M')" >"$GITDIR/.gitignore"
   fetch_ignore "$@" >>"$GITDIR/.gitignore"
   printf '\n' >>"$GITDIR/.gitignore"
   printf_green "Added $IGNORELIST to your .gitignore"
