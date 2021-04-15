@@ -92,6 +92,7 @@ __git_pull() {
     git -C "$dir" pull $args -f -q &>/dev/null && return 0 || return 1
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_push() {
   local dir="$1" && shift 1
   local args="$*"
@@ -102,6 +103,7 @@ __git_push() {
     git -C "$dir" push $args -q &>/dev/null && return 0 || return 1
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_clone() {
   local url="$1" && shift 1
   local dir="$1" && shift 1
@@ -129,7 +131,6 @@ create_new_readme_template() {
     [ -f ${REPODIR}/README.md ] && __sed -i "s#AuthorName#${author}#g" "${REPODIR}/README.md"
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a WTFPL license if a LICENSE.md file doesn't exist
 create_new_wtfpl() {
@@ -144,7 +145,6 @@ create_new_wtfpl() {
     [ -f ${REPODIR}/LICENSE.md ] && __sed -i "s#AuthorName#${author}#g" "${REPODIR}/LICENSE.md"
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The template to create a new private github repo
 create_new_private_repo_template() {
@@ -163,7 +163,6 @@ create_new_private_repo_template() {
 EOF
   JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "https://$DOMAIN")
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The template to create a new public github repo
 create_new_repo_template() {
@@ -182,7 +181,6 @@ create_new_repo_template() {
 EOF
   JSON_OUTPUT=$(printf "$JSON_TEMPLATE" "$REPO_NAME" "$DESCRIPTION" "https://$DOMAIN")
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check if input is a url
 do_not_add_a_url() {
@@ -194,7 +192,6 @@ do_not_add_a_url() {
     exit 1
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The initialize git function
 run_git_init() {
@@ -218,7 +215,6 @@ run_git_init() {
     fi
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup a new git repo
 run_git_setup() {
@@ -273,7 +269,6 @@ run_git_setup() {
     exit 1
   fi
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Run git setup with no interactions
 run_git_setup_automated() {
@@ -305,7 +300,6 @@ run_git_setup_automated() {
   echo ""
   exit $?
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Makes a new jeckyll site
 make_newsite() {
@@ -314,7 +308,6 @@ make_newsite() {
     rm -Rf "$HOME/Public/sites/new/.git" && cd "$HOME/Public/sites/$1" && "$EDITOR" _config.yml || return 1
   gitadmin "${REPODIR}" setup
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Gets the organizations from the user
 git_all_orgs() {
@@ -323,7 +316,6 @@ git_all_orgs() {
     gitadmin --clone "$org"
   done
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initializes a repo with default options
 repos_init() {
@@ -333,7 +325,6 @@ repos_init() {
   if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
   __devnull2 git -C "${REPODIR}" commit -m ' 🦈🏠🐜 Initial Commit 🐜🦈🏠 '
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Initializes a repo for github
 git_init() {
@@ -348,7 +339,6 @@ git_init() {
   __devnull2 git -C "$REPODIR" remote add origin "https://github.com/$1/$2"
   __git_push "$REPODIR" -u origin master
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a new gist
 ghgist() {
@@ -367,7 +357,6 @@ ghgist() {
   __getexitcode "$SUCCES" "$ERROR"
   return $EXIT
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Deletes a github repo
 ghdelete() {
@@ -385,13 +374,11 @@ ghdelete() {
   __getexitcode "$SUCCES" "$ERROR"
   return $EXIT
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Reusable function for delete
 ghdelete-user() {
   curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -vi $REPONAME | grep -q "html_url" || true
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Creates a new repo on github
 ghcreate() {
@@ -411,7 +398,6 @@ ghcreate() {
   __getexitcode "$SUCCES" "$ERROR"
   return "$EXIT"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # clone a single repo from user
 ghsinglerepo() {
@@ -419,7 +405,6 @@ ghsinglerepo() {
   [ "$2" = "" ] && printf_red "Usage: --create userName repoName Description" && return 1
   __git_clone "https://github.com/$1/$2" "${3:-}"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Reusable function for create
 ghcreate-user() {
@@ -427,7 +412,6 @@ ghcreate-user() {
   sleep 1
   __devnull2 curl -q -H "Authorization: token $TOKEN" -LSsi "https://api.github.com/users/$USERNAME/repos?per_page=1000" | grep -i "$REPONAME" | grep -q "html_url" && true
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # main program
 main() {
@@ -451,7 +435,6 @@ main() {
   rm -Rf "/tmp/github-casjaysdev-*"
   exit "${EXIT:-$?}"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # push local repo
 git_push_single() {
@@ -510,7 +493,6 @@ git_pull_single() {
   fi
   exit "$?"
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # clone a single repo
 git_clone_single() {
@@ -533,7 +515,7 @@ git_clone_single() {
   fi
   exit "$?"
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #continue pulling
 git_update_loop() {
   if [[ "$*" =~ "--while" ]]; then
@@ -549,7 +531,7 @@ git_update_loop() {
     done
   fi
 }
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # cron functions
 __run_cron() {
   local frequency="0 4 * * 6"
@@ -570,10 +552,8 @@ __run_cron() {
     ;;
   esac
 }
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Main application
-
 case "$1" in
 --help)
   __help
