@@ -509,7 +509,7 @@ git_clone_single() {
   local REPODIR="$(__basedir "$projdir/.git")"
   SUCCESS_MSG() { echo "Cloning from $giturl has completed"; }
   FAILED_MSG() { echo "Cloning from $giturl has failed"; }
-  printf_exit "U:$giturl P:$PROJECT_DIR p:$projdir R:$REPODIR"
+  #printf_exit "U:$giturl P:$PROJECT_DIR p:$projdir R:$REPODIR"
   if [ -d "$projdir/.git" ]; then
     printf_custom "4" "Updating the repo in $projdir"
     __git_pull "$projdir" && exitCode=0 || exitCode=1
