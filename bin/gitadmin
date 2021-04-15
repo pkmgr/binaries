@@ -60,7 +60,7 @@ USERNAME="${GITHUB_USERNAME:-$2}"
 TOKEN="$GITHUB_ACCESS_TOKEN"
 REPO_URL="https://github.com/$USERNAME"
 PROJECT_BASE="$HOME/Projects"
-PROJECT_DIR="${GITHUB_PROJECT_DIR:-$PROJECT_BASE/github}"
+PROJECT_DIR="${PROJECT_DIR:-$PROJECT_BASE}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
 WTFLICENSE="${MY_LICENSE_FILE:-$CASJAYSDEVDIR/templates/wtfpl.md}"
 REPODIR="${topdir:-$PROJECT_DIR}"
@@ -85,7 +85,7 @@ fi
 __git_pull() {
   local dir="$1" && shift 1
   local args="$*"
-  local regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  local regex="(https?|ftp|file|git|ssh)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
   if [[ "$(__git_remote_origin "$dir")" =~ $regex ]]; then
     if __am_i_online; then git -C "$dir" pull $args -f -q &>/dev/null && return 0 || return 1; else return 1; fi
   else
@@ -96,7 +96,7 @@ __git_pull() {
 __git_push() {
   local dir="$1" && shift 1
   local args="$*"
-  local regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  local regex="(https?|ftp|file|git|ssh)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
   if [[ "$(__git_remote_origin "$dir")" =~ $regex ]]; then
     if __am_i_online; then git -C "$dir" push $args -q &>/dev/null && return 0 || return 1; else return 1; fi
   else
@@ -108,9 +108,13 @@ __git_clone() {
   local url="$1" && shift 1
   local dir="$1" && shift 1
   local args="$*"
-  local regex="(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
+  local regex="(https?|ftp|file|git|ssh)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
   if [[ "$url" =~ $regex ]]; then
-    if __am_i_online; then git clone "$url" "$dir" -q $args &>/dev/null && return 0 || return 1; else return 1; fi
+    if __am_i_online; then
+      git clone "$url" "$dir" -q $args &>/dev/null && return 0 || return 1;
+    else
+      return 1;
+    fi
   else
     git clone "$url" "$dir" -q $args &>/dev/null && return 0 || return 1
   fi
@@ -416,6 +420,7 @@ ghcreate-user() {
 # main program
 main() {
   sleep 3
+  local PROJECT_DIR="$PROJECT_DIR/github"
   for i in $(cat $TMPFILE); do
     if [ -d "$PROJECT_DIR/$USERNAME/$i" ]; then
       ERROR="Git pull $USERNAME/$i failed"
@@ -428,7 +433,7 @@ main() {
       ERROR="Git clone $USERNAME/$i failed"
       SUCCES="Git clone $USERNAME/$i completed"
       printf_purple "Now running git clone $USERNAME/$i"
-      __git_clone "$PROJECT_DIR/$USERNAME/$i" "$REPO_URL/$i" --recurse-submodules -f -q
+      __git_clone "$REPO_URL/$i" "$PROJECT_DIR/$USERNAME/$i" --recurse-submodules -f -q
       __getexitcode "$SUCCES" "$ERROR"
     fi
   done
@@ -497,12 +502,14 @@ git_pull_single() {
 # clone a single repo
 git_clone_single() {
   [ "$1" = "--help" ] || [ $# -eq 0 ] && printf_help "Usage: gitadmin clone MyURL"
+  __git_username_repo "$1"
+  local projectdir="$projectdir"
   local giturl="$1"
   local projdir="${2:-$projectdir}"
-  local REPODIR="$(__basedir "${2:-$projdir}/.git")"
-  __git_username_repo "$giturl"
+  local REPODIR="$(__basedir "$projdir/.git")"
   SUCCESS_MSG() { echo "Cloning from $giturl has completed"; }
   FAILED_MSG() { echo "Cloning from $giturl has failed"; }
+  printf_exit "U:$giturl P:$PROJECT_DIR p:$projdir R:$REPODIR"
   if [ -d "$projdir/.git" ]; then
     printf_custom "4" "Updating the repo in $projdir"
     __git_pull "$projdir" && exitCode=0 || exitCode=1

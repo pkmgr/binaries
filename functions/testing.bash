@@ -1163,7 +1163,7 @@ __git_hostname() {
 __git_username_repo() {
   unset protocol separator hostname username userrepo
   local url="$1"
-  local re="^(https?|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)$"
+  local re="^(https?|git|ssh)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)$"
   local githostname="$(__git_hostname $url 2>/dev/null)"
   if [ -d "$url" ]; then
     protocol=
@@ -1179,7 +1179,7 @@ __git_username_repo() {
     hostname=${BASH_REMATCH[3]}
     username=${BASH_REMATCH[4]}
     userrepo=${BASH_REMATCH[5]}
-    folder=${githostname}
+    folder=$githostname
     projectdir="${PROJECT_DIR:-$HOME/Projects}/$folder/$username/$userrepo"
   else
     return 1
