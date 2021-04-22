@@ -16,8 +16,8 @@
 _randomwallpaper() {
   local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
   local cur prev words cword
-  local ARRAY="--bg --help --term config enable disable"
-  local BGOPTS="--status --kill --stop --start"
+  local ARRAY="--bg --help --term config enable disable new"
+  local BGOPTS="--status --kill --stop --start --new"
 
   _init_completion || return
 
