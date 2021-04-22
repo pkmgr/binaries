@@ -127,7 +127,12 @@ __git_push() {
   return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__version() { date +"$gitversion" >"$versionfile"; }
+__version() {
+   date +"$gitversion" >"$versionfile"
+   versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
+   __git_add "$gitdir/version.txt"
+   git -C "$gitdir" commit -q -m "$versionbump"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
@@ -266,12 +271,7 @@ version)
   #   exit
   # fi
   __version
-  versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
   printf_cyan "$versionbump"
-  __git_add "$gitdir/version.txt"
-  if ! __git_porcelain "$gitdir"; then
-    git -C "$gitdir" commit -q -S -m "$versionbump" "$gitdir/version.txt" 2>/dev/null && exitCode=0 || exitCode=1
-  fi
   __getexitcode $exitCode "Successfuly committed the new version to $(__git_repobase "$gitdir")" "Failed to commit the version change in ${gitdir//$PWD/.}"
   __git_push --force "$gitdir"
   exit $?
