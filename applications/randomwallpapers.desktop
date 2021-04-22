@@ -9,14 +9,22 @@ Comment=Change the wallpaper.
 Icon=wallpaper
 Exec=randomwallpaper --term
 Terminal=false
-Actions=Actions=Status;Stop;
+Actions=Actions=Status;Stop;Start;New
 Categories=System;GTK;Utility;TerminalEmulator;GTK;X-XFCE;GNOME;MyScripts;
 Keywords=wallpaper;my;
 StartupNotify=false
 
+[Desktop Action New]
+Name=New
+Exec=randomwallpaper --bg --new
+
 [Desktop Action Status]
 Name=Status
 Exec=randomwallpaper --bg --status
+
+[Desktop Action start]
+Name=Start
+Exec=randomwallpaper --bg --start
 
 [Desktop Action Stop]
 Name=Stop
