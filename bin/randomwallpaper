@@ -274,6 +274,11 @@ __seen_file() {
   __rm_rf "$FILE_SEEN_TMP"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__update_cache() {
+  rm -Rf "$FILE_WALLPAPER" &>/dev/null
+  __find_cmd | sort -u >"$FILE_WALLPAPER"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __randomwallpaper() {
   local exitCode=0
   xfce_change_wp() {
@@ -312,6 +317,7 @@ __term() {
     printf_green "h. get current status"
     printf_green "r. Change the wallpaper every x minutes"
     printf_green "s. ${START_STOP_MESG:-Start randomwallpaper}"
+    printf_green "u. update wallpapaper file"
     printf_green "z. or escape to Exit"
     printf_green "---------------------------------"
     printf_read_question_nt "6" "Enter your choice [y-z] : " "1" "main" "-se"
@@ -349,6 +355,9 @@ __term() {
       else
         randomwallpaper --bg --start &
       fi
+      ;;
+    u)
+      __update_cache
       ;;
     $'\E' | $'\e' | z | x | n)
       clear
@@ -454,6 +463,10 @@ main() {
       exit $?
       ;;
     esac
+    ;;
+  update)
+    __update_cache
+    exit $?
     ;;
   new)
     shift 1
