@@ -295,7 +295,7 @@ if [ "$TRANSMISSION_REMOTE" = "true" ]; then
 fi
 __notifications "Attempting to launch $MYTORRENT_NAME"
 if [ -f "$HOME/.local/bin/mytorrent" ]; then
-  "$HOME/.local/bin/mytorrent" "$*"
+  $HOME/.local/bin/mytorrent $OPEN
 
 elif [[ $ARGS = *.torrent ]] && [[ "$TORRENT" =~ transmission ]]; then
   if cmd_exists transadd; then
