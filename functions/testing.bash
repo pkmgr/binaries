@@ -856,7 +856,7 @@ __file_not_empty() { [ -s "$1" ] && return 0 || return 1; }
 __file_is_empty() { [ ! -s "$1" ] && return 0 || return 1; }
 #sed "commands"
 sed="$(command -v gsed 2>/dev/null || command -v sed 2>/dev/null)"
-__sed() { $sed "$*"; }
+__sed() { $sed "$@"; }
 #tar "filename dir"
 __tar_create() { tar cfvz "$@"; }
 #tar filename
