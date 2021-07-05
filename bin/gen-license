@@ -94,9 +94,10 @@ get_remote_file() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+get_lic() { create_local_file "$1"; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -d "$licenseDir" ] && [ "$(__count_files "$licenseDir")" -ne 0 ]; then
   licenseURL="$licenseDir"
-  get_lic() { create_local_file "$1"; }
 elif [ -d "$CASJAYSDEVDIR/templates/licenses" ]; then
   licenseURL="$CASJAYSDEVDIR/templates/licenses"
 else
