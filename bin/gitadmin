@@ -66,6 +66,10 @@ WTFLICENSE="${MY_LICENSE_FILE:-$CASJAYSDEVDIR/templates/wtfpl.md}"
 REPODIR="${topdir:-$PROJECT_DIR}"
 VERSIONFILE="$(__git_top_dir $gitdir 2>/dev/null)/version.txt"
 VERSION_DATE_FORMAT="${VERSION_DATE_FORMAT:-%Y%m%d%H%M-git}"
+DOMAIN_TEMPLATE="https://github.com/casjay-templates/domain-template"
+ORG_API_URL="https://api.github.com/user/orgs?per_page=1000&type=owner"
+GIT_DEFAULT_BRANCH="main"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #[ -n "$TOKEN" ] || printf_exit "The env variable GITHUB_ACCESS_TOKEN is not set"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -111,9 +115,9 @@ __git_clone() {
   local regex="(https?|ftp|file|git|ssh)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]"
   if [[ "$url" =~ $regex ]]; then
     if __am_i_online; then
-      git clone "$url" "$dir" -q $args &>/dev/null && return 0 || return 1;
+      git clone "$url" "$dir" -q $args &>/dev/null && return 0 || return 1
     else
-      return 1;
+      return 1
     fi
   else
     git clone "$url" "$dir" -q $args &>/dev/null && return 0 || return 1
@@ -208,7 +212,7 @@ run_git_init() {
       printf_read_question "3" "This will overwrite the repo if it exists. Continue? [y/n]" "1" "confirm_repo" "-s"
       if printf_answer_yes "$confirm_repo"; then
         if [ -f "${REPODIR}/gitmasterconfig" ]; then cp -Rf "${REPODIR}/gitmasterconfig" "${REPODIR}/.git/config"; fi
-        git -C "$REPODIR" push -q -f --set-upstream origin master &>/dev/null &&
+        git -C "$REPODIR" push -q -f --set-upstream origin $GIT_DEFAULT_BRANCH &>/dev/null &&
           __git_push "$REPODIR" &&
           printf_green "Successfuly pushed to $repo" || printf_red "Push to $repo has failed"
       else
@@ -223,6 +227,10 @@ run_git_init() {
 # Setup a new git repo
 run_git_setup() {
   local REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
+  # local PREVREPO="${PREVREPO:-}"
+  # local continue="${continue:-}"
+  # local reuse="${reuse:-}"
+
   printf_green "Initializing $REPODIR"
   if [ -d "$REPODIR/.git" ]; then
     local PREVREPO="$(git -C "$REPODIR" remote -v | grep push | head -n 1 | awk '{print $2}' 2>/dev/null)"
@@ -297,7 +305,7 @@ run_git_setup_automated() {
     if [ -f "$REPODIR/gitmasterconfig" ]; then __cp_rf "$REPODIR/gitmasterconfig" "$REPODIR/.git/config"; fi &&
     __devnull git -C "${REPODIR}" add . &&
     __devnull2 git -C "${REPODIR}" commit -q -m ' 🦈🏠🐜❗ Initial Commit ❗🐜🦈🏠 ' &&
-    __git_push "$REPODIR" --set-upstream origin master &&
+    __git_push "$REPODIR" --set-upstream origin $GIT_DEFAULT_BRANCH &&
     __git_push "$REPODIR" &&
     printf_green "Successfuly pushed to: $PREVREPO" ||
     printf_red "Push to $PREVREPO has failed"
@@ -308,14 +316,14 @@ run_git_setup_automated() {
 # Makes a new jeckyll site
 make_newsite() {
   local REPODIR="$(__basedir "$REPODIR/.git")"
-  __git_clone https://github.com/casjay-templates/domain-template "$HOME/Public/sites/$1" &&
+  __git_clone $DOMAIN_TEMPLATE "$HOME/Public/sites/$1" &&
     rm -Rf "$HOME/Public/sites/new/.git" && cd "$HOME/Public/sites/$1" && "$EDITOR" _config.yml || return 1
   gitadmin "${REPODIR}" setup
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Gets the organizations from the user
 git_all_orgs() {
-  ORGAPI="https://api.github.com/user/orgs?per_page=1000&type=owner"
+  ORGAPI="$ORG_API_URL"
   for org in "$GITHUB_USERNAME" "$(curl -q -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
     gitadmin --clone "$org"
   done
