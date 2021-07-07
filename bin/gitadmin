@@ -798,7 +798,7 @@ github) # github repo
     do_not_add_a_url "$1"
     homerepo="$(echo "$HOME/Projects/github/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     __mkd "$HOME/Projects/github/$1"
-    __cd_into "$homerepo"
+    [ -d "$homerepo/.git" ] && __cd_into "$homerepo" || printf_exit 1 1 "failed to clone $REPODIR"
     repos_init $REPODIR
     exit "$?"
     ;;
@@ -809,14 +809,15 @@ github) # github repo
     if [ "$1" = "--help" ]; then printf_exit "Clone a github project\n\t\tUsage: gitadmin github clone username/projectname"; fi
     do_not_add_a_url "$1"
     homerepo="$(echo "$HOME/Projects/github/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
-    if [ -d "$homerepo" ]; then
+    if [ -d "$homerepo/.git" ]; then
       printf_green "The repo already exists so attempting update"
       __git_pull "$homerepo"
     else
       printf_green "Cloning the repo from github.com/$1"
+      mkdir -p "$homerepo"
       __git_clone "https://github.com/$1.git" "$homerepo"
     fi
-    __cd_into "$homerepo"
+    [ -d "$homerepo/.git" ] && __cd_into "$homerepo" || printf_exit 1 1 "failed to clone $REPODIR"
     exit "$?"
     ;;
 
@@ -840,7 +841,7 @@ gitlab)
     do_not_add_a_url "$1"
     homerepo="$(echo "$HOME/Projects/gitlab/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     __mkd "$HOME/Projects/gitlab/$1"
-    __cd_into "$homerepo"
+    [ -d "$homerepo/.git" ] && __cd_into "$homerepo" || printf_exit 1 1 "failed to clone $REPODIR"
     repos_init "$REPODIR"
     exit "$?"
     ;;
@@ -851,14 +852,15 @@ gitlab)
     if [ "$1" = "--help" ]; then printf_exit "Clone a gitlab project\n\t\tUsage: gitadmin gitlab clone username/projectname"; fi
     do_not_add_a_url "$1"
     homerepo="$(echo "$HOME/Projects/gitlab/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
-    if [ -d "$homerepo" ]; then
+    if [ -d "$homerepo/.git" ]; then
       printf_green "The repo already exists so attempting update"
       __git_pull "$homerepo"
     else
       printf_green "Cloning the repo from gitlab.com/$1"
+      mkdir -p "$homerepo"
       __git_clone "https://gitlab.com/$1.git" "$homerepo"
     fi
-    __cd_into "$homerepo"
+    [ -d "$homerepo/.git" ] && __cd_into "$homerepo" || printf_exit 1 1 "failed to clone $REPODIR"
     exit "$?"
     ;;
 
@@ -884,7 +886,7 @@ private)
     do_not_add_a_url "$1"
     homerepo="$(echo "$HOME/Projects/private/$1" | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g')"
     __mkd "$HOME/Projects/private/$1"
-    __cd_into "$homerepo"
+    [ -d "$homerepo/.git" ] && __cd_into "$homerepo" || printf_exit 1 1 "failed to clone $REPODIR"
     repos_init $REPODIR
     exit "$?"
     ;;
@@ -900,9 +902,10 @@ private)
       __git_pull "$homerepo"
     else
       printf_green "Cloning the repo from $PERSONAL_GIT_HOST/$1"
+      mkdir -p "$homerepo"
       __git_clone "$PERSONAL_GIT_HOST/$1.git" "$homerepo"
     fi
-    __cd_into "$homerepo"
+    [ -d "$homerepo/.git" ] && __cd_into "$homerepo" || printf_exit 1 1 "failed to clone $REPODIR"
     exit "$?"
     ;;
 
