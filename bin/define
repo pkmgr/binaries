@@ -57,6 +57,7 @@ DEFINE_TEMP_FILE="${TMPDIR:-/tmp}/define"
 DEFINE_NOTIFY_ENABLED="yes"
 DEFINE_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
 DEFINE_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$DEFINE_NOTIFY_CLIENT_ICON}"
+DEFINE_PING_URL="8.8.8.8"
 
 EOF
   if [ -f "$DEFINE_CONFIG_DIR/$DEFINE_CONFIG_FILE" ]; then
@@ -80,6 +81,7 @@ DEFINE_SERVER_PORT="2628"
 DEFINE_NOTIFY_ENABLED="yes"
 DEFINE_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 DEFINE_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DEFINE_NOTIFY_CLIENT_ICON}"
+DEFINE_PING_URL="8.8.8.8"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
@@ -145,7 +147,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications/Network check
 cmd_exists --error dict bash || exit 1
-am_i_online "$DEFINE_SERVER_HOST" --error || exit 1
+am_i_online "$DEFINE_PING_URL" --error || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 HOST="$DEFINE_SERVER_HOST"
