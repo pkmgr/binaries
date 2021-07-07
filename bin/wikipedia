@@ -69,6 +69,9 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __curl() { curl --disable -LSsfk --connect-timeout 3 --retry 0 --fail "$@" 2>/dev/null || return 1; }
+__uri_decode() {
+  echo -e "$*" | perl -MURI::Escape -lne 's/ /_/g;s/"//g;print uri_escape($_);'
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
@@ -150,7 +153,7 @@ cmd_exists --error bash curl lynx || exit 1
 am_i_online --error -s "$WIKIPEDIA_PING_URL" || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
-QUERY="${*}"
+QUERY="$(__uri_decode "$*")"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
