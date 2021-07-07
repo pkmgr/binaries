@@ -56,6 +56,7 @@ WIKIPEDIA_TEMP_FILE="${TMPDIR:-/tmp}/wikipedia"
 WIKIPEDIA_NOTIFY_ENABLED="yes"
 WIKIPEDIA_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
 WIKIPEDIA_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$WIKIPEDIA_NOTIFY_CLIENT_ICON}"
+WIKIPEDIA_PING_URL="8.8.8.8"
 
 EOF
   if [ -f "$WIKIPEDIA_CONFIG_DIR/$WIKIPEDIA_CONFIG_FILE" ]; then
@@ -80,6 +81,7 @@ WIKIPEDIA_NOTIFY_ENABLED="yes"
 WIKIPEDIA_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 WIKIPEDIA_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$WIKIPEDIA_NOTIFY_CLIENT_ICON}"
 WIKIPEDIA_API_URL="https://en.wikipedia.org/wiki"
+WIKIPEDIA_PING_URL="8.8.8.8"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
@@ -145,7 +147,7 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications/Network check
 cmd_exists --error bash curl lynx || exit 1
-am_i_online --error -s "$WIKIPEDIA_API_URL" || exit 1
+am_i_online --error -s "$WIKIPEDIA_PING_URL" || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 
