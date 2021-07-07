@@ -150,10 +150,11 @@ cmd_exists --error bash curl lynx || exit 1
 am_i_online --error -s "$WIKIPEDIA_PING_URL" || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
+QUERY="${*}"
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-__curl "$WIKIPEDIA_API_URL/$1" | lynx -stdin
+__curl "$WIKIPEDIA_API_URL/${QUERY}" | lynx -stdin
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
