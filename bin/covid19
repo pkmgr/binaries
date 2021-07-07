@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202103302221-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$COVID19_TEMP_FILE" ] && rm -Rf "$COVID19_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200621-git
+##@Version       : 202103302221-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
@@ -40,12 +42,131 @@ fi
 user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__am_i_online_err || exit 1
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE"
+  [ -d "$COVID19_CONFIG_DIR" ] || mkdir -p "$COVID19_CONFIG_DIR"
+  [ -d "$COVID19_CONFIG_BACKUP_DIR" ] || mkdir -p "$COVID19_CONFIG_BACKUP_DIR"
+  [ -f "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE" ] &&
+    cp -Rf "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE" "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE.$$"
+  cat <<EOF >"$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE"
+# Settings for covid19
+COVID19_SERVER_HOST="https://corona-stats.online"
+COVID19_TEMP_FILE="${TMPDIR:-/tmp}/covid19"
+COVID19_NOTIFY_ENABLED="yes"
+COVID19_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+COVID19_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$COVID19_NOTIFY_CLIENT_ICON}"
+COVID19_PING_URL="8.8.8.8"
+
+EOF
+  if [ -f "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE" ]; then
+    printf_green "Your config file for covid19 has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-URL="https://corona-stats.online"
+# Defaults
+exitCode=""
+COVID19_CONFIG_FILE="settings.conf"
+COVID19_CONFIG_DIR="$HOME/.config/myscripts/covid19"
+COVID19_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/covid19/backups"
+COVID19_OPTIONS_DIR="$HOME/.local/share/myscripts/covid19/options"
+COVID19_TEMP_FILE="${TMPDIR:-/tmp}/covid19"
+COVID19_SERVER_HOST="https://corona-stats.online"
+COVID19_NOTIFY_ENABLED="yes"
+COVID19_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+COVID19_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$COVID19_NOTIFY_CLIENT_ICON}"
+COVID19_PING_URL="8.8.8.8"
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__curl "$URL"
+# Set additional variables/Argument/Option settings
+SETARGS="$*"
+SHORTOPTS="c,v,h,j,s:"
+LONGOPTS="options,config,version,help,json,country:"
+ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-exit $?
+# Generate Files
+[ -f "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$COVID19_OPTIONS_DIR/options" ] || __list_options "$COVID19_OPTIONS_DIR" &>/dev/null
+[ -f "$COVID19_OPTIONS_DIR/array" ] || __list_array "$COVID19_OPTIONS_DIR" "$ARRAY" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# end
+# Import config
+if [ -f "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE" ]; then
+  . "$COVID19_CONFIG_DIR/$COVID19_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$APPNAME" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$COVID19_OPTIONS_DIR" "$ARRAY"
+    __list_options "$COVID19_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  -s | --country)
+    shift 1
+    COVID19_SERVER_HOST="$COVID19_SERVER_HOST/$1"
+    shift 1
+    ;;
+  -j | --json)
+    shift 1
+    COVID19_SERVER_HOST="$COVID19_SERVER_HOST/$1"
+    COVID19_SERVER_OPTIONS="?format=json"
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${COVID19_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${COVID19_NOTIFY_CLIENT_ICON}"
+if [ "$COVID19_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error curl bash || exit 1
+am_i_online --error "$COVID19_PING_URL" || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+printf '\n'
+echo $COVID19_SERVER_HOST/$COVID19_SERVER_OPTIONS
+__curl "$COVID19_SERVER_HOST/$COVID19_SERVER_OPTIONS"
+printf '\n'
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
