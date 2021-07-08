@@ -80,7 +80,7 @@ fi
 _notifications() { if [ "$NOTES_NOTIFY" = "yes" ]; then notifications "$@"; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __server_start() {
-  notes server start &>/dev/null &
+  notes server start "$@" &>/dev/null &
   disown || return 1
   sleep 3
 }
