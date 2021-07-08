@@ -18,9 +18,9 @@ _notes() {
   local notesdir="${NOTES_DIRECTORY:-$HOME/.local/share/editors/notes}"
   local cur prev words cword
   local cur="${COMP_WORDS[$COMP_CWORD]}"
-  local ARRAY="client --help all --show --config --server open sync list search --import"
-  local SERVEROPTS="--help --kill --status systemd edit enable start"
-  local SYSTEMD="install remove start stop restart status run"
+  local ARRAY="client open sync list search all --help --import --show --config --server"
+  local SERVEROPTS="--help --kill --status --systemd --edit --enable --start"
+  local SYSTEMD="--install --remove --start --stop --restart --status --run"
   local SYSTEMDRUN="vars stop start restart"
   local OPEN="$(find $notesdir/*/* -type f -iname "*.txt" -o -iname "*.md" -not -path "$notesdir/.git/*" -not -path "$notesdir/archive/*" 2>/dev/null | sed 's#'$notesdir/'##g')"
   local EDIT="all prev cur"
