@@ -174,7 +174,7 @@ Categories=System;Development;GTK;X-XFCE;GNOME;
 Keywords=notes;server;
 StartupNotify=true
 EOF
-  __server_start --loop & || false
+  { __server_start --loop & } || false
   if [ $? = 0 ]; then
     printf_green "notes server has been installed for $USER"
     _notifications "NotesCLI" "Service has been enabled"
