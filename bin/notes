@@ -174,7 +174,7 @@ Categories=System;Development;GTK;X-XFCE;GNOME;
 Keywords=notes;server;
 StartupNotify=true
 EOF
-  __server_start --loop || false
+  __server_start --loop & || false
   if [ $? = 0 ]; then
     printf_green "notes server has been installed for $USER"
     _notifications "NotesCLI" "Service has been enabled"
@@ -182,6 +182,7 @@ EOF
     printf_error 1 1 "$ICON_WARN Failed to install the notes server for $USER"
     _notifications "$ICON_WARN Failed to install the notes server for $USER"
   fi
+  return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __server_disable() {
@@ -206,6 +207,7 @@ __server_disable() {
     _notifications "NotesCLI" "Service has been disabled"
     printf_green "Service has been disabled"
   fi
+  return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Netcat fix
