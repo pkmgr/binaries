@@ -121,7 +121,12 @@ __git_message() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__git_init() { [ ! -d "${BLOG_DIR}/.git" ] && [ "$GIT_STATUS" = "ENABLED" ] && gitadmin "${BLOG_DIR}" setup; }
+__git_init() {
+  if [ ! -d "${BLOG_DIR}/.git" ] && [ "$GIT_STATUS" = "ENABLED" ]; then
+    gitadmin "${BLOG_DIR}" setup
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __blog_site() { git -C "$BLOG_DIR" remote -v 2>/dev/null | grep push | head -n 1 | awk '{print $2}' 2>/dev/null | grep '^'; }
 __blog_dir() { if [ -d "$BLOG_DIR" ]; then return 0; else return 1; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -346,7 +351,7 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Check for required applications/Network check
-cmd_exists --error bash || exit 1
+cmd_exists --error bash git || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
