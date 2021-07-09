@@ -98,7 +98,7 @@ df_personal() {
 }
 __list_available() {
   echo -e 'alacritty asciinema awesome bash bashtop bspwm byobu caja castero chromium cmus deadbeef deadd dircolors dunst easytag emacs firefox fish geany git gtk-2.0 gtk-3.0 guake htop i3 jgmenu lemonbar lf misc mpd mutt nano neofetch neovim newsboat nitrogen nodejs openbox pianobar picard polybar qterminal qtile ranger remmina rofi ruby sakura screen smplayer smtube sway sxhkd terminology termite thunar tig tint2 tmux transmission variety vifm vim volumeicon xfce4 xfce4-terminal xmonad youtube-dl youtube-viewer ytmdl zsh' | tr ' ' '\n'
-exit 0
+  exit 0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
@@ -126,7 +126,7 @@ ARRAY="list search available personal update install cron version remove"
 [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
 [ -f "$DFMGR_OPTIONS_DIR/options" ] || __list_options "$DFMGR_OPTIONS_DIR" &>/dev/null
 [ -f "$DFMGR_OPTIONS_DIR/array" ] || __list_array "$DFMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
-[ -f "$DFMGR_OPTIONS_DIR/available" ] || __list_available >"$DFMGR_OPTIONS_DIR/available" &>/dev/null
+[ -f "$DFMGR_OPTIONS_DIR/available" ] || __list_available "$DFMGR_OPTIONS_DIR/available" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
 if [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ]; then
