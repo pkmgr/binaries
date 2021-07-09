@@ -358,8 +358,7 @@ printf_read_input() {
   reply="${1:-REPLY}" && shift 1
   readopts="${1:-}" && shift 1
   printf_color "\t\t$msg " "${PRINTF_COLOR:-$color}"
-  read -re -n $lines $readopts $reply
-  [ -n "$reply" ] || echo
+  read -re -n $lines $readopts $reply || return 1
 }
 #printf_read_question "color" "message" "maxLines" "answerVar" "readopts"
 printf_read_question() {
@@ -516,7 +515,7 @@ __local_sysname() {
 __list_array() {
   local OPTSDIR="${1:-$HOME/.local/share/myscripts/${APPNAME:-$PROG}/options}"
   mkdir -p "$OPTSDIR"
-  echo "${2:-$ARRAY}" >"$OPTSDIR/array" | tr ',' '\n'
+  echo "${2:-$ARRAY}" | tr ',' '\n' >"$OPTSDIR/array"
   return
 }
 __list_options() {
@@ -1086,15 +1085,16 @@ __git() {
 }
 #git_clone "url" "dir"
 __git_clone() {
-  [ $# -ne 2 ] && printf_exit "Usage: git clone remoteRepo localDir"
+  [ $# -ne 2 ] && printf_exit "Usage: git_clone remoteRepo localDir"
   local repo="$1"
+  local dir="${2:-$dir}"
   __git_username_repo "$repo"
   [ -n "$2" ] && local dir="$2" && shift 1 || local dir="${INSTDIR:-.}"
   if [ -d "$dir/.git" ]; then
-    __git_update "$dir" || return 1
+    __git_update "$dir" || false
   else
     [ -d "$dir" ] && __rm_rf "$dir"
-    __git clone -q --recursive "$repo" "$dir" || return 1
+    __git clone -q --recursive "$repo" "$dir" || false
   fi
   if [ "$?" -ne "0" ]; then
     printf_error "Failed to clone the repo"
@@ -1440,7 +1440,7 @@ __sudoask() {
       sleep 10
       rm -Rf "$HOME/.sudo"
       kill -0 "$$" || return
-    done &>/dev/null 2>/dev/null &
+    done &>/dev/null &
   fi
 }
 __sudoexit() {
@@ -1519,7 +1519,7 @@ __execute() {
   local exitCode=0
   local cmdsPID=""
   __set_trap "EXIT" "__kill_all_subprocesses"
-  eval "$CMDS" &>/dev/null 2>"$TMP_FILE" &
+  eval "$CMDS" >/dev/null 2>"$TMP_FILE" &
   cmdsPID=$!
   __show_spinner "$cmdsPID" "$CMDS" "$MSG"
   wait "$cmdsPID" &>/dev/null

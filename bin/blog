@@ -59,7 +59,7 @@ BLOG_PAGE_BASE_URL="$BLOG_BASE_URL"
 BLOG_POST_BASE_URL="$BLOG_BASE_URL/blog"
 BLOG_DEFAULT_EXT="md"
 BLOG_GIT_ENABLED="${BLOG_GIT_ENABLED:-yes}"
-BLOG_DIR="${BLOG_DIR:-$HOME/.local/share/blogs/default}"
+BLOG_DIR="$HOME/.local/share/blogs/default"
 BLOG_TEMPLATE_DIR="$CASJAYSDEVDIR/templates"
 BLOG_EDITOR="${EDITOR:-myeditor}"
 BLOG_OPTIONS_VIM="${BLOG_OPTIONS_EDITOR:-"-c ':setlocal ft=notes syntax=markdown'"}"
@@ -158,27 +158,37 @@ __edit() {
 __blog_init() {
   __git_enabled
   local YesNo=""
-  local url=""
-  local BLOG_DIR="${1:-BLOG_DIR}"
+  local BLOG_URL=""
+  local BLOG_DIR="${1:-$BLOG_DIR}"
   if [ -f "$BLOG_CONFIG_DIR/$BLOG_NAME.nogit" ] || [ "$BLOG_GIT_ENABLED" != "yes" ]; then return; fi
   if [ ! -d "$BLOG_DIR/.git" ]; then
-    printf_read_question "2" "Would you like to keep this in a git repo?" "1" "GIT" "-s"
-    if printf_answer_yes "$GIT"; then
+    printf_read_question "2" "Would you like to keep this in a git repo?" "1" "ENABLE_GIT" "-s"
+    if printf_answer_yes "$ENABLE_GIT"; then
       printf_green "Initializing the repo"
-      printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YesNo" "-s"
-      if printf_answer_yes "$YesNo"; then
-        printf_read_input "3" "Enter the url: " "120" "url" "-e"
-        __git_clone "$url" "$BLOG_DIR"
+      printf_read_question "3" "Do you already have a blog repo you would like to import: [y/N] " "1" "YES" "-s"
+      if printf_answer_yes "$YES"; then
+        printf_read_input "3" "Enter the url: " "120" "BLOG_URL" "-e"
+        git clone "$BLOG_URL" "$BLOG_DIR" -q
+      else
+        __git_init "$BLOG_DIR"
       fi
-      __git_init "$BLOG_DIR"
-      printf_green "Your new blogging site has been setup" || printf_exit "Failed to initialize $BLOG_DIR"
     else
       printf '%s\n' "Git is disabled for $BLOG_NAME" >"$BLOG_CONFIG_DIR/$BLOG_NAME.nogit"
       BLOG_GIT_ENABLED="no"
     fi
   fi
   __mkd "$BLOG_DIR/_posts" "$BLOG_DIR/_pages"
-  "$APPNAME" page index welcome
+  if [ ! -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
+    if [ -d "$BLOG_DIR/_posts" ] && [ -d "$BLOG_DIR/_pages" ]; then
+      if [ -d "$BLOG_DIR" ]; then
+        printf_green "Your new blogging site has been setup"
+      else
+        printf_exit "Failed to initialize $BLOG_DIR"
+      fi
+    else
+      "$APPNAME" page index welcome
+    fi
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __make_file() {
@@ -362,7 +372,6 @@ cmd_exists --error bash git || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
-  unset BLOG_DIR
   . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
 fi
 [ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
