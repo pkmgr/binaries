@@ -250,7 +250,7 @@ __backup() {
     return 1
   fi
   shift
-  printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$logname" >>"$logdir/$logname"
+  printf_header " # Started on $(date +'%A, %B %d, %Y %H:%M:%S')" "# Backing up $appdir" >>"$logdir/$logname"
   if [ -t 0 ]; then
     __execute "__backupcmd" "Backing up $appname to $backupdir"
     exitCode=$?
