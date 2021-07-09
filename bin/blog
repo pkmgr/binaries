@@ -42,7 +42,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
-  local BLOG_CONFIG_FILE="${1:-$BLOG_CONFIG_FILE}"
+  local BLOG_CONFIG_FILE="${1:-$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE}"
   printf_green "Generating the config file in"
   printf_green "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
   [ -d "$BLOG_CONFIG_DIR" ] || mkdir -p "$BLOG_CONFIG_DIR"
@@ -78,6 +78,7 @@ EOF
     false
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_enabled() {
   if
     [ -f "${BLOG_CONFIG_DIR}/$BLOG_NAME.nogit" ] || [ "$BLOG_GIT_ENABLED" != "yes" ]
@@ -167,6 +168,7 @@ __blog_init() {
   __mkd "$BLOG_DIR/_posts" "$BLOG_DIR/_pages"
   "$APPNAME" page index welcome
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __make_file() {
   file="$1" && shift 1
   dir="$(dirname "${file/$BLOG_DIR/}" | __sed 's|^/||g;s|/$||g;s| |_|g')"
@@ -267,7 +269,7 @@ BLOG_NOTIFY_ENABLED="yes"
 BLOG_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 BLOG_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$BLOG_NOTIFY_CLIENT_ICON}"
 GITHUB_ACCESS_TOKEN="${GITHUB_ACCESS_TOKEN:-none}"
-OLD_BLOG_CONFIG_FILE="${OLD_BLOG_CONFIG_FILE:-$BLOG_CONFIG_FILE}"
+OLD_BLOG_CONFIG_FILE="${OLD_BLOG_CONFIG_FILE:-$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE}"
 DEFAULT_BLOG_NAME="default"
 BLOG_DEFAULT_EXT="${BLOG_DEFAULT_EXT:-md}"
 BLOG_BASE_URL="${BLOG_BASE_URL}"
@@ -315,13 +317,13 @@ while :; do
   -c | --config)
     shift 1
     SETOPT=config
-    OLD_BLOG_CONFIG_FILE="${OLD_BLOG_CONFIG_FILE:-$BLOG_CONFIG_FILE}"
+    OLD_BLOG_CONFIG_FILE="${OLD_BLOG_CONFIG_FILE:-$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE}"
     ;;
   -f | --file)
     shift 1
-    OLD_BLOG_CONFIG_FILE="$BLOG_CONFIG_FILE"
-    BLOG_CONFIG_FILE="$1"
-    BLOG_NAME="$(basename "$BLOG_CONFIG_FILE")"
+    OLD_BLOG_CONFIG_FILE="$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
+    BLOG_CONFIG_FILE="$BLOG_CONFIG_DIR/$1"
+    BLOG_NAME="$(basename "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE")"
     shift 1
     ;;
   --)
@@ -348,7 +350,7 @@ cmd_exists --error bash || exit 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # APP Variables
 if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then unset BLOG_DIR . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"; fi
-[ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_FILE"
+[ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
 [ -d "$BLOG_DIR" ] || __setup "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
@@ -356,7 +358,7 @@ if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then unset BLOG_DIR . "$BLOG_CON
 case "${SETOPT:-$1}" in
 config)
   shift 1
-  if [ "$BLOG_CONFIG_FILE" != "$OLD_BLOG_CONFIG_FILE" ]; then
+  if [ "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" != "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
     printf_read_input "4" "Where would you like to store your blog files" "120" "BLOG_DIR" "-e -i $HOME/.local/share/blogs/$BLOG_NAME"
   fi
   BLOG_NAME="$(basename "${BLOG_DIR}")"
