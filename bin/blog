@@ -42,7 +42,7 @@ user_install
 __options "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
-  local BLOG_CONFIG_FILE="${1:-$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE}"
+  local BLOG_CONFIG_FILE="${1:-$BLOG_CONFIG_FILE}"
   printf_green "Generating the config file in"
   printf_green "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
   [ -d "$BLOG_CONFIG_DIR" ] || mkdir -p "$BLOG_CONFIG_DIR"
@@ -99,8 +99,14 @@ __findcmd() {
 __setup() {
   BLOG_NAME="$(basename "${BLOG_DIR}")"
   __blog_init "$BLOG_DIR" &&
-    ln -sf "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" "$BLOG_CONFIG_DIR/$BLOG_NAME.conf" &&
-    [ $# -ne 0 ] || exit 0
+    if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
+      ln -sf "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" "$BLOG_CONFIG_DIR/$BLOG_NAME.conf"
+      true
+    else
+      printf_red "The file $BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE doesn't exist"
+      false
+    fi
+  [ $# -ne 0 ] || exit 0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __get_count() {
@@ -360,17 +366,17 @@ if [ -f "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
   . "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
 fi
 [ -n "$BLOG_DIR" ] || printf_exit 1 1 "Failed to load $BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE"
-[ -d "$BLOG_DIR" ] || __setup "$@"
+[ -d "$BLOG_DIR" ] && [ -n "$SETOPT" ] || __setup "$@"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "${SETOPT:-$1}" in
 config)
   shift 1
+  BLOG_NAME="$(basename "${BLOG_DIR}")"
   if [ "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" != "$BLOG_CONFIG_DIR/$BLOG_CONFIG_FILE" ]; then
     printf_read_input "4" "Where would you like to store your blog files" "120" "BLOG_DIR" "-e -i $HOME/.local/share/blogs/$BLOG_NAME"
   fi
-  BLOG_NAME="$(basename "${BLOG_DIR}")"
   __blog_init "$BLOG_DIR"
   __gen_config "$BLOG_NAME.conf"
   exit $?
