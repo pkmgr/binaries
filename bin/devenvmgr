@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
+VERSION="202107101234-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
+trap '[ -f "$DEVENV_TEMP_FILE" ] && rm -Rf "$DEVENV_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200627-git
+##@Version       : 202107101234-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
@@ -293,6 +295,9 @@ __gen_editorconfig() {
     printf_exit 1 1 "Failed to create .editorconfig"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Variables
+DEVENVMGR_TEMP_FILE="${TMPDIR:-/tmp}/devenvmgr"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ "$1" = "--start" ]; then
   shift 1
   START="$1"
@@ -382,7 +387,7 @@ editorconfig)
   __run_new_site && __gen_editorconfig "$@"
   ;;
 *)
-  shift --
+  shift 1
   __help "$@"
   ;;
 esac
