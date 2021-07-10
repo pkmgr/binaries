@@ -56,9 +56,9 @@ if [ "$gitdir" = "." ]; then gitdir="$(__basedir ".")"; fi
 # defaults
 unset PREVREPO
 topdir="$(__git_top_dir "$gitdir" 2>/dev/null)"
-USERNAME="${GITHUB_USERNAME:-$2}"
+USERNAME="${GITHUB_USERNAME}"
 TOKEN="$GITHUB_ACCESS_TOKEN"
-REPO_URL="https://github.com/$USERNAME"
+REPO_URL="${REPO_URL:-https://github.com}"
 PROJECT_BASE="$HOME/Projects"
 PROJECT_DIR="${PROJECT_DIR:-$PROJECT_BASE}"
 TMPFILE="${TMP:-/tmp}/github-casjaysdev-XXXXXXXXX"
@@ -324,6 +324,7 @@ make_newsite() {
 # Gets the organizations from the user
 git_all_orgs() {
   ORGAPI="$ORG_API_URL"
+  GITHUB_USERNAME="$1"
   for org in "$GITHUB_USERNAME" "$(curl -q -H "Authorization: token $TOKEN" -Ls $ORGAPI | grep -w login | awk -F / '{print $NF}' | __sed 's/\",// ; s/\.[^.]*$// ; s#"##g' | awk '{print $2}')"; do
     gitadmin --clone "$org"
   done
@@ -428,7 +429,10 @@ ghcreate-user() {
 # main program
 main() {
   sleep 3
+  local USERNAME="$1"
+  local REPO_URL="$REPO_URL/$USERNAME"
   local PROJECT_DIR="$PROJECT_DIR/github"
+  printf_yellow "ProjectDir: $PROJECT_DIR/$USERNAME"
   for i in $(cat $TMPFILE); do
     if [ -d "$PROJECT_DIR/$USERNAME/$i" ]; then
       ERROR="Git pull $USERNAME/$i failed"
@@ -441,7 +445,7 @@ main() {
       ERROR="Git clone $USERNAME/$i failed"
       SUCCES="Git clone $USERNAME/$i completed"
       printf_purple "Now running git clone $USERNAME/$i"
-      __git_clone "$REPO_URL/$i" "$PROJECT_DIR/$USERNAME/$i" --recurse-submodules -f -q
+      __git_clone "$REPO_URL/$i" "$PROJECT_DIR/$USERNAME/$i" --recurse-submodules -q
       __getexitcode "$SUCCES" "$ERROR"
     fi
   done
@@ -649,7 +653,9 @@ clone)
 --all-orgs)
   shift 1
   [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --all-orgs | Clone/Pull all orgs owned by you"
-  git_all_orgs
+  USERNAME="$1"
+  REPO_URL="$REPO_URL/$USERNAME"
+  git_all_orgs "$GITHUB_USERNAME"
   ;;
 
 --single)
@@ -662,9 +668,10 @@ clone)
   shift 1
   [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --org | Clone/Pull all repos owned by org"
   USERNAME="$1"
+  REPO_URL="$REPO_URL/$USERNAME"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000&type=owner"
-    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgithub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/orgs/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
@@ -672,16 +679,17 @@ clone)
   echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
-  main
+  main "$USERNAME"
   ;;
 
 --user)
   shift 1
   [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --user | Clone/Pull all repos owned by you"
   USERNAME="$1"
+  REPO_URL="$REPO_URL/$USERNAME"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/user/repos?type=owner&per_page=1000"
-    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgithub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
@@ -689,16 +697,17 @@ clone)
   echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
-  main
+  main "$USERNAME"
   ;;
 
 --push)
   [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --push | push all your repos repos"
   shift 1
   USERNAME="$1"
+  REPO_URL="$REPO_URL/$USERNAME"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
-    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgithub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
@@ -734,9 +743,10 @@ clone)
   shift 1
   [ "$1" == "--help" ] && printf_help "Usage: $APPNAME --clone | clone the repos"
   USERNAME="$1"
+  REPO_URL="$REPO_URL/$USERNAME"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=owner"
-    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgithub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
@@ -744,15 +754,16 @@ clone)
   echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
-  main
+  main "$USERNAME"
   ;;
 
 --pull)
   shift 1
   USERNAME="$1"
+  REPO_URL="$REPO_URL/$USERNAME"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
-    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgithub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
@@ -760,12 +771,13 @@ clone)
   echo "$(curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//')" >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
-  main
+  main "$USERNAME"
   ;;
 
 --create)
   shift 1
-  USERNAME="$1" REPONAME="$2"
+  USERNAME="$1"
+  REPONAME="$2"
   ghcreate "$@"
   exit $EXIT
   ;;
@@ -951,7 +963,7 @@ stow)
   REPO_URL="https://github.com/$USERNAME"
   if [ ! -z "$TOKEN" ]; then
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000&type=owner"
-    MESSAGE="Getting the repos for $USERNAME using\n\t\tgit hub token $TOKEN"
+    MESSAGE="Getting the repos for $USERNAME using\n\t\tgithub token $TOKEN"
   else
     GITHUBAPIREPO="https://api.github.com/users/$USERNAME/repos?per_page=1000"
     MESSAGE="Getting the repos for $USERNAME"
@@ -959,7 +971,7 @@ stow)
   curl -q -H "Authorization: token $TOKEN" -Ls $GITHUBAPIREPO | grep -w clone_url | awk -F / '{print $NF}' | __sed 's/\",//' | __sed 's/\.[^.]*$//' >"$TMPFILE"
   COUNT="$(cat $TMPFILE | wc -l)"
   printf_green "$MESSAGE\n\t\tThere is currently $COUNT repos avaliable\n\t\tInititialing $REPO_URL"
-  main
+  main "$USERNAME"
   ;;
 
 esac
