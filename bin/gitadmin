@@ -8,7 +8,7 @@ SRC_DIR="${BASH_SOURCE%/*}"
 #set opts
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202103200739-git
+##@Version       : 202107101511-git
 # @Author        : Jason Hempstead
 # @Contact       : jason@casjaysdev.com
 # @License       : WTFPL
@@ -75,12 +75,12 @@ GIT_DEFAULT_BRANCH="main"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #git init
 if [ "$(git config --get user.name | wc -m)" -lt 2 ]; then
-  printf_read_input "What is you Name" "120" "NAME"
-  git config --global user.name "$NAME" 2>/dev/null
+  printf_read_input "What is you Name" "120" "GIT_NAME"
+  git config --global user.name "$GIT_NAME" 2>/dev/null
 fi
 if [ "$(git config --get user.email | wc -m)" -lt 2 ]; then
-  printf_read_input "What is you Email" "120" "EMAIL"
-  git config --global user.email "$EMAIl" 2>/dev/null
+  printf_read_input "What is you Email" "120" "GIT_EMAIL"
+  git config --global user.email "$GIT_EMAIL" 2>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #__curl() { curl -q; }
@@ -204,6 +204,8 @@ do_not_add_a_url() {
 # The initialize git function
 run_git_init() {
   REPODIR="${1:-$REPODIR}"
+  local push=""
+  local confirm_repo=""
   if [ -n "$repo" ]; then
     git -C "$REPODIR" remote add origin "$repo" -q &>/dev/null
     printf_green "$repo has been added"
@@ -227,9 +229,9 @@ run_git_init() {
 # Setup a new git repo
 run_git_setup() {
   local REPODIR="$(__basedir "${1:-$REPODIR}/.git")"
-  # local PREVREPO="${PREVREPO:-}"
-  # local continue="${continue:-}"
-  # local reuse="${reuse:-}"
+  local PREVREPO="${PREVREPO:-}"
+  local continue="${continue:-}"
+  local reuse="${reuse:-}"
 
   printf_green "Initializing $REPODIR"
   if [ -d "$REPODIR/.git" ]; then
@@ -415,7 +417,7 @@ ghcreate() {
 # clone a single repo from user
 ghsinglerepo() {
   [ "$1" = "" ] && printf_red "Usage: --single userName repoName" && return 1
-  [ "$2" = "" ] && printf_red "Usage: --create userName repoName Description" && return 1
+  [ "$2" = "" ] && printf_red "Usage: --single userName repoName" && return 1
   __git_clone "https://github.com/$1/$2" "${3:-}"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
