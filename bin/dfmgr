@@ -58,7 +58,7 @@ DFMGR_NOTIFY_ENABLED="yes"
 DFMGR_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
 DFMGR_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$DFMGR_NOTIFY_CLIENT_ICON}"
 DFMGR_TEMP_FILE="${TMPDIR:-/tmp}/dfmgr"
-
+DFMGR_CLONE_DIR="$HOME/Projects/github/dfmgr"
 EOF
   if [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ]; then
     printf_green "Your config file for dfmgr has been created"
@@ -75,6 +75,15 @@ __gpg_import() {
   gpg --import "$1"/*.asc 2>/dev/null
   gpg --import-ownertrust "$1"/*.trust 2>/dev/null
   return 0
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__download() { 
+  REPO_NAME="$1"
+  REPO_URL="$DFMGR_GIT_REPO/$REPO_NAME"
+  DIR_NAME="$DFMGR_CLONE_DIR/$REPO_NAME"
+  gitadmin clone "$REPO_URL" "$DIR_NAME"  
+    #printf_green "Cloned $REPO_URL to $DIR_NAME" || printf_exit 1 1 "Filed to clone $REPO_URL"
+  exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 df_personal() {
@@ -114,13 +123,13 @@ DFMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DFMGR_NOTIFY_CLIENT_ICON}"
 DFMGR_DOTFILES_DIR="${PERSONAL_DOTFILES_DIR:-$HOME/.local/dotfiles/personal}"
 DFMGR_FORCE_INSTALL="false"
 DFMGR_GIT_REPO="https://github.com/dfmgr"
-
+DFMGR_CLONE_DIR="$HOME/Projects/github/dfmgr"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set additional variables/Argument/Option settings
 SETARGS="$*"
 SHORTOPTS="c,v,h,f,l,a"
 LONGOPTS="options,config,version,help,force,list,all"
-ARRAY="list search available personal update install cron version remove"
+ARRAY="list search available personal update install cron version remove clone"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -281,6 +290,11 @@ install)
     run_install_update "$APPNAME"
   done
   exit $?
+  ;;
+
+clone)
+  shift 1
+  __download "$1"
   ;;
 
 cron)
