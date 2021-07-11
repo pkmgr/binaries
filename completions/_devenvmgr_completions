@@ -52,7 +52,7 @@ _devenvmgr() {
     -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     -) prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
-    --start) prev="available" && COMPREPLY=($(compgen -W '' -- "${START}")) ;;
+    --start) prev="--start" && COMPREPLY=($(compgen -W '' -- "${START}")) ;;
     *)
       prev=""
       if [ -n "$FILEDIR" ]; then _filedir; fi
