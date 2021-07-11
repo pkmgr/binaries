@@ -108,7 +108,7 @@ __start_new_project() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __list_available() {
-  echo -e 'import static jekyll hugo ruby python perl php node vue react express create-project mevn shellcheck editorconfig'
+  echo -e "$ARRAY"  | tr ' ' '\n'
 exit 0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -346,13 +346,13 @@ DEVENVMGR_COMAND="${DEVENVMGR_COMAND:-}"
 SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,start:"
-ARRAY=""
+ARRAY="import static jekyll hugo ruby python perl php node vue react express create-project mevn shellcheck editorconfig"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
-[ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
-[ -f "$DFMGR_OPTIONS_DIR/options" ] || __list_options "$DFMGR_OPTIONS_DIR" &>/dev/null
-[ -f "$DFMGR_OPTIONS_DIR/array" ] || __list_array "$DFMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
-[ -f "$DFMGR_OPTIONS_DIR/available" ] || __list_available "$DFMGR_OPTIONS_DIR/available" &>/dev/null
+[ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$DEVENVMGR_OPTIONS_DIR/options" ] || __list_options "$DEVENVMGR_OPTIONS_DIR" &>/dev/null
+[ -f "$DEVENVMGR_OPTIONS_DIR/array" ] || __list_array "$DEVENVMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+[ -f "$DEVENVMGR_OPTIONS_DIR/available" ] || __list_available "$DEVENVMGR_OPTIONS_DIR/available" &>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
 if [ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ]; then
