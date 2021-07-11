@@ -13,13 +13,27 @@
 # @Other         :
 # @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-_devenv() {
-  local CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
-  local cur prev words cword
-  local ARRAY="$(<$CASJAYSDEVDIR/helpers/devenv/array)"
-  local LIST="$(<$CASJAYSDEVDIR/helpers/devenv/list)"
-  local START="$(<$CASJAYSDEVDIR/helpers/devenv/start)"
-
+_devenvmgr() {
+  ___findcmd() { find -L "${1:-$CONFDIR/}" -maxdepth ${3:-3} -type ${2:-f} 2>/dev/null | sed 's#'${1:-$CONFDIR}'##g' | grep '^' || return 1; }
+  local cur prev words cword opts split
+  local cur="${COMP_WORDS[$COMP_CWORD]}"
+  local prev="${COMP_WORDS[$COMP_CWORD - 1]}"
+  local CONFFILE="settings.conf"
+  local CONFDIR="$HOME/.config/myscripts/devenvmgr"
+  local OPTSDIR="$HOME/.local/share/myscripts/devenvmgr/options"
+  local SEARCHDIR="${CONFDIR:-$HOME/.config/myscripts/devenvmgr}"
+  #local SEARCHCMD="$(___findcmd "$SEARCHDIR/" "d" "1")"
+  local DEFAULTARRAY="$([ -f "$OPTSDIR/array" ] && grep -sEv '#|^$' "$OPTSDIR/array" || echo '--options --help --version')"
+  local DEFAULTOPTS="$([ -f "$OPTSDIR/options" ] && grep -sEv '#|^$' "$OPTSDIR/options" || echo '--options --help --version')"
+  local LONGOPTS="$(grep -sEv '#|^$' "$OPTSDIR/long_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep '\--')"
+  local SHORTOPTS="$(grep -sEv '#|^$' "$OPTSDIR/short_opts" || echo "$DEFAULTOPTS" | tr ' ' '\n' | grep -v '\--')"
+  local LIST="$([ -f "$OPTSDIR/available" ] && grep -sEv '#|^$' "$OPTSDIR/available")"
+  local OPTS="$DEFAULTOPTS"
+  local ARRAY="$DEFAULTARRAY"
+  local SHOW_COMP_OPTS=""
+  local FILEDIR=""
+  local START="jekyll"
+  
   _init_completion || return
 
   case $prev in
@@ -34,5 +48,5 @@ _devenv() {
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _devenv -o default emj &&
-  complete -F _devenv -o default devenv
+  complete -F _devenvmgr -o default emj &&
+  complete -F _devenvmgr -o default devenvmgr

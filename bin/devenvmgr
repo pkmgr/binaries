@@ -107,6 +107,11 @@ __start_new_project() {
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__list_available() {
+  echo -e 'import static jekyll hugo ruby python perl php node vue react express create-project mevn shellcheck editorconfig'
+exit 0
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for sample files
 if_sample() {
   if [ -f .env.sample ] || [ -f .env ]; then cp -Rf .env.sample .env; fi
