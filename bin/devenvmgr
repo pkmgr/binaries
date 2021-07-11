@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="$(basename "$0")"
-VERSION="202107101234-git"
+VERSION="202107102117-git"
 USER="${SUDO_USER:-${USER}}"
 HOME="${USER_HOME:-${HOME}}"
 SRC_DIR="${BASH_SOURCE%/*}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #set opts
-trap '[ -f "$DEVENV_TEMP_FILE" ] && rm -Rf "$DEVENV_TEMP_FILE" &>/dev/null' EXIT
+trap '[ -f "$DEVENVMGR_TEMP_FILE" ] && rm -Rf "$DEVENVMGR_TEMP_FILE" &>/dev/null' EXIT
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version       : 202107101234-git
-# @Author        : Jason Hempstead
-# @Contact       : jason@casjaysdev.com
+##@Version       : 202107102118-git
+# @Author        : jason
+# @Contact       : jason
 # @License       : WTFPL
-# @ReadME        : devenv --help
-# @Copyright     : Copyright: (c) 2021 Jason Hempstead, CasjaysDev
-# @Created       : Saturday, Mar 20, 2021 06:27 EDT
-# @File          : devenv
+# @ReadME        : devenvmgr --help
+# @Copyright     : Copyright: (c) 2021 jason, jason
+# @Created       : Saturday, Jul 10, 2021 21:18 EDT
+# @File          : devenvmgr
 # @Description   : Setup a development environment
 # @TODO          : Create user config
-# @Other         :
-# @Resource      :
+# @Other         : 
+# @Resource      : 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -55,12 +55,41 @@ else
 fi
 if [ "$sitedir" = "." ]; then sitedir="$(__basedir ".")"; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-DEVENV_COMAND="${DEVENV_COMAND:-}"
+__gen_config() {
+    printf_green "Generating the config file in"
+  printf_green "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE"
+  [ -d "$DEVENVMGR_CONFIG_DIR" ] || mkdir -p "$DEVENVMGR_CONFIG_DIR"
+  [ -d "$DEVENVMGR_CONFIG_BACKUP_DIR" ] || mkdir -p "$DEVENVMGR_CONFIG_BACKUP_DIR"
+  [ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ] &&
+    cp -Rf "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" "$DEVENVMGR_CONFIG_BACKUP_DIR/$DEVENVMGR_CONFIG_FILE.$$"
+  cat <<EOF >"$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE"
+# Settings for DEVENV
+DEVENVMGR_COMAND="$DEVENVMGR_COMAND"
+DEVENVMGR_NOTIFY_ENABLED="yes"
+DEVENVMGR_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+DEVENVMGR_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$DEVENVMGR_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ]; then
+    printf_green "Your config file for DEVENV has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # What to do after creating project
 __start_new_project() {
-  if [ -n "$DEVENV_COMAND" ] && [ -f "$(type -P "$(basename "$DEVENV_COMAND")")" ]; then
-    eval "$DEVENV_COMAND"
+  local PROJECTDIR="$sitedir"
+  [  -n "$PROJECTDIR" ] && cd "$PROJECTDIR" || printf_green "ProjectDir: $PROJECTDIR"
+  if [ -n "$DEVENVMGR_COMAND" ] && [ -f "$(type -P "$(basename "$DEVENVMGR_COMAND")")" ]; then
+    shift $#
+    if  [ -n "$DEVENVMGR_COMAND"  = "$(basname code)"]; then
+      code .
+    else  
+      eval "$DEVENVMGR_COMAND"
+    fi
   elif [ "$1" = "screen" ]; then
     if [ -f "$2" ]; then
       eval "$1" -c "$2"
@@ -88,7 +117,7 @@ if_sample() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start a static server
 __run_static_site() {
-  run_server "${1:-20000}"
+  cmd_exists && run_server "${1:-20000}" | false
   exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -119,6 +148,7 @@ __run_new_site() {
   [ -n "$sitedir" ] || printf_exit "Something went wrong"
   [ -d "$sitedir" ] || __mkd "$sitedir"
   cd "$sitedir" || printf_exit 1 1 "$sitedir doesn't exist"
+  export sitedir
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Run jekyll server
@@ -295,10 +325,87 @@ __gen_editorconfig() {
     printf_exit 1 1 "Failed to create .editorconfig"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Variables
+# Defaults
+exitCode=""
+DEVENVMGRCONFIG_FILE="settings.conf"
+DEVENVMGR_CONFIG_DIR="$HOME/.config/myscripts/devenvmgr"
+DEVENVMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/devenvmgr/backups"
+DEVENVMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/devenvmgr/options"
+DEVENVMGR_NOTIFY_ENABLED="yes"
+DEVENVMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+DEVENVMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DEVENVMGR_NOTIFY_CLIENT_ICON}"
 DEVENVMGR_TEMP_FILE="${TMPDIR:-/tmp}/devenvmgr"
+DEVENVMGR_COMAND="${DEVENVMGR_COMAND:-}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-if [ "$1" = "--start" ]; then
+# Set additional variables/Argument/Option settings
+SETARGS="$*"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help"
+ARRAY=""
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$DEVENVMGR_OPTIONS_DIR/options" ] || __list_options "$DEVENVMGR_OPTIONS_DIR" &>/dev/null
+[ -f "$DEVENVMGR_OPTIONS_DIR/array" ] || __list_array "$DEVENVMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ]; then
+  . "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$APPNAME" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$DEVENVMGR_OPTIONS_DIR" "$ARRAY"
+    __list_options "$DEVENVMGR_OPTIONS_DIR"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${DEVENVMGR_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${DEVENVMGR_NOTIFY_CLIENT_ICON}"
+if [ "$DEVENVMGR_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# begin main app
+if [ "$1" = "start" ]; then
   shift 1
   START="$1"
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
