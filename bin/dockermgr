@@ -126,10 +126,10 @@ __rancher() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __k3b() {
-  curl -sfL https://get.k3s.io | sudo bash -
+  execute "curl -sfL https://get.k3s.io | sudo bash -" "Installing k3b"
   if cmd_exists k3s; then
     k3s kubectl get node &>/dev/null
-    sudo k3s server &
+    sudo k3s server &>/dev/null &
     printf_green "Kubernetes has been installed"
     true
   else
