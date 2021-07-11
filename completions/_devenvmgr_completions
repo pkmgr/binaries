@@ -36,17 +36,44 @@ _devenvmgr() {
   
   _init_completion || return
 
-  case $prev in
-  --start)
-    COMPREPLY=($(compgen -W '${START}' -- "$cur"))
-    return
-    ;;
-  *)
-    COMPREPLY=($(compgen -W '${ARRAY} ${LIST}' -- "$cur"))
-    ;;
-  esac
+  if [ "$SHOW_COMP_OPTS" != "" ]; then
+    local SHOW_COMP_OPTS_SEP="$(echo "$SHOW_COMP_OPTS" | tr ',' ' ')"
+    compopt -o $SHOW_COMP_OPTS_SEP
+  fi
+  if [[ ${cur} == --* ]]; then
+    COMPREPLY=($(compgen -W '${LONGOPTS}' -- ${cur}))
+  elif [[ ${cur} == -* ]]; then
+    COMPREPLY=($(compgen -W '${SHORTOPTS}' -- ${cur}))
+  else
+    case ${COMP_WORDS[1]:-$prev} in
+    --options) prev="--options" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -c | --config) prev="--config" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -h | --help) prev="--help" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -v | --version) prev="--version" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -l | --list) prev="--list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
+    -) prev="-" COMPREPLY=($(compgen -W '${SHORTOPTS} ${LONGOPTS}' -- ${cur})) ;;
+    --start) prev="available" && COMPREPLY=($(compgen -W '' -- "${START}")) ;;
+    *)
+      prev=""
+      if [ -n "$FILEDIR" ]; then _filedir; fi
+      if [[ "$ARRAY" = "show-none" ]]; then
+        COMPREPLY=($(compgen -W '' -- "${cur}"))
+      elif [[ "$ARRAY" = "show-_filedir" ]]; then
+        _filedir
+      elif [[ "$ARRAY" = "show-commands" ]]; then
+        COMPREPLY=($(compgen -c -- "${cur}"))
+      elif [[ -n "$ARRAY" ]]; then
+        [ $COMP_CWORD -lt 2 ] &&
+          COMPREPLY=($(compgen -W '${ARRAY}' -- "${cur}"))
+      elif [[ -n "$OPTS" ]]; then
+        [ $COMP_CWORD -gt 2 ] &&
+          COMPREPLY=($(compgen -W '' -- "${cur}"))
+      fi
+      ;;
+    esac
+    $split && return
+  fi
 } &&
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # enable completions
-  complete -F _devenvmgr -o default emj &&
-  complete -F _devenvmgr -o default devenvmgr
+  complete -F _devenvmgr devenvmgr
