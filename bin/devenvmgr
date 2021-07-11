@@ -333,9 +333,9 @@ __gen_editorconfig() {
 # Defaults
 exitCode=""
 DEVENVMGR_CONFIG_FILE="settings.conf"
-DEVENVMGR_CONFIG_DIR="$HOME/.config/myscripts/dfmgr"
-DEVENVMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/dfmgr/backups"
-DEVENVMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/dfmgr/options"
+DEVENVMGR_CONFIG_DIR="$HOME/.config/myscripts/devenvmgr"
+DEVENVMGR_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/devenvmgr/backups"
+DEVENVMGR_OPTIONS_DIR="$HOME/.local/share/myscripts/devenvmgr/options"
 DEVENVMGR_NOTIFY_ENABLED="yes"
 DEVENVMGR_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
 DEVENVMGR_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$DEVENVMGR_NOTIFY_CLIENT_ICON}"
@@ -345,7 +345,7 @@ DEVENVMGR_COMAND="${DEVENVMGR_COMAND:-}"
 # Set additional variables/Argument/Option settings
 SETARGS="$*"
 SHORTOPTS="c,v,h"
-LONGOPTS="options,config,version,help"
+LONGOPTS="options,config,version,help,start:"
 ARRAY=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
@@ -385,6 +385,10 @@ while :; do
     __gen_config
     exit $?
     ;;
+  start)
+    shift 1
+    START="$1"
+    ;;
   --)
     shift 1
     break
@@ -411,10 +415,6 @@ cmd_exists --error bash || exit 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-if [ "$1" = "start" ]; then
-  shift 1
-  START="$1"
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   case "$START" in
   jekyll)
     __requires jekyll || printf_exit 1 1 "jekyll can't be found"
