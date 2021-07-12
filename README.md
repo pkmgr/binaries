@@ -46,15 +46,14 @@ sudo git -C /usr/local/share/CasjaysDev/scripts pull
   <a href="https://github.com/iconmgr" target="_blank">icons</a>  |  
   <a href="https://github.com/thememgr" target="_blank">themes</a>  |  
   <a href="https://github.com/wallpapermgr" target="_blank">wallpapers</a>  <br>
-  <a href="https://github.com/devenvmgr" target="_blank">development packages</a>  |
-  <a href="https://github.com/dockermgr" target="_blank">docker packages</a>  |
-  <a href="https://github.com/pkmgr" target="_blank">dotfile packages</a> <br> 
-  <a href="https://github.com/systemmgr" target="_blank">system packages</a> |  
+  <a href="https://github.com/devenvmgr" target="_blank">devenvmgr</a>  |
+  <a href="https://github.com/dockermgr" target="_blank">dockermgr</a>  |
+  <a href="https://github.com/pkmgr" target="_blank">pkmgr</a> |
+  <a href="https://github.com/systemmgr" target="_blank">systemmgr</a> <br />
 </p>  
   
   
 <p align=center>
   <a href="https://github.com/casjay-dotfiles/scripts" target="_blank">scripts site</a><br /><br />
   <a href="https://travis-ci.com/casjay-dotfiles/scripts" target="_blank"><img alt="Travis-CI" src="https://travis-ci.com/casjay-dotfiles/scripts.svg?branch=master"><br> <br>
-
 </p>  
