@@ -41,15 +41,15 @@ sudo git -C /usr/local/share/CasjaysDev/scripts pull
   
   
 <p align="center">
-  <a href="https://github.com/devenvmgr" target="_blank">development templates</a>  |
-  <a href="https://github.com/dockermgr" target="_blank">docker packages</a>  |
   <a href="https://github.com/dfmgr" target="_blank">dotfiles</a>  |
   <a href="https://github.com/fontmgr" target="_blank">fonts</a>  |  
   <a href="https://github.com/iconmgr" target="_blank">icons</a>  |  
-  <a href="https://github.com/pkmgr" target="_blank">dotfile packages</a>  |  
-  <a href="https://github.com/systemmgr" target="_blank">system packages</a> |  
   <a href="https://github.com/thememgr" target="_blank">themes</a>  |  
   <a href="https://github.com/wallpapermgr" target="_blank">wallpapers</a>  <br>
+  <a href="https://github.com/devenvmgr" target="_blank">development packages</a>  |
+  <a href="https://github.com/dockermgr" target="_blank">docker packages</a>  |
+  <a href="https://github.com/pkmgr" target="_blank">dotfile packages</a>  |  
+  <a href="https://github.com/systemmgr" target="_blank">system packages</a> |  
 </p>  
   
   
