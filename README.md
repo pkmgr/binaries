@@ -48,7 +48,7 @@ sudo git -C /usr/local/share/CasjaysDev/scripts pull
   <a href="https://github.com/wallpapermgr" target="_blank">wallpapers</a>  <br>
   <a href="https://github.com/devenvmgr" target="_blank">development packages</a>  |
   <a href="https://github.com/dockermgr" target="_blank">docker packages</a>  |
-  <a href="https://github.com/pkmgr" target="_blank">dotfile packages</a>  |  
+  <a href="https://github.com/pkmgr" target="_blank">dotfile packages</a> <br> 
   <a href="https://github.com/systemmgr" target="_blank">system packages</a> |  
 </p>  
   
