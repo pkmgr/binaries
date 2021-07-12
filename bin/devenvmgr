@@ -368,6 +368,7 @@ while :; do
     shift 1
     __list_array "$DEVENVMGR_OPTIONS_DIR" "$ARRAY"
     __list_options "$DEVENVMGR_OPTIONS_DIR"
+    __list_available >"$DEVENVMGR_OPTIONS_DIR/available"
     exit $?
     ;;
   -v | --version)
