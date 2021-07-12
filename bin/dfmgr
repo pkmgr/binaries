@@ -129,7 +129,7 @@ DFMGR_CLONE_DIR="$HOME/Projects/github/dfmgr"
 SETARGS="$*"
 SHORTOPTS="c,v,h,f,l,a"
 LONGOPTS="options,config,version,help,force,list,all"
-ARRAY="list search available personal update install cron version remove clone"
+ARRAY="list search available personal update install cron version remove clone download"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -292,7 +292,7 @@ install)
   exit $?
   ;;
 
-clone)
+clone | download)
   shift 1
   __download "$1"
   ;;
