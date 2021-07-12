@@ -189,16 +189,19 @@ system_service_disable() {
 }
 
 ##################################################################################################
-
-xfce4() { cmd_exists xfce4-about; }
-imagemagick() { cmd_exists convert; }
-fdfind() { cmd_exists fdfind || cmd_exists fd; }
-emacs() { cmd_exists emacs26 || cmd_exists emacs; }
-firefox() { cmd_exists firefox-esr || cmd_exists firefox; }
-chromium() { cmd_exists chromium || cmd_exists chromium-browser; }
-speedtest() { cmd_exists speedtest-cli || cmd_exists speedtest; }
+#alternative names
+mlocate() { __cmd_exists locate || __cmd_exists mlocate || return 1; }
+xfce4() { __cmd_exists xfce4-about || return 1; }
+imagemagick() { __cmd_exists convert || return 1; }
+fdfind() { __cmd_exists fdfind || __cmd_exists fd || return 1; }
+speedtest() { __cmd_exists speedtest-cli || __cmd_exists speedtest || return 1; }
+neovim() { __cmd_exists nvim || __cmd_exists neovim || return 1; }
+chromium() { __cmd_exists chromium || __cmd_exists chromium-browser || return 1; }
+firefox() { __cmd_exists firefox-esr || __cmd_exists firefox || return 1; }
 gtk-2.0() { find /lib* /usr* -iname "*libgtk*2*.so*" -type f | grep -q . || return 1; }
 gtk-3.0() { find /lib* /usr* -iname "*libgtk*3*.so*" -type f | grep -q . || return 1; }
+httpd() { __cmd_exists httpd || __cmd_exists apache2 || return 1; }
+emacs() { cmd_exists emacs26 || cmd_exists emacs; }
 
 ##################################################################################################
 
