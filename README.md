@@ -1,11 +1,9 @@
-## scripts  
-  
-my custom scripts  
+# my custom scripts    
   
 ## Automatic install/update
 
 ```shell
-sudo bash -c "$(curl -LSs https://github.com/systemmgr/installer/raw/master/install.sh)" && sudo systemmgr install installer
+sudo bash -c "$(curl -LSs https://github.com/casjay-dotfiles/scripts/raw/master/install.sh)" && sudo systemmgr update scripts
 ```
 
 ## Manual install
@@ -43,6 +41,8 @@ sudo git -C /usr/local/share/CasjaysDev/scripts pull
   
   
 <p align="center">
+  <a href="https://github.com/devenvmgr" target="_blank">development templates</a>  |
+  <a href="https://github.com/dockermgr" target="_blank">docker packages</a>  |
   <a href="https://github.com/dfmgr" target="_blank">dotfiles</a>  |
   <a href="https://github.com/fontmgr" target="_blank">fonts</a>  |  
   <a href="https://github.com/iconmgr" target="_blank">icons</a>  |  
@@ -54,7 +54,7 @@ sudo git -C /usr/local/share/CasjaysDev/scripts pull
   
   
 <p align=center>
-  <a href="https://github.com/systemmgr/installer" target="_blank">scripts site</a><br /><br />
-  <a href="https://travis-ci.com/casjay-dotfiles/scripts" target="_blank"><img alt="Qries" src="https://travis-ci.com/casjay-dotfiles/scripts.svg?branch=master"><br> <br>
+  <a href="https://github.com/casjay-dotfiles/scripts" target="_blank">scripts site</a><br /><br />
+  <a href="https://travis-ci.com/casjay-dotfiles/scripts" target="_blank"><img alt="Travis-CI" src="https://travis-ci.com/casjay-dotfiles/scripts.svg?branch=master"><br> <br>
 
 </p>  
