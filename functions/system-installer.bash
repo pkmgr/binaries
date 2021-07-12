@@ -4,6 +4,7 @@ export PATH="$(echo $PATH | tr ':' '\n' | awk '!seen[$0]++' | tr '\n' ':' | sed 
 
 set -o pipefail
 #trap '' err exit SIGINT SIGTERM
+export USER="$USER"
 export WHOAMI="${USER}"
 export SUDO_PROMPT="$(printf "\t\t\033[1;31m")[sudo]$(printf "\033[1;36m") password for $(printf "\033[1;32m")%p: $(printf "\033[0m")"
 
@@ -468,7 +469,7 @@ versioncheck() {
 
 scripts_check() {
   local REPO="${DOTFILESREPO:-https://github.com/dfmgr}"
-  if ! cmd_exists "pkmgr" && ! -f ~/.noscripts; then
+  if ! cmd_exists "pkmgr" && [ ! -f "$HOME/.noscripts" ]; then
     printf_red "\t\tPlease install my scripts repo - requires root/sudo\n"
     printf_question "Would you like to do that now" [y/N]
     read -n 1 -s choice
@@ -477,7 +478,7 @@ scripts_check() {
       urlverify $REPO/scripts/raw/master/install.sh
       sudo bash -c "$(curl -LSs $REPO/scripts/raw/master/install.sh)"
     else
-      touch ~/.noscripts
+      touch "$HOME/.noscripts"
       exit 1
     fi
   fi
@@ -563,6 +564,7 @@ dotfilesreqadmin() {
 
 install_packages() {
   local MISSING=""
+  local USER="$USER"
   for cmd in "$@"; do cmdif $cmd || MISSING+="$cmd "; done
   if [ ! -z "$MISSING" ]; then
     if cmd_exists "pkmgr"; then
@@ -711,7 +713,7 @@ execute() {
   local exitCode=0
   local cmdsPID=""
   set_trap "EXIT" "kill_all_subprocesses"
-  eval "$CMDS" &>/dev/null 2>"$TMP_FILE" &
+  eval "$CMDS" >/dev/null 2>"$TMP_FILE" &
   cmdsPID=$!
   show_spinner "$cmdsPID" "$CMDS" "$MSG"
   wait "$cmdsPID" &>/dev/null
