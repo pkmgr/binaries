@@ -144,7 +144,7 @@ __version() {
   date +"$gitversion" >"$versionfile"
   versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
   __git_add "$gitdir/version.txt"
-  git -C "$gitdir" commit -m -q "$versionbump" -- "$GITCOMMIT_VERSION_FILE"
+  git -C "$gitdir" commit -q -S -m "$versionbump" -- "$GITCOMMIT_VERSION_FILE"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
