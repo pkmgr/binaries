@@ -77,7 +77,8 @@ __gitcommit() {
   git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 && \
     __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
     "Failed to commit the changes to $(__git_repobase "$gitdir")" && \
-     printf_green "commit ID: $(__git_commitid "$gitdir")" || false
+     printf_green "commit ID: $(__git_commitid "$gitdir")" && \
+     __version || false
      exitCode=$?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -110,7 +111,6 @@ __git_dir() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_commitid() {
   git -C "${1:-$gitdir}" rev-parse --short HEAD
-
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_push() {
@@ -140,9 +140,12 @@ __git_push() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __version() {
+  if [ -f "$versionfile" ]; then
   date +"$gitversion" >"$versionfile"
   versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
   __git_add "$gitdir/version.txt"
+  git -C "$gitdir" commit -m "$versionbump" -- "$GITCOMMIT_VERSION_FILE"
+  fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
@@ -593,9 +596,9 @@ setup | reset)
 esac
 shift
 
-  if [ -f "$versionfile" ]; then
-    __version
-  fi
+if __git_porcelain "$gitdir"; then
+  printf_red "There are no other changes to commit in ${basedir}"
+else
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
     cp -Rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
   fi
@@ -605,6 +608,7 @@ shift
   else
     __gitcommit "$mess" 2>/dev/null && exitCode=0 || exitCode=1
   fi
+fi
 
 git_cherry="$(git cherry -v)"
 if  [ -n "$git_cherry" ]; then
