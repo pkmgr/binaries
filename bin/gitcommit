@@ -69,9 +69,16 @@ EOF
     false
   fi
 }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gitcommit() { 
   local mess="${1:-$mess}"
-  git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 || exitCode=1
+  printf_cyan "Commiting Changes with the following message:"
+  printf_yellow "$mess"
+  git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 && \
+    __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
+    "Failed to commit the changes to $(__git_repobase "$gitdir")" && \
+     printf_green "commit ID: $(__git_commitid "$gitdir")" || false
+     exitCode=$?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_add() {
@@ -103,6 +110,7 @@ __git_dir() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_commitid() {
   git -C "${1:-$gitdir}" rev-parse --short HEAD
+
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_push() {
@@ -588,8 +596,6 @@ shift
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit in ${basedir}"
 else
-  printf_cyan "Commiting Changes with the following message:"
-  printf_yellow "$mess"
   if [ -f "$versionfile" ]; then
     __version
   fi
@@ -598,14 +604,10 @@ else
   fi
   if [ -z "$files" ]; then git -C "$gitdir" add . >/dev/null 2>&1; fi
   if [ -z "$mess" ]; then
-    git -C "$gitdir" commit -q -S -m "🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null && exitCode=0 || exitCode=1
+    __gitcommit "🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null && exitCode=0 || exitCode=1
   else
-    __gitcommit "$mess"
+    __gitcommit "$mess" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-  __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
-    "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
-    printf_green "commit ID: $(__git_commitid "$gitdir")" || exit 1
-
 fi
 
 git_cherry="$(git cherry -v)"
