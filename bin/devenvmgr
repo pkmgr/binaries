@@ -508,7 +508,11 @@ editorconfig)
   ;;
 *)
   shift 1
-  __help "$@"
+  if __urlcheck "$DEVENVMGRREPO/$1"; then
+    __run_new_site && git_clone "$DEVENVMGRREPO/$1" "$sitedir"
+  else
+    __help "$@"
+  fi
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
