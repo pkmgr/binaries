@@ -587,7 +587,6 @@ shift
 
 if __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit in ${basedir}"
-  exit
 else
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
