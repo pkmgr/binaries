@@ -77,7 +77,7 @@ __gitcommit() {
   git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && __version && \
     __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
     "Failed to commit the changes to $(__git_repobase "$gitdir")" && \
-     printf_green "commit ID: $(__git_commitid "$gitdir")" || false
+     printf_green "commit ID: $(__git_commitid "$gitdir")" && COMMIT="true" || false
      exitCode=$?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -597,7 +597,9 @@ esac
 shift
 
 if __git_porcelain "$gitdir"; then
-  printf_red "There are no other changes to commit in ${basedir}"
+  if [ -z "$COMMIT" ]; then
+    printf_red "There are no other changes to commit in ${basedir}"
+  fi
 else
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
     cp -Rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
