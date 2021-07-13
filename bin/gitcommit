@@ -593,9 +593,6 @@ setup | reset)
 esac
 shift
 
-if __git_porcelain "$gitdir"; then
-  printf_red "There are no changes to commit in ${basedir}"
-else
   if [ -f "$versionfile" ]; then
     __version
   fi
@@ -608,7 +605,6 @@ else
   else
     __gitcommit "$mess" 2>/dev/null && exitCode=0 || exitCode=1
   fi
-fi
 
 git_cherry="$(git cherry -v)"
 if  [ -n "$git_cherry" ]; then
