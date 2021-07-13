@@ -49,9 +49,13 @@ __ruby_serv() { cmd_exists ruby && ruby -run -ehttpd . -p ${port}} &>>"$SERVER_L
 __python3_serv() { cmd_exists python3 && python3 -m http.server --cgi --bind "$myip" "${port}" &>>"$SERVER_LOG" && echo Py3 started &>>"$SERVER_LOG" || return 1; }
 __python2_serv() { cmd_exists python2 && python2 -m http.server --cgi --bind "$myip" "${port}" &>>"$SERVER_LOG" && echo Py2 started &>>"$SERVER_LOG" || return 1; }
 __py_simple() { cmd_exists python && python -m SimpleHTTPServer "${port}" &>>"$SERVER_LOG" && echo "Py simple start" &>>"$SERVER_LOG" || return 1; }
-__default_srv() { cmd_exists python2 && python2 -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "${port}" &>>"$SERVER_LOG" && echo "Default has started" || return 1 }
+__default_srv() { cmd_exists python2 && python2 -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "${port}" &>>"$SERVER_LOG" && echo "Default has started" || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-open_url() { if cmd_exists mybrowser; then mybrowser "$1"; elif cmd_exists "xdg-open"; then xdg-open "$1"; elif cmd_exists "open"; then open "$1"; fi; }
+open_url() {
+	[ -z "$SSH_CONNECTION" ] || return 
+	if cmd_exists mybrowser; then mybrowser "$1"; 
+	elif cmd_exists "xdg-open"; then xdg-open "$1"; 
+	elif cmd_exists "open"; then open "$1"; fi; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cmd_exists lsof
 
@@ -69,15 +73,15 @@ fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 i=0
-port="${1:-8000}" && shift
+port="${1:-8000}" && shift 1
+dir="$2"
 myip=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')
 myhost="$(hostname -s)"
 MAX_NUMBER_OF_TRIES=10
 TMP_DIR="${TMPDIR:-/tmp}"
 SERVER_LOG="${SERVER_LOG:-$TMPDIR/run_server_$port.log}"
-
+[ -n "$dir" ] && [ -d "$dir" ] && shift 1
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 if ! __test_server "$port"; then
   printf_error "Something appears to be running on $port"
   printf_yellow "Attempting another port"
@@ -86,9 +90,7 @@ if ! __test_server "$port"; then
     __test_server "$port" && break
   done
 fi
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 printf '%s\n' "Starting the server on port $port" &>"$SERVER_LOG"
 while [ $i -lt $MAX_NUMBER_OF_TRIES ]; do
   if [ "$(lsof -i -nP | grep "$port" | grep -i "python")" != "" ]; then
@@ -98,39 +100,54 @@ while [ $i -lt $MAX_NUMBER_OF_TRIES ]; do
   i=$((i + 1))
   sleep 5
 done &
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+if [ -n "$dir" ] && [ -d "$dir" ]; then 
+printf_green "serving files from $dir"
+cd "$dir"
+fi
 printf_yellow "Access from the network: http://$myip:$port"
 printf_red "control-c to exit"
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in 
-
 js)
+  shift 1
   __js_serv || __return_error
   ;;
+  
 php)
+  shift 1
   __php_serv || __return_error
+  exit $?
   ;;
 
 ruby)
+  shift 1
   __ruby_serv || __return_error
+  exit $?
   ;;
   
 python2)
+  shift 1
   __python2_serv || __return_error
+  exit $?
   ;;
   
 python3)
+  shift 1
   __python3_serv || __return_error
+  exit $?
   ;;
 
 default)
+  shift 1
   __default_srv || __return_error
+  exit $?
   ;;
 
 netcat | nc)
+  shift 1
   __netcat_serv || __return_error
+  exit $?
   ;;
 
 *)
@@ -141,4 +158,3 @@ esac
 exit $?
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # end
-
