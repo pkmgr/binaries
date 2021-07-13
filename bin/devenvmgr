@@ -330,6 +330,30 @@ __gen_editorconfig() {
     printf_exit 1 1 "Failed to create .editorconfig"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Start server function
+__start_servers() {
+case "$1" in
+  jekyll)
+    __requires jekyll || printf_exit 1 1 "jekyll can't be found"
+    if [ -f "$sitedir/_config.yml" ]; then
+      if __requires watchy; then
+        watchy -w "$sitedir/_config.yml" -- jekyll serve --host=0.0.0.0
+      elif __requires jekyll; then
+        jekyll serve --host=0.0.0.0
+      else 
+        printf_exit "There was a problem staring - no config found"
+      fi
+    else
+      printf_exit "There was a problem starting - no config found"
+    fi
+    ;;
+  *)
+    printf_red "No parameters specified"
+    exit
+    ;;
+  esac
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
 DEVENVMGR_CONFIG_FILE="settings.conf"
@@ -388,7 +412,9 @@ while :; do
     ;;
   start)
     shift 1
-    START="$1"
+    __start_servers "$1"
+    shift 1
+    exit $?
     ;;
   --)
     shift 1
@@ -416,26 +442,6 @@ cmd_exists --error bash || exit 1
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # begin main app
-  case "$START" in
-  jekyll)
-    __requires jekyll || printf_exit 1 1 "jekyll can't be found"
-    if [ -f "$sitedir/_config.yml" ]; then
-      if __requires watchy; then
-        watchy -w "$sitedir/_config.yml" -- jekyll serve --host=0.0.0.0
-      elif __requires jekyll; then
-        jekyll serve --host=0.0.0.0
-      else printf_exit "There was a problem staring - no config found"; fi
-    else
-      printf_exit "There was a problem starting - no config found"
-    fi
-    ;;
-  *)
-    printf_red "No parameters specified"
-    exit
-    ;;
-  esac
-fi
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 case "$1" in
 import)
   __run_import_site
