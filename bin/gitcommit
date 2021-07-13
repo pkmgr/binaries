@@ -70,7 +70,7 @@ EOF
   fi
 }
 __gitcommit() { 
-  local mess="{$1:-$mess}"
+  local mess="${1:-$mess}"
   git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 || exitCode=1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -135,7 +135,7 @@ __version() {
   date +"$gitversion" >"$versionfile"
   versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
   __git_add "$gitdir/version.txt"
-  #git -C "$gitdir" commit -q -m "$versionbump"
+  git -C "$gitdir" commit -q -m "$versionbump" version.txt
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
@@ -159,7 +159,7 @@ LONGOPTS="options,config,version,help,dir:,mess:,message:"
 ARRAY="status log push version files modified deleted added changed new improved "
 ARRAY+="fixed release docs test breaking refactor permissions bugs alot docker node "
 ARRAY+="ruby php perl python scratchpad todo notes blog emojify random custom setup reset "
-AARAY+="update enhanced "
+AARAY+="updated enhanced "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -309,7 +309,7 @@ modified)
   ;;
 
 
-modified)
+updated)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
