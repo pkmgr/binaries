@@ -167,6 +167,7 @@ run_postinst() {
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
   ln_sf "$APPDIR" "$SYSSHARE/CasjaysDev/$SCRIPTS_PREFIX/installer"
   cmd_exists update-motd && update-ip && update-motd || true
+  git config --global pull.rebase true
 }
 #
 execute "run_postinst" "Running post install scripts"
