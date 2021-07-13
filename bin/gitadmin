@@ -208,8 +208,8 @@ run_git_init() {
   local push=""
   local confirm=""
   if [ -n "$repo" ]; then
-    git -C "$REPODIR" remote add origin "$repo" -q &>/dev/null
-    printf_green "$repo has been added"
+    git -C "$REPODIR" remote add origin "$repo" -q &>/dev/null && \
+      printf_green "$repo has been added" || printf_exit 'Failed to add repo'
     printf_read_question "3" "Should I push to the new repo? [y/n]" "1" "push" "-s"
     if printf_answer_yes "$push"; then
       printf_read_question "3" "This will overwrite the repo if it exists. Continue? [y/n]" "1" "confirm_repo" "-s"
