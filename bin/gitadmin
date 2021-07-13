@@ -208,7 +208,7 @@ run_git_init() {
   local push=""
   local confirm=""
   if [ -n "$repo" ]; then
-    git -C "$REPODIR" remote add origin "$repo" -q &>/dev/null && \
+    git -C "$REPODIR" remote add origin "$repo" -q >/dev/null && \
       printf_green "$repo has been added" || printf_exit 'Failed to add repo'
     printf_read_question "3" "Should I push to the new repo? [y/n]" "1" "push" "-s"
     if printf_answer_yes "$push"; then
@@ -224,6 +224,8 @@ run_git_init() {
     else
       printf_yellow "Not pushing due to user canceling"
     fi
+  else
+    printf_red "No remote repo specified"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
