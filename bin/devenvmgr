@@ -122,7 +122,7 @@ if_sample() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start a static server
 __run_static_site() {
-  cmd_exists && run_server "${1:-20000}" | false
+  cmd_exists run_server && run_server "${1:-20000}" || false
   exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

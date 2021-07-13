@@ -48,7 +48,7 @@ __python3_serv() { python3 -m http.server --cgi --bind "$myip" "${port}" &>>"$SE
 __python2_serv() { python2 -m http.server --cgi --bind "$myip" "${port}" &>>"$SERVER_LOG" && echo Py2 started &>>"$SERVER_LOG" || return 1; }
 __py_simple() { python -m SimpleHTTPServer "${port}" &>>"$SERVER_LOG" && echo "Py simple start" &>>"$SERVER_LOG" || return 1; }
 __default_srv() {
-  python2 -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' &>>"$SERVER_LOG" && echo "Default has started" || return 1
+  python2 -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "${port}" &>>"$SERVER_LOG" && echo "Default has started" || return 1
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 open_url() { if cmd_exists mybrowser; then mybrowser "$1"; elif cmd_exists "xdg-open"; then xdg-open "$1"; elif cmd_exists "open"; then open "$1"; fi; }
@@ -67,6 +67,7 @@ fi
 i=0
 port="${1:-8000}" && shift
 myip=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')
+myhost="$(hostname -s)"
 MAX_NUMBER_OF_TRIES=10
 TMP_DIR="${TMPDIR:-/tmp}"
 SERVER_LOG="${SERVER_LOG:-$TMPDIR/run_server_$port.log}"
@@ -90,7 +91,8 @@ while [ $i -lt $MAX_NUMBER_OF_TRIES ]; do
   sleep 5
 done &
 
-printf_yellow "Access from the network: http://$myip:$port"
+printf_yellow "Access from the network: "
+printf_green "http://$myip:$port http://$myhost:$port"
 printf_red "control-c to exit"
 __default_srv || __python3_serv || __python2_serv || __py_simple || __netcat_serv || __return_error
 
