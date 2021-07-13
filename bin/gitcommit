@@ -69,6 +69,10 @@ EOF
     false
   fi
 }
+__gitcommit() { 
+  local mess="{$1:-$mess}"
+  git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 || exitCode=1
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_add() {
   local -a files="$*"
@@ -285,6 +289,7 @@ files)
     filesmsg="$(git -C "$gitdir" status -b -s | sed '/^\#/d;s,^ ,,g;s,??,A,g' | tr '\n' '|' | sed 's#|$##g' | grep '^')"
     mess="➕ $filesmsg ➕ "
     __git_add "$files"
+    __gitcommit "$mess"
   else
     printf_exit 1 0 "Nothing has been changed"
   fi
@@ -296,6 +301,20 @@ modified)
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
     mess="🗃 Modified: $files 🗃 "
     __git_add "$files"
+    __gitcommit "$mess"
+  else
+    printf_exit 1 0 "Nothing has been modified"
+  fi
+  ;;
+
+
+modified)
+  shift 1
+  if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
+    files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
+    mess="🗃 Updated: $files 🗃 "
+    __git_add "$files"
+    __gitcommit "$mess"
   else
     printf_exit 1 0 "Nothing has been modified"
   fi
@@ -307,6 +326,7 @@ deleted)
     files="$(git -C "$gitdir" status -s -b | grep -F 'D ' | awk '{print $2}' | tr '\n' ' ')"
     mess="➖ Deleted: $files ➖ "
     __git_add "$files"
+    __gitcommit "$mess"
   else
     printf_exit 1 0 "Nothing has been deleted"
   fi
@@ -318,6 +338,7 @@ added)
     files="$(git -C "$gitdir" status -s -b | grep -F '?? ' | awk '{print $2}' | tr '\n' ' ')"
     mess="❓ Added: $files ❓"
     __git_add "$files"
+    __gitcommit "$mess"
   else
     printf_exit 1 0 "Nothing has been added"
   fi
@@ -329,6 +350,7 @@ changed)
   ARGS="${*:-} "
   mess="✔️🐛 Changed: ${ARGS}🐛✔️"
   __git_add $ARGS
+  __gitcommit "$mess"
   ;;
 
 new)
@@ -337,6 +359,7 @@ new)
   ARGS="${*:-} "
   mess="🆕📦 NEW: ${ARGS}📦🆕 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 improved)
@@ -353,6 +376,7 @@ fixed)
   ARGS="${*:-} "
   mess="🐛 FIXED: ${ARGS}🐛 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 release)
@@ -361,6 +385,7 @@ release)
   ARGS="${*:-} "
   mess="🚀 RELEASE: ${ARGS}🚀 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 docs)
@@ -369,6 +394,7 @@ docs)
   ARGS="${*} "
   mess="📖 DOCS: ${ARGS}📖 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 test)
@@ -377,6 +403,7 @@ test)
   ARGS="${*:-} "
   mess="🤖 TEST: ${ARGS}🤖"
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 breaking)
@@ -385,6 +412,7 @@ breaking)
   ARGS="${*:-} "
   mess="⚒️ BREAKING: ${ARGS}⚒️ "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 refactor)
@@ -392,6 +420,7 @@ refactor)
   ARGS="${*:-} "
   mess="✔️ 〰️ Refactor Code ${ARGS}〰️ ✔️  "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 performance)
@@ -406,6 +435,7 @@ permission | permissions)
   ARGS="${*:-} "
   mess="🏠🔥❗ Fixed Permissions ${ARGS}❗🔥🏠 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 bug | bugs)
@@ -413,6 +443,7 @@ bug | bugs)
   ARGS="${*:-} "
   mess="🐛🦈🏠❗ Bug Fixes ${ARGS}❗🏠🦈🐛 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 alot | fixes)
@@ -420,6 +451,7 @@ alot | fixes)
   ARGS="${*:-} "
   mess="🦈🏠🐜❗ Fixes and Updates ${ARGS}❗🐜🦈🏠 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 docker)
@@ -427,6 +459,7 @@ docker)
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added Docker Workflow ${ARGS}❗🏠🦈❇🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 node)
@@ -434,6 +467,7 @@ node)
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added nodejs Workflow ${ARGS}🏠🦈❇🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 ruby)
@@ -441,6 +475,7 @@ ruby)
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added ruby Workflow ${ARGS}❗🏠🦈❇🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 php)
@@ -448,6 +483,7 @@ php)
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added php Workflow ${ARGS}❗🏠🦈❇🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 perl)
@@ -455,6 +491,7 @@ perl)
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added perl Workflow ${ARGS}❗🏠🦈❇🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 python)
@@ -462,6 +499,7 @@ python)
   ARGS="${*:-} "
   mess="🐜❇🦈🏠❗ Added python Workflow ${ARGS}❗🏠🦈❇🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 scratchpad)
@@ -471,6 +509,7 @@ scratchpad)
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${msg:-Modified my scratchpad} ${ARGS}📓❇📓🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 todo)
@@ -480,6 +519,7 @@ todo)
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${mesg:-Modified my todo list} ${ARGS}📓❇📓🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 notes)
@@ -489,6 +529,7 @@ notes)
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${msg:-Modified my notes} ${ARGS}📓❇📓🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 blog)
@@ -498,6 +539,7 @@ blog)
   ARGS=" ${*:-} "
   mess="🐜📓❇📓 ${msg:-New blog post} ${ARGS}📓❇📓🐜 "
   __git_add "$ARGS"
+  __gitcommit "$mess"
   ;;
 
 init)
@@ -508,7 +550,7 @@ init)
 
 emj | emojy | emojify)
   cmd_exists emojify && setemj="$(emojify "$*")" || setemj="$*"
-  mess="🦈🏠🐜❗ ${setemj:-Well I did some things} ❗🐜🦈🏠 "
+  mess="${setemj:-🦈🏠🐜❗ Well I did some things ❗🐜🦈🏠 }"
   ;;
 
 random)
@@ -559,7 +601,7 @@ else
   if [ -z "$mess" ]; then
     git -C "$gitdir" commit -q -S -m "🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null && exitCode=0 || exitCode=1
   else
-    git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && exitCode=0 || exitCode=1
+    __gitcommit "$mess"
   fi
   __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
     "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
