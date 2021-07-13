@@ -55,6 +55,8 @@ open_url() { if cmd_exists mybrowser; then mybrowser "$1"; elif cmd_exists "xdg-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 cmd_exists lsof
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 if [ "$1" = "--bg" ]; then
   shift 1
   echo "launching background process"
@@ -64,6 +66,8 @@ if [ "$1" = "--bg" ]; then
   exit $?
 fi
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 i=0
 port="${1:-8000}" && shift
 myip=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')
@@ -71,6 +75,8 @@ myhost="$(hostname -s)"
 MAX_NUMBER_OF_TRIES=10
 TMP_DIR="${TMPDIR:-/tmp}"
 SERVER_LOG="${SERVER_LOG:-$TMPDIR/run_server_$port.log}"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if ! __test_server "$port"; then
   printf_error "Something appears to be running on $port"
@@ -80,6 +86,8 @@ if ! __test_server "$port"; then
     __test_server "$port" && break
   done
 fi
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 printf '%s\n' "Starting the server on port $port" &>"$SERVER_LOG"
 while [ $i -lt $MAX_NUMBER_OF_TRIES ]; do
@@ -91,8 +99,9 @@ while [ $i -lt $MAX_NUMBER_OF_TRIES ]; do
   sleep 5
 done &
 
-printf_yellow "Access from the network: "
-printf_green "http://$myip:$port http://$myhost:$port"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+printf_yellow "Access from the network: http://$myip:$port"
 printf_red "control-c to exit"
 __default_srv || __python3_serv || __python2_serv || __py_simple || __netcat_serv || __return_error
 

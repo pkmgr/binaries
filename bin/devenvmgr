@@ -122,7 +122,9 @@ if_sample() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start a static server
 __run_static_site() {
-  cmd_exists run_server && run_server "${1:-20000}" || false
+  printf_read_input "3" "Enter location for your new site - enter . for current:" "120" "sitedir" "-i $sitedir"
+  cd "$sitedir" && cmd_exists run_server && run_server "${1:-20000}" || \
+    printf_return 1 1 "Failed to enter into $sitedir"
   exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -459,7 +461,7 @@ import)
   ;;
 static)
   shift 1
-  __run_new_site && __run_static_site "$@"
+  __run_static_site "$@"
   ;;
 jekyll)
   shift 1
