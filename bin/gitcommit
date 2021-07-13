@@ -586,7 +586,7 @@ setup | reset)
 esac
 shift
 
-if __git_porcelain "$gitdir"; then
+if  __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit in ${basedir}"
   exit
 else
