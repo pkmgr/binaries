@@ -613,7 +613,7 @@ else
 fi
 
 git_cherry="$(git cherry -v)"
-if  [ -n "$git_cherry" ]; then
+if [ -n "$COMMIT" ] || [ -n "$git_cherry" ]; then
   if am_i_online --error -m "No internet connection. Skipping push"; then
     __git_push
   fi
