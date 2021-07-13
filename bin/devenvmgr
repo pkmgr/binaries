@@ -330,6 +330,17 @@ __gen_editorconfig() {
     printf_exit 1 1 "Failed to create .editorconfig"
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Download the repo
+__download() {
+  local REPO="$DEVENVMGRREPO/$1"
+  shift $#
+  if __urlcheck "$REPO"; then
+    __run_new_site && git_clone "$REPO" "$sitedir"
+  else
+    printf_exit "$REPO is an invalid repo!"
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start server function
 __start_servers() {
 case "$1" in
@@ -370,7 +381,7 @@ DEVENVMGR_COMAND="${DEVENVMGR_COMAND:-}"
 SETARGS="$*"
 SHORTOPTS="c,v,h"
 LONGOPTS="options,config,version,help,start:"
-ARRAY="import static jekyll hugo ruby python perl php node vue react express create-project mevn shellcheck editorconfig"
+ARRAY="import static jekyll hugo ruby python perl php node vue react express create-project mevn shellcheck editorconfig download"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
@@ -506,13 +517,12 @@ editorconfig)
   shift 1
   __run_new_site && __gen_editorconfig "$@"
   ;;
-*)
+download)
   shift 1
-  if __urlcheck "$DEVENVMGRREPO/$1"; then
-    __run_new_site && git_clone "$DEVENVMGRREPO/$1" "$sitedir"
-  else
-    __help "$@"
-  fi
+  __download "$@"
+  ;;
+*)
+  __help "$@"
   ;;
 esac
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
