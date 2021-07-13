@@ -71,6 +71,7 @@ EOF
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gitcommit() { 
+  __git_porcelain "$gitdir" && return
   local mess="${1:-$mess}"
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
