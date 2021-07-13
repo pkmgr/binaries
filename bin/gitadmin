@@ -204,8 +204,9 @@ do_not_add_a_url() {
 # The initialize git function
 run_git_init() {
   REPODIR="${1:-$REPODIR}"
-  local push=""
-  local confirm_repo=""
+  repo="$repo"
+  local push=
+  local confirm_repo=
   if [ -n "$repo" ]; then
     git -C "$REPODIR" remote add origin "$repo" -q &>/dev/null
     printf_green "$repo has been added"
@@ -270,7 +271,7 @@ run_git_setup() {
   else
     printf_read_question "3" "Should I add a remote repo? [y/n] " "1" "remote" "-s"
     if printf_answer_yes "$remote"; then
-      printf_read_input "3" "Enter remote repo: " "120" "repo"
+      printf_read_input "3" "Enter remote repo: " "120" "repo" 
       run_git_init "$REPODIR"
     else
       printf_yellow "You have decided not to add a remote repository"
