@@ -159,6 +159,7 @@ LONGOPTS="options,config,version,help,dir:,mess:,message:"
 ARRAY="status log push version files modified deleted added changed new improved "
 ARRAY+="fixed release docs test breaking refactor permissions bugs alot docker node "
 ARRAY+="ruby php perl python scratchpad todo notes blog emojify random custom setup reset "
+AARAY+="update enhanced "
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Generate Files
 [ -f "$GITCOMMIT_CONFIG_DIR/$GITCOMMIT_CONFIG_FILE" ] || __gen_config &>/dev/null
