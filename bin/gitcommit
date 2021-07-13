@@ -74,7 +74,7 @@ __gitcommit() {
   local mess="${1:-$mess}"
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
-  git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && __version && \
+  __version && git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && \
     __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
     "Failed to commit the changes to $(__git_repobase "$gitdir")" && \
      printf_green "commit ID: $(__git_commitid "$gitdir")" && COMMIT="true" || false
@@ -143,7 +143,7 @@ __version() {
   date +"$gitversion" >"$versionfile"
   versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
   __git_add "$gitdir/version.txt"
-  git -C "$gitdir" commit -q -S -m "$versionbump" -- "$GITCOMMIT_VERSION_FILE"
+  #git -C "$gitdir" commit -q -S -m "$versionbump" -- "$GITCOMMIT_VERSION_FILE"
   printf_blue "$versionbump"
   fi
 }
