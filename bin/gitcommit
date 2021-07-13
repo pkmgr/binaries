@@ -586,7 +586,9 @@ setup | reset)
 esac
 shift
 
-if  __git_porcelain "$gitdir"; then
+git_cherry="$(git cherry -v)"
+
+if [ -z "$git_cherry" ] || __git_porcelain "$gitdir"; then
   printf_red "There are no changes to commit in ${basedir}"
   exit
 else
