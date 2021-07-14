@@ -67,7 +67,7 @@ _dfmgr() {
     available) prev="available" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     list) prev="list" && COMPREPLY=($(compgen -W '' -- "${cur}")) ;;
     search) prev="search" && COMPREPLY=($(compgen -W '$(echo {0..9} {a..z})' -- "${cur}")) && compopt -o nospace ;;
-    install) prev="install" && COMPREPLY=($(compgen -W '${LIST}' -- "${cur}")) ;;
+    install | download) prev="install" && COMPREPLY=($(compgen -W '${LIST}' -- "${cur}")) ;;
     update | cron | remove | version)
       prev="$special"
       k=0

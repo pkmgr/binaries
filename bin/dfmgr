@@ -77,12 +77,12 @@ __gpg_import() {
   return 0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__download() { 
+__download() {
   REPO_NAME="$1"
   REPO_URL="$DFMGR_GIT_REPO/$REPO_NAME"
   DIR_NAME="$DFMGR_CLONE_DIR/$REPO_NAME"
-  gitadmin clone "$REPO_URL" "$DIR_NAME"  
-    #printf_green "Cloned $REPO_URL to $DIR_NAME" || printf_exit 1 1 "Filed to clone $REPO_URL"
+  gitadmin clone "$REPO_URL" "$DIR_NAME"
+  #printf_green "Cloned $REPO_URL to $DIR_NAME" || printf_exit 1 1 "Filed to clone $REPO_URL"
   exit $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -135,7 +135,7 @@ ARRAY="list search available personal update install cron version remove clone d
 [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
 [ -f "$DFMGR_OPTIONS_DIR/options" ] || __list_options "$DFMGR_OPTIONS_DIR" &>/dev/null
 [ -f "$DFMGR_OPTIONS_DIR/array" ] || __list_array "$DFMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
-[ -f "$DFMGR_OPTIONS_DIR/available" ] || __list_available >"$DFMGR_OPTIONS_DIR/available" &>/dev/null
+[ -f "$DFMGR_OPTIONS_DIR/available" ] || __list_available >"$DFMGR_OPTIONS_DIR/available" 2>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
 if [ -f "$DFMGR_CONFIG_DIR/$DFMGR_CONFIG_FILE" ]; then
