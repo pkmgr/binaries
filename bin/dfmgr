@@ -294,7 +294,11 @@ install)
 
 clone | download)
   shift 1
-  __download "$1"
+  LISTARRAY="$*"
+   [ ${#LISTARRAY} -ne 0 ] || printf_exit "No packages selected for download"
+   for pkgs in $LISTARRAY; do
+    __download "$pkgs"
+  done 
   ;;
 
 cron)
