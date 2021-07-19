@@ -600,9 +600,7 @@ esac
 shift
 
 if __git_porcelain "$gitdir"; then
-  if [ -z "$COMMIT" ]; then
-    printf_red "There are no changes to commit in ${basedir}"
-  fi
+  [ -n "$COMMIT" ] || printf_red "There are no changes to commit in ${basedir}"
 else
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
     cp -Rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
