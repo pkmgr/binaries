@@ -80,8 +80,8 @@ __gitcommit() {
   printf_yellow "$mess"
   __version && git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null &&
     __getexitcode "$exitCode" "$succ $(__git_repobase "$gitdir")" "$fail $(__git_repobase "$gitdir")" &&
-    printf_green "commit ID: $(__git_commitid "$gitdir")" && COMMIT="true" || false
-  exitCode=$?
+    printf_green "commit ID: $(__git_commitid "$gitdir")" && COMMIT="true" && true || false
+  return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_add() {
@@ -599,7 +599,7 @@ esac
 shift
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __git_porcelain "$gitdir"; then
-  [ -n "$COMMIT" ] || printf_red "There are no changes to commit in ${basedir}"
+  [ -n "$COMMIT" ] && true || printf_red "There are no changes to commit in ${basedir}"
 else
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
     cp -Rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
