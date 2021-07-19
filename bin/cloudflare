@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+APPNAME="$(basename "$0")"
+VERSION="202107182222-git"
+USER="${SUDO_USER:-${USER}}"
+HOME="${USER_HOME:-${HOME}}"
+SRC_DIR="${BASH_SOURCE%/*}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#set opts
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+##@Version       : 202107182222-git
+# @Author        : casjay
+# @Contact       : casjay
+# @License       : WTFPL
+# @ReadME        : template --help
+# @Copyright     : Copyright: (c) 2021 casjay, casjay
+# @Created       : Sunday, Jul 18, 2021 22:22 EDT
+# @File          : template
+# @Description   : cloudflare api script
+# @TODO          :
+# @Other         :
+# @Resource      :
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import functions
+CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
+SCRIPTSFUNCTDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}/functions"
+SCRIPTSFUNCTFILE="${SCRIPTSAPPFUNCTFILE:-testing.bash}"
+SCRIPTSFUNCTURL="${SCRIPTSAPPFUNCTURL:-https://github.com/dfmgr/installer/raw/master/functions}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+if [ -f "$PWD/$SCRIPTSFUNCTFILE" ]; then
+  . "$PWD/$SCRIPTSFUNCTFILE"
+elif [ -f "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" ]; then
+  . "$SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE"
+else
+  echo "Can not load the functions file: $SCRIPTSFUNCTDIR/$SCRIPTSFUNCTFILE" 1>&2
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# user system devenv dfmgr dockermgr fontmgr iconmgr pkmgr systemmgr thememgr wallpapermgr
+user_install
+__options "$@"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__gen_config() {
+  printf_green "Generating the config file in"
+  printf_green "$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE"
+  [ -d "$CLOUDFLARE_CONFIG_DIR" ] || mkdir -p "$CLOUDFLARE_CONFIG_DIR"
+  [ -d "$CLOUDFLARE_CONFIG_BACKUP_DIR" ] || mkdir -p "$CLOUDFLARE_CONFIG_BACKUP_DIR"
+  [ -f "$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE" ] &&
+    cp -Rf "$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE" "$CLOUDFLARE_CONFIG_BACKUP_DIR/$CLOUDFLARE_CONFIG_FILE.$$"
+  cat <<EOF >"$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE"
+# Settings for CLOUDFLARE
+CLOUDFLARE_EMAIL=""
+CLOUDFLARE_KEY=""
+CLOUDFLARE_ZONE=""
+CLOUDFLARE_RECORD=""
+CLOUDFLARE_NOTIFY_ENABLED="yes"
+CLOUDFLARE_NOTIFY_CLIENT_NAME="\${NOTIFY_CLIENT_NAME:-\$APPNAME}"
+CLOUDFLARE_NOTIFY_CLIENT_ICON="\${NOTIFY_CLIENT_ICON:-\$CLOUDFLARE_NOTIFY_CLIENT_ICON}"
+
+EOF
+  if [ -f "$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE" ]; then
+    printf_green "Your config file for CLOUDFLARE has been created"
+    true
+  else
+    printf_red "Failed to create the config file"
+    false
+  fi
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__list_available() {
+  echo -e "$ARRAY" | tr ' ' '\n'
+  exit 0
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Defaults
+exitCode=""
+CLOUDFLARE_CONFIG_FILE="settings.conf"
+CLOUDFLARE_CONFIG_DIR="$HOME/.config/myscripts/cloudflare"
+CLOUDFLARE_CONFIG_BACKUP_DIR="$HOME/.local/share/myscripts/cloudflare/backups"
+CLOUDFLARE_OPTIONS_DIR="$HOME/.local/share/myscripts/cloudflare/options"
+CLOUDFLARE_NOTIFY_ENABLED="yes"
+CLOUDFLARE_NOTIFY_CLIENT_NAME="${NOTIFY_CLIENT_NAME:-$APPNAME}"
+CLOUDFLARE_NOTIFY_CLIENT_ICON="${NOTIFY_CLIENT_ICON:-$CLOUDFLARE_NOTIFY_CLIENT_ICON}"
+CLOUDFLARE_TEMP_FILE="${TMPDIR:-/tmp}/cloudflare"
+CLOUDFLARE_COMAND="${CLOUDFLARE_COMAND:-}"
+CLOUDFLARE_EMAIL="${CLOUDFLARE_EMAIL:-}"
+CLOUDFLARE_KEY="${CLOUDFLARE_KEY:-}"
+CLOUDFLARE_ZONE="${CLOUDFLARE_ZONE:-}"
+CLOUDFLARE_RECORD="${CLOUDFLARE_RECORD:-}"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Set additional variables/Argument/Option settings
+SETARGS="$*"
+SHORTOPTS="c,v,h"
+LONGOPTS="options,config,version,help,start:"
+ARRAY="import static jekyll hugo ruby python perl php node vue react express create-project mevn shellcheck editorconfig download"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Generate Files
+[ -f "$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE" ] || __gen_config &>/dev/null
+[ -f "$CLOUDFLARE_OPTIONS_DIR/options" ] || __list_options "$CLOUDFLARE_OPTIONS_DIR" &>/dev/null
+[ -f "$CLOUDFLARE_OPTIONS_DIR/array" ] || __list_array "$CLOUDFLARE_OPTIONS_DIR" "$ARRAY" &>/dev/null
+[ -f "$CLOUDFLARE_OPTIONS_DIR/available" ] || __list_available >"$CLOUDFLARE_OPTIONS_DIR/available" 2>/dev/null
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Import config
+if [ -f "$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE" ]; then
+  . "$CLOUDFLARE_CONFIG_DIR/$CLOUDFLARE_CONFIG_FILE"
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# options
+setopts=$(getopt -o "$SHORTOPTS" --long "$LONGOPTS" -a -n "$APPNAME" -- "$@" 2>/dev/null)
+eval set -- "${setopts[@]}" 2>/dev/null
+while :; do
+  case $1 in
+  --options)
+    shift 1
+    __list_array "$CLOUDFLARE_OPTIONS_DIR" "$ARRAY"
+    __list_options "$CLOUDFLARE_OPTIONS_DIR"
+    __list_available >"$CLOUDFLARE_OPTIONS_DIR/available"
+    exit $?
+    ;;
+  -v | --version)
+    shift 1
+    __version
+    exit $?
+    ;;
+  -h | --help)
+    shift 1
+    __help
+    exit $?
+    ;;
+  -c | --config)
+    shift 1
+    __gen_config
+    exit $?
+    ;;
+  --)
+    shift 1
+    break
+    ;;
+  esac
+done
+#set -- "$SETARGS"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Actions based on env
+export NOTIFY_CLIENT_NAME="${CLOUDFLARE_NOTIFY_CLIENT_NAME}"
+export NOTIFY_CLIENT_ICON="${CLOUDFLARE_NOTIFY_CLIENT_ICON}"
+if [ "$CLOUDFLARE_NOTIFY_ENABLED" = "yes" ]; then
+  __notifications() {
+    notifications "$*" || return 1
+  }
+else
+  __notifications() { false; }
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Check for required applications/Network check
+cmd_exists --error bash || exit 1
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# APP Variables
+[ -n "$CLOUDFLARE_EMAIL" ] || printf_exit 1 1 "Please set CLOUDFLARE_EMAIL variable"
+[ -n "$CLOUDFLARE_KEY" ] || printf_exit 1 1 "Please set CLOUDFLARE_KEY variable"
+[ -n "$CLOUDFLARE_ZONE" ] || printf_exit 1 1 "Please set CLOUDFLARE_ZONE variable"
+[ -n "$CLOUDFLARE_RECORD" ] || printf_exit 1 1 "Please set CLOUDFLARE_RECORD variable"
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+auth_email="$CLOUDFLARE_EMAIL"     # The email used to login 'https://dash.cloudflare.com'
+auth_key="$CLOUDFLARE_KEY"         # Top right corner, "My profile" > "Global API Key"
+zone_identifier="$CLOUDFLARE_ZONE" # Can be found in the "Overview" tab of your domain
+record_name="$CLOUDFLARE_RECORD"   # Which record you want to be synced
+proxy=true                         # Set the proxy to true or false
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###########################################
+## Check if we have an public IP
+###########################################
+ip=$(curl -s https://api.ipify.org || curl -s https://ipv4.icanhazip.com/)
+if [ "${ip}" == "" ]; then
+  message="No public IP found."
+  echo >&2 -e "${message}" >>~/log
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###########################################
+## Seek for the A record
+###########################################
+echo " Check Initiated" >>~/log
+record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###########################################
+## Check if the domain has an A record
+###########################################
+if [[ $record == *"\"count\":0"* ]]; then
+  message=" Record does not exist, perhaps create one first? (${ip} for ${record_name})"
+  echo >&2 -e "${message}" >>~/log
+  exit 1
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###########################################
+## Get the existing IP
+###########################################
+old_ip=$(echo "$record" | grep -Po '(?<="content":")[^"]*' | head -1)
+# Compare if they're the same
+if [[ $ip == "$old_ip" ]]; then
+  message=" IP ($ip) for ${record_name} has not changed."
+  echo "${message}" >>~/log
+  exit 0
+fi
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###########################################
+## Set the record identifier from result
+###########################################
+record_identifier=$(echo "$record" | grep -Po '(?<="id":")[^"]*' | head -1)
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###########################################
+## Change the IP@Cloudflare using the API
+###########################################
+update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" \
+  -H "X-Auth-Email: $auth_email" \
+  -H "X-Auth-Key: $auth_key" \
+  -H "Content-Type: application/json" \
+  --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"proxied\":${proxy},\"name\":\"$record_name\",\"content\":\"$ip\"}")
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###########################################
+## Report the status
+###########################################
+case "$update" in
+*"\"success\":false"*)
+  message="$ip $record_name DDNS failed for $record_identifier ($ip). DUMPING RESULTS:\n$update"
+  echo >&2 -e "${message}" >>~/log
+  exit 1
+  ;;
+*)
+  message="$ip $record_name DDNS updated."
+  echo "${message}" >>~/log
+  exit 0
+  ;;
+esac
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# End application
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# lets exit with code
+exit ${exitCode:-$?}
