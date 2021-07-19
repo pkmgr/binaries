@@ -20,8 +20,8 @@ trap '[ -f "$DEVENVMGR_TEMP_FILE" ] && rm -Rf "$DEVENVMGR_TEMP_FILE" &>/dev/null
 # @File          : devenvmgr
 # @Description   : Setup a development environment
 # @TODO          : Create user config
-# @Other         : 
-# @Resource      : 
+# @Other         :
+# @Resource      :
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import functions
 CASJAYSDEVDIR="${CASJAYSDEVDIR:-/usr/local/share/CasjaysDev/scripts}"
@@ -56,7 +56,7 @@ fi
 if [ "$sitedir" = "." ]; then sitedir="$(__basedir ".")"; fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __gen_config() {
-    printf_green "Generating the config file in"
+  printf_green "Generating the config file in"
   printf_green "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE"
   [ -d "$DEVENVMGR_CONFIG_DIR" ] || mkdir -p "$DEVENVMGR_CONFIG_DIR"
   [ -d "$DEVENVMGR_CONFIG_BACKUP_DIR" ] || mkdir -p "$DEVENVMGR_CONFIG_BACKUP_DIR"
@@ -82,12 +82,12 @@ EOF
 # What to do after creating project
 __start_new_project() {
   local PROJECTDIR="$sitedir"
-  [  -n "$PROJECTDIR" ] && cd "$PROJECTDIR" || printf_green "ProjectDir: $PROJECTDIR"
+  [ -n "$PROJECTDIR" ] && cd "$PROJECTDIR" || printf_green "ProjectDir: $PROJECTDIR"
   if [ -n "$DEVENVMGR_COMAND" ] && [ -f "$(type -P "$(basename "$DEVENVMGR_COMAND")")" ]; then
     shift $#
-    if  [ -n "$DEVENVMGR_COMAND"  = "$(basname code)"]; then
+    if [ "$DEVENVMGR_COMAND" = "$(basename code)" ]; then
       code .
-    else  
+    else
       eval "$DEVENVMGR_COMAND"
     fi
   elif [ "$1" = "screen" ]; then
@@ -108,8 +108,8 @@ __start_new_project() {
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __list_available() {
-  echo -e "$ARRAY"  | tr ' ' '\n'
-exit 0
+  echo -e "$ARRAY" | tr ' ' '\n'
+  exit 0
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # check for sample files
@@ -123,7 +123,7 @@ if_sample() {
 # Start a static server
 __run_static_site() {
   printf_read_input "3" "Enter location for your new site - enter . for current:" "120" "sitedir" "-i $sitedir"
-  cd "$sitedir" && cmd_exists run_server && run_server "${1:-20000}" || \
+  cd "$sitedir" && cmd_exists run_server && run_server "${1:-20000}" ||
     printf_return 1 1 "Failed to enter into $sitedir"
   exit $?
 }
@@ -345,7 +345,7 @@ __download() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Start server function
 __start_servers() {
-case "$1" in
+  case "$1" in
   jekyll)
     __requires jekyll || printf_exit 1 1 "jekyll can't be found"
     if [ -f "$sitedir/_config.yml" ]; then
@@ -353,7 +353,7 @@ case "$1" in
         watchy -w "$sitedir/_config.yml" -- jekyll serve --host=0.0.0.0
       elif __requires jekyll; then
         jekyll serve --host=0.0.0.0
-      else 
+      else
         printf_exit "There was a problem staring - no config found"
       fi
     else
@@ -389,7 +389,7 @@ ARRAY="import static jekyll hugo ruby python perl php node vue react express cre
 [ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ] || __gen_config &>/dev/null
 [ -f "$DEVENVMGR_OPTIONS_DIR/options" ] || __list_options "$DEVENVMGR_OPTIONS_DIR" &>/dev/null
 [ -f "$DEVENVMGR_OPTIONS_DIR/array" ] || __list_array "$DEVENVMGR_OPTIONS_DIR" "$ARRAY" &>/dev/null
-[ -f "$DEVENVMGR_OPTIONS_DIR/available" ] || __list_available >"$DEVENVMGR_OPTIONS_DIR/available" &>/dev/null
+[ -f "$DEVENVMGR_OPTIONS_DIR/available" ] || __list_available >"$DEVENVMGR_OPTIONS_DIR/available" 2>/dev/null
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Import config
 if [ -f "$DEVENVMGR_CONFIG_DIR/$DEVENVMGR_CONFIG_FILE" ]; then
