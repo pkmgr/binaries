@@ -597,28 +597,28 @@ setup | reset)
   ;;
 esac
 shift
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __git_porcelain "$gitdir"; then
   [ -n "$COMMIT" ] || printf_red "There are no changes to commit in ${basedir}"
 else
   if [ -f "$gitdir/gitmasterconfig" ] && [ -d "$gitdir/.git" ]; then
     cp -Rf "$gitdir/gitmasterconfig" "$gitdir/.git/config"
   fi
-  if [ -z "$files" ]; then git -C "$gitdir" add . >/dev/null 2>&1; fi
+  if [ -z "$files" ]; then
+    git -C "$gitdir" add . >/dev/null 2>&1
+  fi
   if [ -z "$mess" ]; then
     __gitcommit "🦈🏠🐜 Fixes and Updates 🐜🦈🏠 " 2>/dev/null && exitCode=0 || exitCode=1
   else
     __gitcommit "$mess" 2>/dev/null && exitCode=0 || exitCode=1
   fi
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 git_cherry="$(git -C "$gitdir" cherry -v)"
 if [ -n "$COMMIT" ] || [ -n "$git_cherry" ]; then
-  if am_i_online --error -m "No internet connection. Skipping push"; then
-    __git_push
-  fi
+  am_i_online --error -m "No internet connection. Skipping push" && __git_push
 fi
-
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 printf_newline
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # End application
