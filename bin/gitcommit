@@ -70,16 +70,16 @@ EOF
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__gitcommit() { 
+__gitcommit() {
   __git_porcelain "$gitdir" && return
   local mess="${1:-$mess}"
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
-  __version && git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null && \
+  __version && git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null &&
     __getexitcode $exitCode "Successfuly committed the changes to $(__git_repobase "$gitdir")" \
-    "Failed to commit the changes to $(__git_repobase "$gitdir")" && \
-     printf_green "commit ID: $(__git_commitid "$gitdir")" && COMMIT="true" || false
-     exitCode=$?
+      "Failed to commit the changes to $(__git_repobase "$gitdir")" &&
+    printf_green "commit ID: $(__git_commitid "$gitdir")" && COMMIT="true" || false
+  exitCode=$?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __git_add() {
@@ -141,11 +141,11 @@ __git_push() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __version() {
   if [ -f "$versionfile" ]; then
-  date +"$gitversion" >"$versionfile"
-  versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
-  __git_add "$gitdir/version.txt"
-  #git -C "$gitdir" commit -q -S -m "$versionbump" -- "$GITCOMMIT_VERSION_FILE"
-  printf_blue "$versionbump"
+    date +"$gitversion" >"$versionfile"
+    versionbump="🚀 Version Bump: $(cat "$versionfile") 🚀 "
+    __git_add "$gitdir/version.txt"
+    #git -C "$gitdir" commit -q -S -m "$versionbump" -- "$GITCOMMIT_VERSION_FILE"
+    printf_blue "$versionbump"
   fi
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -319,8 +319,8 @@ modified)
   fi
   ;;
 
-
-updated)
+\
+  updated)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
@@ -613,7 +613,7 @@ else
   fi
 fi
 
-git_cherry="$(git cherry -v)"
+git_cherry="$(git -C "$gitdir" cherry -v)"
 if [ -n "$COMMIT" ] || [ -n "$git_cherry" ]; then
   if am_i_online --error -m "No internet connection. Skipping push"; then
     __git_push
