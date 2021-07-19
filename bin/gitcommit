@@ -321,8 +321,7 @@ modified)
   fi
   ;;
 
-\
-  updated)
+updated)
   shift 1
   if git -C "$gitdir" status -s -b | grep -F 'M ' >/dev/null 2>&1; then
     files="$(git -C "$gitdir" status -s -b | grep -F 'M ' | awk '{print $2}' | tr '\n' ' ')"
