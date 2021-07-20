@@ -75,12 +75,20 @@ __gitcommit() {
   local mess="${1:-$mess}"
   local succ="Successfuly committed the changes to"
   local fail="Failed to commit the changes to"
-  local COMMIT=""
+  COMMIT=""
   printf_cyan "Commiting Changes with the following message:"
   printf_yellow "$mess"
-  __version && git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null &&
-    __getexitcode "$exitCode" "$succ $(__git_repobase "$gitdir")" "$fail $(__git_repobase "$gitdir")" &&
-    printf_green "commit ID: $(__git_commitid "$gitdir")" && COMMIT="true" && true || false
+  if __version && git -C "$gitdir" commit -q -S -m "$mess" 2>/dev/null; then
+    if __getexitcode "$exitCode" "$succ $(__git_repobase "$gitdir")" "$fail $(__git_repobase "$gitdir")"; then
+      printf_green "commit ID: $(__git_commitid "$gitdir")"
+      COMMIT="true"
+      true
+    else
+      false
+    fi
+  else
+    false
+  fi
   return $?
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
