@@ -86,7 +86,9 @@ __create_link() {
 # Find the terminal app
 [ "$TERMINAL" = "myterminal" ] && unset TERMINAL
 if [ "$MYTERMINAL" != "config" ]; then
-  if [ -f "$(command -v termite 2>/dev/null)" ]; then
+  if [ -f "$(command -v garcon-terminal-handler 2>/dev/null)" ]; then
+    TERMINAL="garcon-terminal-handler"
+  elif [ -f "$(command -v termite 2>/dev/null)" ]; then
     TERMINAL="termite"
   elif [ -f "$(command -v sakura 2>/dev/null)" ]; then
     TERMINAL="sakura"
