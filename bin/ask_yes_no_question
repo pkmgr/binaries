@@ -96,7 +96,13 @@ __dmenu() { [ "$(printf "No\\nYes" | dmenu -i -p "$1" -nb purple -sb white -sf b
 __zenity() { zenity --question --width=400 --text="$1" --ellipsize --default-cancel && $2 || return 1; }
 __dialog() { gdialog --trim --cr-wrap --colors --title "question" --yesno "$1" 15 40 && $2 || return 1; }
 __term() { printf_question_term "$1" "$2" || return 1; }
-__resend() { ASK_YES_NO_QUESTION_QUESTION="$question" ASK_YES_NO_QUESTION_COMMAND="$command" ${TERMINAL:-myterminal} -e "${BASH_SOURCE} -t"; }
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__resend() {
+  ASK_YES_NO_QUESTION_QUESTION="$question"
+  ASK_YES_NO_QUESTION_COMMAND="$command"
+  export ASK_YES_NO_QUESTION_QUESTION ASK_YES_NO_QUESTION_COMMAND
+  ${TERMINAL:-myterminal} -e "$APPNAME -t"
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Defaults
 exitCode=""
@@ -193,8 +199,8 @@ cmd_exists --error bash || exit 1
 # begin main app
 if [ "$launch_term" = "true" ]; then
   printf_newline '\n\n\n\n'
-  question="$RESENT_QUESTION"
-  command="$RESENT_COMMAND"
+  question="${RESENT_QUESTION}"
+  command="${RESENT_COMMAND}"
   __term "$question" "$command" || notify_error
 else
   if [ -n "$DISPLAY" ]; then
@@ -213,10 +219,18 @@ else
         __resend || notify_error "${name:-$appname}"
       fi
     else
-      __resend || notify_error "${name:-$appname}"
+      if [ -t 0 ]; then
+        __term "$question" "$command" || notify_error
+      else
+        __resend || notify_error "${name:-$appname}"
+      fi
     fi
   else
-    __resend || notify_error "${name:-$appname}"
+    if [ -t 0 ]; then
+      __term "$question" "$command" || notify_error
+    else
+      __resend || notify_error "${name:-$appname}"
+    fi
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
